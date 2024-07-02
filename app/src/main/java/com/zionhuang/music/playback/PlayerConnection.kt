@@ -128,6 +128,10 @@ class PlayerConnection(
         player.seekToNext()
         player.playWhenReady = true
     }
+    fun seekToPrevious(){
+        player.seekToPrevious()
+        player.playWhenReady = true
+    }
 
     override fun onPlaybackStateChanged(state: Int) {
         playbackState.value = state

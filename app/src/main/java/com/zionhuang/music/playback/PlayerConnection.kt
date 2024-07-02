@@ -124,6 +124,11 @@ class PlayerConnection(
         service.toggleLibrary()
     }
 
+    fun seekToNext(){
+        player.seekToNext()
+        player.playWhenReady = true
+    }
+
     override fun onPlaybackStateChanged(state: Int) {
         playbackState.value = state
         error.value = player.playerError

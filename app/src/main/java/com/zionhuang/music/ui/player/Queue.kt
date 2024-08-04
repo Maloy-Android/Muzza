@@ -95,10 +95,10 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
-import kotlin.math.roundToInt
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import kotlin.math.roundToInt
 
 @OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -148,14 +148,6 @@ fun Queue(
         mutableStateOf(false)
     }
 
-    fun calculateSleepTime(minutes: Float): String {
-        val pattern = if (android.text.format.DateFormat.is24HourFormat(context))
-            "HH:mm" else "hh:mm aa"
-
-        return SimpleDateFormat(pattern, Locale.getDefault())
-            .format(Date(System.currentTimeMillis() + (minutes * 60 * 1000).toLong()))
-    }
-
     var sleepTimerValue by remember {
         mutableStateOf(30f)
     }
@@ -185,9 +177,12 @@ fun Queue(
             text = {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     val pluralString = pluralStringResource(R.plurals.minute, sleepTimerValue.roundToInt(), sleepTimerValue.roundToInt())
-                    val calculatedTimeString = calculateSleepTime(sleepTimerValue)
+                    val endTimeString = SimpleDateFormat
+                        .getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
+                        .format(Date(System.currentTimeMillis() + (sleepTimerValue * 60 * 1000).toLong()))
+
                     Text(
-                        text = "$pluralString\n$calculatedTimeString",
+                        text = "$pluralString\n$endTimeString",
                         style = MaterialTheme.typography.bodyLarge,
                         textAlign = TextAlign.Center,
                         modifier = Modifier.padding(vertical = 8.dp)

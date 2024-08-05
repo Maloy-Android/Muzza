@@ -16,15 +16,11 @@ import androidx.media3.common.C
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.common.Player.EVENT_IS_PLAYING_CHANGED
-import androidx.media3.common.Player.EVENT_PLAYBACK_STATE_CHANGED
-import androidx.media3.common.Player.EVENT_PLAY_WHEN_READY_CHANGED
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
 import androidx.media3.common.Player.EVENT_TIMELINE_CHANGED
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.REPEAT_MODE_ONE
-import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_IDLE
 import androidx.media3.common.Timeline
 import androidx.media3.common.audio.SonicAudioProcessor
@@ -149,7 +145,7 @@ class MusicService : MediaLibraryService(),
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
 
-    private val scope = CoroutineScope(Dispatchers.Main) + Job()
+    private var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()
 
     private lateinit var connectivityManager: ConnectivityManager
@@ -402,6 +398,9 @@ class MusicService : MediaLibraryService(),
     }
 
     fun playQueue(queue: Queue, playWhenReady: Boolean = true) {
+        if (!scope.isActive) {
+            scope = CoroutineScope(Dispatchers.Main) + Job()
+        }
         currentQueue = queue
         queueTitle = null
         player.shuffleModeEnabled = false

@@ -90,6 +90,8 @@ class PlayerConnection(
 
     val error = MutableStateFlow<PlaybackException?>(null)
 
+    var hideEnabled = false
+
     init {
         player.addListener(this)
 
@@ -139,11 +141,13 @@ class PlayerConnection(
     override fun onPlaybackStateChanged(state: Int) {
         playbackState.value = state
         error.value = player.playerError
-        if (state == 2) {
+        if (state == 2 || state == 1) {
             closeDiscordRPC(ctx = ctx)
+            hideEnabled = false
         }
         if (state == 3) {
             createDiscordRPC(player = player, ctx = ctx)
+            hideEnabled = true
         }
     }
 
@@ -151,7 +155,9 @@ class PlayerConnection(
         playWhenReady.value = newPlayWhenReady
         if (ctx.dataStore.get(HideRPCOnPauseKey, true)) {
             if (newPlayWhenReady) {
-                createDiscordRPC(player = player, ctx = ctx)
+                if (hideEnabled) {
+                    createDiscordRPC(player = player, ctx = ctx)
+                }
             } else {
                 closeDiscordRPC(ctx = ctx)
             }

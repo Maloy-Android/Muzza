@@ -25,6 +25,13 @@ import org.json.JSONObject
 
 var rpc = KizzyRPC("")
 
+@SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
+@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
+fun isRpcRunning(ctx: Context): Boolean {
+    val discordToken = ctx.dataStore.get(DiscordTokenKey, "")
+    rpc.token = discordToken
+    return rpc.isRpcRunning()
+}
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)

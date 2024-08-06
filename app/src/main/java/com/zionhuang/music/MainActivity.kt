@@ -552,6 +552,12 @@ class MainActivity : ComponentActivity() {
                             composable("settings/backup_restore") {
                                 BackupAndRestore(navController, scrollBehavior)
                             }
+                            composable("settings/discord") {
+                                DiscordSettings(navController, scrollBehavior)
+                            }
+                            composable("settings/discord/login") {
+                                DiscordLoginScreen(navController)
+                            }
                             composable("settings/about") {
                                 AboutScreen(navController, scrollBehavior)
                             }

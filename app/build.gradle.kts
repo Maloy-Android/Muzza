@@ -22,7 +22,7 @@ android {
     buildToolsVersion = "30.0.3"
     defaultConfig {
         applicationId = "com.zionhuang.music"
-        minSdk = 24
+        minSdk = 27
         targetSdk = 33
         versionCode = 20
         versionName = "0.5.4"
@@ -89,6 +89,13 @@ ksp {
 }
 
 dependencies {
+    implementation(libs.gson)
+
+    implementation(libs.kizzyrpc)
+
+    implementation(libs.ktor.client.core)
+    implementation(libs.ktor.serialization.json)
+
     implementation(libs.guava)
     implementation(libs.coroutines.guava)
     implementation(libs.concurrent.futures)

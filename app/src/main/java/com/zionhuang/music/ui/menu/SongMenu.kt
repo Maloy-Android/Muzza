@@ -103,6 +103,7 @@ fun SongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songs = listOf(song.id),
         onAdd = { playlist ->
             database.query {
                 insert(

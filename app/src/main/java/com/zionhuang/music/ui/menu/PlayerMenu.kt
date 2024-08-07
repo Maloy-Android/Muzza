@@ -92,6 +92,7 @@ fun PlayerMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songs = listOf(mediaMetadata.id),
         onAdd = { playlist ->
             database.transaction {
                 insert(mediaMetadata)

@@ -124,6 +124,7 @@ fun YouTubeAlbumMenu(
                 }
             }
         },
+        songs = album?.songs?.map { it.id } ?: emptyList(),
         onDismiss = { showChoosePlaylistDialog = false }
     )
 

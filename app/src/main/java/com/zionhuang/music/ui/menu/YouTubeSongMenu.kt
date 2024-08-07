@@ -90,6 +90,7 @@ fun YouTubeSongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
+        songs = listOf(song.id),
         onAdd = { playlist ->
             database.transaction {
                 insert(song.toMediaMetadata())

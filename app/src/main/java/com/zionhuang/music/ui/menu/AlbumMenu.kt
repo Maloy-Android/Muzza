@@ -130,6 +130,7 @@ fun AlbumMenu(
                     }
             }
         },
+        songs = songs.map { it.id },
         onDismiss = {
             showChoosePlaylistDialog = false
         }

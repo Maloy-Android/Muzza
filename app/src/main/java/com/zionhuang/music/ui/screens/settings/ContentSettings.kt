@@ -25,6 +25,8 @@ import com.zionhuang.music.constants.AccountNameKey
 import com.zionhuang.music.constants.ContentCountryKey
 import com.zionhuang.music.constants.ContentLanguageKey
 import com.zionhuang.music.constants.CountryCodeToName
+import com.zionhuang.music.constants.EnableKugouKey
+import com.zionhuang.music.constants.EnableLrcLibKey
 import com.zionhuang.music.constants.InnerTubeCookieKey
 import com.zionhuang.music.constants.LanguageCodeToName
 import com.zionhuang.music.constants.ProxyEnabledKey
@@ -57,6 +59,9 @@ fun ContentSettings(
     }
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
+    val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
+    val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
@@ -99,6 +104,20 @@ fun ContentSettings(
                 }
             },
             onValueSelected = onContentCountryChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_lrclib)) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
+            checked = enableLrcLib,
+            onCheckedChange = onEnableLrcLibChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_kugou)) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
+            checked = enableKugou,
+            onCheckedChange = onEnableKugouChange
         )
 
         PreferenceGroupTitle(

@@ -56,7 +56,6 @@ import com.zionhuang.music.LocalDownloadUtil
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
-import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.playback.ExoDownloadService
 import com.zionhuang.music.ui.component.BigSeekBar
@@ -92,17 +91,11 @@ fun PlayerMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onAdd = { playlist ->
+        onGetSong = {
             database.transaction {
                 insert(mediaMetadata)
-                insert(
-                    PlaylistSongMap(
-                        songId = mediaMetadata.id,
-                        playlistId = playlist.id,
-                        position = playlist.songCount
-                    )
-                )
             }
+            listOf(mediaMetadata.id)
         },
         onDismiss = {
             showChoosePlaylistDialog = false

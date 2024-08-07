@@ -10,7 +10,6 @@ import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
-import com.zionhuang.music.constants.HideRPCOnPauseKey
 import com.zionhuang.music.constants.TranslateLyricsKey
 import com.zionhuang.music.db.MusicDatabase
 import com.zionhuang.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
@@ -22,7 +21,6 @@ import com.zionhuang.music.playback.MusicService.MusicBinder
 import com.zionhuang.music.playback.queues.Queue
 import com.zionhuang.music.utils.TranslationHelper
 import com.zionhuang.music.utils.dataStore
-import com.zionhuang.music.utils.get
 import com.zionhuang.music.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -90,8 +88,6 @@ class PlayerConnection(
 
     val error = MutableStateFlow<PlaybackException?>(null)
 
-    var hideEnabled = false
-
     init {
         player.addListener(this)
 
@@ -105,7 +101,6 @@ class PlayerConnection(
         shuffleModeEnabled.value = player.shuffleModeEnabled
         repeatMode.value = player.repeatMode
     }
-    val ctx = context
 
     fun playQueue(queue: Queue) {
         service.playQueue(queue)
@@ -141,27 +136,10 @@ class PlayerConnection(
     override fun onPlaybackStateChanged(state: Int) {
         playbackState.value = state
         error.value = player.playerError
-        if (state == 2 || state == 1) {
-            closeDiscordRPC(ctx = ctx)
-            hideEnabled = false
-        }
-        if (state == 3) {
-            createDiscordRPC(player = player, ctx = ctx)
-            hideEnabled = true
-        }
     }
 
     override fun onPlayWhenReadyChanged(newPlayWhenReady: Boolean, reason: Int) {
         playWhenReady.value = newPlayWhenReady
-        if (ctx.dataStore.get(HideRPCOnPauseKey, true)) {
-            if (newPlayWhenReady) {
-                if (hideEnabled) {
-                    createDiscordRPC(player = player, ctx = ctx)
-                }
-            } else {
-                closeDiscordRPC(ctx = ctx)
-            }
-        }
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -169,15 +147,6 @@ class PlayerConnection(
         currentMediaItemIndex.value = player.currentMediaItemIndex
         currentWindowIndex.value = player.getCurrentQueueIndex()
         updateCanSkipPreviousAndNext()
-
-        if (reason == 1) {
-            closeDiscordRPC(ctx = ctx)
-            createDiscordRPC(player = player, ctx = ctx)
-        }
-        if (player.currentMediaItem?.mediaMetadata?.title.toString() == "null") {
-            closeDiscordRPC(ctx = ctx)
-            return
-        }
     }
 
     override fun onTimelineChanged(timeline: Timeline, reason: Int) {

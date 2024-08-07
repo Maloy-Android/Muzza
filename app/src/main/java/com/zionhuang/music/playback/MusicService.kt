@@ -8,6 +8,7 @@ import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.os.Binder
+import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -59,6 +60,7 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.AudioNormalizationKey
 import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
+import com.zionhuang.music.constants.HideRPCOnPauseKey
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleLibrary
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleLike
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -180,6 +182,10 @@ class MusicService : MediaLibraryService(),
     private lateinit var mediaSession: MediaLibrarySession
 
     private var isAudioEffectSessionOpened = false
+
+    var hideEnabled = true
+
+    val ctx = this
 
     override fun onCreate() {
         super.onCreate()
@@ -493,6 +499,15 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        // DiscordRPC
+        if (reason == 1) {
+            closeDiscordRPC(ctx = ctx)
+            createDiscordRPC(player = player, ctx = ctx)
+        }
+        if (player.currentMediaItem?.mediaMetadata?.title.toString() == "null") {
+            closeDiscordRPC(ctx = ctx)
+            return
+        }
         // Auto load more songs
         if (reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.playbackState != STATE_IDLE &&
@@ -514,6 +529,16 @@ class MusicService : MediaLibraryService(),
             player.shuffleModeEnabled = false
             queueTitle = null
         }
+
+        // DiscordRPC
+        if (playbackState == 2 || playbackState == 1) {
+            closeDiscordRPC(ctx = ctx)
+            hideEnabled = false
+        }
+        if (playbackState == 3) {
+            createDiscordRPC(player = player, ctx = ctx)
+            hideEnabled = true
+        }
     }
 
     override fun onEvents(player: Player, events: Player.Events) {
@@ -528,8 +553,20 @@ class MusicService : MediaLibraryService(),
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
             currentMediaMetadata.value = player.currentMetadata
         }
-    }
 
+        // DiscordRPC
+        if (events.containsAny(Player.EVENT_PLAY_WHEN_READY_CHANGED)) {
+            if (ctx.dataStore.get(HideRPCOnPauseKey, true)) {
+                if (player.playWhenReady) {
+                    if (hideEnabled) {
+                        createDiscordRPC(player = player, ctx = ctx)
+                    }
+                } else {
+                    closeDiscordRPC(ctx = ctx)
+                }
+            }
+        }
+    }
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()

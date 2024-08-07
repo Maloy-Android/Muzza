@@ -63,6 +63,7 @@ import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
+import com.zionhuang.music.constants.DarkModeKey
 import com.zionhuang.music.constants.PlayerHorizontalPadding
 import com.zionhuang.music.constants.QueuePeekHeight
 import com.zionhuang.music.extensions.togglePlayPause
@@ -73,6 +74,10 @@ import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.ResizableIconButton
 import com.zionhuang.music.ui.component.rememberBottomSheetState
 import com.zionhuang.music.utils.makeTimeString
+import com.zionhuang.music.constants.PureBlackKey
+import com.zionhuang.music.ui.screens.settings.DarkMode
+import com.zionhuang.music.utils.rememberEnumPreference
+import com.zionhuang.music.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -100,6 +105,9 @@ fun BottomSheetPlayer(
     var duration by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.duration)
     }
+    val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
+    val darkMode by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val darkTheme = darkMode == DarkMode.AUTO || darkMode == DarkMode.ON
     var sliderPosition by remember {
         mutableStateOf<Long?>(null)
     }
@@ -122,7 +130,11 @@ fun BottomSheetPlayer(
     BottomSheet(
         state = state,
         modifier = modifier,
-        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+        backgroundColor = if (pureBlack && darkTheme) {
+            MaterialTheme.colorScheme.background
+        } else {
+            MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+        },
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()

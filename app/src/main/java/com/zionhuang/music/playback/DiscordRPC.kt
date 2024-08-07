@@ -2,6 +2,7 @@ package com.zionhuang.music.playback
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.util.Log
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.media3.common.Player
 import com.zionhuang.music.constants.DiscordTokenKey
@@ -13,6 +14,7 @@ import com.zionhuang.music.utils.reportException
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
+import com.zionhuang.music.constants.ShowAppNameRPCKey
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -54,6 +56,7 @@ fun createDiscordRPC(player: Player, ctx: Context) {
 
     val enableRPC = ctx.dataStore.get(EnableDiscordRPCKey, true)
     val showArtistAvatar = ctx.dataStore.get(ShowArtistRPCKey, true)
+    val showAppName = ctx.dataStore.get(ShowAppNameRPCKey, true)
 
     if (discordToken != "" || !enableRPC) {
         val client = HttpClient()
@@ -82,7 +85,6 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                     var uploader = ""
 
                     val json = JSONObject(responseBody)
-
                     artistArtwork = json.getString("uploaderAvatar")
                     uploader = json.getString("uploader").split(" - Topic")[0]
 
@@ -108,7 +110,7 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                             }
                             rpc.setActivity(
                                 activity = Activity(
-                                    name = title,
+                                    name = if(showAppName) "InnerTune" else title,
                                     details = title,
                                     state = "By $artist",
                                     type = 2,
@@ -141,10 +143,10 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                     val response: HttpResponse = clientDiscordCDN.get("https://kizzyapi-1-z9614716.deta.app/image?url=" + artwork)
                     val responseBody: String = response.bodyAsText()
 
-                    var artworkCDN = JSONObject(responseBody).getString("id")
+                    val artworkCDN = JSONObject(responseBody).getString("id")
                     rpc.setActivity(
                         activity = Activity(
-                            name = title,
+                            name = if(showAppName) "InnerTune" else title,
                             details = title,
                             state = "By $artist",
                             type = 2,

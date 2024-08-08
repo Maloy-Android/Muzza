@@ -3,23 +3,29 @@ package com.zionhuang.music.ui.screens.settings
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import android.webkit.JsResult
-import android.webkit.WebChromeClient
+import android.webkit.JavascriptInterface
+import android.webkit.WebResourceRequest
 import android.webkit.WebStorage
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
+import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.DiscordNameKey
 import com.zionhuang.music.constants.DiscordTokenKey
@@ -28,95 +34,90 @@ import com.zionhuang.music.ui.component.IconButton
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberPreference
 import com.zionhuang.music.utils.reportException
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.launch
-import org.json.JSONObject
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.HttpResponse
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
 import io.ktor.client.statement.bodyAsText
-import kotlinx.coroutines.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import org.json.JSONObject
 
 @SuppressLint("SetJavaScriptEnabled")
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscordLoginScreen(
     navController: NavController,
 ) {
-
+    val scope = rememberCoroutineScope()
     var discordToken by rememberPreference(DiscordTokenKey, "")
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
 
     var webView: WebView? = null
 
-    val url = "https://discord.com/login"
-
     AndroidView(
-        factory = {
-            WebView(it).apply {
+        modifier = Modifier
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+            .fillMaxSize(),
+        factory = { context ->
+            WebView(context).apply {
                 layoutParams = ViewGroup.LayoutParams(
                     ViewGroup.LayoutParams.MATCH_PARENT,
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
 
                 webViewClient = object : WebViewClient() {
-
-                    @Deprecated("Deprecated in Java")
                     override fun shouldOverrideUrlLoading(
                         webView: WebView,
-                        url: String,
+                        request: WebResourceRequest,
                     ): Boolean {
                         stopLoading()
-                        if (url.endsWith("/app")) {
-                            loadUrl("javascript:alert((webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken());")
+                        if (request.url.toString().endsWith("/app")) {
+                            loadUrl("javascript:Android.onRetrieveToken((webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken());")
                         }
                         return false
                     }
                 }
-                settings.javaScriptEnabled = true
-                settings.domStorageEnabled = true
+                settings.apply {
+                    javaScriptEnabled = true
+                    domStorageEnabled = true
+                    setSupportZoom(true)
+                    builtInZoomControls = true
+                }
                 val cookieManager = CookieManager.getInstance()
                 cookieManager.removeAllCookies(null)
                 cookieManager.flush()
 
                 WebStorage.getInstance().deleteAllData()
-                webChromeClient = object : WebChromeClient() {
-                    override fun onJsAlert(
-                        view: WebView,
-                        url: String,
-                        message: String,
-                        result: JsResult,
-                    ): Boolean {
-                        discordToken = message
-
+                addJavascriptInterface(object {
+                    @JavascriptInterface
+                    fun onRetrieveToken(token: String) {
+                        discordToken = token
                         val client = HttpClient()
-                        CoroutineScope(Dispatchers.IO).launch {
-                            try {
-                                val response: HttpResponse = client.get("https://discord.com/api/v9/users/@me") {
-                                    headers {
-                                        append("Authorization", message)
-                                    }
-                                }
-                                val responseBody: String = response.bodyAsText()
-
-                                // Parse the JSON response
-                                val json = JSONObject(responseBody)
+                        scope.launch(Dispatchers.IO) {
+                            runCatching {
+                                val response = client.get("https://discord.com/api/v9/users/@me") {
+                                    header("Authorization", token)
+                                }.bodyAsText()
+                                val json = JSONObject(response)
                                 discordUsername = json.getString("username")
                                 discordName = json.getString("global_name")
-
-                            } catch (e: Exception) {
+                            }.onFailure { e ->
+                                Toast.makeText(context, R.string.login_failed, Toast.LENGTH_SHORT).show()
                                 reportException(e)
-                            } finally {
+                            }.onSuccess {
                                 client.close()
+                                withContext(Dispatchers.Main) {
+                                    navController.navigateUp()
+                                }
                             }
                         }
-
-                        navController::navigateUp
-                        return true
                     }
-                }
-                loadUrl(url)
+                }, "Android")
+
+                webView = this
+                loadUrl("https://discord.com/login")
             }
         }
     )

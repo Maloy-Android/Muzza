@@ -6,6 +6,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -19,9 +20,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.R
+import com.zionhuang.music.constants.DiscordNameKey
 import com.zionhuang.music.constants.DiscordTokenKey
 import com.zionhuang.music.constants.DiscordUsernameKey
-import com.zionhuang.music.constants.DiscordNameKey
 import com.zionhuang.music.constants.EnableDiscordRPCKey
 import com.zionhuang.music.constants.HideRPCOnPauseKey
 import com.zionhuang.music.constants.ShowAppNameRPCKey
@@ -50,7 +51,7 @@ fun DiscordSettings(
     val (showAppName, onShowAppNameChange) = rememberPreference(key = ShowAppNameRPCKey, defaultValue = true)
     val (showTimestamps, onShowTimestampsChange) = rememberPreference(key = ShowTimestampsRPCKey, defaultValue = true)
 
-    var isLoggedIn = remember(discordToken) {
+    val isLoggedIn = remember(discordToken) {
         discordToken != ""
     }
 
@@ -68,18 +69,20 @@ fun DiscordSettings(
                 "@$discordUsername"
             } else null,
             icon = { Icon(painterResource(R.drawable.discord), null) },
-            onClick = { navController.navigate("settings/discord/login") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.logout)) },
-            description = null,
-            icon = { Icon(painterResource(R.drawable.logout), null) },
+            clickable = !isLoggedIn,
             onClick = {
-                discordName = ""
-                discordToken = ""
-                discordUsername = ""
-                isLoggedIn = false
-
+                navController.navigate("settings/discord/login")
+            },
+            trailingContent = {
+                if (isLoggedIn) {
+                    OutlinedButton(onClick = {
+                        discordName = ""
+                        discordToken = ""
+                        discordUsername = ""
+                    }) {
+                        Text("Logout")
+                    }
+                }
             }
         )
 

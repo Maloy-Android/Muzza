@@ -263,6 +263,7 @@
     <string name="restore_failed">Failed to restore backup</string>
 
     <string name="discord">Discord</string>
+    <string name="login_failed">Login failed</string>
     <string name="logout">Logout</string>
     <string name="enable_rpc">Enable RPC</string>
     <string name="show_app_name">Show App Name on RPC</string>

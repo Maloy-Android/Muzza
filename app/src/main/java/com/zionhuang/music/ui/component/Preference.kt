@@ -37,13 +37,14 @@ fun PreferenceEntry(
     trailingContent: (@Composable () -> Unit)? = null,
     onClick: () -> Unit,
     isEnabled: Boolean = true,
+    clickable: Boolean = true,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
             .fillMaxWidth()
             .clickable(
-                enabled = isEnabled,
+                enabled = isEnabled && clickable,
                 onClick = onClick
             )
             .alpha(if (isEnabled) 1f else 0.5f)

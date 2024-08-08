@@ -2,27 +2,24 @@ package com.zionhuang.music.playback
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.util.Log
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.media3.common.Player
-import com.zionhuang.music.constants.DiscordTokenKey
-import com.zionhuang.music.constants.EnableDiscordRPCKey
-import com.zionhuang.music.constants.ShowArtistRPCKey
-import com.zionhuang.music.utils.dataStore
-import com.zionhuang.music.utils.get
-import com.zionhuang.music.utils.reportException
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Timestamps
+import com.zionhuang.music.constants.DiscordTokenKey
+import com.zionhuang.music.constants.EnableDiscordRPCKey
 import com.zionhuang.music.constants.ShowAppNameRPCKey
+import com.zionhuang.music.constants.ShowArtistRPCKey
 import com.zionhuang.music.constants.ShowTimestampsRPCKey
+import com.zionhuang.music.utils.dataStore
+import com.zionhuang.music.utils.get
+import com.zionhuang.music.utils.reportException
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
@@ -33,7 +30,6 @@ var previousAvatar = ""
 var previousUploader = ""
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 fun <L> setRPC(ctx: Context, title: String, artist: String, album: String, artwork: String,
            artistArtwork: String, uploader: String, songDuration: L, elapsedDuration: L) {
     val showAppName = ctx.dataStore.get(ShowAppNameRPCKey, true)
@@ -64,7 +60,6 @@ fun <L> setRPC(ctx: Context, title: String, artist: String, album: String, artwo
 }
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 fun closeDiscordRPC(ctx: Context) {
     val discordToken = ctx.dataStore.get(DiscordTokenKey, "")
     rpc.token = discordToken
@@ -72,7 +67,6 @@ fun closeDiscordRPC(ctx: Context) {
 }
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
-@OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
 fun createDiscordRPC(player: Player, ctx: Context) {
     val discordToken = ctx.dataStore.get(DiscordTokenKey, "")
     rpc.token = discordToken

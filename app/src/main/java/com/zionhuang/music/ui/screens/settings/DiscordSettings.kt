@@ -100,53 +100,55 @@ fun DiscordSettings(
             onCheckedChange = onDiscordRPCChange,
             isEnabled = isLoggedIn
         )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.show_app_name)) },
-            icon = { Icon(painterResource(R.drawable.app_icon_settings), null) },
-            checked = showAppName,
-            onCheckedChange = onShowAppNameChange,
-            isEnabled = isLoggedIn && discordRPC
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.show_artist_icon)) },
-            description = stringResource(R.string.disabled_api_down),
-            icon = { Icon(painterResource(R.drawable.person), null) },
-            checked = showArtist,
-            onCheckedChange = onShowArtistChange,
-            isEnabled = false
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.hide_RPC_on_pause)) },
-            description = stringResource(R.string.unstable_warning),
-            icon = { Icon(painterResource(R.drawable.pause), null) },
-            checked = hideRPCOnPause,
-            onCheckedChange = onHideRPCOnPauseChange,
-            isEnabled = isLoggedIn && discordRPC
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.show_timestamps)) },
-            icon = { Icon(painterResource(R.drawable.timelapse), null) },
-            checked = showTimestamps,
-            onCheckedChange = onShowTimestampsChange,
-            isEnabled = isLoggedIn && discordRPC
-        )
-        PreferenceGroupTitle(
-            title = "BUTTONS"
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.listen_along)) },
-            icon = { Icon(painterResource(R.drawable.music_note), null) },
-            checked = listenAlongBtn,
-            onCheckedChange = onListenAlongBtnChange,
-            isEnabled = isLoggedIn && discordRPC
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.download_innertune)) },
-            icon = { Icon(painterResource(R.drawable.download), null) },
-            checked = downloadITButton,
-            onCheckedChange = onDownloadITButtonChange,
-            isEnabled = isLoggedIn && discordRPC
-        )
+        if(discordRPC) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_app_name)) },
+                icon = { Icon(painterResource(R.drawable.app_icon_settings), null) },
+                checked = showAppName,
+                onCheckedChange = onShowAppNameChange,
+                isEnabled = isLoggedIn && discordRPC
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_artist_icon)) },
+                description = stringResource(R.string.unstable_warning),
+                icon = { Icon(painterResource(R.drawable.person), null) },
+                checked = showArtist,
+                onCheckedChange = onShowArtistChange,
+                isEnabled = isLoggedIn && discordRPC
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.hide_RPC_on_pause)) },
+                description = stringResource(R.string.unstable_warning),
+                icon = { Icon(painterResource(R.drawable.pause), null) },
+                checked = hideRPCOnPause,
+                onCheckedChange = onHideRPCOnPauseChange,
+                isEnabled = isLoggedIn && discordRPC
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_timestamps)) },
+                icon = { Icon(painterResource(R.drawable.timelapse), null) },
+                checked = showTimestamps,
+                onCheckedChange = onShowTimestampsChange,
+                isEnabled = isLoggedIn && discordRPC
+            )
+            PreferenceGroupTitle(
+                title = "BUTTONS"
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.listen_along)) },
+                icon = { Icon(painterResource(R.drawable.music_note), null) },
+                checked = listenAlongBtn,
+                onCheckedChange = onListenAlongBtnChange,
+                isEnabled = isLoggedIn && discordRPC
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.download_innertune)) },
+                icon = { Icon(painterResource(R.drawable.download), null) },
+                checked = downloadITButton,
+                onCheckedChange = onDownloadITButtonChange,
+                isEnabled = isLoggedIn && discordRPC
+            )
+        }
     }
     TopAppBar(
         title = { Text(stringResource(R.string.discord)) },

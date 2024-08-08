@@ -91,6 +91,8 @@ import com.zionhuang.music.ui.screens.search.LocalSearchScreen
 import com.zionhuang.music.ui.screens.search.OnlineSearchResult
 import com.zionhuang.music.ui.screens.search.OnlineSearchScreen
 import com.zionhuang.music.ui.screens.settings.*
+import com.zionhuang.music.ui.screens.settings.DiscordSettings
+import com.zionhuang.music.ui.screens.settings.DiscordLoginScreen
 import com.zionhuang.music.ui.theme.*
 import com.zionhuang.music.ui.utils.appBarScrollBehavior
 import com.zionhuang.music.ui.utils.backToMain

@@ -6,9 +6,12 @@ import androidx.media3.common.Player
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
+import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
 import com.zionhuang.music.constants.DiscordTokenKey
+import com.zionhuang.music.constants.DownloadInnerTuneButtonKey
 import com.zionhuang.music.constants.EnableDiscordRPCKey
+import com.zionhuang.music.constants.ListenAlongButtonKey
 import com.zionhuang.music.constants.ShowAppNameRPCKey
 import com.zionhuang.music.constants.ShowArtistRPCKey
 import com.zionhuang.music.constants.ShowTimestampsRPCKey
@@ -30,10 +33,12 @@ var previousAvatar = ""
 var previousUploader = ""
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
-fun <L> setRPC(ctx: Context, title: String, artist: String, album: String, artwork: String,
-           artistArtwork: String, uploader: String, songDuration: L, elapsedDuration: L) {
+fun setRPC(ctx: Context, title: String, artist: String, album: String, artwork: String,
+           artistArtwork: String, uploader: String, songDuration: Long?, elapsedDuration: Long?, mediaID: String?) {
     val showAppName = ctx.dataStore.get(ShowAppNameRPCKey, true)
     val showTimestamps = ctx.dataStore.get(ShowTimestampsRPCKey, true)
+    val listenAlong = ctx.dataStore.get(ListenAlongButtonKey, true)
+    val downloadIT = ctx.dataStore.get(DownloadInnerTuneButtonKey, true)
 
     val timestamp = if (showTimestamps && songDuration != null) Timestamps(
         start = System.currentTimeMillis(),
@@ -41,8 +46,20 @@ fun <L> setRPC(ctx: Context, title: String, artist: String, album: String, artwo
     )
     else null
     val albumText = if (album != "Single" && album != "null") "On $album" else "Single"
+    val buttons: MutableList<String> = mutableListOf()
+    val btnMetadata: MutableList<String> = mutableListOf()
+    if (listenAlong) {
+        buttons.add("♪ Listen Along ♪")
+        btnMetadata.add("https://music.youtube.com/watch?v=" + mediaID)
+    }
+    if (downloadIT) {
+        buttons.add("Download InnerTune")
+        btnMetadata.add("https://github.com/z-huang/InnerTune/releases")
+    }
+
     rpc.setActivity(
         activity = Activity(
+            applicationId = "1244393423738376326",
             name = if (showAppName) "InnerTune" else title,
             details = if (showAppName) title else if (showTimestamps) "By $artist" else title,
             state = if (showAppName) "By $artist" else if (showTimestamps) albumText else "By $artist",
@@ -54,6 +71,8 @@ fun <L> setRPC(ctx: Context, title: String, artist: String, album: String, artwo
                 smallText = if (uploader == "") null else uploader,
                 largeText = albumText
             ),
+            buttons = buttons,
+            metadata = Metadata(btnMetadata)
         ),
         since = System.currentTimeMillis()
     )
@@ -137,7 +156,7 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                             previousArtwork = artworkCDN
                             previousAvatar = artistArtworkCDN
                             previousUploader = uploader
-                            setRPC(ctx, title, artist, album, artworkCDN, artistArtworkCDN, uploader, songDuration, elapsedDuration)
+                            setRPC(ctx, title, artist, album, artworkCDN, artistArtworkCDN, uploader, songDuration, elapsedDuration, mediaID)
                         } catch (e: Exception) {
                             reportException(e)
                         } finally {
@@ -163,7 +182,7 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                     previousArtwork = artworkCDN
                     previousAvatar = ""
                     previousUploader = ""
-                    setRPC(ctx, title, artist, album, artworkCDN, "", "", songDuration, elapsedDuration)
+                    setRPC(ctx, title, artist, album, artworkCDN, "", "", songDuration, elapsedDuration, mediaID)
                 } catch (e: Exception) {
                     reportException(e)
                 } finally {

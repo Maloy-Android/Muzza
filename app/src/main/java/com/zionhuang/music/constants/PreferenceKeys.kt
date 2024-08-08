@@ -4,6 +4,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
@@ -24,7 +25,9 @@ val EnableDiscordRPCKey = booleanPreferencesKey("discordRPC")
 val ShowAppNameRPCKey = booleanPreferencesKey("showAppNameDiscordRPC")
 val ShowArtistRPCKey = booleanPreferencesKey("showArtistDiscordRPC")
 val HideRPCOnPauseKey = booleanPreferencesKey("hideRPCOnPause")
-val ShowTimestampsRPCKey = booleanPreferencesKey("showTimestamps")
+val ShowTimestampsRPCKey = booleanPreferencesKey("showTimestampsDiscordRPC")
+val ListenAlongButtonKey = booleanPreferencesKey("listenAlong")
+val DownloadInnerTuneButtonKey = booleanPreferencesKey("downloadInnerTune")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 

@@ -566,9 +566,11 @@ class MusicService : MediaLibraryService(),
                     closeDiscordRPC(ctx = ctx)
                 }
             } else {
-                if (player.playWhenReady) {
-                    closeDiscordRPC(ctx = ctx)
-                    createDiscordRPC(player = player, ctx = ctx)
+                if (ctx.dataStore.get(ShowTimestampsRPCKey, true)) {
+                    if (player.playWhenReady) {
+                        closeDiscordRPC(ctx = ctx)
+                        createDiscordRPC(player = player, ctx = ctx)
+                    }
                 }
             }
         }

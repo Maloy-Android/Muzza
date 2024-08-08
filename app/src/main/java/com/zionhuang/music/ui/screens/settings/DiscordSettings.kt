@@ -23,8 +23,10 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.DiscordNameKey
 import com.zionhuang.music.constants.DiscordTokenKey
 import com.zionhuang.music.constants.DiscordUsernameKey
+import com.zionhuang.music.constants.DownloadInnerTuneButtonKey
 import com.zionhuang.music.constants.EnableDiscordRPCKey
 import com.zionhuang.music.constants.HideRPCOnPauseKey
+import com.zionhuang.music.constants.ListenAlongButtonKey
 import com.zionhuang.music.constants.ShowAppNameRPCKey
 import com.zionhuang.music.constants.ShowArtistRPCKey
 import com.zionhuang.music.constants.ShowTimestampsRPCKey
@@ -50,6 +52,9 @@ fun DiscordSettings(
     val (hideRPCOnPause, onHideRPCOnPauseChange) = rememberPreference(key = HideRPCOnPauseKey, defaultValue = true)
     val (showAppName, onShowAppNameChange) = rememberPreference(key = ShowAppNameRPCKey, defaultValue = true)
     val (showTimestamps, onShowTimestampsChange) = rememberPreference(key = ShowTimestampsRPCKey, defaultValue = true)
+
+    val (listenAlongBtn, onListenAlongBtnChange) = rememberPreference(key = ListenAlongButtonKey, defaultValue = true)
+    val (downloadITButton, onDownloadITButtonChange) = rememberPreference(key = DownloadInnerTuneButtonKey, defaultValue = false)
 
     val isLoggedIn = remember(discordToken) {
         discordToken != ""
@@ -123,6 +128,23 @@ fun DiscordSettings(
             icon = { Icon(painterResource(R.drawable.timelapse), null) },
             checked = showTimestamps,
             onCheckedChange = onShowTimestampsChange,
+            isEnabled = isLoggedIn && discordRPC
+        )
+        PreferenceGroupTitle(
+            title = "BUTTONS"
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.listen_along)) },
+            icon = { Icon(painterResource(R.drawable.music_note), null) },
+            checked = listenAlongBtn,
+            onCheckedChange = onListenAlongBtnChange,
+            isEnabled = isLoggedIn && discordRPC
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.download_innertune)) },
+            icon = { Icon(painterResource(R.drawable.download), null) },
+            checked = downloadITButton,
+            onCheckedChange = onDownloadITButtonChange,
             isEnabled = isLoggedIn && discordRPC
         )
     }

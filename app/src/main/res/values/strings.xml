@@ -272,6 +272,8 @@
     <string name="disabled_api_down">This option is temporarily disabled as the Piped API is currently down</string>
     <string name="hide_RPC_on_pause">Hide RPC when Paused</string>
     <string name="show_timestamps">Show Timestamps on RPC</string>
+    <string name="download_innertune">Show Download InnerTune Button</string>
+    <string name="listen_along">Show Listen Along Button</string>
 
 
     <string name="about">About</string>

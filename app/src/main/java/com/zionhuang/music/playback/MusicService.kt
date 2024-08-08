@@ -70,6 +70,7 @@ import com.zionhuang.music.constants.PersistentQueueKey
 import com.zionhuang.music.constants.PlayerVolumeKey
 import com.zionhuang.music.constants.RepeatModeKey
 import com.zionhuang.music.constants.ShowLyricsKey
+import com.zionhuang.music.constants.ShowTimestampsRPCKey
 import com.zionhuang.music.constants.SkipSilenceKey
 import com.zionhuang.music.db.MusicDatabase
 import com.zionhuang.music.db.entities.Event
@@ -563,6 +564,11 @@ class MusicService : MediaLibraryService(),
                     }
                 } else {
                     closeDiscordRPC(ctx = ctx)
+                }
+            } else {
+                if (player.playWhenReady) {
+                    closeDiscordRPC(ctx = ctx)
+                    createDiscordRPC(player = player, ctx = ctx)
                 }
             }
         }

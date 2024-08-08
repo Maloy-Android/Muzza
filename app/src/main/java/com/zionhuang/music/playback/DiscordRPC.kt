@@ -14,7 +14,9 @@ import com.zionhuang.music.utils.reportException
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
+import com.my.kizzyrpc.model.Timestamps
 import com.zionhuang.music.constants.ShowAppNameRPCKey
+import com.zionhuang.music.constants.ShowTimestampsRPCKey
 import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
@@ -25,14 +27,40 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.json.JSONObject
 
-var rpc = KizzyRPC("")
+val rpc = KizzyRPC("")
+var previousArtwork = ""
+var previousAvatar = ""
+var previousUploader = ""
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
 @OptIn(ExperimentalMaterial3Api::class, DelicateCoroutinesApi::class)
-fun isRpcRunning(ctx: Context): Boolean {
-    val discordToken = ctx.dataStore.get(DiscordTokenKey, "")
-    rpc.token = discordToken
-    return rpc.isRpcRunning()
+fun <L> setRPC(ctx: Context, title: String, artist: String, album: String, artwork: String,
+           artistArtwork: String, uploader: String, songDuration: L, elapsedDuration: L) {
+    val showAppName = ctx.dataStore.get(ShowAppNameRPCKey, true)
+    val showTimestamps = ctx.dataStore.get(ShowTimestampsRPCKey, true)
+
+    val timestamp = if (showTimestamps && songDuration != null) Timestamps(
+        start = System.currentTimeMillis(),
+        end = System.currentTimeMillis() + ((songDuration as Long) - (elapsedDuration as Long))
+    )
+    else null
+    val albumText = if (album != "Single" && album != "null") "On $album" else "Single"
+    rpc.setActivity(
+        activity = Activity(
+            name = if (showAppName) "InnerTune" else title,
+            details = if (showAppName) title else if (showTimestamps) "By $artist" else title,
+            state = if (showAppName) "By $artist" else if (showTimestamps) albumText else "By $artist",
+            type = if (showTimestamps) 0 else 2,
+            timestamps = timestamp,
+            assets = Assets(
+                largeImage = artwork,
+                smallImage = if (artistArtwork == "") null else artistArtwork,
+                smallText = if (uploader == "") null else uploader,
+                largeText = albumText
+            ),
+        ),
+        since = System.currentTimeMillis()
+    )
 }
 
 @SuppressLint("SetJavaScriptEnabled", "CoroutineCreationDuringComposition")
@@ -57,6 +85,8 @@ fun createDiscordRPC(player: Player, ctx: Context) {
     val enableRPC = ctx.dataStore.get(EnableDiscordRPCKey, true)
     val showArtistAvatar = ctx.dataStore.get(ShowArtistRPCKey, true)
     val showAppName = ctx.dataStore.get(ShowAppNameRPCKey, true)
+    val showTimestamps = ctx.dataStore.get(ShowTimestampsRPCKey, true)
+
 
     if (discordToken != "" || !enableRPC) {
         val client = HttpClient()
@@ -72,6 +102,8 @@ fun createDiscordRPC(player: Player, ctx: Context) {
             rpc.closeRPC()
             return
         }
+        var songDuration = player.contentDuration
+        var elapsedDuration = player.contentPosition
 
         if (showArtistAvatar) {
             CoroutineScope(Dispatchers.IO).launch {
@@ -108,20 +140,10 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                                 // Already uploaded to Discord CDN placeholder image
                                 artistArtworkCDN = "mp:external/_jGArMHI-5rpJu4qVDuiBARu8iEXnHeT0SZS6tZnZug/https/i.imgur.com/zDxXZKk.png"
                             }
-                            rpc.setActivity(
-                                activity = Activity(
-                                    name = if(showAppName) "InnerTune" else title,
-                                    details = title,
-                                    state = "By $artist",
-                                    type = 2,
-                                    assets = Assets(
-                                        largeImage = artworkCDN,
-                                        smallImage = artistArtworkCDN,
-                                        largeText = if (album != "Single" && album != "null") "On $album" else "Single",
-                                        smallText = uploader,
-                                    )
-                                )
-                            )
+                            previousArtwork = artworkCDN
+                            previousAvatar = artistArtworkCDN
+                            previousUploader = uploader
+                            setRPC(ctx, title, artist, album, artworkCDN, artistArtworkCDN, uploader, songDuration, elapsedDuration)
                         } catch (e: Exception) {
                             reportException(e)
                         } finally {
@@ -144,20 +166,10 @@ fun createDiscordRPC(player: Player, ctx: Context) {
                     val responseBody: String = response.bodyAsText()
 
                     val artworkCDN = JSONObject(responseBody).getString("id")
-                    rpc.setActivity(
-                        activity = Activity(
-                            name = if(showAppName) "InnerTune" else title,
-                            details = title,
-                            state = "By $artist",
-                            type = 2,
-                            assets = Assets(
-                                largeImage = artworkCDN,
-                                smallImage = null,
-                                largeText = if (album != "Single" && album != "null") "On $album" else "Single",
-                            ),
-
-                            ),
-                    )
+                    previousArtwork = artworkCDN
+                    previousAvatar = ""
+                    previousUploader = ""
+                    setRPC(ctx, title, artist, album, artworkCDN, "", "", songDuration, elapsedDuration)
                 } catch (e: Exception) {
                     reportException(e)
                 } finally {

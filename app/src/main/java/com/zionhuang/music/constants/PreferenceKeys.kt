@@ -24,6 +24,7 @@ val EnableDiscordRPCKey = booleanPreferencesKey("discordRPC")
 val ShowAppNameRPCKey = booleanPreferencesKey("showAppNameDiscordRPC")
 val ShowArtistRPCKey = booleanPreferencesKey("showArtistDiscordRPC")
 val HideRPCOnPauseKey = booleanPreferencesKey("hideRPCOnPause")
+val ShowTimestampsRPCKey = booleanPreferencesKey("showTimestamps")
 
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 

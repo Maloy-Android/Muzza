@@ -26,6 +26,7 @@ import com.zionhuang.music.constants.EnableDiscordRPCKey
 import com.zionhuang.music.constants.HideRPCOnPauseKey
 import com.zionhuang.music.constants.ShowAppNameRPCKey
 import com.zionhuang.music.constants.ShowArtistRPCKey
+import com.zionhuang.music.constants.ShowTimestampsRPCKey
 import com.zionhuang.music.ui.component.IconButton
 import com.zionhuang.music.ui.component.PreferenceEntry
 import com.zionhuang.music.ui.component.PreferenceGroupTitle
@@ -47,6 +48,7 @@ fun DiscordSettings(
     val (showArtist, onShowArtistChange) = rememberPreference(key = ShowArtistRPCKey, defaultValue = false)
     val (hideRPCOnPause, onHideRPCOnPauseChange) = rememberPreference(key = HideRPCOnPauseKey, defaultValue = true)
     val (showAppName, onShowAppNameChange) = rememberPreference(key = ShowAppNameRPCKey, defaultValue = true)
+    val (showTimestamps, onShowTimestampsChange) = rememberPreference(key = ShowTimestampsRPCKey, defaultValue = true)
 
     var isLoggedIn = remember(discordToken) {
         discordToken != ""
@@ -111,6 +113,13 @@ fun DiscordSettings(
             icon = { Icon(painterResource(R.drawable.pause), null) },
             checked = hideRPCOnPause,
             onCheckedChange = onHideRPCOnPauseChange,
+            isEnabled = isLoggedIn && discordRPC
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.show_timestamps)) },
+            icon = { Icon(painterResource(R.drawable.timelapse), null) },
+            checked = showTimestamps,
+            onCheckedChange = onShowTimestampsChange,
             isEnabled = isLoggedIn && discordRPC
         )
     }

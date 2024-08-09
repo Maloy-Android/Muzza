@@ -217,7 +217,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-//        setupRemoteConfig()
+        setupRemoteConfig()
 
         setContent {
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)

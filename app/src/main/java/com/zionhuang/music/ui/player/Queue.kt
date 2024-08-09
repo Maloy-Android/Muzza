@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.absolutePadding
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -74,44 +76,54 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.datastore.dataStore
+import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
-import com.zionhuang.music.constants.EnableKugouKey
+import com.zionhuang.music.constants.AudioQuality
+import com.zionhuang.music.constants.AudioQualityKey
+import com.zionhuang.music.constants.ControlButtons
+import com.zionhuang.music.constants.ControlButtonsOnQueueKey
 import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.LockQueueKey
 import com.zionhuang.music.constants.ShowLyricsKey
 import com.zionhuang.music.constants.SongSortType
-import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.move
+import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.extensions.togglePlayPause
-import com.zionhuang.music.playback.MusicService
 import com.zionhuang.music.ui.component.BottomSheet
 import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.MediaMetadataListItem
 import com.zionhuang.music.ui.menu.PlayerMenu
+import com.zionhuang.music.utils.dataStore
+import com.zionhuang.music.utils.enumPreference
+import com.zionhuang.music.utils.get
 import com.zionhuang.music.utils.makeTimeString
 import com.zionhuang.music.utils.rememberPreference
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.plus
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -134,6 +146,10 @@ fun Queue(
 
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
+
+    val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState(initial = true)
+    val canSkipNext by playerConnection.canSkipNext.collectAsState(initial = true)
+    val playbackState by playerConnection.playbackState.collectAsState()
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
@@ -353,6 +369,7 @@ fun Queue(
                                 navController = navController,
                                 playerBottomSheetState = playerBottomSheetState,
                                 onShowDetailsDialog = { showDetailsDialog = true },
+                                windowIndex = currentWindowIndex,
                                 onDismiss = menuState::dismiss
                             )
                         }
@@ -433,6 +450,7 @@ fun Queue(
                             true
                         }
                     )
+                    val song by playerConnection.database.song(window.mediaItem.mediaId).collectAsState(initial = null)
                     if (!lockQueue) {
                         SwipeToDismiss(
                             state = dismissState,
@@ -442,6 +460,7 @@ fun Queue(
                                     mediaMetadata = window.mediaItem.metadata!!,
                                     isActive = index == currentWindowIndex,
                                     isPlaying = isPlaying,
+                                    isLiked = song?.song?.liked,
                                     trailingContent = {
                                         IconButton(
                                             onClick = { },
@@ -476,10 +495,18 @@ fun Queue(
                                                         onShowDetailsDialog = {
                                                             showDetailsDialog = true
                                                         },
+                                                        windowIndex = currentItem.firstPeriodIndex,
                                                         onDismiss = menuState::dismiss
                                                     )
                                                 }
                                             },
+                                            onDoubleClick = {
+                                                playerConnection.database.query {
+                                                    song?.song
+                                                        ?.toggleLike()
+                                                        ?.let { update(it) }
+                                                }
+                                            }
                                         )
                                 )
                             }
@@ -489,6 +516,7 @@ fun Queue(
                             mediaMetadata = window.mediaItem.metadata!!,
                             isActive = index == currentWindowIndex,
                             isPlaying = isPlaying,
+                            isLiked = song?.song?.liked,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .combinedClickable(
@@ -511,10 +539,18 @@ fun Queue(
                                                 onShowDetailsDialog = {
                                                     showDetailsDialog = true
                                                 },
+                                                windowIndex = currentItem.firstPeriodIndex,
                                                 onDismiss = menuState::dismiss
                                             )
                                         }
                                     },
+                                    onDoubleClick = {
+                                        playerConnection.database.query {
+                                            song?.song
+                                                ?.toggleLike()
+                                                ?.let { update(it) }
+                                        }
+                                    }
                                 )
                         )
                     }
@@ -569,7 +605,7 @@ fun Queue(
 
         Box(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f))
+                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 1f))
                 .fillMaxWidth()
                 .height(
                     ListItemHeight +
@@ -605,12 +641,75 @@ fun Queue(
                     modifier = Modifier.alpha(if (shuffleModeEnabled) 1f else 0.5f)
                 )
             }
+            val controlButtons by enumPreference(context, ControlButtonsOnQueueKey, ControlButtons.NONE)
 
-            Icon(
-                painter = painterResource(R.drawable.expand_more),
-                contentDescription = null,
-                modifier = Modifier.align(Alignment.Center)
-            )
+            if (controlButtons == ControlButtons.NONE) {
+                Icon(
+                    painter = painterResource(R.drawable.expand_more),
+                    contentDescription = null,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+            else {
+                Row(
+                    modifier = Modifier.align(Alignment.Center)
+                ) {
+
+                    IconButton(
+                        onClick = {
+                            if (controlButtons == ControlButtons.SKIP_SONG) {
+                                playerConnection.seekToPrevious()
+                            } else {
+                                playerConnection.player.seekTo(currentWindowIndex,
+                                    playerConnection.player.contentPosition - 5000)
+                            }
+                        },
+                        enabled = if (controlButtons == ControlButtons.SKIP_SONG) canSkipPrevious else true
+                    ) {
+                        Icon(
+                            painter = if (controlButtons == ControlButtons.SKIP_SONG)
+                                painterResource(R.drawable.skip_previous) else
+                                painterResource(R.drawable.media3_icon_skip_back_5),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            if (playbackState == STATE_ENDED) {
+                                playerConnection.player.seekTo(0, 0)
+                                playerConnection.player.playWhenReady = true
+                            } else {
+                                playerConnection.player.togglePlayPause()
+                            }
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(if (playbackState == STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
+                            contentDescription = null,
+                            modifier = Modifier.size(108.dp),
+                        )
+                    }
+
+                    IconButton(
+                        onClick = {
+                            if (controlButtons == ControlButtons.SKIP_SONG) {
+                                playerConnection.seekToNext()
+                            } else {
+                                playerConnection.player.seekTo(currentWindowIndex, playerConnection.player.contentPosition + 5000)
+                            }
+                        },
+                        enabled = if (controlButtons == ControlButtons.SKIP_SONG) canSkipNext else true
+                    ) {
+                        Icon(
+                            painter = if (controlButtons == ControlButtons.SKIP_SONG) painterResource(R.drawable.skip_next) else painterResource(R.drawable.media3_icon_skip_forward_5),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+            }
 
             IconButton(
                 modifier = Modifier.align(Alignment.CenterEnd),

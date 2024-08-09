@@ -19,6 +19,8 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.AudioNormalizationKey
 import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
+import com.zionhuang.music.constants.ControlButtons
+import com.zionhuang.music.constants.ControlButtonsOnQueueKey
 import com.zionhuang.music.constants.PersistentQueueKey
 import com.zionhuang.music.constants.SkipSilenceKey
 import com.zionhuang.music.ui.component.EnumListPreference
@@ -38,6 +40,7 @@ fun PlayerSettings(
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
+    val (controlBtnsOnQueue, onControlBtnsChange) = rememberEnumPreference(key = ControlButtonsOnQueueKey, defaultValue = ControlButtons.SKIP_5_SECONDS)
 
     Column(
         Modifier
@@ -74,6 +77,19 @@ fun PlayerSettings(
             icon = { Icon(painterResource(R.drawable.volume_up), null) },
             checked = audioNormalization,
             onCheckedChange = onAudioNormalizationChange
+        )
+        EnumListPreference(
+            title = { Text(stringResource(R.string.control_buttons)) },
+            icon = { Icon(painterResource(R.drawable.discover_tune), null) },
+            selectedValue = controlBtnsOnQueue,
+            onValueSelected = onControlBtnsChange,
+            valueText = {
+                when (it) {
+                    ControlButtons.NONE -> stringResource(R.string.control_btns_none)
+                    ControlButtons.SKIP_SONG -> stringResource(R.string.control_btns_skip_song)
+                    ControlButtons.SKIP_5_SECONDS -> stringResource(R.string.control_btns_skip_5_seconds)
+                }
+            }
         )
     }
 

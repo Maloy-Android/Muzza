@@ -797,6 +797,7 @@ fun MediaMetadataListItem(
     modifier: Modifier,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
+    isLiked: Boolean? = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) = ListItem(
     title = mediaMetadata.title,
@@ -804,6 +805,18 @@ fun MediaMetadataListItem(
         mediaMetadata.artists.joinToString { it.name },
         makeTimeString(mediaMetadata.duration * 1000L)
     ),
+    badges = {
+        if (isLiked == true) {
+            Icon(
+                painter = painterResource(R.drawable.favorite),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+        }
+    },
     thumbnailContent = {
         AsyncImage(
             model = mediaMetadata.thumbnailUrl,

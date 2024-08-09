@@ -27,6 +27,12 @@ val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val SkipSilenceKey = booleanPreferencesKey("skipSilence")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
 
+val ControlButtonsOnQueueKey = stringPreferencesKey("controlButtonsOnQueue")
+
+enum class ControlButtons {
+    NONE, SKIP_SONG, SKIP_5_SECONDS
+}
+
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 

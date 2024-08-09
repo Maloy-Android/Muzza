@@ -32,6 +32,6 @@ fun MainActivity.setupRemoteConfig() {
 }
 
 fun reportException(throwable: Throwable) {
-    Firebase.crashlytics.recordException(throwable)
+//    Firebase.crashlytics.recordException(throwable)
     throwable.printStackTrace()
 }

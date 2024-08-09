@@ -72,6 +72,7 @@
     <string name="play">Play</string>
     <string name="play_next">Play next</string>
     <string name="add_to_queue">Add to queue</string>
+    <string name="remove_from_queue">Remove from queue</string>
     <string name="add_to_library">Add to library</string>
     <string name="remove_from_library">Remove from library</string>
     <string name="download">Download</string>
@@ -237,6 +238,10 @@
     <string name="persistent_queue">Persistent queue</string>
     <string name="skip_silence">Skip silence</string>
     <string name="audio_normalization">Audio normalization</string>
+    <string name="control_buttons">Control buttons on queue</string>
+    <string name="control_btns_none">None</string>
+    <string name="control_btns_skip_song">Skip Song</string>
+    <string name="control_btns_skip_5_seconds">Skip 5 Seconds</string>
     <string name="equalizer">Equalizer</string>
 
     <string name="storage">Storage</string>

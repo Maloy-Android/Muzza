@@ -1,10 +1,13 @@
 package com.zionhuang.music.ui.player
 
 import android.text.format.Formatter
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -76,11 +79,16 @@ import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
+import com.zionhuang.music.constants.EnableKugouKey
 import com.zionhuang.music.constants.ListItemHeight
+import com.zionhuang.music.constants.LockQueueKey
 import com.zionhuang.music.constants.ShowLyricsKey
+import com.zionhuang.music.constants.SongSortType
+import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.move
 import com.zionhuang.music.extensions.togglePlayPause
+import com.zionhuang.music.playback.MusicService
 import com.zionhuang.music.ui.component.BottomSheet
 import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.LocalMenuState
@@ -101,8 +109,11 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Queue(
     state: BottomSheetState,
@@ -126,9 +137,12 @@ fun Queue(
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
+    val (lockQueue, onLockQueueChange) = rememberPreference(key = LockQueueKey, defaultValue = false)
+
     val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
         playerConnection.service.sleepTimer.isActive
     }
+
 
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
@@ -419,42 +433,91 @@ fun Queue(
                             true
                         }
                     )
-                    SwipeToDismiss(
-                        state = dismissState,
-                        background = {},
-                        dismissContent = {
-                            MediaMetadataListItem(
-                                mediaMetadata = window.mediaItem.metadata!!,
-                                isActive = index == currentWindowIndex,
-                                isPlaying = isPlaying,
-                                trailingContent = {
-                                    IconButton(
-                                        onClick = { },
-                                        modifier = Modifier
-                                            .detectReorder(reorderableState)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.drag_handle),
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        coroutineScope.launch(Dispatchers.Main) {
-                                            if (index == currentWindowIndex) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                                                playerConnection.player.playWhenReady = true
-                                            }
+                    if (!lockQueue) {
+                        SwipeToDismiss(
+                            state = dismissState,
+                            background = {},
+                            dismissContent = {
+                                MediaMetadataListItem(
+                                    mediaMetadata = window.mediaItem.metadata!!,
+                                    isActive = index == currentWindowIndex,
+                                    isPlaying = isPlaying,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = { },
+                                            modifier = Modifier
+                                                .detectReorder(reorderableState)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.drag_handle),
+                                                contentDescription = null
+                                            )
                                         }
-                                    }
-                                    .detectReorderAfterLongPress(reorderableState)
-                            )
-                        }
-                    )
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (index == currentWindowIndex) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else {
+                                                    playerConnection.player.seekToDefaultPosition(
+                                                        window.firstPeriodIndex
+                                                    )
+                                                    playerConnection.player.playWhenReady = true
+                                                }
+                                            },
+                                            onLongClick = {
+                                                menuState.show {
+                                                    PlayerMenu(
+                                                        mediaMetadata = window.mediaItem.metadata!!,
+                                                        navController = navController,
+                                                        playerBottomSheetState = playerBottomSheetState,
+                                                        onShowDetailsDialog = {
+                                                            showDetailsDialog = true
+                                                        },
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            },
+                                        )
+                                )
+                            }
+                        )
+                    } else {
+                        MediaMetadataListItem(
+                            mediaMetadata = window.mediaItem.metadata!!,
+                            isActive = index == currentWindowIndex,
+                            isPlaying = isPlaying,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedClickable(
+                                    onClick = {
+                                        if (index == currentWindowIndex) {
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            playerConnection.player.seekToDefaultPosition(
+                                                window.firstPeriodIndex
+                                            )
+                                            playerConnection.player.playWhenReady = true
+                                        }
+                                    },
+                                    onLongClick = {
+                                        menuState.show {
+                                            PlayerMenu(
+                                                mediaMetadata = window.mediaItem.metadata!!,
+                                                navController = navController,
+                                                playerBottomSheetState = playerBottomSheetState,
+                                                onShowDetailsDialog = {
+                                                    showDetailsDialog = true
+                                                },
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    },
+                                )
+                        )
+                    }
                 }
             }
         }
@@ -548,6 +611,16 @@ fun Queue(
                 contentDescription = null,
                 modifier = Modifier.align(Alignment.Center)
             )
+
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = { onLockQueueChange(!lockQueue) }
+            ) {
+                Icon(
+                    painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(R.drawable.lock_open),
+                    contentDescription = null,
+                )
+            }
         }
     }
 }

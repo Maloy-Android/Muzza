@@ -124,12 +124,15 @@ class PlayerConnection(
         service.toggleLibrary()
     }
 
-    fun seekToNext(){
+    fun seekToNext() {
         player.seekToNext()
+        player.prepare()
         player.playWhenReady = true
     }
-    fun seekToPrevious(){
+
+    fun seekToPrevious() {
         player.seekToPrevious()
+        player.prepare()
         player.playWhenReady = true
     }
 

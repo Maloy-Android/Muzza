@@ -50,7 +50,7 @@ fun SettingsScreen(
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.player_and_audio)) },
-            icon = { Icon(painterResource(R.drawable.play), null) },
+            icon = { Icon(painterResource(R.drawable.play_circle), null) },
             onClick = { navController.navigate("settings/player") }
         )
         PreferenceEntry(
@@ -65,7 +65,7 @@ fun SettingsScreen(
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.backup_restore)) },
-            icon = { Icon(painterResource(R.drawable.restore), null) },
+            icon = { Icon(painterResource(R.drawable.backup), null) },
             onClick = { navController.navigate("settings/backup_restore") }
         )
         PreferenceEntry(

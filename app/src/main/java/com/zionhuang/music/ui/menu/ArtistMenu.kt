@@ -114,7 +114,7 @@ fun ArtistMenu(
         }
         if (artist.artist.isYouTubeArtist) {
             GridMenuItem(
-                icon = R.drawable.share,
+                icon = R.drawable.share_outline,
                 title = R.string.share
             ) {
                 onDismiss()

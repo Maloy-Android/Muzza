@@ -94,7 +94,7 @@ fun LibraryArtistsScreen(
                 Icon(
                     painter = painterResource(
                         when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
+                            LibraryViewType.LIST -> R.drawable.list_view
                             LibraryViewType.GRID -> R.drawable.grid_view
                         }
                     ),

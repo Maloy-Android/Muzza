@@ -176,7 +176,7 @@ fun PlayerMenu(
         )
     ) {
         GridMenuItem(
-            icon = R.drawable.radio,
+            icon = R.drawable.radio_outline,
             title = R.string.start_radio
         ) {
             playerConnection.service.startRadioSeamlessly()
@@ -215,7 +215,7 @@ fun PlayerMenu(
             }
         )
         GridMenuItem(
-            icon = R.drawable.artist,
+            icon = R.drawable.artist_outline,
             title = R.string.view_artist
         ) {
             if (mediaMetadata.artists.size == 1) {
@@ -228,7 +228,7 @@ fun PlayerMenu(
         }
         if (mediaMetadata.album != null) {
             GridMenuItem(
-                icon = R.drawable.album,
+                icon = R.drawable.album_outline,
                 title = R.string.view_album
             ) {
                 navController.navigate("album/${mediaMetadata.album.id}")
@@ -237,7 +237,7 @@ fun PlayerMenu(
             }
         }
         GridMenuItem(
-            icon = R.drawable.share,
+            icon = R.drawable.share_outline,
             title = R.string.share
         ) {
             val intent = Intent().apply {
@@ -249,7 +249,7 @@ fun PlayerMenu(
             onDismiss()
         }
         GridMenuItem(
-            icon = R.drawable.info,
+            icon = R.drawable.info_outline,
             title = R.string.details
         ) {
             onShowDetailsDialog()

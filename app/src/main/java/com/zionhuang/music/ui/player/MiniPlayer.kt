@@ -150,7 +150,7 @@ fun MiniMediaInfo(
                         )
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.info),
+                        painter = painterResource(R.drawable.info_outline),
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.error,
                         modifier = Modifier

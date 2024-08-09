@@ -194,7 +194,7 @@ fun YouTubeAlbumMenu(
         )
     ) {
         GridMenuItem(
-            icon = R.drawable.radio,
+            icon = R.drawable.radio_outline,
             title = R.string.start_radio
         ) {
             playerConnection.playQueue(YouTubeAlbumRadio(albumItem.playlistId))
@@ -253,7 +253,7 @@ fun YouTubeAlbumMenu(
         )
         albumItem.artists?.let { artists ->
             GridMenuItem(
-                icon = R.drawable.artist,
+                icon = R.drawable.artist_outline,
                 title = R.string.view_artist
             ) {
                 if (artists.size == 1) {
@@ -265,7 +265,7 @@ fun YouTubeAlbumMenu(
             }
         }
         GridMenuItem(
-            icon = R.drawable.share,
+            icon = R.drawable.share_outline,
             title = R.string.share
         ) {
             val intent = Intent().apply {

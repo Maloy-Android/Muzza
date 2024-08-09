@@ -187,7 +187,7 @@ fun SongMenu(
         )
     ) {
         GridMenuItem(
-            icon = R.drawable.radio,
+            icon = R.drawable.radio_outline,
             title = R.string.start_radio
         ) {
             onDismiss()
@@ -208,7 +208,7 @@ fun SongMenu(
             playerConnection.addToQueue((song.toMediaItem()))
         }
         GridMenuItem(
-            icon = R.drawable.edit,
+            icon = R.drawable.edit_outline,
             title = R.string.edit
         ) {
             showEditDialog = true
@@ -243,7 +243,7 @@ fun SongMenu(
             }
         )
         GridMenuItem(
-            icon = R.drawable.artist,
+            icon = R.drawable.artist_outline,
             title = R.string.view_artist
         ) {
             if (song.artists.size == 1) {
@@ -255,7 +255,7 @@ fun SongMenu(
         }
         if (song.song.albumId != null) {
             GridMenuItem(
-                icon = R.drawable.album,
+                icon = R.drawable.album_outline,
                 title = R.string.view_album
             ) {
                 onDismiss()
@@ -263,7 +263,7 @@ fun SongMenu(
             }
         }
         GridMenuItem(
-            icon = R.drawable.share,
+            icon = R.drawable.share_outline,
             title = R.string.share
         ) {
             onDismiss()

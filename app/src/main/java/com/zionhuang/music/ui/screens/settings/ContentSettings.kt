@@ -83,7 +83,7 @@ fun ContentSettings(
         )
         ListPreference(
             title = { Text(stringResource(R.string.content_language)) },
-            icon = { Icon(painterResource(R.drawable.language), null) },
+            icon = { Icon(painterResource(R.drawable.translate), null) },
             selectedValue = contentLanguage,
             values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
             valueText = {
@@ -126,6 +126,7 @@ fun ContentSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_proxy)) },
+            icon = { Icon(painterResource(R.drawable.network_manage), null) },
             checked = proxyEnabled,
             onCheckedChange = onProxyEnabledChange
         )

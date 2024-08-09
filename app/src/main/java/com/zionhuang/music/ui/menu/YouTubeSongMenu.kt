@@ -192,7 +192,7 @@ fun YouTubeSongMenu(
         )
     ) {
         GridMenuItem(
-            icon = R.drawable.radio,
+            icon = R.drawable.radio_outline,
             title = R.string.start_radio
         ) {
             playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
@@ -266,7 +266,7 @@ fun YouTubeSongMenu(
         )
         if (artists.isNotEmpty()) {
             GridMenuItem(
-                icon = R.drawable.artist,
+                icon = R.drawable.artist_outline,
                 title = R.string.view_artist
             ) {
                 if (artists.size == 1) {
@@ -279,7 +279,7 @@ fun YouTubeSongMenu(
         }
         song.album?.let { album ->
             GridMenuItem(
-                icon = R.drawable.album,
+                icon = R.drawable.album_outline,
                 title = R.string.view_album
             ) {
                 navController.navigate("album/${album.id}")
@@ -287,7 +287,7 @@ fun YouTubeSongMenu(
             }
         }
         GridMenuItem(
-            icon = R.drawable.share,
+            icon = R.drawable.share_outline,
             title = R.string.share
         ) {
             val intent = Intent().apply {

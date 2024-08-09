@@ -65,13 +65,13 @@ fun PlayerSettings(
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.skip_silence)) },
-            icon = { Icon(painterResource(R.drawable.skip_next), null) },
+            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
             checked = skipSilence,
             onCheckedChange = onSkipSilenceChange
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.audio_normalization)) },
-            icon = { Icon(painterResource(R.drawable.volume_up), null) },
+            icon = { Icon(painterResource(R.drawable.edit_audio), null) },
             checked = audioNormalization,
             onCheckedChange = onAudioNormalizationChange
         )

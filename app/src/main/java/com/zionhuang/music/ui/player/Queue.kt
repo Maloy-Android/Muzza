@@ -158,7 +158,7 @@ fun Queue(
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             onDismissRequest = { showSleepTimerDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.bedtime), contentDescription = null) },
+            icon = { Icon(painter = painterResource(R.drawable.snooze_filled), contentDescription = null) },
             title = { Text(stringResource(R.string.sleep_timer)) },
             confirmButton = {
                 TextButton(
@@ -298,7 +298,9 @@ fun Queue(
                 }
                 IconButton(onClick = { showLyrics = !showLyrics }) {
                     Icon(
-                        painter = painterResource(R.drawable.lyrics),
+                        painter = painterResource(
+                            if (showLyrics) R.drawable.lyrics else R.drawable.lyrics_outline
+                        ),
                         contentDescription = null,
                         modifier = Modifier.alpha(if (showLyrics) 1f else 0.5f)
                     )
@@ -319,7 +321,7 @@ fun Queue(
                     } else {
                         IconButton(onClick = { showSleepTimerDialog = true }) {
                             Icon(
-                                painter = painterResource(R.drawable.bedtime),
+                                painter = painterResource(R.drawable.snooze),
                                 contentDescription = null
                             )
                         }

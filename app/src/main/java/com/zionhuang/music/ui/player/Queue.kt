@@ -1,10 +1,13 @@
 package com.zionhuang.music.ui.player
 
 import android.text.format.Formatter
+import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -40,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SwipeToDismiss
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -62,6 +66,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.focusModifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
@@ -74,7 +79,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
+import androidx.media3.common.C
 import androidx.media3.common.Player.STATE_ENDED
+import androidx.media3.common.Player.STATE_READY
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.navigation.NavController
@@ -83,6 +90,8 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.ControlButtons
 import com.zionhuang.music.constants.ControlButtonsOnQueueKey
 import com.zionhuang.music.constants.ListItemHeight
+import com.zionhuang.music.constants.PlayerHorizontalPadding
+import com.zionhuang.music.constants.SeekBarOnQueueKey
 import com.zionhuang.music.constants.ShowLyricsKey
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.move
@@ -137,6 +146,9 @@ fun Queue(
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
+    val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
+    val showSeekBar by rememberPreference(key = SeekBarOnQueueKey, defaultValue = false)
+    val controlButtons by enumPreference(context, ControlButtonsOnQueueKey, ControlButtons.NONE)
 
     val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
         playerConnection.service.sleepTimer.isActive
@@ -409,7 +421,7 @@ fun Queue(
                 .add(
                     WindowInsets(
                         top = ListItemHeight,
-                        bottom = ListItemHeight
+                        bottom = ListItemHeight + if (showSeekBar) 36.dp else 2.dp
                     )
                 )
                 .asPaddingValues(),
@@ -519,15 +531,12 @@ fun Queue(
                 }
             }
         }
-
-        val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
-
         Box(
             modifier = Modifier
-                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 1f))
+                .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = if (controlButtons == ControlButtons.NONE && !showSeekBar) 0.8f else 1f))
                 .fillMaxWidth()
                 .height(
-                    ListItemHeight +
+                    ListItemHeight + if (showSeekBar) 48.dp else 0.dp +
                             WindowInsets.systemBars
                                 .asPaddingValues()
                                 .calculateBottomPadding()
@@ -540,92 +549,162 @@ fun Queue(
                     WindowInsets.systemBars
                         .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
                 )
-                .padding(12.dp)
+                .padding(12.dp, if (showSeekBar) 8.dp else 12.dp, 12.dp, if (showSeekBar) 8.dp else 12.dp)
         ) {
-            IconButton(
-                modifier = Modifier.align(Alignment.CenterStart),
-                onClick = {
-                    coroutineScope.launch {
-                        reorderableState.listState.animateScrollToItem(
-                            if (playerConnection.player.shuffleModeEnabled) playerConnection.player.currentMediaItemIndex else 0
-                        )
-                    }.invokeOnCompletion {
-                        playerConnection.player.shuffleModeEnabled = !playerConnection.player.shuffleModeEnabled
+            var position by rememberSaveable(playbackState) {
+                mutableLongStateOf(playerConnection.player.currentPosition)
+            }
+            var duration by rememberSaveable(playbackState) {
+                mutableLongStateOf(playerConnection.player.duration)
+            }
+            var sliderPosition by remember {
+                mutableStateOf<Long?>(null)
+            }
+
+            if (showSeekBar) {
+                LaunchedEffect(playbackState) {
+                    if (playbackState == STATE_READY) {
+                        while (isActive) {
+                            delay(500)
+                            position = playerConnection.player.currentPosition
+                            duration = playerConnection.player.duration
+                        }
                     }
                 }
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.shuffle),
-                    contentDescription = null,
-                    modifier = Modifier.alpha(if (shuffleModeEnabled) 1f else 0.5f)
-                )
             }
-            val controlButtons by enumPreference(context, ControlButtonsOnQueueKey, ControlButtons.NONE)
 
-            if (controlButtons == ControlButtons.NONE) {
-                Icon(
-                    painter = painterResource(R.drawable.expand_more),
-                    contentDescription = null,
-                    modifier = Modifier.align(Alignment.Center)
-                )
-            }
-            else {
-                Row(
-                    modifier = Modifier.align(Alignment.Center)
-                ) {
-
-                    IconButton(
-                        onClick = {
-                            if (controlButtons == ControlButtons.SKIP_SONG) {
-                                playerConnection.seekToPrevious()
-                            } else {
-                                playerConnection.player.seekTo(currentWindowIndex,
-                                    playerConnection.player.contentPosition - 5000)
-                            }
-                        },
-                        enabled = if (controlButtons == ControlButtons.SKIP_SONG) canSkipPrevious else true
-                    ) {
-                        Icon(
-                            painter = if (controlButtons == ControlButtons.SKIP_SONG)
-                                painterResource(R.drawable.skip_previous) else
-                                painterResource(R.drawable.media3_icon_skip_back_5),
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp)
-                        )
+            Column() {
+                if (showSeekBar) {
+                    Row() {
+                        Box(modifier = Modifier.padding(horizontal = 14.dp)) {
+                            Text(
+                                text = makeTimeString(sliderPosition ?: position),
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.align(Alignment.CenterStart)
+                            )
+                            Slider(
+                                value = (sliderPosition ?: position).toFloat(),
+                                valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                                onValueChange = {
+                                    sliderPosition = it.toLong()
+                                },
+                                onValueChangeFinished = {
+                                    sliderPosition?.let {
+                                        playerConnection.player.seekTo(it)
+                                        position = it
+                                    }
+                                    sliderPosition = null
+                                },
+                                modifier = Modifier.padding(horizontal = 36.dp).height(32.dp),
+                                colors = SliderDefaults.colors(
+                                    inactiveTrackColor = MaterialTheme.colorScheme.secondary,
+                                ),
+                            )
+                            Text(
+                                text = if (duration != C.TIME_UNSET) makeTimeString(duration) else "",
+                                style = MaterialTheme.typography.labelMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.align(Alignment.CenterEnd)
+                            )
+                        }
                     }
+                }
 
-                    IconButton(
-                        onClick = {
-                            if (playbackState == STATE_ENDED) {
-                                playerConnection.player.seekTo(0, 0)
-                                playerConnection.player.playWhenReady = true
-                            } else {
-                                playerConnection.player.togglePlayPause()
+                Row() {
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        IconButton(
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            onClick = {
+                                coroutineScope.launch {
+                                    reorderableState.listState.animateScrollToItem(
+                                        if (playerConnection.player.shuffleModeEnabled) playerConnection.player.currentMediaItemIndex else 0
+                                    )
+                                }.invokeOnCompletion {
+                                    playerConnection.player.shuffleModeEnabled = !playerConnection.player.shuffleModeEnabled
+                                }
                             }
-                        },
-                    ) {
-                        Icon(
-                            painter = painterResource(if (playbackState == STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
-                            contentDescription = null,
-                            modifier = Modifier.size(108.dp),
-                        )
-                    }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.shuffle),
+                                contentDescription = null,
+                                modifier = Modifier.alpha(if (shuffleModeEnabled) 1f else 0.5f)
+                            )
+                        }
 
-                    IconButton(
-                        onClick = {
-                            if (controlButtons == ControlButtons.SKIP_SONG) {
-                                playerConnection.seekToNext()
-                            } else {
-                                playerConnection.player.seekTo(currentWindowIndex, playerConnection.player.contentPosition + 5000)
+                        if (controlButtons == ControlButtons.NONE) {
+                            Icon(
+                                painter = painterResource(R.drawable.expand_more),
+                                contentDescription = null,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
+                        else {
+                            Row(
+                                modifier = Modifier.align(Alignment.Center)
+                            ) {
+
+                                IconButton(
+                                    onClick = {
+                                        position = playerConnection.player.currentPosition
+                                        duration = playerConnection.player.duration
+                                        if (controlButtons == ControlButtons.SKIP_SONG) {
+                                            playerConnection.seekToPrevious()
+                                        } else {
+                                            playerConnection.player.seekTo(currentWindowIndex,
+                                                playerConnection.player.contentPosition - 5000)
+                                        }
+                                    },
+                                    enabled = if (controlButtons == ControlButtons.SKIP_SONG) canSkipPrevious else true
+                                ) {
+                                    Icon(
+                                        painter = if (controlButtons == ControlButtons.SKIP_SONG)
+                                            painterResource(R.drawable.skip_previous) else
+                                            painterResource(R.drawable.media3_icon_skip_back_5),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        if (playbackState == STATE_ENDED) {
+                                            playerConnection.player.seekTo(0, 0)
+                                            playerConnection.player.playWhenReady = true
+                                        } else {
+                                            playerConnection.player.togglePlayPause()
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(if (playbackState == STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(108.dp),
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        position = playerConnection.player.currentPosition
+                                        duration = playerConnection.player.duration
+                                        if (controlButtons == ControlButtons.SKIP_SONG) {
+                                            playerConnection.seekToNext()
+                                        } else {
+                                            playerConnection.player.seekTo(currentWindowIndex, playerConnection.player.contentPosition + 5000)
+                                        }
+                                    },
+                                    enabled = if (controlButtons == ControlButtons.SKIP_SONG) canSkipNext else true
+                                ) {
+                                    Icon(
+                                        painter = if (controlButtons == ControlButtons.SKIP_SONG) painterResource(R.drawable.skip_next) else painterResource(R.drawable.media3_icon_skip_forward_5),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(28.dp)
+                                    )
+                                }
                             }
-                        },
-                        enabled = if (controlButtons == ControlButtons.SKIP_SONG) canSkipNext else true
-                    ) {
-                        Icon(
-                            painter = if (controlButtons == ControlButtons.SKIP_SONG) painterResource(R.drawable.skip_next) else painterResource(R.drawable.media3_icon_skip_forward_5),
-                            contentDescription = null,
-                            modifier = Modifier.size(28.dp)
-                        )
+                        }
                     }
                 }
             }

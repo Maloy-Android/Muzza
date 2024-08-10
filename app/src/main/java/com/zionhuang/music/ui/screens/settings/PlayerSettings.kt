@@ -22,6 +22,7 @@ import com.zionhuang.music.constants.AudioQualityKey
 import com.zionhuang.music.constants.ControlButtons
 import com.zionhuang.music.constants.ControlButtonsOnQueueKey
 import com.zionhuang.music.constants.PersistentQueueKey
+import com.zionhuang.music.constants.SeekBarOnQueueKey
 import com.zionhuang.music.constants.SkipSilenceKey
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
@@ -40,7 +41,8 @@ fun PlayerSettings(
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
-    val (controlBtnsOnQueue, onControlBtnsChange) = rememberEnumPreference(key = ControlButtonsOnQueueKey, defaultValue = ControlButtons.SKIP_5_SECONDS)
+    val (controlBtnsOnQueue, onControlBtnsChange) = rememberEnumPreference(key = ControlButtonsOnQueueKey, defaultValue = ControlButtons.NONE)
+    val (showSeekBar, onShowSeekBarChange) = rememberPreference(key = SeekBarOnQueueKey, defaultValue = false)
 
     Column(
         Modifier
@@ -90,6 +92,12 @@ fun PlayerSettings(
                     ControlButtons.SKIP_5_SECONDS -> stringResource(R.string.control_btns_skip_5_seconds)
                 }
             }
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.show_seek_bar)) },
+            icon = { Icon(painterResource(R.drawable.slider), null) },
+            checked = showSeekBar,
+            onCheckedChange = onShowSeekBarChange
         )
     }
 

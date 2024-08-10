@@ -26,6 +26,7 @@ enum class AudioQuality {
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val SkipSilenceKey = booleanPreferencesKey("skipSilence")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
+val SeekBarOnQueueKey = booleanPreferencesKey("showSeekBar")
 
 val ControlButtonsOnQueueKey = stringPreferencesKey("controlButtonsOnQueue")
 

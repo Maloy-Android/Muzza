@@ -242,6 +242,7 @@
     <string name="control_btns_none">None</string>
     <string name="control_btns_skip_song">Skip Song</string>
     <string name="control_btns_skip_5_seconds">Skip 5 Seconds</string>
+    <string name="show_seek_bar">Show seek bar on queue</string>
     <string name="equalizer">Equalizer</string>
 
     <string name="storage">Storage</string>

@@ -158,7 +158,7 @@ fun Queue(
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             onDismissRequest = { showSleepTimerDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.snooze_filled), contentDescription = null) },
+            icon = { Icon(painter = painterResource(R.drawable.snooze), contentDescription = null) },
             title = { Text(stringResource(R.string.sleep_timer)) },
             confirmButton = {
                 TextButton(

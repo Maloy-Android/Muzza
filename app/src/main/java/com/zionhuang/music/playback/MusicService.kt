@@ -85,6 +85,7 @@ import com.zionhuang.music.extensions.mediaItems
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.lyrics.LyricsHelper
+import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.models.PersistQueue
 import com.zionhuang.music.models.toMediaMetadata
 import com.zionhuang.music.playback.queues.EmptyQueue
@@ -428,12 +429,12 @@ class MusicService : MediaLibraryService(),
         }
     }
 
-    fun startRadioSeamlessly() {
-        val currentMediaMetadata = player.currentMetadata ?: return
-        if (player.currentMediaItemIndex > 0) player.removeMediaItems(0, player.currentMediaItemIndex)
-        if (player.currentMediaItemIndex < player.mediaItemCount - 1) player.removeMediaItems(player.currentMediaItemIndex + 1, player.mediaItemCount)
+    fun startRadioSeamlessly(mediaItemIndex: Int, mediaMetadata: MediaMetadata) {
+        val mediaItemCount = player.mediaItemCount + mediaItemIndex
+        if (mediaItemIndex > 0) player.removeMediaItems(0, mediaItemIndex)
+        if (mediaItemIndex < mediaItemCount - 1) player.removeMediaItems(1, mediaItemCount - mediaItemIndex)
         scope.launch(SilentHandler) {
-            val radioQueue = YouTubeQueue(endpoint = WatchEndpoint(videoId = currentMediaMetadata.id))
+            val radioQueue = YouTubeQueue(endpoint = WatchEndpoint(videoId = mediaMetadata.id))
             val initialStatus = radioQueue.getInitialStatus()
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title

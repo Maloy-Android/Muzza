@@ -74,6 +74,7 @@ fun PlayerMenu(
     navController: NavController,
     playerBottomSheetState: BottomSheetState,
     onShowDetailsDialog: () -> Unit,
+    windowIndex: Int,
     onDismiss: () -> Unit,
 ) {
     mediaMetadata ?: return
@@ -179,7 +180,7 @@ fun PlayerMenu(
             icon = R.drawable.radio,
             title = R.string.start_radio
         ) {
-            playerConnection.service.startRadioSeamlessly()
+            playerConnection.service.startRadioSeamlessly(windowIndex, mediaMetadata)
             onDismiss()
         }
         GridMenuItem(
@@ -214,6 +215,13 @@ fun PlayerMenu(
                 )
             }
         )
+        GridMenuItem(
+            icon = R.drawable.media3_icon_playlist_remove,
+            title = R.string.remove_from_queue
+        ) {
+            playerConnection.player.removeMediaItem(windowIndex)
+            onDismiss()
+        }
         GridMenuItem(
             icon = R.drawable.artist,
             title = R.string.view_artist

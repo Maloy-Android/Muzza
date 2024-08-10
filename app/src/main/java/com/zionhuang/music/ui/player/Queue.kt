@@ -3,8 +3,10 @@ package com.zionhuang.music.ui.player
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -77,6 +79,7 @@ import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
+import com.zionhuang.music.constants.LockQueueKey
 import com.zionhuang.music.constants.ShowLyricsKey
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.move
@@ -88,13 +91,11 @@ import com.zionhuang.music.ui.component.MediaMetadataListItem
 import com.zionhuang.music.ui.menu.PlayerMenu
 import com.zionhuang.music.utils.makeTimeString
 import com.zionhuang.music.utils.rememberPreference
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import java.text.SimpleDateFormat
@@ -102,7 +103,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun Queue(
     state: BottomSheetState,
@@ -125,6 +126,8 @@ fun Queue(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+
+    val (lockQueue, onLockQueueChange) = rememberPreference(key = LockQueueKey, defaultValue = false)
 
     val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
         playerConnection.service.sleepTimer.isActive
@@ -339,6 +342,7 @@ fun Queue(
                                 navController = navController,
                                 playerBottomSheetState = playerBottomSheetState,
                                 onShowDetailsDialog = { showDetailsDialog = true },
+                                windowIndex = currentWindowIndex,
                                 onDismiss = menuState::dismiss
                             )
                         }
@@ -370,7 +374,8 @@ fun Queue(
                 } else {
                     playerConnection.player.setShuffleOrder(
                         DefaultShuffleOrder(
-                            queueWindows.map { it.firstPeriodIndex }.toMutableList().move(fromIndex, toIndex).toIntArray(),
+                            queueWindows.map { it.firstPeriodIndex }.toMutableList()
+                                .move(fromIndex, toIndex).toIntArray(),
                             System.currentTimeMillis()
                         )
                     )
@@ -423,42 +428,110 @@ fun Queue(
                             true
                         }
                     )
-                    SwipeToDismiss(
-                        state = dismissState,
-                        background = {},
-                        dismissContent = {
-                            MediaMetadataListItem(
-                                mediaMetadata = window.mediaItem.metadata!!,
-                                isActive = index == currentWindowIndex,
-                                isPlaying = isPlaying,
-                                trailingContent = {
-                                    IconButton(
-                                        onClick = { },
-                                        modifier = Modifier
-                                            .detectReorder(reorderableState)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.drag_handle),
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        coroutineScope.launch(Dispatchers.Main) {
-                                            if (index == currentWindowIndex) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                                                playerConnection.player.playWhenReady = true
+                    val song by playerConnection.database.song(window.mediaItem.mediaId).collectAsState(initial = null)
+                    if (!lockQueue) {
+                        SwipeToDismiss(
+                            state = dismissState,
+                            background = {},
+                            dismissContent = {
+                                MediaMetadataListItem(
+                                    mediaMetadata = window.mediaItem.metadata!!,
+                                    isActive = index == currentWindowIndex,
+                                    isPlaying = isPlaying,
+                                    isLiked = song?.song?.liked,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = { },
+                                            modifier = Modifier
+                                                .detectReorder(reorderableState)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.drag_handle),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (index == currentWindowIndex) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else {
+                                                    playerConnection.player.seekToDefaultPosition(
+                                                        window.firstPeriodIndex
+                                                    )
+                                                    playerConnection.player.playWhenReady = true
+                                                }
+                                            },
+                                            onLongClick = {
+                                                menuState.show {
+                                                    PlayerMenu(
+                                                        mediaMetadata = window.mediaItem.metadata!!,
+                                                        navController = navController,
+                                                        playerBottomSheetState = playerBottomSheetState,
+                                                        onShowDetailsDialog = {
+                                                            showDetailsDialog = true
+                                                        },
+                                                        windowIndex = currentItem.firstPeriodIndex,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            },
+                                            onDoubleClick = {
+                                                playerConnection.database.query {
+                                                    song?.song
+                                                        ?.toggleLike()
+                                                        ?.let { update(it) }
+                                                }
                                             }
+                                        )
+                                )
+                            }
+                        )
+                    } else {
+                        MediaMetadataListItem(
+                            mediaMetadata = window.mediaItem.metadata!!,
+                            isActive = index == currentWindowIndex,
+                            isPlaying = isPlaying,
+                            isLiked = song?.song?.liked,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedClickable(
+                                    onClick = {
+                                        if (index == currentWindowIndex) {
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            playerConnection.player.seekToDefaultPosition(
+                                                window.firstPeriodIndex
+                                            )
+                                            playerConnection.player.playWhenReady = true
+                                        }
+                                    },
+                                    onLongClick = {
+                                        menuState.show {
+                                            PlayerMenu(
+                                                mediaMetadata = window.mediaItem.metadata!!,
+                                                navController = navController,
+                                                playerBottomSheetState = playerBottomSheetState,
+                                                onShowDetailsDialog = {
+                                                    showDetailsDialog = true
+                                                },
+                                                windowIndex = currentItem.firstPeriodIndex,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    },
+                                    onDoubleClick = {
+                                        playerConnection.database.query {
+                                            song?.song
+                                                ?.toggleLike()
+                                                ?.let { update(it) }
                                         }
                                     }
-                                    .detectReorderAfterLongPress(reorderableState)
-                            )
-                        }
-                    )
+                                )
+                        )
+                    }
                 }
             }
         }
@@ -494,7 +567,11 @@ fun Queue(
                     horizontalAlignment = Alignment.End
                 ) {
                     Text(
-                        text = pluralStringResource(R.plurals.n_song, queueWindows.size, queueWindows.size),
+                        text = pluralStringResource(
+                            R.plurals.n_song,
+                            queueWindows.size,
+                            queueWindows.size
+                        ),
                         style = MaterialTheme.typography.bodyMedium
                     )
 
@@ -536,7 +613,8 @@ fun Queue(
                             if (playerConnection.player.shuffleModeEnabled) playerConnection.player.currentMediaItemIndex else 0
                         )
                     }.invokeOnCompletion {
-                        playerConnection.player.shuffleModeEnabled = !playerConnection.player.shuffleModeEnabled
+                        playerConnection.player.shuffleModeEnabled =
+                            !playerConnection.player.shuffleModeEnabled
                     }
                 }
             ) {
@@ -552,6 +630,16 @@ fun Queue(
                 contentDescription = null,
                 modifier = Modifier.align(Alignment.Center)
             )
+
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = { onLockQueueChange(!lockQueue) }
+            ) {
+                Icon(
+                    painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(R.drawable.lock_open),
+                    contentDescription = null,
+                )
+            }
         }
     }
 }

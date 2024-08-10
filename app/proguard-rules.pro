@@ -61,3 +61,6 @@
 -dontwarn org.slf4j.impl.StaticLoggerBinder
 -dontwarn com.google.firebase.perf.network.FirebasePerfOkHttpClient
 -dontwarn com.google.firebase.perf.network.FirebasePerfUrlConnection
+# opencc4j
+-keep class com.github.houbb.opencc4j.** { *; }
+-dontwarn com.huaban.analysis.jieba.JiebaSegmenter

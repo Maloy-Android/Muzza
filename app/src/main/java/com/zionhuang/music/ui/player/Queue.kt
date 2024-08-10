@@ -399,6 +399,10 @@ fun Queue(
             }
         }
 
+        LaunchedEffect(mutableQueueWindows) {
+            reorderableState.listState.scrollToItem(currentWindowIndex)
+        }
+
         LazyColumn(
             state = reorderableState.listState,
             contentPadding = WindowInsets.systemBars

@@ -6,8 +6,9 @@ plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.compose.compiler)
 }
 
 if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
@@ -18,14 +19,14 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
 
 android {
     namespace = "com.zionhuang.music"
-    compileSdk = 33
-    buildToolsVersion = "30.0.3"
+    compileSdk = 34
+    buildToolsVersion = "34.0.0"
     defaultConfig {
         applicationId = "com.zionhuang.music"
         minSdk = 27
-        targetSdk = 33
-        versionCode = 20
-        versionName = "0.5.4"
+        targetSdk = 34
+        versionCode = 21
+        versionName = "0.5.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -47,6 +48,16 @@ android {
             dimension = "version"
         }
     }
+
+//    splits {
+//        abi {
+//            isEnable = true
+//            reset()
+//            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+//            isUniversalApk = false
+//        }
+//    }
+    
     signingConfigs {
         getByName("debug") {
             if (System.getenv("MUSIC_DEBUG_SIGNING_STORE_PASSWORD") != null) {
@@ -58,22 +69,20 @@ android {
         }
     }
     buildFeatures {
+        buildConfig = true
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
     }
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
@@ -143,6 +152,7 @@ dependencies {
 
     implementation(projects.innertube)
     implementation(projects.kugou)
+    implementation(projects.lrclib)
 
     coreLibraryDesugaring(libs.desugaring)
 

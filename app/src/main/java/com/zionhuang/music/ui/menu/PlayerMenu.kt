@@ -29,6 +29,8 @@ import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -54,7 +56,6 @@ import com.zionhuang.music.LocalDownloadUtil
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
-import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.playback.ExoDownloadService
 import com.zionhuang.music.ui.component.BigSeekBar
@@ -90,17 +91,11 @@ fun PlayerMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onAdd = { playlist ->
+        onGetSong = {
             database.transaction {
                 insert(mediaMetadata)
-                insert(
-                    PlaylistSongMap(
-                        songId = mediaMetadata.id,
-                        playlistId = playlist.id,
-                        position = playlist.songCount
-                    )
-                )
             }
+            listOf(mediaMetadata.id)
         },
         onDismiss = {
             showChoosePlaylistDialog = false
@@ -289,10 +284,10 @@ fun PitchTempoDialog(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     var tempo by remember {
-        mutableStateOf(playerConnection.player.playbackParameters.speed)
+        mutableFloatStateOf(playerConnection.player.playbackParameters.speed)
     }
     var transposeValue by remember {
-        mutableStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
+        mutableIntStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
     }
     val updatePlaybackParameters = {
         playerConnection.player.playbackParameters = PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))

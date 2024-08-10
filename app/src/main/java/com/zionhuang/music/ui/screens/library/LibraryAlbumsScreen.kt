@@ -26,6 +26,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -35,7 +37,16 @@ import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
-import com.zionhuang.music.constants.*
+import com.zionhuang.music.constants.AlbumFilter
+import com.zionhuang.music.constants.AlbumFilterKey
+import com.zionhuang.music.constants.AlbumSortDescendingKey
+import com.zionhuang.music.constants.AlbumSortType
+import com.zionhuang.music.constants.AlbumSortTypeKey
+import com.zionhuang.music.constants.AlbumViewTypeKey
+import com.zionhuang.music.constants.CONTENT_TYPE_ALBUM
+import com.zionhuang.music.constants.CONTENT_TYPE_HEADER
+import com.zionhuang.music.constants.GridThumbnailHeight
+import com.zionhuang.music.constants.LibraryViewType
 import com.zionhuang.music.ui.component.AlbumGridItem
 import com.zionhuang.music.ui.component.AlbumListItem
 import com.zionhuang.music.ui.component.ChipsRow
@@ -53,6 +64,7 @@ fun LibraryAlbumsScreen(
     viewModel: LibraryAlbumsViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
+    val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -228,6 +240,7 @@ fun LibraryAlbumsScreen(
                                         navController.navigate("album/${album.id}")
                                     },
                                     onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         menuState.show {
                                             AlbumMenu(
                                                 originalAlbum = album,

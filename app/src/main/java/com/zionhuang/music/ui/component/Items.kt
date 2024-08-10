@@ -33,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -91,6 +92,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+
+const val ActiveBoxAlpha = 0.6f
 
 @Composable
 inline fun ListItem(
@@ -317,7 +320,7 @@ fun SongListItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(alpha = 0.4f),
+                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(alpha = ActiveBoxAlpha),
                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )
             )
@@ -414,7 +417,7 @@ fun AlbumListItem(
         }
 
         var downloadState by remember {
-            mutableStateOf(Download.STATE_STOPPED)
+            mutableIntStateOf(Download.STATE_STOPPED)
         }
 
         LaunchedEffect(songs) {
@@ -507,7 +510,7 @@ fun AlbumListItem(
             modifier = Modifier
                 .size(ListThumbnailSize)
                 .background(
-                    color = Color.Black.copy(alpha = 0.4f),
+                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
                     shape = RoundedCornerShape(ThumbnailCornerRadius)
                 )
         )
@@ -535,7 +538,7 @@ fun AlbumGridItem(
         }
 
         var downloadState by remember {
-            mutableStateOf(Download.STATE_STOPPED)
+            mutableIntStateOf(Download.STATE_STOPPED)
         }
 
         LaunchedEffect(songs) {
@@ -610,7 +613,7 @@ fun AlbumGridItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        color = Color.Black.copy(alpha = 0.4f),
+                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )
             ) {
@@ -645,7 +648,7 @@ fun AlbumGridItem(
                 modifier = Modifier
                     .size(36.dp)
                     .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = 0.4f))
+                    .background(Color.Black.copy(alpha = ActiveBoxAlpha))
                     .clickable {
                         coroutineScope.launch {
                             database
@@ -816,7 +819,7 @@ fun MediaMetadataListItem(
             modifier = Modifier
                 .size(ListThumbnailSize)
                 .background(
-                    color = Color.Black.copy(alpha = 0.4f),
+                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
                     shape = RoundedCornerShape(ThumbnailCornerRadius)
                 )
         )
@@ -933,7 +936,7 @@ fun YouTubeListItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(alpha = 0.4f),
+                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(alpha = ActiveBoxAlpha),
                         shape = thumbnailShape
                     )
             )
@@ -1049,7 +1052,7 @@ fun YouTubeGridItem(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
-                            color = Color.Black.copy(alpha = 0.4f),
+                            color = Color.Black.copy(alpha = ActiveBoxAlpha),
                             shape = thumbnailShape
                         )
                 ) {
@@ -1084,7 +1087,7 @@ fun YouTubeGridItem(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(Color.Black.copy(alpha = 0.4f))
+                        .background(Color.Black.copy(alpha = ActiveBoxAlpha))
                         .clickable {
                             coroutineScope?.launch(Dispatchers.IO) {
                                 var songs = database

@@ -20,18 +20,15 @@ A Material 3 YouTube Music client for Android
 - Background playback
 - Search songs, videos, albums, and playlists from YouTube Music
 - Login support
-- Library management
 - Cache and download songs for offline playback
 - Synchronized lyrics
-- Lyrics translator (experimental)
+- Lyrics translator
 - Skip silence
 - Audio normalization
 - Adjust tempo/pitch
 - Dynamic theme
-- Localization
 - Android Auto support
 - Personalized quick picks
-- Material 3
 
 ## Screenshots
 

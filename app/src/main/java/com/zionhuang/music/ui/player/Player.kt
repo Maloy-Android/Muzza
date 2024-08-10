@@ -4,9 +4,12 @@ import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -43,6 +47,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
@@ -60,7 +65,9 @@ import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
+import com.zionhuang.music.constants.DarkModeKey
 import com.zionhuang.music.constants.PlayerHorizontalPadding
+import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.QueuePeekHeight
 import com.zionhuang.music.extensions.togglePlayPause
 import com.zionhuang.music.extensions.toggleRepeatMode
@@ -69,10 +76,14 @@ import com.zionhuang.music.ui.component.BottomSheet
 import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.ResizableIconButton
 import com.zionhuang.music.ui.component.rememberBottomSheetState
+import com.zionhuang.music.ui.screens.settings.DarkMode
 import com.zionhuang.music.utils.makeTimeString
+import com.zionhuang.music.utils.rememberEnumPreference
+import com.zionhuang.music.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -80,6 +91,19 @@ fun BottomSheetPlayer(
     modifier: Modifier = Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
+    val useBlackBackground = remember(isSystemInDarkTheme, darkTheme, pureBlack) {
+        val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+        useDarkTheme && pureBlack
+    }
+    val backgroundColor = if (useBlackBackground && !state.isCollapsed) {
+        Color.Black
+    } else {
+        MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+    }
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -91,10 +115,10 @@ fun BottomSheetPlayer(
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
     var position by rememberSaveable(playbackState) {
-        mutableStateOf(playerConnection.player.currentPosition)
+        mutableLongStateOf(playerConnection.player.currentPosition)
     }
     var duration by rememberSaveable(playbackState) {
-        mutableStateOf(playerConnection.player.duration)
+        mutableLongStateOf(playerConnection.player.duration)
     }
     var sliderPosition by remember {
         mutableStateOf<Long?>(null)
@@ -118,7 +142,7 @@ fun BottomSheetPlayer(
     BottomSheet(
         state = state,
         modifier = modifier,
-        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+        backgroundColor = backgroundColor,
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()
@@ -126,7 +150,7 @@ fun BottomSheetPlayer(
         collapsedContent = {
             MiniPlayer(
                 position = position,
-                duration = duration
+                duration = duration,
             )
         }
     ) {
@@ -145,6 +169,7 @@ fun BottomSheetPlayer(
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
                     .padding(horizontal = PlayerHorizontalPadding)
+                    .basicMarquee()
                     .clickable(enabled = mediaMetadata.album != null) {
                         navController.navigate("album/${mediaMetadata.album!!.id}")
                         state.collapseSoft()
@@ -372,6 +397,7 @@ fun BottomSheetPlayer(
         Queue(
             state = queueSheetState,
             playerBottomSheetState = state,
+            backgroundColor = backgroundColor,
             navController = navController
         )
     }

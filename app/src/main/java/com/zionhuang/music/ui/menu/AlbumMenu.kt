@@ -23,6 +23,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -52,7 +53,6 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.ListThumbnailSize
 import com.zionhuang.music.db.entities.Album
-import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.playback.ExoDownloadService
@@ -85,7 +85,7 @@ fun AlbumMenu(
     }
 
     var downloadState by remember {
-        mutableStateOf(STATE_STOPPED)
+        mutableIntStateOf(STATE_STOPPED)
     }
 
     LaunchedEffect(songs) {
@@ -115,20 +115,7 @@ fun AlbumMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onAdd = { playlist ->
-            database.transaction {
-                songs.map { it.id }
-                    .forEach {
-                        insert(
-                            PlaylistSongMap(
-                                songId = it,
-                                playlistId = playlist.id,
-                                position = playlist.songCount
-                            )
-                        )
-                    }
-            }
-        },
+        onGetSong = { songs.map { it.id } },
         onDismiss = {
             showChoosePlaylistDialog = false
         }

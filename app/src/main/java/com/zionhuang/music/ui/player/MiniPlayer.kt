@@ -2,7 +2,9 @@ package com.zionhuang.music.ui.player
 
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -115,6 +117,7 @@ fun MiniPlayer(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MiniMediaInfo(
     mediaMetadata: MediaMetadata,
@@ -169,6 +172,7 @@ fun MiniMediaInfo(
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.basicMarquee()
             )
             Text(
                 text = mediaMetadata.artists.joinToString { it.name },
@@ -176,6 +180,7 @@ fun MiniMediaInfo(
                 fontSize = 12.sp,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.basicMarquee()
             )
         }
     }

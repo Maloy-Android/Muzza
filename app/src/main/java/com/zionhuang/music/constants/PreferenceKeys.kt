@@ -45,6 +45,7 @@ val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
+val EnableLrcLibKey = booleanPreferencesKey("enableLrcLib")
 
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")

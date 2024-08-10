@@ -3,7 +3,6 @@ package com.zionhuang.music.ui.player
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -47,6 +46,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -58,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -100,11 +102,12 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalAnimationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Queue(
     state: BottomSheetState,
     playerBottomSheetState: BottomSheetState,
+    backgroundColor: Color,
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
@@ -128,7 +131,7 @@ fun Queue(
     }
 
     var sleepTimerTimeLeft by remember {
-        mutableStateOf(0L)
+        mutableLongStateOf(0L)
     }
 
     LaunchedEffect(sleepTimerEnabled) {
@@ -149,7 +152,7 @@ fun Queue(
     }
 
     var sleepTimerValue by remember {
-        mutableStateOf(30f)
+        mutableFloatStateOf(30f)
     }
     if (showSleepTimerDialog) {
         AlertDialog(
@@ -274,7 +277,7 @@ fun Queue(
 
     BottomSheet(
         state = state,
-        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+        backgroundColor = backgroundColor,
         modifier = modifier,
         collapsedContent = {
             Row(
@@ -380,6 +383,10 @@ fun Queue(
                 clear()
                 addAll(queueWindows)
             }
+        }
+
+        LaunchedEffect(mutableQueueWindows) {
+            reorderableState.listState.scrollToItem(currentWindowIndex)
         }
 
         LazyColumn(

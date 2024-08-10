@@ -49,7 +49,6 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.ListThumbnailSize
 import com.zionhuang.music.constants.ThumbnailCornerRadius
-import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.db.entities.SongEntity
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.models.MediaMetadata
@@ -90,17 +89,11 @@ fun YouTubeSongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onAdd = { playlist ->
+        onGetSong = {
             database.transaction {
                 insert(song.toMediaMetadata())
-                insert(
-                    PlaylistSongMap(
-                        songId = song.id,
-                        playlistId = playlist.id,
-                        position = playlist.songCount
-                    )
-                )
             }
+            listOf(song.id)
         },
         onDismiss = { showChoosePlaylistDialog = false }
     )

@@ -337,7 +337,7 @@ fun LocalPlaylistScreen(
                                             onClick = { showEditDialog = true }
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.edit_outline),
+                                                painter = painterResource(R.drawable.edit),
                                                 contentDescription = null
                                             )
                                         }

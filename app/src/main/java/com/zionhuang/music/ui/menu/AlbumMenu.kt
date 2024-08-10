@@ -246,7 +246,7 @@ fun AlbumMenu(
             }
         )
         GridMenuItem(
-            icon = R.drawable.artist_outline,
+            icon = R.drawable.artist,
             title = R.string.view_artist
         ) {
             if (album.artists.size == 1) {
@@ -257,7 +257,7 @@ fun AlbumMenu(
             }
         }
         GridMenuItem(
-            icon = R.drawable.share_outline,
+            icon = R.drawable.share,
             title = R.string.share
         ) {
             onDismiss()

@@ -87,7 +87,7 @@ fun YouTubePlaylistMenu(
         }
         playlist.radioEndpoint?.let { radioEndpoint ->
             GridMenuItem(
-                icon = R.drawable.radio_outline,
+                icon = R.drawable.radio,
                 title = R.string.start_radio
             ) {
                 playerConnection.playQueue(YouTubeQueue(radioEndpoint))
@@ -131,7 +131,7 @@ fun YouTubePlaylistMenu(
             showChoosePlaylistDialog = true
         }
         GridMenuItem(
-            icon = R.drawable.share_outline,
+            icon = R.drawable.share,
             title = R.string.share
         ) {
             val intent = Intent().apply {

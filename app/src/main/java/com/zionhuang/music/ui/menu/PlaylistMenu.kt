@@ -257,7 +257,7 @@ fun PlaylistMenu(
         }
 
         GridMenuItem(
-            icon = R.drawable.edit_outline,
+            icon = R.drawable.edit,
             title = R.string.edit
         ) {
             showEditDialog = true

@@ -298,9 +298,7 @@ fun Queue(
                 }
                 IconButton(onClick = { showLyrics = !showLyrics }) {
                     Icon(
-                        painter = painterResource(
-                            if (showLyrics) R.drawable.lyrics else R.drawable.lyrics_outline
-                        ),
+                        painter = painterResource(R.drawable.lyrics),
                         contentDescription = null,
                         modifier = Modifier.alpha(if (showLyrics) 1f else 0.5f)
                     )

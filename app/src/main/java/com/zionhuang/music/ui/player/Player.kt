@@ -1,9 +1,14 @@
 package com.zionhuang.music.ui.player
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -55,7 +60,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.media3.common.C
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.Player.REPEAT_MODE_OFF
@@ -124,6 +128,20 @@ fun BottomSheetPlayer(
         mutableStateOf<Long?>(null)
     }
 
+    var isDragging by remember { mutableStateOf(false) }
+
+    val sliderAnimationDuration = if (isDragging) 25 else 150
+
+    val smoothSliderPosition by animateFloatAsState(
+        targetValue = (sliderPosition ?: position).toFloat(),
+        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
+    )
+
+    val animatedTime by animateFloatAsState(
+        targetValue = (sliderPosition ?: position).toFloat(),
+        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
+    )
+
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
@@ -157,64 +175,72 @@ fun BottomSheetPlayer(
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
-                animationSpec = tween(durationMillis = 100, easing = LinearEasing),
+                animationSpec = tween(durationMillis = 90, easing = LinearEasing),
                 label = "playPauseRoundness"
             )
 
-            Text(
-                text = mediaMetadata.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .padding(horizontal = PlayerHorizontalPadding)
-                    .basicMarquee()
-                    .clickable(enabled = mediaMetadata.album != null) {
-                        navController.navigate("album/${mediaMetadata.album!!.id}")
-                        state.collapseSoft()
-                    }
-            )
+            AnimatedContent(
+                targetState = mediaMetadata.title,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = ""
+            ) { title ->
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .padding(horizontal = PlayerHorizontalPadding)
+                        .basicMarquee()
+                        .clickable(enabled = mediaMetadata.album != null) {
+                            navController.navigate("album/${mediaMetadata.album!!.id}")
+                            state.collapseSoft()
+                        }
+                )
+            }
 
             Spacer(Modifier.height(6.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PlayerHorizontalPadding)
-            ) {
-                mediaMetadata.artists.fastForEachIndexed { index, artist ->
+            AnimatedContent(
+                targetState = mediaMetadata.artists.joinToString(", ") { it.name },
+                transitionSpec = { fadeIn() togetherWith fadeOut() }, label = ""
+            ) { artistsText ->
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PlayerHorizontalPadding)
+                ) {
                     Text(
-                        text = artist.name,
+                        text = artistsText,
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 1,
-                        modifier = Modifier.clickable(enabled = artist.id != null) {
-                            navController.navigate("artist/${artist.id}")
-                            state.collapseSoft()
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.clickable(enabled = mediaMetadata.artists.any { it.id != null }) {
+                            val firstArtistId = mediaMetadata.artists.firstOrNull()?.id
+                            if (firstArtistId != null) {
+                                navController.navigate("artist/$firstArtistId")
+                                state.collapseSoft()
+                            }
                         }
                     )
-
-                    if (index != mediaMetadata.artists.lastIndex) {
-                        Text(
-                            text = ", ",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
-                    }
                 }
             }
+
 
             Spacer(Modifier.height(12.dp))
 
             Slider(
-                value = (sliderPosition ?: position).toFloat(),
+                value = smoothSliderPosition,
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                 onValueChange = {
+                    isDragging = true
                     sliderPosition = it.toLong()
                 },
                 onValueChangeFinished = {
+                    isDragging = false
                     sliderPosition?.let {
                         playerConnection.player.seekTo(it)
                         position = it
@@ -232,7 +258,7 @@ fun BottomSheetPlayer(
                     .padding(horizontal = PlayerHorizontalPadding + 4.dp)
             ) {
                 Text(
-                    text = makeTimeString(sliderPosition ?: position),
+                    text = makeTimeString(animatedTime.toLong()),
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

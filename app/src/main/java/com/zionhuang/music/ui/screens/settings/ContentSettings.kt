@@ -29,9 +29,12 @@ import com.zionhuang.music.constants.EnableKugouKey
 import com.zionhuang.music.constants.EnableLrcLibKey
 import com.zionhuang.music.constants.InnerTubeCookieKey
 import com.zionhuang.music.constants.LanguageCodeToName
+import com.zionhuang.music.constants.MoodAndGenresEnabled
+import com.zionhuang.music.constants.NewReleasesEnabled
 import com.zionhuang.music.constants.ProxyEnabledKey
 import com.zionhuang.music.constants.ProxyTypeKey
 import com.zionhuang.music.constants.ProxyUrlKey
+import com.zionhuang.music.constants.QuickPicksEnabled
 import com.zionhuang.music.constants.SYSTEM_DEFAULT
 import com.zionhuang.music.ui.component.EditTextPreference
 import com.zionhuang.music.ui.component.IconButton
@@ -63,6 +66,9 @@ fun ContentSettings(
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
 
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
+    val (newReleasesEnabled, onNewReleaseChange) = rememberPreference(key = NewReleasesEnabled, defaultValue = true)
+    val (quickPickEnabled, onQuickPickChange) = rememberPreference(key = QuickPicksEnabled, defaultValue = true)
+    val (moodAndGenresEnabled, onMoodAndGenresChange) = rememberPreference(key = MoodAndGenresEnabled, defaultValue = true)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
 
@@ -118,6 +124,24 @@ fun ContentSettings(
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
             checked = enableKugou,
             onCheckedChange = onEnableKugouChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_new_releases)) },
+            checked = newReleasesEnabled,
+            onCheckedChange = onNewReleaseChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_quick_picks)) },
+            checked = quickPickEnabled,
+            onCheckedChange = onQuickPickChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_mood_and_genres)) },
+            checked = moodAndGenresEnabled,
+            onCheckedChange = onMoodAndGenresChange
         )
 
         PreferenceGroupTitle(

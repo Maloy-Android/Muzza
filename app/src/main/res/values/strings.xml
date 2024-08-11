@@ -225,6 +225,9 @@
     <string name="content_country">Default content country</string>
     <string name="system_default">System default</string>
     <string name="enable_proxy">Enable proxy</string>
+    <string name="enable_new_releases">Enable new releases</string>
+    <string name="enable_mood_and_genres">Enable mood and genres</string>
+    <string name="enable_quick_picks">Enable quick picks</string>
     <string name="proxy_type">Proxy type</string>
     <string name="proxy_url">Proxy URL</string>
     <string name="restart_to_take_effect">Restart to take effect</string>

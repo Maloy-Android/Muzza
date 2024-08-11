@@ -130,16 +130,11 @@ fun BottomSheetPlayer(
 
     var isDragging by remember { mutableStateOf(false) }
 
-    val sliderAnimationDuration = if (isDragging) 25 else 150
-
-    val smoothSliderPosition by animateFloatAsState(
-        targetValue = (sliderPosition ?: position).toFloat(),
-        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
-    )
+    val timeAnimationDuration = if (isDragging) 0 else 80
 
     val animatedTime by animateFloatAsState(
         targetValue = (sliderPosition ?: position).toFloat(),
-        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
+        animationSpec = tween(durationMillis = timeAnimationDuration, easing = LinearEasing), label = ""
     )
 
     LaunchedEffect(playbackState) {
@@ -233,7 +228,7 @@ fun BottomSheetPlayer(
             Spacer(Modifier.height(12.dp))
 
             Slider(
-                value = smoothSliderPosition,
+                value = (sliderPosition ?: position).toFloat(),
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                 onValueChange = {
                     isDragging = true

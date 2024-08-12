@@ -5,9 +5,14 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -100,6 +105,9 @@ fun LocalSearchScreen(
 
         LazyColumn(
             state = lazyListState,
+            contentPadding = WindowInsets.systemBars
+                .only(WindowInsetsSides.Bottom)
+                .asPaddingValues(),
             modifier = Modifier.weight(1f)
         ) {
             result.map.forEach { (filter, items) ->
@@ -184,7 +192,7 @@ fun LocalSearchScreen(
                                         ))
                                     }
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
 
                         is Album -> AlbumListItem(
@@ -196,7 +204,7 @@ fun LocalSearchScreen(
                                     onDismiss()
                                     navController.navigate("album/${item.id}")
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
 
                         is Artist -> ArtistListItem(
@@ -206,7 +214,7 @@ fun LocalSearchScreen(
                                     onDismiss()
                                     navController.navigate("artist/${item.id}")
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
 
                         is Playlist -> PlaylistListItem(
@@ -216,7 +224,7 @@ fun LocalSearchScreen(
                                     onDismiss()
                                     navController.navigate("local_playlist/${item.id}")
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }

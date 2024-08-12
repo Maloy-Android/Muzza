@@ -3,13 +3,18 @@ package com.zionhuang.music.ui.screens.search
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -80,7 +85,10 @@ fun OnlineSearchScreen(
     }
 
     LazyColumn(
-        state = lazyListState
+        state = lazyListState,
+        contentPadding = WindowInsets.systemBars
+            .only(WindowInsetsSides.Bottom)
+            .asPaddingValues()
     ) {
         items(
             items = viewState.history,
@@ -106,7 +114,7 @@ fun OnlineSearchScreen(
                         )
                     )
                 },
-                modifier = Modifier.animateItemPlacement()
+                modifier = Modifier.animateItem()
             )
         }
 
@@ -129,13 +137,13 @@ fun OnlineSearchScreen(
                         )
                     )
                 },
-                modifier = Modifier.animateItemPlacement()
+                modifier = Modifier.animateItem()
             )
         }
 
         if (viewState.items.isNotEmpty() && viewState.history.size + viewState.suggestions.size > 0) {
             item {
-                Divider()
+                HorizontalDivider()
             }
         }
 
@@ -179,7 +187,7 @@ fun OnlineSearchScreen(
                             }
                         }
                     }
-                    .animateItemPlacement()
+                    .animateItem()
             )
         }
     }

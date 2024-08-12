@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -42,9 +41,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -155,7 +156,7 @@ fun AlbumScreen(
                                 fontSizeRange = FontSizeRange(16.sp, 22.sp)
                             )
 
-                            val annotatedString = buildAnnotatedString {
+                            Text(buildAnnotatedString {
                                 withStyle(
                                     style = MaterialTheme.typography.titleMedium.copy(
                                         fontWeight = FontWeight.Normal,
@@ -163,20 +164,18 @@ fun AlbumScreen(
                                     ).toSpanStyle()
                                 ) {
                                     albumWithSongs.artists.fastForEachIndexed { index, artist ->
-                                        pushStringAnnotation(artist.id, artist.name)
-                                        append(artist.name)
-                                        pop()
+                                        val link = LinkAnnotation.Clickable(artist.id) {
+                                            navController.navigate("artist/${artist.id}")
+                                        }
+                                        withLink(link) {
+                                            append(artist.name)
+                                        }
                                         if (index != albumWithSongs.artists.lastIndex) {
                                             append(", ")
                                         }
                                     }
                                 }
-                            }
-                            ClickableText(annotatedString) { offset ->
-                                annotatedString.getStringAnnotations(offset, offset).firstOrNull()?.let { range ->
-                                    navController.navigate("artist/${range.tag}")
-                                }
-                            }
+                            })
 
                             if (albumWithSongs.album.year != null) {
                                 Text(

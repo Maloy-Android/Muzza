@@ -255,7 +255,7 @@ fun ArtistScreen(
                                         playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
                                     }
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }
@@ -307,7 +307,7 @@ fun ArtistScreen(
                                             playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
                                         }
                                     }
-                                    .animateItemPlacement()
+                                    .animateItem()
                             )
                         }
                     } else {
@@ -366,7 +366,7 @@ fun ArtistScreen(
                                                     }
                                                 }
                                             )
-                                            .animateItemPlacement()
+                                            .animateItem()
                                     )
                                 }
                             }

@@ -1,33 +1,58 @@
 package com.zionhuang.music.ui.utils
 
-import androidx.compose.animation.*
-import androidx.compose.animation.core.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animate
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.rememberSplineBasedDecay
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.TopAppBarState
+import androidx.compose.material3.rememberTopAppBarState
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import com.zionhuang.music.constants.*
 
+/**
+ * Trick: generate two [AppBarScrollBehavior] with synchronized states.
+ * Each state can have different heightOffsetLimit.
+ *
+ * Reason: [SearchBar] and [TopAppBar] have different heightOffsetLimit.
+ * Using same heightOffsetLimit will cause "Size(720 x -68) is out of range".
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun appBarScrollBehavior(
-    state: TopAppBarState = rememberTopAppBarState(),
+    state1: TopAppBarState = rememberTopAppBarState(),
+    state2: TopAppBarState = rememberTopAppBarState(),
     canScroll: () -> Boolean = { true },
     snapAnimationSpec: AnimationSpec<Float>? = spring(stiffness = Spring.StiffnessMediumLow),
     flingAnimationSpec: DecayAnimationSpec<Float>? = rememberSplineBasedDecay(),
-): TopAppBarScrollBehavior =
-    AppBarScrollBehavior(
-        state = state,
-        snapAnimationSpec = snapAnimationSpec,
-        flingAnimationSpec = flingAnimationSpec,
-        canScroll = canScroll
+): Pair<AppBarScrollBehavior, AppBarScrollBehavior> {
+    return Pair(
+        AppBarScrollBehavior(
+            state = state1,
+            states = listOf(state1, state2),
+            snapAnimationSpec = snapAnimationSpec,
+            flingAnimationSpec = flingAnimationSpec,
+            canScroll = canScroll
+        ),
+        AppBarScrollBehavior(
+            state = state2,
+            states = listOf(state1, state2),
+            snapAnimationSpec = snapAnimationSpec,
+            flingAnimationSpec = flingAnimationSpec,
+            canScroll = canScroll
+        )
     )
+}
 
 @ExperimentalMaterial3Api
 class AppBarScrollBehavior constructor(
     override val state: TopAppBarState,
+    val states: List<TopAppBarState>,
     override val snapAnimationSpec: AnimationSpec<Float>?,
     override val flingAnimationSpec: DecayAnimationSpec<Float>?,
     val canScroll: () -> Boolean = { true },
@@ -36,28 +61,32 @@ class AppBarScrollBehavior constructor(
     override var nestedScrollConnection = object : NestedScrollConnection {
         override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
             if (!canScroll()) return Offset.Zero
-            state.contentOffset += consumed.y
-            if (state.heightOffset == 0f || state.heightOffset == state.heightOffsetLimit) {
-                if (consumed.y == 0f && available.y > 0f) {
-                    // Reset the total content offset to zero when scrolling all the way down.
-                    // This will eliminate some float precision inaccuracies.
-                    state.contentOffset = 0f
+            states.forEach { s ->
+                s.contentOffset += consumed.y
+                if (s.heightOffset == 0f || s.heightOffset == s.heightOffsetLimit) {
+                    if (consumed.y == 0f && available.y > 0f) {
+                        // Reset the total content offset to zero when scrolling all the way down.
+                        // This will eliminate some float precision inaccuracies.
+                        s.contentOffset = 0f
+                    }
                 }
+                s.heightOffset += consumed.y
             }
-            state.heightOffset += consumed.y
             return Offset.Zero
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
-suspend fun TopAppBarState.resetHeightOffset() {
-    if (heightOffset != 0f) {
+suspend fun AppBarScrollBehavior.resetHeightOffset() {
+    if (states.any { it.heightOffset != 0f }) {
         animate(
-            initialValue = heightOffset,
+            initialValue = state.heightOffset,
             targetValue = 0f
         ) { value, _ ->
-            heightOffset = value
+            states.forEach {
+                it.heightOffset = value
+            }
         }
     }
 }

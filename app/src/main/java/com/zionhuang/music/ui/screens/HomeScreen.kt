@@ -122,11 +122,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier.verticalScroll(scrollState)
             ) {
-                Spacer(
-                    Modifier.height(
-                        LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding()
-                    )
-                )
+                Spacer(Modifier.height(LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding()))
 
                 Row(
                     modifier = Modifier
@@ -262,7 +258,7 @@ fun HomeScreen(
                                                 }
                                             }
                                         )
-                                        .animateItemPlacement()
+                                        .animateItem()
                                 )
                             }
                         }

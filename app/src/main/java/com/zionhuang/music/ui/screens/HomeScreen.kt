@@ -244,7 +244,7 @@ fun HomeScreen(
                                             }
                                         }
                                     )
-                                    .animateItemPlacement()
+                                    .animateItem()
                             )
                         }
                     }

@@ -196,7 +196,7 @@ fun LibraryAlbumsScreen(
                                 .combinedClickable {
                                     navController.navigate("album/${album.id}")
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }
@@ -250,7 +250,7 @@ fun LibraryAlbumsScreen(
                                         }
                                     }
                                 )
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }

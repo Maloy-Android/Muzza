@@ -152,7 +152,7 @@ fun ArtistSongsScreen(
                                 )
                             }
                         }
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

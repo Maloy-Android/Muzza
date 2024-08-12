@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,9 +43,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -146,7 +147,7 @@ fun OnlinePlaylistScreen(
                                     )
 
                                     playlist.author?.let { artist ->
-                                        val annotatedString = buildAnnotatedString {
+                                        Text(buildAnnotatedString {
                                             withStyle(
                                                 style = MaterialTheme.typography.titleMedium.copy(
                                                     fontWeight = FontWeight.Normal,
@@ -154,19 +155,17 @@ fun OnlinePlaylistScreen(
                                                 ).toSpanStyle()
                                             ) {
                                                 if (artist.id != null) {
-                                                    pushStringAnnotation(artist.id!!, artist.name)
-                                                    append(artist.name)
-                                                    pop()
+                                                    val link = LinkAnnotation.Clickable(artist.id!!) {
+                                                        navController.navigate("artist/${artist.id!!}")
+                                                    }
+                                                    withLink(link) {
+                                                        append(artist.name)
+                                                    }
                                                 } else {
                                                     append(artist.name)
                                                 }
                                             }
-                                        }
-                                        ClickableText(annotatedString) { offset ->
-                                            annotatedString.getStringAnnotations(offset, offset).firstOrNull()?.let { range ->
-                                                navController.navigate("artist/${range.tag}")
-                                            }
-                                        }
+                                        })
                                     }
 
                                     playlist.songCountText?.let { songCountText ->
@@ -302,7 +301,7 @@ fun OnlinePlaylistScreen(
                                         playerConnection.playQueue(YouTubeQueue(song.endpoint ?: WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
                                     }
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 } else {

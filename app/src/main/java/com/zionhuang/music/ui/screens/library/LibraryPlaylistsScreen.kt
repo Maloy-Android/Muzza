@@ -196,7 +196,7 @@ fun LibraryPlaylistsScreen(
                                 .clickable {
                                     navController.navigate("local_playlist/${playlist.id}")
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }
@@ -249,7 +249,7 @@ fun LibraryPlaylistsScreen(
                                         }
                                     }
                                 )
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }

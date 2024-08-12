@@ -116,7 +116,7 @@ fun HistoryScreen(
                                 )
                             }
                         }
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

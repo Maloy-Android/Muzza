@@ -112,7 +112,12 @@ val RepeatModeKey = intPreferencesKey("repeatMode")
 val SearchSourceKey = stringPreferencesKey("searchSource")
 
 enum class SearchSource {
-    LOCAL, ONLINE
+    LOCAL, ONLINE;
+
+    fun toggle() = when (this) {
+        LOCAL -> ONLINE
+        ONLINE -> LOCAL
+    }
 }
 
 val VisitorDataKey = stringPreferencesKey("visitorData")

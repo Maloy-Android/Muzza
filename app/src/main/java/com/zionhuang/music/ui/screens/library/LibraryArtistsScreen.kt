@@ -186,7 +186,7 @@ fun LibraryArtistsScreen(
                                 .clickable {
                                     navController.navigate("artist/${artist.id}")
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }
@@ -237,7 +237,7 @@ fun LibraryArtistsScreen(
                                         }
                                     }
                                 )
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 }

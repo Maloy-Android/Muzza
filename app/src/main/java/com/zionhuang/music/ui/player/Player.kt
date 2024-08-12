@@ -30,10 +30,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -102,7 +100,7 @@ fun BottomSheetPlayer(
     val backgroundColor = if (useBlackBackground && !state.isCollapsed) {
         Color.Black
     } else {
-        MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+        MaterialTheme.colorScheme.surfaceContainer
     }
 
     val playbackState by playerConnection.playbackState.collectAsState()
@@ -223,6 +221,8 @@ fun BottomSheetPlayer(
                 },
                 modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
             )
+
+            Spacer(Modifier.height(4.dp))
 
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,

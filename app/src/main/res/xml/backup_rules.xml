@@ -2,5 +2,5 @@
 <full-backup-content>
     <exclude
         domain="file"
-        path="." />
+        path="./" />
 </full-backup-content>

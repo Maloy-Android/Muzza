@@ -7,6 +7,6 @@
     <cloud-backup>
         <exclude
             domain="file"
-            path="." />
+            path="./" />
     </cloud-backup>
 </data-extraction-rules>

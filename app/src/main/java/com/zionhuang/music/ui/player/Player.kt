@@ -124,28 +124,19 @@ fun BottomSheetPlayer(
     var duration by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.duration)
     }
-    var sliderPosition by remember {
-        mutableStateOf<Long?>(null)
-    }
-    var isDragging by remember { mutableStateOf(false) }
+    var sliderPosition by remember { mutableStateOf<Long?>(null) }
     var targetPosition by remember { mutableFloatStateOf(position.toFloat()) }
 
-    val sliderAnimationDuration = if (isDragging) 5 else 95
-
-    val smoothSliderPosition by animateFloatAsState(
-        targetValue = sliderPosition?.toFloat() ?: position.toFloat(),
-        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
-    )
 
     val animatedTime by animateFloatAsState(
         targetValue = (sliderPosition ?: position).toFloat(),
-        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
+        animationSpec = tween(durationMillis = 100, easing = LinearEasing), label = ""
     )
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
-                delay(250)
+                delay(500)
                 position = playerConnection.player.currentPosition
                 duration = playerConnection.player.duration
             }
@@ -203,54 +194,60 @@ fun BottomSheetPlayer(
 
             Spacer(Modifier.height(6.dp))
 
-            AnimatedContent(
-                targetState = mediaMetadata.artists.map { it.name },
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "ArtistsRow"
-            ) { artistNames ->
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PlayerHorizontalPadding)
-                ) {
-                    artistNames.forEachIndexed { index, artistName ->
-                        Text(
-                            text = artistName,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary,
-                            maxLines = 1,
-                            modifier = Modifier.clickable(enabled = mediaMetadata.artists[index].id != null) {
-                                navController.navigate("artist/${mediaMetadata.artists[index].id}")
-                                state.collapseSoft()
-                            }
-                                .heightIn(max = 20.dp)
-                        )
-
-                        if (index != artistNames.lastIndex) {
+            val artists = mediaMetadata.artists
+            if (artists.isNotEmpty()) {
+                AnimatedContent(
+                    targetState = artists.map { it.name },
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "ArtistsRow"
+                ) { artistNames ->
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = PlayerHorizontalPadding)
+                    ) {
+                        artistNames.forEachIndexed { index, artistName ->
+                            val artist = if (index < artists.size) artists[index] else null
                             Text(
-                                text = ", ",
+                                text = artistName,
                                 style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.secondary
+                                color = MaterialTheme.colorScheme.secondary,
+                                maxLines = 1,
+                                modifier = Modifier.clickable(enabled = artist?.id != null) {
+                                    artist?.id?.let {
+                                        navController.navigate("artist/$it")
+                                        state.collapseSoft()
+                                    }
+                                }
+                                    .heightIn(max = 20.dp)
                             )
+
+                            if (index != artistNames.lastIndex) {
+                                Text(
+                                    text = ", ",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.secondary
+                                )
+                            }
                         }
                     }
                 }
             }
 
 
+
+
             Spacer(Modifier.height(12.dp))
 
             Slider(
-                value = smoothSliderPosition,
+                value = sliderPosition?.toFloat() ?: position.toFloat(),
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                 onValueChange = {
-                    isDragging = true
                     targetPosition = it
                     sliderPosition = it.toLong()
                 },
                 onValueChangeFinished = {
-                    isDragging = false
                     sliderPosition?.let {
                         playerConnection.player.seekTo(it)
                         targetPosition = it.toFloat()

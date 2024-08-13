@@ -1,7 +1,9 @@
 package com.zionhuang.music.ui.player
 
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -129,13 +131,19 @@ fun MiniMediaInfo(
         modifier = modifier
     ) {
         Box(modifier = Modifier.padding(6.dp)) {
-            AsyncImage(
-                model = mediaMetadata.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-            )
+            AnimatedContent(
+                targetState = mediaMetadata.thumbnailUrl,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = ""
+            ) { thumbnailUrl ->
+                AsyncImage(
+                    model = thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+            }
             androidx.compose.animation.AnimatedVisibility(
                 visible = error != null,
                 enter = fadeIn(),
@@ -165,15 +173,22 @@ fun MiniMediaInfo(
                 .weight(1f)
                 .padding(horizontal = 6.dp)
         ) {
-            Text(
-                text = mediaMetadata.title,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.basicMarquee()
-            )
+            AnimatedContent(
+                targetState = mediaMetadata.title,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = ""
+            ) { title ->
+                Text(
+                    text = title,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
+                )
+            }
+
             Text(
                 text = mediaMetadata.artists.joinToString { it.name },
                 color = MaterialTheme.colorScheme.secondary,

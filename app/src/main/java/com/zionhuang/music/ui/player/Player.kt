@@ -1,9 +1,14 @@
 package com.zionhuang.music.ui.player
 
 import android.content.res.Configuration
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +26,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -36,6 +42,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +60,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastForEachIndexed
 import androidx.media3.common.C
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.Player.REPEAT_MODE_OFF
@@ -121,11 +127,25 @@ fun BottomSheetPlayer(
     var sliderPosition by remember {
         mutableStateOf<Long?>(null)
     }
+    var isDragging by remember { mutableStateOf(false) }
+    var targetPosition by remember { mutableFloatStateOf(position.toFloat()) }
+
+    val sliderAnimationDuration = if (isDragging) 5 else 95
+
+    val smoothSliderPosition by animateFloatAsState(
+        targetValue = sliderPosition?.toFloat() ?: position.toFloat(),
+        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
+    )
+
+    val animatedTime by animateFloatAsState(
+        targetValue = (sliderPosition ?: position).toFloat(),
+        animationSpec = tween(durationMillis = sliderAnimationDuration, easing = LinearEasing), label = ""
+    )
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
-                delay(500)
+                delay(250)
                 position = playerConnection.player.currentPosition
                 duration = playerConnection.player.duration
             }
@@ -159,62 +179,81 @@ fun BottomSheetPlayer(
                 label = "playPauseRoundness"
             )
 
-            Text(
-                text = mediaMetadata.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .padding(horizontal = PlayerHorizontalPadding)
-                    .basicMarquee()
-                    .clickable(enabled = mediaMetadata.album != null) {
-                        navController.navigate("album/${mediaMetadata.album!!.id}")
-                        state.collapseSoft()
-                    }
-            )
+            AnimatedContent(
+                targetState = mediaMetadata.title,
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = ""
+            ) { title ->
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier
+                        .padding(horizontal = PlayerHorizontalPadding)
+                        .basicMarquee()
+                        .clickable(enabled = mediaMetadata.album != null) {
+                            navController.navigate("album/${mediaMetadata.album!!.id}")
+                            state.collapseSoft()
+                        }
+                        .heightIn(max = 25.dp)
+                )
+            }
 
             Spacer(Modifier.height(6.dp))
 
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = PlayerHorizontalPadding)
-            ) {
-                mediaMetadata.artists.fastForEachIndexed { index, artist ->
-                    Text(
-                        text = artist.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.secondary,
-                        maxLines = 1,
-                        modifier = Modifier.clickable(enabled = artist.id != null) {
-                            navController.navigate("artist/${artist.id}")
-                            state.collapseSoft()
-                        }
-                    )
-
-                    if (index != mediaMetadata.artists.lastIndex) {
+            AnimatedContent(
+                targetState = mediaMetadata.artists.map { it.name },
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "ArtistsRow"
+            ) { artistNames ->
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PlayerHorizontalPadding)
+                ) {
+                    artistNames.forEachIndexed { index, artistName ->
                         Text(
-                            text = ", ",
+                            text = artistName,
                             style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                            color = MaterialTheme.colorScheme.secondary,
+                            maxLines = 1,
+                            modifier = Modifier.clickable(enabled = mediaMetadata.artists[index].id != null) {
+                                navController.navigate("artist/${mediaMetadata.artists[index].id}")
+                                state.collapseSoft()
+                            }
+                                .heightIn(max = 20.dp)
                         )
+
+                        if (index != artistNames.lastIndex) {
+                            Text(
+                                text = ", ",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.secondary
+                            )
+                        }
                     }
                 }
             }
 
+
             Spacer(Modifier.height(12.dp))
 
             Slider(
-                value = (sliderPosition ?: position).toFloat(),
+                value = smoothSliderPosition,
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                 onValueChange = {
+                    isDragging = true
+                    targetPosition = it
                     sliderPosition = it.toLong()
                 },
                 onValueChangeFinished = {
+                    isDragging = false
                     sliderPosition?.let {
                         playerConnection.player.seekTo(it)
+                        targetPosition = it.toFloat()
                         position = it
                     }
                     sliderPosition = null
@@ -232,7 +271,7 @@ fun BottomSheetPlayer(
                     .padding(horizontal = PlayerHorizontalPadding + 4.dp)
             ) {
                 Text(
-                    text = makeTimeString(sliderPosition ?: position),
+                    text = makeTimeString(animatedTime.toLong()),
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

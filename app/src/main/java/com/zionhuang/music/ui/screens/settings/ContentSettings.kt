@@ -126,6 +126,10 @@ fun ContentSettings(
             onCheckedChange = onEnableKugouChange
         )
 
+        PreferenceGroupTitle(
+            title = stringResource(id = R.string.home_sections)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_new_releases)) },
             checked = newReleasesEnabled,

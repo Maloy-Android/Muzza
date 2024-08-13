@@ -188,7 +188,7 @@ fun BottomSheetPlayer(
                             navController.navigate("album/${mediaMetadata.album!!.id}")
                             state.collapseSoft()
                         }
-                        .heightIn(max = 25.dp)
+                        .heightIn(min = 27.dp, max = 27.dp)
                 )
             }
 
@@ -220,7 +220,7 @@ fun BottomSheetPlayer(
                                         state.collapseSoft()
                                     }
                                 }
-                                    .heightIn(max = 20.dp)
+                                    .heightIn(min = 20.dp, max = 20.dp)
                             )
 
                             if (index != artistNames.lastIndex) {

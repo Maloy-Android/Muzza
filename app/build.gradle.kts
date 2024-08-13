@@ -25,14 +25,15 @@ android {
         applicationId = "com.zionhuang.music"
         minSdk = 24
         targetSdk = 34
-        versionCode = 21
-        versionName = "0.5.5"
+        versionCode = 22
+        versionName = "0.5.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
         debug {

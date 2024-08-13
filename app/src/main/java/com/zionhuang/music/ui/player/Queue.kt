@@ -29,11 +29,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SwipeToDismissBox
@@ -41,7 +39,6 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -102,7 +99,6 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Queue(
     state: BottomSheetState,
@@ -466,9 +462,7 @@ fun Queue(
         Box(
             modifier = Modifier
                 .background(
-                    MaterialTheme.colorScheme
-                        .surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-                        .copy(alpha = 0.95f)
+                    MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.95f)
                 )
                 .windowInsetsPadding(
                     WindowInsets.systemBars

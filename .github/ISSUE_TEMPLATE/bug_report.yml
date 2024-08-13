@@ -65,7 +65,7 @@ body:
     attributes:
       label: Logs
       description: |
-        Please use `adb logcat` or other ways to provide logs. This field is strongly recommended to be filled. Without this information, it's likely that the developer is unable to take any meaningful action or provide further assistance.
+        Please use `adb logcat` or other ways to provide logs. This field is strongly recommended to be filled. Without this information, it's likely that the developer is unable to take any meaningful action or provide further assistance. Check https://developer.android.com/tools/logcat on how to get logs.
     validations:
       required: true
 
@@ -76,7 +76,7 @@ body:
       description: |
         You can find your InnerTune version in **Settings**.
       placeholder: |
-        Example: "0.5.3"
+        Example: "0.5.6"
     validations:
       required: true
 
@@ -87,7 +87,7 @@ body:
       description: |
         You can find this somewhere in your Android settings.
       placeholder: |
-        Example: "Android 12"
+        Example: "Android 13"
     validations:
       required: true
 

@@ -134,7 +134,7 @@ fun MiniMediaInfo(
             AnimatedContent(
                 targetState = mediaMetadata.thumbnailUrl,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = ""
+                label = "CoverBox"
             ) { thumbnailUrl ->
                 AsyncImage(
                     model = thumbnailUrl,
@@ -176,7 +176,7 @@ fun MiniMediaInfo(
             AnimatedContent(
                 targetState = mediaMetadata.title,
                 transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = ""
+                label = "TitleRow"
             ) { title ->
                 Text(
                     text = title,
@@ -189,14 +189,20 @@ fun MiniMediaInfo(
                 )
             }
 
-            Text(
-                text = mediaMetadata.artists.joinToString { it.name },
-                color = MaterialTheme.colorScheme.secondary,
-                fontSize = 12.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.basicMarquee()
-            )
+            AnimatedContent(
+                targetState = mediaMetadata.artists.joinToString { it.name },
+                transitionSpec = { fadeIn() togetherWith fadeOut() },
+                label = "ArtistsRow"
+            ) { artists ->
+                Text(
+                    text = artists,
+                    color = MaterialTheme.colorScheme.secondary,
+                    fontSize = 12.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.basicMarquee()
+                )
+            }
         }
     }
 }

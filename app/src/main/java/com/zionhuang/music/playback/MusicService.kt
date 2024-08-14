@@ -59,6 +59,8 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.AudioNormalizationKey
 import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
+import com.zionhuang.music.constants.DiscordTokenKey
+import com.zionhuang.music.constants.EnableDiscordRPCKey
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleLibrary
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleLike
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -92,6 +94,7 @@ import com.zionhuang.music.playback.queues.ListQueue
 import com.zionhuang.music.playback.queues.Queue
 import com.zionhuang.music.playback.queues.YouTubeQueue
 import com.zionhuang.music.utils.CoilBitmapLoader
+import com.zionhuang.music.utils.DiscordRPC
 import com.zionhuang.music.utils.dataStore
 import com.zionhuang.music.utils.enumPreference
 import com.zionhuang.music.utils.get
@@ -181,6 +184,8 @@ class MusicService : MediaLibraryService(),
 
     private var isAudioEffectSessionOpened = false
 
+    private var discordRpc: DiscordRPC? = null
+
     override fun onCreate() {
         super.onCreate()
         setMediaNotificationProvider(
@@ -245,8 +250,13 @@ class MusicService : MediaLibraryService(),
             }
         }
 
-        currentSong.collect(scope) {
+        currentSong.debounce(1000).collect(scope) { song ->
             updateNotification()
+            if (song != null) {
+                discordRpc?.updateSong(song)
+            } else {
+                discordRpc?.closeRPC()
+            }
         }
 
         combine(
@@ -289,6 +299,23 @@ class MusicService : MediaLibraryService(),
                 1f
             }
         }
+
+        dataStore.data
+            .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
+            .debounce(300)
+            .distinctUntilChanged()
+            .collect(scope) { (key, enabled) ->
+                if (discordRpc?.isRpcRunning() == true) {
+                    discordRpc?.closeRPC()
+                }
+                discordRpc = null
+                if (key != null && enabled) {
+                    discordRpc = DiscordRPC(this, key)
+                    currentSong.value?.let {
+                        discordRpc?.updateSong(it)
+                    }
+                }
+            }
 
         if (dataStore.get(PersistentQueueKey, true)) {
             runCatching {
@@ -722,6 +749,10 @@ class MusicService : MediaLibraryService(),
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }
+        if (discordRpc?.isRpcRunning() == true) {
+            discordRpc?.closeRPC()
+        }
+        discordRpc = null
         mediaSession.release()
         player.removeListener(this)
         player.removeListener(sleepTimer)

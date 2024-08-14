@@ -157,12 +157,12 @@ fun HomeScreen(
                 }
 
                 if (homeScreenState.quickPickEnabled) {
-                    NavigationTitle(
-                        title = stringResource(R.string.quick_picks)
-                    )
-
                     quickPicks?.let { quickPicks ->
                         if (quickPicks.isNotEmpty()) {
+                            NavigationTitle(
+                                title = stringResource(R.string.quick_picks)
+                            )
+
                             LazyHorizontalGrid(
                                 state = mostPlayedLazyGridState,
                                 rows = GridCells.Fixed(4),

@@ -51,6 +51,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -328,6 +329,9 @@ class MainActivity : ComponentActivity() {
                                     (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
                         }
                     )
+                    SideEffect {
+                        topAppBarScrollBehavior.state.heightOffsetLimit = with(density) { -AppBarHeight.toPx() }
+                    }
 
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {

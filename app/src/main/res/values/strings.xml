@@ -278,7 +278,7 @@
     <string name="preview">Preview</string>
     <string name="login_failed">Login failed</string>
     <string name="logout">Logout</string>
-    <string name="enable_discord_rpc">Enable Rich Presense</string>
+    <string name="enable_discord_rpc">Enable Rich Presence</string>
 
     <string name="about">About</string>
     <string name="app_version">App version</string>

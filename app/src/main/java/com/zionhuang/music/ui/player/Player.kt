@@ -126,17 +126,18 @@ fun BottomSheetPlayer(
     }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
     var targetPosition by remember { mutableFloatStateOf(position.toFloat()) }
+    var isDragging by remember { mutableStateOf(false) }
 
 
     val animatedTime by animateFloatAsState(
         targetValue = (sliderPosition ?: position).toFloat(),
-        animationSpec = tween(durationMillis = 100, easing = LinearEasing), label = ""
+        animationSpec = tween(durationMillis = if (isDragging) 0 else 100, easing = LinearEasing), label = ""
     )
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
-                delay(500)
+                delay(100)
                 position = playerConnection.player.currentPosition
                 duration = playerConnection.player.duration
             }
@@ -244,10 +245,12 @@ fun BottomSheetPlayer(
                 value = sliderPosition?.toFloat() ?: position.toFloat(),
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                 onValueChange = {
+                    isDragging = true
                     targetPosition = it
                     sliderPosition = it.toLong()
                 },
                 onValueChangeFinished = {
+                    isDragging = false
                     sliderPosition?.let {
                         playerConnection.player.seekTo(it)
                         targetPosition = it.toFloat()

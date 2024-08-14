@@ -13,9 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,16 +45,15 @@ import coil.compose.AsyncImage
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalDatabase
 import com.zionhuang.music.LocalDownloadUtil
+import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.ListThumbnailSize
 import com.zionhuang.music.db.entities.Event
-import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.models.toMediaMetadata
 import com.zionhuang.music.playback.ExoDownloadService
-import com.zionhuang.music.playback.PlayerConnection
 import com.zionhuang.music.playback.queues.YouTubeQueue
 import com.zionhuang.music.ui.component.DownloadGridMenu
 import com.zionhuang.music.ui.component.GridMenu
@@ -67,11 +67,12 @@ fun SongMenu(
     originalSong: Song,
     event: Event? = null,
     navController: NavController,
-    playerConnection: PlayerConnection,
+    onDeleteFromPlaylist: (() -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
     val download by LocalDownloadUtil.current.getDownload(originalSong.id).collectAsState(initial = null)
@@ -101,17 +102,7 @@ fun SongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onAdd = { playlist ->
-            database.query {
-                insert(
-                    PlaylistSongMap(
-                        songId = song.id,
-                        playlistId = playlist.id,
-                        position = playlist.songCount
-                    )
-                )
-            }
-        },
+        onGetSong = { listOf(song.id) },
         onDismiss = { showChoosePlaylistDialog = false }
     )
 
@@ -178,14 +169,14 @@ fun SongMenu(
             ) {
                 Icon(
                     painter = painterResource(if (song.song.liked) R.drawable.favorite else R.drawable.favorite_border),
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = if (song.song.liked) MaterialTheme.colorScheme.error else LocalContentColor.current,
                     contentDescription = null
                 )
             }
         }
     )
 
-    Divider()
+    HorizontalDivider()
 
     GridMenu(
         contentPadding = PaddingValues(
@@ -311,6 +302,15 @@ fun SongMenu(
                 database.query {
                     delete(event)
                 }
+            }
+        }
+        if (onDeleteFromPlaylist != null) {
+            GridMenuItem(
+                icon = R.drawable.delete,
+                title = R.string.remove_from_playlist
+            ) {
+                onDismiss()
+                onDeleteFromPlaylist()
             }
         }
     }

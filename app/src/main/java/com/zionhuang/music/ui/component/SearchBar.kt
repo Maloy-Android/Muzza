@@ -9,15 +9,48 @@ import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CornerSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.SearchBarColors
+import androidx.compose.material3.SearchBarDefaults
+import androidx.compose.material3.SearchBarDefaults.TonalElevation
+import androidx.compose.material3.Surface
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.contentColorFor
+import androidx.compose.material3.internal.Strings
+import androidx.compose.material3.internal.getString
 import androidx.compose.material3.tokens.MotionTokens
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -40,6 +73,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -65,9 +99,10 @@ fun SearchBar(
     trailingIcon: @Composable (() -> Unit)? = null,
     shape: Shape = SearchBarDefaults.inputFieldShape,
     colors: SearchBarColors = SearchBarDefaults.colors(),
-    tonalElevation: Dp = SearchBarDefaults.Elevation,
+    tonalElevation: Dp = TonalElevation,
     windowInsets: WindowInsets = WindowInsets.systemBars,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    focusRequester: FocusRequester = remember { FocusRequester() },
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val heightOffsetLimit = with(LocalDensity.current) {
@@ -84,7 +119,8 @@ fun SearchBar(
         animationSpec = tween(
             durationMillis = AnimationDurationMillis,
             easing = MotionTokens.EasingLegacyCubicBezier,
-        )
+        ),
+        label = ""
     )
 
     val defaultInputFieldShape = SearchBarDefaults.inputFieldShape
@@ -97,6 +133,7 @@ fun SearchBar(
                     val animatedRadius = SearchBarCornerRadius * (1 - animationProgress)
                     RoundedCornerShape(CornerSize(animatedRadius))
                 }
+
                 animationProgress == 1f -> defaultFullScreenShape
                 else -> shape
             }
@@ -172,11 +209,12 @@ fun SearchBar(
                     trailingIcon = trailingIcon,
                     colors = colors.inputFieldColors,
                     interactionSource = interactionSource,
+                    focusRequester = focusRequester,
                 )
 
                 if (animationProgress > 0) {
                     Column(Modifier.alpha(animationProgress)) {
-                        Divider(color = colors.dividerColor)
+                        HorizontalDivider(color = colors.dividerColor)
                         content()
                     }
                 }
@@ -204,12 +242,14 @@ private fun SearchBarInputField(
     trailingIcon: @Composable (() -> Unit)? = null,
     colors: TextFieldColors = SearchBarDefaults.inputFieldColors(),
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
+    focusRequester: FocusRequester = remember { FocusRequester() },
 ) {
-    val focusRequester = remember { FocusRequester() }
+    val focused = interactionSource.collectIsFocusedAsState().value
+
     val searchSemantics = getString(Strings.SearchBarSearch)
     val suggestionsAvailableSemantics = getString(Strings.SuggestionsAvailable)
     val textColor = LocalTextStyle.current.color.takeOrElse {
-        colors.textColor(enabled).value
+        colors.textColor(enabled, isError = false, focused = focused)
     }
 
     Row(
@@ -256,26 +296,24 @@ private fun SearchBarInputField(
             enabled = enabled,
             singleLine = true,
             textStyle = LocalTextStyle.current.merge(TextStyle(color = textColor)),
-            cursorBrush = SolidColor(colors.cursorColor(isError = false).value),
+            cursorBrush = SolidColor(colors.cursorColor(isError = false)),
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { onSearch(query.text) }),
             interactionSource = interactionSource,
-            decorationBox = { innerTextField ->
-                Box(
-                    modifier = Modifier.fillMaxHeight(),
-                    contentAlignment = Alignment.CenterStart
-                ) {
-                    if (placeholder != null && query.text.isEmpty()) {
-                        Box(Modifier.alpha(0.8f)) {
-                            Decoration(
-                                contentColor = colors.placeholderColor(enabled).value,
-                                typography = MaterialTheme.typography.bodyLarge,
-                                content = placeholder
-                            )
-                        }
-                    }
-                    innerTextField()
-                }
+            decorationBox = @Composable { innerTextField ->
+                TextFieldDefaults.DecorationBox(
+                    value = query.text,
+                    innerTextField = innerTextField,
+                    enabled = enabled,
+                    singleLine = true,
+                    visualTransformation = VisualTransformation.None,
+                    interactionSource = interactionSource,
+                    placeholder = placeholder,
+                    shape = SearchBarDefaults.inputFieldShape,
+                    colors = colors,
+                    contentPadding = PaddingValues(),
+                    container = {},
+                )
             }
         )
 

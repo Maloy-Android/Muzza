@@ -11,10 +11,22 @@ import coil.disk.DiskCache
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.innertube.models.YouTubeLocale
 import com.zionhuang.kugou.KuGou
-import com.zionhuang.music.constants.*
-import com.zionhuang.music.extensions.*
+import com.zionhuang.music.constants.ContentCountryKey
+import com.zionhuang.music.constants.ContentLanguageKey
+import com.zionhuang.music.constants.CountryCodeToName
+import com.zionhuang.music.constants.InnerTubeCookieKey
+import com.zionhuang.music.constants.LanguageCodeToName
+import com.zionhuang.music.constants.MaxImageCacheSizeKey
+import com.zionhuang.music.constants.ProxyEnabledKey
+import com.zionhuang.music.constants.ProxyTypeKey
+import com.zionhuang.music.constants.ProxyUrlKey
+import com.zionhuang.music.constants.SYSTEM_DEFAULT
+import com.zionhuang.music.constants.VisitorDataKey
+import com.zionhuang.music.extensions.toEnum
+import com.zionhuang.music.extensions.toInetSocketAddress
 import com.zionhuang.music.utils.dataStore
 import com.zionhuang.music.utils.get
+import com.zionhuang.music.utils.reportException
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -23,7 +35,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import java.net.Proxy
-import java.util.*
+import java.util.Locale
 
 @HiltAndroidApp
 class App : Application(), ImageLoaderFactory {
@@ -55,7 +67,7 @@ class App : Application(), ImageLoaderFactory {
                 )
             } catch (e: Exception) {
                 Toast.makeText(this, "Failed to parse proxy url.", LENGTH_SHORT).show()
-                e.printStackTrace()
+                reportException(e)
             }
         }
 

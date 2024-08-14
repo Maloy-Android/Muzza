@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.music.constants.StatPeriod
 import com.zionhuang.music.db.MusicDatabase
+import com.zionhuang.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -29,16 +30,14 @@ class StatsViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val mostPlayedArtists = statPeriod.flatMapLatest { period ->
-        database.mostPlayedArtists(period.toTimeMillis())
+        database.mostPlayedArtists(period.toTimeMillis()).map { artists ->
+            artists.filter { it.artist.isYouTubeArtist }
+        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
 
     val mostPlayedAlbums = statPeriod.flatMapLatest { period ->
         database.mostPlayedAlbums(period.toTimeMillis())
-    }.map { albums ->
-        albums.mapNotNull { id ->
-            YouTube.album(id, withSongs = false).getOrNull()?.album
-        }
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
@@ -56,6 +55,26 @@ class StatsViewModel @Inject constructor(
                             }
                         }
                     }
+            }
+        }
+        viewModelScope.launch {
+            mostPlayedAlbums.collect { albums ->
+                albums.filter {
+                    it.album.songCount == 0
+                }.forEach { album ->
+                    YouTube.album(album.id).onSuccess { albumPage ->
+                        database.query {
+                            update(album.album, albumPage)
+                        }
+                    }.onFailure {
+                        reportException(it)
+                        if (it.message?.contains("NOT_FOUND") == true) {
+                            database.query {
+                                delete(album.album)
+                            }
+                        }
+                    }
+                }
             }
         }
     }

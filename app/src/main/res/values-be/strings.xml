@@ -38,6 +38,9 @@
     <string name="search">Пошук</string>
     <string name="search_yt_music">Пошук у YouTube Music…</string>
     <string name="search_library">Пошук у бібліятэцы…</string>
+    <string name="filter_library">Library</string>
+    <string name="filter_liked">Liked</string>
+    <string name="filter_downloaded">Downloaded</string>
     <string name="filter_all">Усе</string>
     <string name="filter_songs">Песні</string>
     <string name="filter_videos">Відэа</string>
@@ -46,6 +49,7 @@
     <string name="filter_playlists">Плэй-лісты</string>
     <string name="filter_community_playlists">Плэй-лісты aд cупольнасці</string>
     <string name="filter_featured_playlists">Вартыя ўвагі плэй-лісты</string>
+    <string name="filter_bookmarked">Bookmarked</string>
     <string name="no_results_found">Вынікі не знойдзены</string>
 
     <!-- Artist screen -->
@@ -60,6 +64,7 @@
     <string name="retry">Паўтарыць</string>
     <string name="radio">Радыё</string>
     <string name="shuffle">Перамяшаць</string>
+    <string name="reset">Reset</string>
 
     <!-- Menu -->
     <string name="details">Падрабязнасці</string>
@@ -83,6 +88,7 @@
     <string name="remove_from_history">Выдаліць з гісторыі</string>
     <string name="search_online">Шукаць у сетцы</string>
     <string name="sync">Cінхранізацыя</string>
+    <string name="advanced">Advanced</string>
 
     <!-- Sort menu -->
     <string name="sort_by_create_date">Нядаўна дададзена</string>
@@ -181,7 +187,7 @@
     <string name="sleep_timer">Таймер рэжыму сну</string>
     <string name="end_of_song">Канец песні</string>
     <plurals name="minute">
-        <item quantity="one" tools:ignore="ImpliedQuantity">1 хвіліна</item>
+        <item quantity="one">%d хвіліна</item>
         <item quantity="few">%d хвіліны</item>
         <item quantity="many">%d хвілін</item>
         <item quantity="other">%d хвілін</item>
@@ -194,6 +200,11 @@
     <!-- Player action -->
     <string name="action_like">Упадабаць</string>
     <string name="action_remove_like">Выдаліць з упадабаных</string>
+    <string name="action_shuffle_on">Уключыць перамешванне</string>
+    <string name="action_shuffle_off">Выключыць перамешванне</string>
+    <string name="repeat_mode_off">Рэжым паўтору выключаны</string>
+    <string name="repeat_mode_one">Паўтарыць бягучую песню</string>
+    <string name="repeat_mode_all">Паўтарыць чаргу</string>
 
     <!-- Queue Title -->
     <string name="queue_all_songs">Усе песні</string>
@@ -270,4 +281,8 @@
 
     <string name="about">Аб праграме</string>
     <string name="app_version">Версія праграмы</string>
+
+    <string name="new_version_available">Даступная новая версія</string>
+    <string name="translation_models">Мадэлі перакладу</string>
+    <string name="clear_translation_models">Ачысціць мадэлі перакладу</string>
 </resources>

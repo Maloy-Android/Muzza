@@ -1,72 +1,96 @@
 @file:Suppress("UnstableApiUsage")
 
+val isFullBuild: Boolean by rootProject.extra
+
 plugins {
     id("com.android.application")
     kotlin("android")
     kotlin("kapt")
-    id("com.google.dagger.hilt.android")
-    id("com.google.devtools.ksp")
+    alias(libs.plugins.hilt)
+    alias(libs.plugins.kotlin.ksp)
+    alias(libs.plugins.compose.compiler)
+}
+
+if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
+    apply(plugin = "com.google.gms.google-services")
+    apply(plugin = "com.google.firebase.crashlytics")
+    apply(plugin = "com.google.firebase.firebase-perf")
 }
 
 android {
     namespace = "com.zionhuang.music"
-    compileSdk = 33
-    buildToolsVersion = "30.0.3"
+    compileSdk = 34
+    buildToolsVersion = "34.0.0"
     defaultConfig {
         applicationId = "com.zionhuang.music"
         minSdk = 24
-        targetSdk = 33
-        versionCode = 16
-        versionName = "0.5.0"
+        targetSdk = 34
+        versionCode = 22
+        versionName = "0.5.6"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+            isCrunchPngs = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
-            resValue("string", "app_name", "InnerTune")
         }
         debug {
             applicationIdSuffix = ".debug"
-            resValue("string", "app_name", "InnerTune Debug")
         }
     }
+    flavorDimensions += "version"
+    productFlavors {
+        create("full") {
+            dimension = "version"
+        }
+        create("foss") {
+            dimension = "version"
+        }
+    }
+
+//    splits {
+//        abi {
+//            isEnable = true
+//            reset()
+//            include("armeabi-v7a", "arm64-v8a", "x86", "x86_64")
+//            isUniversalApk = false
+//        }
+//    }
+    
     signingConfigs {
         getByName("debug") {
             if (System.getenv("MUSIC_DEBUG_SIGNING_STORE_PASSWORD") != null) {
-                val tmpFilePath = System.getProperty("user.home") + "/work/_temp/Key/"
-                val allFilesFromDir = File(tmpFilePath).listFiles()
-                val keystoreFile = allFilesFromDir?.first()
-                storeFile = keystoreFile ?: file(System.getenv("MUSIC_DEBUG_KEYSTORE_FILE"))
+                storeFile = file(System.getenv("MUSIC_DEBUG_KEYSTORE_FILE"))
                 storePassword = System.getenv("MUSIC_DEBUG_SIGNING_STORE_PASSWORD")
-                keyAlias = System.getenv("MUSIC_DEBUG_SIGNING_KEY_ALIAS")
+                keyAlias = "debug"
                 keyPassword = System.getenv("MUSIC_DEBUG_SIGNING_KEY_PASSWORD")
             }
         }
     }
     buildFeatures {
+        buildConfig = true
         compose = true
-    }
-    composeOptions {
-        kotlinCompilerExtensionVersion = libs.versions.compose.compiler.get()
     }
     compileOptions {
         isCoreLibraryDesugaringEnabled = true
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlin {
-        jvmToolchain(11)
+        jvmToolchain(17)
     }
     kotlinOptions {
         freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "11"
+        jvmTarget = "17"
     }
-
     testOptions {
         unitTests.isIncludeAndroidResources = true
         unitTests.isReturnDefaultValues = true
+    }
+    lint {
+        disable += "MissingTranslation"
     }
 }
 
@@ -91,6 +115,7 @@ dependencies {
     implementation(libs.compose.ui.tooling)
     implementation(libs.compose.animation)
     implementation(libs.compose.animation.graphics)
+    implementation(libs.compose.reorderable)
 
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)
@@ -110,7 +135,6 @@ dependencies {
     implementation(libs.media3.okhttp)
 
     implementation(libs.room.runtime)
-    annotationProcessor(libs.room.compiler)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
@@ -121,8 +145,19 @@ dependencies {
 
     implementation(projects.innertube)
     implementation(projects.kugou)
+    implementation(projects.lrclib)
+    implementation(projects.kizzy)
 
     coreLibraryDesugaring(libs.desugaring)
+
+    "fullImplementation"(platform(libs.firebase.bom))
+    "fullImplementation"(libs.firebase.analytics)
+    "fullImplementation"(libs.firebase.crashlytics)
+    "fullImplementation"(libs.firebase.config)
+    "fullImplementation"(libs.firebase.perf)
+    "fullImplementation"(libs.mlkit.language.id)
+    "fullImplementation"(libs.mlkit.translate)
+    "fullImplementation"(libs.opencc4j)
 
     implementation(libs.timber)
 }

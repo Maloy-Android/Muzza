@@ -2,28 +2,47 @@ package com.zionhuang.music.ui.screens.library
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
-import com.zionhuang.music.constants.*
+import com.zionhuang.music.constants.CONTENT_TYPE_HEADER
+import com.zionhuang.music.constants.CONTENT_TYPE_SONG
+import com.zionhuang.music.constants.SongFilter
+import com.zionhuang.music.constants.SongFilterKey
+import com.zionhuang.music.constants.SongSortDescendingKey
+import com.zionhuang.music.constants.SongSortType
+import com.zionhuang.music.constants.SongSortTypeKey
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.extensions.togglePlayPause
 import com.zionhuang.music.playback.queues.ListQueue
+import com.zionhuang.music.ui.component.ChipsRow
 import com.zionhuang.music.ui.component.HideOnScrollFAB
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.SongListItem
@@ -45,6 +64,7 @@ fun LibrarySongsScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
+    var filter by rememberEnumPreference(SongFilterKey, SongFilter.LIBRARY)
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
@@ -60,24 +80,51 @@ fun LibrarySongsScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             item(
+                key = "filter",
+                contentType = CONTENT_TYPE_HEADER
+            ) {
+                ChipsRow(
+                    chips = listOf(
+                        SongFilter.LIBRARY to stringResource(R.string.filter_library),
+                        SongFilter.LIKED to stringResource(R.string.filter_liked),
+                        SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
+                    ),
+                    currentValue = filter,
+                    onValueUpdate = { filter = it }
+                )
+            }
+
+            item(
                 key = "header",
                 contentType = CONTENT_TYPE_HEADER
             ) {
-                SortHeader(
-                    sortType = sortType,
-                    sortDescending = sortDescending,
-                    onSortTypeChange = onSortTypeChange,
-                    onSortDescendingChange = onSortDescendingChange,
-                    sortTypeText = { sortType ->
-                        when (sortType) {
-                            SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                            SongSortType.NAME -> R.string.sort_by_name
-                            SongSortType.ARTIST -> R.string.sort_by_artist
-                            SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    SortHeader(
+                        sortType = sortType,
+                        sortDescending = sortDescending,
+                        onSortTypeChange = onSortTypeChange,
+                        onSortDescendingChange = onSortDescendingChange,
+                        sortTypeText = { sortType ->
+                            when (sortType) {
+                                SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                SongSortType.NAME -> R.string.sort_by_name
+                                SongSortType.ARTIST -> R.string.sort_by_artist
+                                SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                            }
                         }
-                    },
-                    trailingText = pluralStringResource(R.plurals.n_song, songs.size, songs.size)
-                )
+                    )
+
+                    Spacer(Modifier.weight(1f))
+
+                    Text(
+                        text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
 
             itemsIndexed(
@@ -96,7 +143,6 @@ fun LibrarySongsScreen(
                                     SongMenu(
                                         originalSong = song,
                                         navController = navController,
-                                        playerConnection = playerConnection,
                                         onDismiss = menuState::dismiss
                                     )
                                 }
@@ -123,7 +169,7 @@ fun LibrarySongsScreen(
                                 )
                             }
                         }
-                        .animateItemPlacement()
+                        .animateItem()
                 )
             }
         }

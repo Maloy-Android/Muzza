@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -24,11 +23,15 @@ import androidx.navigation.NavController
 import com.zionhuang.innertube.YouTube
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.R
+import com.zionhuang.music.constants.AccountChannelHandleKey
 import com.zionhuang.music.constants.AccountEmailKey
 import com.zionhuang.music.constants.AccountNameKey
 import com.zionhuang.music.constants.InnerTubeCookieKey
 import com.zionhuang.music.constants.VisitorDataKey
+import com.zionhuang.music.ui.component.IconButton
+import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberPreference
+import com.zionhuang.music.utils.reportException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
@@ -43,6 +46,7 @@ fun LoginScreen(
     var innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     var accountName by rememberPreference(AccountNameKey, "")
     var accountEmail by rememberPreference(AccountEmailKey, "")
+    var accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
 
     var webView: WebView? = null
 
@@ -58,10 +62,11 @@ fun LoginScreen(
                             innerTubeCookie = CookieManager.getInstance().getCookie(url)
                             GlobalScope.launch {
                                 YouTube.accountInfo().onSuccess {
-                                    accountName = it?.name.orEmpty()
-                                    accountEmail = it?.email.orEmpty()
+                                    accountName = it.name
+                                    accountEmail = it.email.orEmpty()
+                                    accountChannelHandle = it.channelHandle.orEmpty()
                                 }.onFailure {
-                                    it.printStackTrace()
+                                    reportException(it)
                                 }
                             }
                         }
@@ -93,7 +98,10 @@ fun LoginScreen(
     TopAppBar(
         title = { Text(stringResource(R.string.login)) },
         navigationIcon = {
-            IconButton(onClick = navController::navigateUp) {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),
                     contentDescription = null

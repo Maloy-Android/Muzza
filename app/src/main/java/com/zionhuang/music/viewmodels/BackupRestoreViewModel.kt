@@ -10,10 +10,12 @@ import com.zionhuang.music.R
 import com.zionhuang.music.db.InternalDatabase
 import com.zionhuang.music.db.MusicDatabase
 import com.zionhuang.music.extensions.div
+import com.zionhuang.music.extensions.tryOrNull
 import com.zionhuang.music.extensions.zipInputStream
 import com.zionhuang.music.extensions.zipOutputStream
 import com.zionhuang.music.playback.MusicService
 import com.zionhuang.music.playback.MusicService.Companion.PERSISTENT_QUEUE_FILE
+import com.zionhuang.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -47,7 +49,7 @@ class BackupRestoreViewModel @Inject constructor(
         }.onSuccess {
             Toast.makeText(context, R.string.backup_create_success, Toast.LENGTH_SHORT).show()
         }.onFailure {
-            it.printStackTrace()
+            reportException(it)
             Toast.makeText(context, R.string.backup_create_failed, Toast.LENGTH_SHORT).show()
         }
     }
@@ -56,7 +58,7 @@ class BackupRestoreViewModel @Inject constructor(
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
-                    var entry = inputStream.nextEntry
+                    var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                     while (entry != null) {
                         when (entry.name) {
                             SETTINGS_FILENAME -> {
@@ -75,7 +77,7 @@ class BackupRestoreViewModel @Inject constructor(
                                 }
                             }
                         }
-                        entry = inputStream.nextEntry
+                        entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
                     }
                 }
             }
@@ -84,7 +86,7 @@ class BackupRestoreViewModel @Inject constructor(
             context.startActivity(Intent(context, MainActivity::class.java))
             exitProcess(0)
         }.onFailure {
-            it.printStackTrace()
+            reportException(it)
             Toast.makeText(context, R.string.restore_failed, Toast.LENGTH_SHORT).show()
         }
     }

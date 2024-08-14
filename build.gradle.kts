@@ -1,9 +1,14 @@
 plugins {
-    id("com.google.dagger.hilt.android").version("2.44").apply(false)
-    id("com.google.devtools.ksp").version("1.8.0-1.0.9").apply(false)
+    alias(libs.plugins.hilt) apply (false)
+    alias(libs.plugins.kotlin.ksp) apply (false)
+    alias(libs.plugins.compose.compiler) apply false
 }
 
 buildscript {
+    val isFullBuild by extra {
+        gradle.startParameter.taskNames.none { task -> task.contains("foss", ignoreCase = true) }
+    }
+
     repositories {
         google()
         mavenCentral()
@@ -12,11 +17,16 @@ buildscript {
     dependencies {
         classpath(libs.gradle)
         classpath(kotlin("gradle-plugin", libs.versions.kotlin.get()))
+        if (isFullBuild) {
+            classpath(libs.google.services)
+            classpath(libs.firebase.crashlytics.plugin)
+            classpath(libs.firebase.perf.plugin)
+        }
     }
 }
 
 tasks.register<Delete>("Clean") {
-    delete(rootProject.buildDir)
+    delete(rootProject.layout.buildDirectory)
 }
 
 subprojects {

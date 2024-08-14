@@ -1,9 +1,15 @@
 package com.zionhuang.music.ui.player
 
 import android.content.res.Configuration
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,16 +27,16 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
@@ -56,17 +63,25 @@ import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
+import com.zionhuang.music.constants.DarkModeKey
+import com.zionhuang.music.constants.PlayerHorizontalPadding
+import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.QueuePeekHeight
 import com.zionhuang.music.extensions.togglePlayPause
+import com.zionhuang.music.extensions.toggleRepeatMode
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.ui.component.BottomSheet
 import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.ResizableIconButton
 import com.zionhuang.music.ui.component.rememberBottomSheetState
+import com.zionhuang.music.ui.screens.settings.DarkMode
 import com.zionhuang.music.utils.makeTimeString
+import com.zionhuang.music.utils.rememberEnumPreference
+import com.zionhuang.music.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -74,6 +89,19 @@ fun BottomSheetPlayer(
     modifier: Modifier = Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
+    val useBlackBackground = remember(isSystemInDarkTheme, darkTheme, pureBlack) {
+        val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+        useDarkTheme && pureBlack
+    }
+    val backgroundColor = if (useBlackBackground && !state.isCollapsed) {
+        Color.Black
+    } else {
+        MaterialTheme.colorScheme.surfaceContainer
+    }
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -85,10 +113,10 @@ fun BottomSheetPlayer(
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
     var position by rememberSaveable(playbackState) {
-        mutableStateOf(playerConnection.player.currentPosition)
+        mutableLongStateOf(playerConnection.player.currentPosition)
     }
     var duration by rememberSaveable(playbackState) {
-        mutableStateOf(playerConnection.player.duration)
+        mutableLongStateOf(playerConnection.player.duration)
     }
     var sliderPosition by remember {
         mutableStateOf<Long?>(null)
@@ -97,7 +125,7 @@ fun BottomSheetPlayer(
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
-                delay(500)
+                delay(100)
                 position = playerConnection.player.currentPosition
                 duration = playerConnection.player.duration
             }
@@ -112,27 +140,38 @@ fun BottomSheetPlayer(
     BottomSheet(
         state = state,
         modifier = modifier,
-        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+        backgroundColor = backgroundColor,
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()
         },
         collapsedContent = {
             MiniPlayer(
-                mediaMetadata = mediaMetadata,
                 position = position,
-                duration = duration
+                duration = duration,
             )
         }
     ) {
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
+            val playPauseRoundness by animateDpAsState(
+                targetValue = if (isPlaying) 24.dp else 36.dp,
+                animationSpec = tween(durationMillis = 100, easing = LinearEasing),
+                label = "playPauseRoundness"
+            )
+
             Text(
                 text = mediaMetadata.title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier
+                    .padding(horizontal = PlayerHorizontalPadding)
+                    .basicMarquee()
+                    .clickable(enabled = mediaMetadata.album != null) {
+                        navController.navigate("album/${mediaMetadata.album!!.id}")
+                        state.collapseSoft()
+                    }
             )
 
             Spacer(Modifier.height(6.dp))
@@ -141,7 +180,7 @@ fun BottomSheetPlayer(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = PlayerHorizontalPadding)
             ) {
                 mediaMetadata.artists.fastForEachIndexed { index, artist ->
                     Text(
@@ -180,15 +219,17 @@ fun BottomSheetPlayer(
                     }
                     sliderPosition = null
                 },
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
             )
+
+            Spacer(Modifier.height(4.dp))
 
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 20.dp)
+                    .padding(horizontal = PlayerHorizontalPadding + 4.dp)
             ) {
                 Text(
                     text = makeTimeString(sliderPosition ?: position),
@@ -211,12 +252,12 @@ fun BottomSheetPlayer(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
+                    .padding(horizontal = PlayerHorizontalPadding)
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
                         icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                        color = MaterialTheme.colorScheme.error,
+                        color = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else LocalContentColor.current,
                         modifier = Modifier
                             .size(32.dp)
                             .padding(4.dp)
@@ -232,7 +273,7 @@ fun BottomSheetPlayer(
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center),
-                        onClick = playerConnection.player::seekToPrevious
+                        onClick = playerConnection::seekToPrevious
                     )
                 }
 
@@ -241,7 +282,7 @@ fun BottomSheetPlayer(
                 Box(
                     modifier = Modifier
                         .size(72.dp)
-                        .clip(CircleShape)
+                        .clip(RoundedCornerShape(playPauseRoundness))
                         .background(MaterialTheme.colorScheme.secondaryContainer)
                         .clickable {
                             if (playbackState == STATE_ENDED) {
@@ -271,7 +312,7 @@ fun BottomSheetPlayer(
                         modifier = Modifier
                             .size(32.dp)
                             .align(Alignment.Center),
-                        onClick = playerConnection.player::seekToNext
+                        onClick = playerConnection::seekToNext
                     )
                 }
 
@@ -287,7 +328,7 @@ fun BottomSheetPlayer(
                             .padding(4.dp)
                             .align(Alignment.Center)
                             .alpha(if (repeatMode == REPEAT_MODE_OFF) 0.5f else 1f),
-                        onClick = playerConnection::toggleRepeatMode
+                        onClick = playerConnection.player::toggleRepeatMode
                     )
                 }
             }
@@ -356,6 +397,7 @@ fun BottomSheetPlayer(
         Queue(
             state = queueSheetState,
             playerBottomSheetState = state,
+            backgroundColor = backgroundColor,
             navController = navController
         )
     }

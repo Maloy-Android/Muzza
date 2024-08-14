@@ -19,7 +19,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,9 +43,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -68,6 +69,7 @@ import com.zionhuang.music.models.toMediaMetadata
 import com.zionhuang.music.playback.queues.YouTubeQueue
 import com.zionhuang.music.ui.component.AutoResizeText
 import com.zionhuang.music.ui.component.FontSizeRange
+import com.zionhuang.music.ui.component.IconButton
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.YouTubeListItem
 import com.zionhuang.music.ui.component.shimmer.ButtonPlaceholder
@@ -76,6 +78,7 @@ import com.zionhuang.music.ui.component.shimmer.ShimmerHost
 import com.zionhuang.music.ui.component.shimmer.TextPlaceholder
 import com.zionhuang.music.ui.menu.YouTubePlaylistMenu
 import com.zionhuang.music.ui.menu.YouTubeSongMenu
+import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.launch
 
@@ -144,7 +147,7 @@ fun OnlinePlaylistScreen(
                                     )
 
                                     playlist.author?.let { artist ->
-                                        val annotatedString = buildAnnotatedString {
+                                        Text(buildAnnotatedString {
                                             withStyle(
                                                 style = MaterialTheme.typography.titleMedium.copy(
                                                     fontWeight = FontWeight.Normal,
@@ -152,19 +155,17 @@ fun OnlinePlaylistScreen(
                                                 ).toSpanStyle()
                                             ) {
                                                 if (artist.id != null) {
-                                                    pushStringAnnotation(artist.id!!, artist.name)
-                                                    append(artist.name)
-                                                    pop()
+                                                    val link = LinkAnnotation.Clickable(artist.id!!) {
+                                                        navController.navigate("artist/${artist.id!!}")
+                                                    }
+                                                    withLink(link) {
+                                                        append(artist.name)
+                                                    }
                                                 } else {
                                                     append(artist.name)
                                                 }
                                             }
-                                        }
-                                        ClickableText(annotatedString) { offset ->
-                                            annotatedString.getStringAnnotations(offset, offset).firstOrNull()?.let { range ->
-                                                navController.navigate("artist/${range.tag}")
-                                            }
-                                        }
+                                        })
                                     }
 
                                     playlist.songCountText?.let { songCountText ->
@@ -212,7 +213,6 @@ fun OnlinePlaylistScreen(
                                                     YouTubePlaylistMenu(
                                                         playlist = playlist,
                                                         songs = songs,
-                                                        playerConnection = playerConnection,
                                                         coroutineScope = coroutineScope,
                                                         onDismiss = menuState::dismiss
                                                     )
@@ -247,20 +247,22 @@ fun OnlinePlaylistScreen(
                                     Text(stringResource(R.string.shuffle))
                                 }
 
-                                OutlinedButton(
-                                    onClick = {
-                                        playerConnection.playQueue(YouTubeQueue(playlist.radioEndpoint))
-                                    },
-                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                    modifier = Modifier.weight(1f)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.radio),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
-                                    )
-                                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(stringResource(R.string.radio))
+                                playlist.radioEndpoint?.let { radioEndpoint ->
+                                    OutlinedButton(
+                                        onClick = {
+                                            playerConnection.playQueue(YouTubeQueue(radioEndpoint))
+                                        },
+                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.radio),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(stringResource(R.string.radio))
+                                    }
                                 }
                             }
                         }
@@ -280,7 +282,6 @@ fun OnlinePlaylistScreen(
                                             YouTubeSongMenu(
                                                 song = song,
                                                 navController = navController,
-                                                playerConnection = playerConnection,
                                                 onDismiss = menuState::dismiss
                                             )
                                         }
@@ -300,7 +301,7 @@ fun OnlinePlaylistScreen(
                                         playerConnection.playQueue(YouTubeQueue(song.endpoint ?: WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
                                     }
                                 }
-                                .animateItemPlacement()
+                                .animateItem()
                         )
                     }
                 } else {
@@ -349,7 +350,10 @@ fun OnlinePlaylistScreen(
         TopAppBar(
             title = { if (showTopBarTitle) Text(playlist?.title.orEmpty()) },
             navigationIcon = {
-                IconButton(onClick = navController::navigateUp) {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain
+                ) {
                     Icon(
                         painterResource(R.drawable.arrow_back),
                         contentDescription = null

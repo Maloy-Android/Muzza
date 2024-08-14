@@ -2,7 +2,9 @@ package com.zionhuang.music.ui.player
 
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -34,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
 import com.zionhuang.music.LocalPlayerConnection
@@ -45,17 +48,16 @@ import com.zionhuang.music.models.MediaMetadata
 
 @Composable
 fun MiniPlayer(
-    mediaMetadata: MediaMetadata?,
     position: Long,
     duration: Long,
     modifier: Modifier = Modifier,
 ) {
-    mediaMetadata ?: return
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val playbackState by playerConnection.playbackState.collectAsState()
-    val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val error by playerConnection.error.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
     Box(
         modifier = modifier
@@ -64,70 +66,26 @@ fun MiniPlayer(
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
     ) {
         LinearProgressIndicator(
-            progress = (position.toFloat() / duration).coerceIn(0f, 1f),
+            progress = { (position.toFloat() / duration).coerceIn(0f, 1f) },
             modifier = Modifier
                 .fillMaxWidth()
-                .height(2.dp)
-                .align(Alignment.BottomCenter)
+                .height(3.dp)
+                .align(Alignment.BottomCenter),
         )
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .fillMaxSize()
-                .padding(horizontal = 6.dp),
+                .padding(end = 6.dp),
         ) {
-            Box(modifier = Modifier.padding(6.dp)) {
-                AsyncImage(
-                    model = mediaMetadata.thumbnailUrl,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                )
-                androidx.compose.animation.AnimatedVisibility(
-                    visible = error != null,
-                    enter = fadeIn(),
-                    exit = fadeOut()
-                ) {
-                    Box(
-                        Modifier
-                            .size(48.dp)
-                            .background(
-                                color = Color.Black.copy(alpha = 0.6f),
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.info),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error,
-                            modifier = Modifier
-                                .align(Alignment.Center)
-                        )
-                    }
+            Box(Modifier.weight(1f)) {
+                mediaMetadata?.let {
+                    MiniMediaInfo(
+                        mediaMetadata = it,
+                        error = error,
+                        modifier = Modifier.padding(horizontal = 6.dp)
+                    )
                 }
-            }
-
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .padding(horizontal = 6.dp)
-            ) {
-                Text(
-                    text = mediaMetadata.title,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Text(
-                    text = mediaMetadata.artists.joinToString { it.name },
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
             }
 
             IconButton(
@@ -145,15 +103,85 @@ fun MiniPlayer(
                     contentDescription = null
                 )
             }
+
             IconButton(
                 enabled = canSkipNext,
-                onClick = playerConnection.player::seekToNext
+                onClick = playerConnection::seekToNext
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
                     contentDescription = null
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MiniMediaInfo(
+    mediaMetadata: MediaMetadata,
+    error: PlaybackException?,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        Box(modifier = Modifier.padding(6.dp)) {
+            AsyncImage(
+                model = mediaMetadata.thumbnailUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+            )
+            androidx.compose.animation.AnimatedVisibility(
+                visible = error != null,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(
+                    Modifier
+                        .size(48.dp)
+                        .background(
+                            color = Color.Black.copy(alpha = 0.6f),
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.info),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                    )
+                }
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 6.dp)
+        ) {
+            Text(
+                text = mediaMetadata.title,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.basicMarquee()
+            )
+            Text(
+                text = mediaMetadata.artists.joinToString { it.name },
+                color = MaterialTheme.colorScheme.secondary,
+                fontSize = 12.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.basicMarquee()
+            )
         }
     }
 }

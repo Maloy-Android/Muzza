@@ -1,19 +1,40 @@
 package com.zionhuang.music.ui.screens
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -55,6 +76,8 @@ fun HomeScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val haptic = LocalHapticFeedback.current
+
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
@@ -69,6 +92,7 @@ fun HomeScreen(
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
 
+    val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
     SwipeRefresh(
@@ -96,10 +120,10 @@ fun HomeScreen(
                 Spacer(Modifier.height(LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding()))
 
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp),
                     modifier = Modifier
                         .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
                         .padding(horizontal = 12.dp, vertical = 6.dp)
+                        .fillMaxWidth()
                 ) {
                     NavigationTile(
                         title = stringResource(R.string.history),
@@ -127,24 +151,12 @@ fun HomeScreen(
                     }
                 }
 
-                NavigationTitle(
-                    title = stringResource(R.string.quick_picks)
-                )
-
                 quickPicks?.let { quickPicks ->
-                    if (quickPicks.isEmpty()) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ListItemHeight * 4)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.quick_picks_empty),
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.align(Alignment.Center)
-                            )
-                        }
-                    } else {
+                    if (quickPicks.isNotEmpty()) {
+                        NavigationTitle(
+                            title = stringResource(R.string.quick_picks)
+                        )
+
                         LazyHorizontalGrid(
                             state = mostPlayedLazyGridState,
                             rows = GridCells.Fixed(4),
@@ -167,34 +179,27 @@ fun HomeScreen(
                                     showInLibraryIcon = true,
                                     isActive = song!!.id == mediaMetadata?.id,
                                     isPlaying = isPlaying,
-                                    trailingContent = {
-                                        IconButton(
+                                    modifier = Modifier
+                                        .width(horizontalLazyGridItemWidth)
+                                        .combinedClickable(
                                             onClick = {
+                                                if (song!!.id == mediaMetadata?.id) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else {
+                                                    playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = song!!.id), song!!.toMediaMetadata()))
+                                                }
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 menuState.show {
                                                     SongMenu(
                                                         originalSong = song!!,
                                                         navController = navController,
-                                                        playerConnection = playerConnection,
                                                         onDismiss = menuState::dismiss
                                                     )
                                                 }
                                             }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .clickable {
-                                            if (song!!.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = song!!.id), song!!.toMediaMetadata()))
-                                            }
-                                        }
+                                        )
                                 )
                             }
                         }
@@ -222,23 +227,24 @@ fun HomeScreen(
                                 item = album,
                                 isActive = mediaMetadata?.album?.id == album.id,
                                 isPlaying = isPlaying,
+                                coroutineScope = coroutineScope,
                                 modifier = Modifier
                                     .combinedClickable(
                                         onClick = {
                                             navController.navigate("album/${album.id}")
                                         },
                                         onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show {
                                                 YouTubeAlbumMenu(
-                                                    album = album,
+                                                    albumItem = album,
                                                     navController = navController,
-                                                    playerConnection = playerConnection,
                                                     onDismiss = menuState::dismiss
                                                 )
                                             }
                                         }
                                     )
-                                    .animateItemPlacement()
+                                    .animateItem()
                             )
                         }
                     }
@@ -255,7 +261,7 @@ fun HomeScreen(
                     LazyHorizontalGrid(
                         rows = GridCells.Fixed(4),
                         contentPadding = PaddingValues(6.dp),
-                        modifier = Modifier.height(MoodAndGenresButtonHeight * 4 + 12.dp)
+                        modifier = Modifier.height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp)
                     ) {
                         items(moodAndGenres) {
                             MoodAndGenresButton(

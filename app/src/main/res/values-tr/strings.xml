@@ -30,12 +30,15 @@
     <!-- Stats -->
     <string name="most_played_songs">En çok dinlenen şarkılar</string>
     <string name="most_played_artists">En çok dinlenen sanatçılar</string>
-    <string name="most_played_albums">Most played albums</string>
+    <string name="most_played_albums">En çok dinlenen albümler</string>
 
     <!-- Search -->
     <string name="search">Arama</string>
     <string name="search_yt_music">YouTube Müzik\'te Ara…</string>
     <string name="search_library">Kütüphanede ara…</string>
+    <string name="filter_library">Kütüphane</string>
+    <string name="filter_liked">Beğenilenler</string>
+    <string name="filter_downloaded">İndirilenler</string>
     <string name="filter_all">Hepsi</string>
     <string name="filter_songs">Şarkılar</string>
     <string name="filter_videos">Videolar</string>
@@ -44,6 +47,7 @@
     <string name="filter_playlists">Çalma Listeleri</string>
     <string name="filter_community_playlists">Topluluk çalma listeleri</string>
     <string name="filter_featured_playlists">Öne çıkan listeler</string>
+    <string name="filter_bookmarked">Favoriler</string>
     <string name="no_results_found">Sonuç bulunamadı</string>
 
     <!-- Artist screen -->
@@ -58,6 +62,7 @@
     <string name="retry">Yeniden dene</string>
     <string name="radio">Radyo</string>
     <string name="shuffle">Karıştır</string>
+    <string name="reset">Reset</string>
 
     <!-- Menu -->
     <string name="details">Ayrıntılar</string>
@@ -81,6 +86,7 @@
     <string name="remove_from_history">Geçmişten kaldır</string>
     <string name="search_online">Çevrimiçi arama</string>
     <string name="sync">Eşitle</string>
+    <string name="advanced">Advanced</string>
 
     <!-- Sort menu -->
     <string name="sort_by_create_date">Eklendiği tarih</string>
@@ -142,16 +148,16 @@
         <item quantity="other">%d çalma listesi</item>
     </plurals>
     <plurals name="n_week" tools:ignore="MissingQuantity">
-        <item quantity="one">%d week</item>
-        <item quantity="other">%d weeks</item>
+        <item quantity="one">%d hafta</item>
+        <item quantity="other">%d hafta</item>
     </plurals>
     <plurals name="n_month" tools:ignore="MissingQuantity">
-        <item quantity="one">%d month</item>
-        <item quantity="other">%d months</item>
+        <item quantity="one">%d ay</item>
+        <item quantity="other">%d ay</item>
     </plurals>
     <plurals name="n_year" tools:ignore="MissingQuantity">
-        <item quantity="one">%d year</item>
-        <item quantity="other">%d years</item>
+        <item quantity="one">%d yıl</item>
+        <item quantity="other">%d yıl</item>
     </plurals>
 
     <!-- Snackbar -->
@@ -176,6 +182,11 @@
     <!-- Player action -->
     <string name="action_like">Beğen</string>
     <string name="action_remove_like">Beğeniyi kaldır</string>
+    <string name="action_shuffle_on">Shuffle on</string>
+    <string name="action_shuffle_off">Shuffle off</string>
+    <string name="repeat_mode_off">Repeat mode off</string>
+    <string name="repeat_mode_one">Repeat current song</string>
+    <string name="repeat_mode_all">Repeat queue</string>
 
     <!-- Queue Title -->
     <string name="queue_all_songs">Tüm şarkılar</string>
@@ -252,4 +263,8 @@
 
     <string name="about">Hakkında</string>
     <string name="app_version">Uygulama sürümü</string>
+
+    <string name="new_version_available">Yeni sürüm mevcut</string>
+    <string name="translation_models">Translation Models</string>
+    <string name="clear_translation_models">Clear translation models</string>
 </resources>

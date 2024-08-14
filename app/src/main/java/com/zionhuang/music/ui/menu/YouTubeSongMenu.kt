@@ -13,9 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -43,17 +44,16 @@ import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalDatabase
 import com.zionhuang.music.LocalDownloadUtil
+import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.ListThumbnailSize
 import com.zionhuang.music.constants.ThumbnailCornerRadius
-import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.db.entities.SongEntity
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.models.toMediaMetadata
 import com.zionhuang.music.playback.ExoDownloadService
-import com.zionhuang.music.playback.PlayerConnection
 import com.zionhuang.music.playback.queues.YouTubeQueue
 import com.zionhuang.music.ui.component.DownloadGridMenu
 import com.zionhuang.music.ui.component.GridMenu
@@ -68,11 +68,11 @@ import java.time.LocalDateTime
 fun YouTubeSongMenu(
     song: SongItem,
     navController: NavController,
-    playerConnection: PlayerConnection,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
     val artists = remember {
@@ -89,17 +89,11 @@ fun YouTubeSongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onAdd = { playlist ->
+        onGetSong = {
             database.transaction {
                 insert(song.toMediaMetadata())
-                insert(
-                    PlaylistSongMap(
-                        songId = song.id,
-                        playlistId = playlist.id,
-                        position = playlist.songCount
-                    )
-                )
             }
+            listOf(song.id)
         },
         onDismiss = { showChoosePlaylistDialog = false }
     )
@@ -180,14 +174,14 @@ fun YouTubeSongMenu(
             ) {
                 Icon(
                     painter = painterResource(if (librarySong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border),
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = if (librarySong?.song?.liked == true) MaterialTheme.colorScheme.error else LocalContentColor.current,
                     contentDescription = null
                 )
             }
         }
     )
 
-    Divider()
+    HorizontalDivider()
 
     GridMenu(
         contentPadding = PaddingValues(

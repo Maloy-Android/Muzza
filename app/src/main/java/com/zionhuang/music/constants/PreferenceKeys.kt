@@ -33,11 +33,16 @@ val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
+val EnableLrcLibKey = booleanPreferencesKey("enableLrcLib")
+
+val DiscordTokenKey = stringPreferencesKey("discordToken")
+val DiscordInfoDismissedKey = booleanPreferencesKey("discordInfoDismissed")
+val DiscordUsernameKey = stringPreferencesKey("discordUsername")
+val DiscordNameKey = stringPreferencesKey("discordName")
+val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
 
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
-val DownloadedSongSortTypeKey = stringPreferencesKey("songSortType")
-val DownloadedSongSortDescendingKey = booleanPreferencesKey("songSortDescending")
 val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
 val PlaylistSongSortDescendingKey = booleanPreferencesKey("playlistSongSortDescending")
 val ArtistSortTypeKey = stringPreferencesKey("artistSortType")
@@ -49,13 +54,25 @@ val PlaylistSortDescendingKey = booleanPreferencesKey("playlistSortDescending")
 val ArtistSongSortTypeKey = stringPreferencesKey("artistSongSortType")
 val ArtistSongSortDescendingKey = booleanPreferencesKey("artistSongSortDescending")
 
+val SongFilterKey = stringPreferencesKey("songFilter")
+val ArtistFilterKey = stringPreferencesKey("artistFilter")
+val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
+val AlbumFilterKey = stringPreferencesKey("albumFilter")
+val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
+val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
+
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 
-enum class SongSortType {
-    CREATE_DATE, NAME, ARTIST, PLAY_TIME
+enum class LibraryViewType {
+    LIST, GRID;
+
+    fun toggle() = when (this) {
+        LIST -> GRID
+        GRID -> LIST
+    }
 }
 
-enum class DownloadedSongSortType {
+enum class SongSortType {
     CREATE_DATE, NAME, ARTIST, PLAY_TIME
 }
 
@@ -79,10 +96,21 @@ enum class PlaylistSortType {
     CREATE_DATE, NAME, SONG_COUNT
 }
 
+enum class SongFilter {
+    LIBRARY, LIKED, DOWNLOADED
+}
+
+enum class ArtistFilter {
+    LIBRARY, LIKED
+}
+
+enum class AlbumFilter {
+    LIBRARY, LIKED
+}
+
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
-
-val NavTabConfigKey = stringPreferencesKey("navTabConfig")
+val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
 val RepeatModeKey = intPreferencesKey("repeatMode")
@@ -90,13 +118,19 @@ val RepeatModeKey = intPreferencesKey("repeatMode")
 val SearchSourceKey = stringPreferencesKey("searchSource")
 
 enum class SearchSource {
-    LOCAL, ONLINE
+    LOCAL, ONLINE;
+
+    fun toggle() = when (this) {
+        LOCAL -> ONLINE
+        ONLINE -> LOCAL
+    }
 }
 
 val VisitorDataKey = stringPreferencesKey("visitorData")
 val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
 val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")
+val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",

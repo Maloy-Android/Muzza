@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -42,7 +41,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -125,14 +123,6 @@ fun BottomSheetPlayer(
         mutableLongStateOf(playerConnection.player.duration)
     }
     var sliderPosition by remember { mutableStateOf<Long?>(null) }
-    var targetPosition by remember { mutableFloatStateOf(position.toFloat()) }
-    var isDragging by remember { mutableStateOf(false) }
-
-
-    val animatedTime by animateFloatAsState(
-        targetValue = (sliderPosition ?: position).toFloat(),
-        animationSpec = tween(durationMillis = if (isDragging) 0 else 100, easing = LinearEasing), label = ""
-    )
 
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
@@ -215,12 +205,13 @@ fun BottomSheetPlayer(
                                 style = MaterialTheme.typography.titleMedium,
                                 color = MaterialTheme.colorScheme.secondary,
                                 maxLines = 1,
-                                modifier = Modifier.clickable(enabled = artist?.id != null) {
-                                    artist?.id?.let {
-                                        navController.navigate("artist/$it")
-                                        state.collapseSoft()
+                                modifier = Modifier
+                                    .clickable(enabled = artist?.id != null) {
+                                        artist?.id?.let {
+                                            navController.navigate("artist/$it")
+                                            state.collapseSoft()
+                                        }
                                     }
-                                }
                                     .heightIn(min = 20.dp, max = 20.dp)
                             )
 
@@ -242,18 +233,14 @@ fun BottomSheetPlayer(
             Spacer(Modifier.height(12.dp))
 
             Slider(
-                value = sliderPosition?.toFloat() ?: position.toFloat(),
+                value = (sliderPosition ?: position).toFloat(),
                 valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
                 onValueChange = {
-                    isDragging = true
-                    targetPosition = it
                     sliderPosition = it.toLong()
                 },
                 onValueChangeFinished = {
-                    isDragging = false
                     sliderPosition?.let {
                         playerConnection.player.seekTo(it)
-                        targetPosition = it.toFloat()
                         position = it
                     }
                     sliderPosition = null
@@ -271,7 +258,7 @@ fun BottomSheetPlayer(
                     .padding(horizontal = PlayerHorizontalPadding + 4.dp)
             ) {
                 Text(
-                    text = makeTimeString(animatedTime.toLong()),
+                    text = makeTimeString(sliderPosition ?: position),
                     style = MaterialTheme.typography.labelMedium,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,

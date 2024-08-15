@@ -49,7 +49,7 @@ import androidx.compose.ui.unit.sp
 import com.zionhuang.music.BuildConfig
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
-import com.zionhuang.music.constants.LyricsTextPositionKey
+import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.TranslateLyricsKey
 import com.zionhuang.music.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.zionhuang.music.lyrics.LyricsEntry
@@ -59,7 +59,7 @@ import com.zionhuang.music.lyrics.LyricsUtils.parseLyrics
 import com.zionhuang.music.ui.component.shimmer.ShimmerHost
 import com.zionhuang.music.ui.component.shimmer.TextPlaceholder
 import com.zionhuang.music.ui.menu.LyricsMenu
-import com.zionhuang.music.ui.screens.settings.LyricsPosition
+import com.zionhuang.music.ui.screens.settings.PlayerTextAlignment
 import com.zionhuang.music.ui.utils.fadingEdge
 import com.zionhuang.music.utils.rememberEnumPreference
 import com.zionhuang.music.utils.rememberPreference
@@ -76,7 +76,7 @@ fun Lyrics(
     val menuState = LocalMenuState.current
     val density = LocalDensity.current
 
-    val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
+    val playerTextAlignment by rememberEnumPreference(PlayerTextAlignmentKey, PlayerTextAlignment.CENTER)
     var translationEnabled by rememberPreference(TranslateLyricsKey, false)
 
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -185,10 +185,9 @@ fun Lyrics(
                     ShimmerHost {
                         repeat(10) {
                             Box(
-                                contentAlignment = when (lyricsTextPosition) {
-                                    LyricsPosition.LEFT -> Alignment.CenterStart
-                                    LyricsPosition.CENTER -> Alignment.Center
-                                    LyricsPosition.RIGHT -> Alignment.CenterEnd
+                                contentAlignment = when (playerTextAlignment) {
+                                    PlayerTextAlignment.SIDED -> Alignment.CenterStart
+                                    PlayerTextAlignment.CENTER -> Alignment.Center
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -207,10 +206,9 @@ fun Lyrics(
                         text = item.text,
                         fontSize = 20.sp,
                         color = if (index == displayedCurrentLineIndex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
-                        textAlign = when (lyricsTextPosition) {
-                            LyricsPosition.LEFT -> TextAlign.Left
-                            LyricsPosition.CENTER -> TextAlign.Center
-                            LyricsPosition.RIGHT -> TextAlign.Right
+                        textAlign = when (playerTextAlignment) {
+                            PlayerTextAlignment.SIDED -> TextAlign.Start
+                            PlayerTextAlignment.CENTER -> TextAlign.Center
                         },
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier
@@ -231,10 +229,9 @@ fun Lyrics(
                 text = stringResource(R.string.lyrics_not_found),
                 fontSize = 20.sp,
                 color = MaterialTheme.colorScheme.secondary,
-                textAlign = when (lyricsTextPosition) {
-                    LyricsPosition.LEFT -> TextAlign.Left
-                    LyricsPosition.CENTER -> TextAlign.Center
-                    LyricsPosition.RIGHT -> TextAlign.Right
+                textAlign = when (playerTextAlignment) {
+                    PlayerTextAlignment.SIDED -> TextAlign.Start
+                    PlayerTextAlignment.CENTER -> TextAlign.Center
                 },
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier

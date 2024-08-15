@@ -19,7 +19,7 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.DarkModeKey
 import com.zionhuang.music.constants.DefaultOpenTabKey
 import com.zionhuang.music.constants.DynamicThemeKey
-import com.zionhuang.music.constants.LyricsTextPositionKey
+import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
@@ -38,7 +38,7 @@ fun AppearanceSettings(
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
-    val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(LyricsTextPositionKey, defaultValue = LyricsPosition.CENTER)
+    val (playerTextAlignment, onPlayerTextAlignmentChange) = rememberEnumPreference(PlayerTextAlignmentKey, defaultValue = PlayerTextAlignment.CENTER)
 
     Column(
         Modifier
@@ -86,15 +86,14 @@ fun AppearanceSettings(
             }
         )
         EnumListPreference(
-            title = { Text(stringResource(R.string.lyrics_text_position)) },
+            title = { Text(stringResource(R.string.player_text_alignment)) },
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
-            selectedValue = lyricsPosition,
-            onValueSelected = onLyricsPositionChange,
+            selectedValue = playerTextAlignment,
+            onValueSelected = onPlayerTextAlignmentChange,
             valueText = {
                 when (it) {
-                    LyricsPosition.LEFT -> stringResource(R.string.left)
-                    LyricsPosition.CENTER -> stringResource(R.string.center)
-                    LyricsPosition.RIGHT -> stringResource(R.string.right)
+                    PlayerTextAlignment.SIDED -> stringResource(R.string.sided)
+                    PlayerTextAlignment.CENTER -> stringResource(R.string.center)
                 }
             }
         )
@@ -125,6 +124,6 @@ enum class NavigationTab {
     HOME, SONG, ARTIST, ALBUM, PLAYLIST
 }
 
-enum class LyricsPosition {
-    LEFT, CENTER, RIGHT
+enum class PlayerTextAlignment {
+    SIDED, CENTER
 }

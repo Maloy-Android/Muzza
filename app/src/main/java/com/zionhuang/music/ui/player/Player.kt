@@ -4,7 +4,6 @@ import android.content.res.Configuration
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -65,6 +64,7 @@ import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.DarkModeKey
 import com.zionhuang.music.constants.PlayerHorizontalPadding
+import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.QueuePeekHeight
 import com.zionhuang.music.extensions.togglePlayPause
@@ -75,13 +75,13 @@ import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.ResizableIconButton
 import com.zionhuang.music.ui.component.rememberBottomSheetState
 import com.zionhuang.music.ui.screens.settings.DarkMode
+import com.zionhuang.music.ui.screens.settings.PlayerTextAlignment
 import com.zionhuang.music.utils.makeTimeString
 import com.zionhuang.music.utils.rememberEnumPreference
 import com.zionhuang.music.utils.rememberPreference
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -102,6 +102,8 @@ fun BottomSheetPlayer(
     } else {
         MaterialTheme.colorScheme.surfaceContainer
     }
+
+    val playerTextAlignment by rememberEnumPreference(PlayerTextAlignmentKey, PlayerTextAlignment.CENTER)
 
     val playbackState by playerConnection.playbackState.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -172,12 +174,21 @@ fun BottomSheetPlayer(
                         navController.navigate("album/${mediaMetadata.album!!.id}")
                         state.collapseSoft()
                     }
+                    .align(
+                        when (playerTextAlignment) {
+                            PlayerTextAlignment.SIDED -> Alignment.Start
+                            PlayerTextAlignment.CENTER -> Alignment.CenterHorizontally
+                        },
+                    )
             )
 
             Spacer(Modifier.height(6.dp))
 
             Row(
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = when (playerTextAlignment) {
+                    PlayerTextAlignment.SIDED -> Arrangement.Start
+                    PlayerTextAlignment.CENTER -> Arrangement.Center
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
@@ -188,10 +199,11 @@ fun BottomSheetPlayer(
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.secondary,
                         maxLines = 1,
-                        modifier = Modifier.clickable(enabled = artist.id != null) {
-                            navController.navigate("artist/${artist.id}")
-                            state.collapseSoft()
-                        }
+                        modifier = Modifier
+                            .clickable(enabled = artist.id != null) {
+                                navController.navigate("artist/${artist.id}")
+                                state.collapseSoft()
+                            }
                     )
 
                     if (index != mediaMetadata.artists.lastIndex) {

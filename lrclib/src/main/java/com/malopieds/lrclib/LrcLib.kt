@@ -69,7 +69,7 @@ object LrcLib {
         duration: Int,
         album: String? = null,
         callback: (String) -> Unit,
-    ) {
+    ) = runCatching {
         val tracks = queryLyrics(artist, title, album)
         var count = 0
         var plain = 0

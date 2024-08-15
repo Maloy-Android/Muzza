@@ -53,7 +53,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -134,12 +133,12 @@ import com.zionhuang.music.ui.theme.extractThemeColor
 import com.zionhuang.music.ui.utils.appBarScrollBehavior
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.ui.utils.resetHeightOffset
+import com.zionhuang.music.utils.Updater
 import com.zionhuang.music.utils.dataStore
 import com.zionhuang.music.utils.get
 import com.zionhuang.music.utils.rememberEnumPreference
 import com.zionhuang.music.utils.rememberPreference
 import com.zionhuang.music.utils.reportException
-import com.zionhuang.music.utils.setupRemoteConfig
 import com.zionhuang.music.utils.urlEncode
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -148,6 +147,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URLDecoder
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.days
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -170,7 +170,8 @@ class MainActivity : ComponentActivity() {
             playerConnection = null
         }
     }
-    var latestVersion by mutableLongStateOf(BuildConfig.VERSION_CODE.toLong())
+
+    private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
 
     override fun onStart() {
         super.onStart()
@@ -189,9 +190,15 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
-        setupRemoteConfig()
-
         setContent {
+            LaunchedEffect(Unit) {
+                if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
+                    Updater.getLatestVersionName().onSuccess {
+                        latestVersionName = it
+                    }
+                }
+            }
+
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
@@ -460,7 +467,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             )
                         ) {
-                            navigationBuilder(navController, topAppBarScrollBehavior, latestVersion)
+                            navigationBuilder(navController, topAppBarScrollBehavior, latestVersionName)
                         }
 
                         AnimatedVisibility(
@@ -567,7 +574,7 @@ class MainActivity : ComponentActivity() {
                                         ) {
                                             BadgedBox(
                                                 badge = {
-                                                    if (latestVersion > BuildConfig.VERSION_CODE) {
+                                                    if (latestVersionName != BuildConfig.VERSION_NAME) {
                                                         Badge()
                                                     }
                                                 }

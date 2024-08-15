@@ -148,6 +148,8 @@ dependencies {
     implementation(projects.lrclib)
     implementation(projects.kizzy)
 
+    implementation(libs.ktor.client.core)
+
     coreLibraryDesugaring(libs.desugaring)
 
     "fullImplementation"(platform(libs.firebase.bom))

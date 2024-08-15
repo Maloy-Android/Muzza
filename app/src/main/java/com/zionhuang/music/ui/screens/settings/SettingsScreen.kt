@@ -27,9 +27,9 @@ import com.zionhuang.music.ui.utils.backToMain
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
-    latestVersion: Long,
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    latestVersionName: String,
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -78,13 +78,14 @@ fun SettingsScreen(
             icon = { Icon(painterResource(R.drawable.info), null) },
             onClick = { navController.navigate("settings/about") }
         )
-        if (latestVersion > BuildConfig.VERSION_CODE) {
+        if (latestVersionName != BuildConfig.VERSION_NAME) {
             PreferenceEntry(
                 title = {
                     Text(
                         text = stringResource(R.string.new_version_available),
                     )
                 },
+                description = latestVersionName,
                 icon = {
                     BadgedBox(
                         badge = { Badge() }

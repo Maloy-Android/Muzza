@@ -97,7 +97,7 @@ fun BottomSheetPlayer(
         val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         useDarkTheme && pureBlack
     }
-    val backgroundColor = if (useBlackBackground && !state.isCollapsed) {
+    val backgroundColor = if (useBlackBackground && state.value > state.collapsedBound) {
         Color.Black
     } else {
         MaterialTheme.colorScheme.surfaceContainer

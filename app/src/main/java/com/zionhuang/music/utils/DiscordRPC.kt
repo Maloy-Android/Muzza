@@ -1,8 +1,8 @@
 package com.zionhuang.music.utils
 
 import android.content.Context
-import com.my.kizzy.data.rpc.KizzyRPC
-import com.my.kizzy.data.rpc.RpcImage
+import com.my.kizzy.rpc.KizzyRPC
+import com.my.kizzy.rpc.RpcImage
 import com.zionhuang.music.R
 import com.zionhuang.music.db.entities.Song
 
@@ -24,6 +24,7 @@ class DiscordRPC(
                 "Visit InnerTune" to "https://github.com/z-huang/InnerTune"
             ),
             type = Type.LISTENING,
+            startTime = System.currentTimeMillis(),
             applicationId = APPLICATION_ID
         )
     }

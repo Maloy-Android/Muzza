@@ -46,6 +46,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
@@ -98,7 +99,7 @@ fun BottomSheetPlayer(
         useDarkTheme && pureBlack
     }
     val backgroundColor = if (useBlackBackground && state.value > state.collapsedBound) {
-        Color.Black
+        lerp(MaterialTheme.colorScheme.surfaceContainer, Color.Black, state.progress)
     } else {
         MaterialTheme.colorScheme.surfaceContainer
     }

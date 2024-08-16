@@ -25,8 +25,8 @@ android {
         applicationId = "com.zionhuang.music"
         minSdk = 24
         targetSdk = 34
-        versionCode = 22
-        versionName = "0.5.6"
+        versionCode = 23
+        versionName = "0.5.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

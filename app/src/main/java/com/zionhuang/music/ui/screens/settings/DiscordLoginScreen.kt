@@ -26,12 +26,12 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.R
-import com.zionhuang.music.constants.DiscordNameKey
 import com.zionhuang.music.constants.DiscordTokenKey
-import com.zionhuang.music.constants.DiscordUsernameKey
 import com.zionhuang.music.ui.component.IconButton
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberPreference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -41,8 +41,6 @@ fun DiscordLoginScreen(
 ) {
     val scope = rememberCoroutineScope()
     var discordToken by rememberPreference(DiscordTokenKey, "")
-    var discordUsername by rememberPreference(DiscordUsernameKey, "")
-    var discordName by rememberPreference(DiscordNameKey, "")
 
     var webView: WebView? = null
 
@@ -84,7 +82,9 @@ fun DiscordLoginScreen(
                     @JavascriptInterface
                     fun onRetrieveToken(token: String) {
                         discordToken = token
-                        navController.navigateUp()
+                        scope.launch(Dispatchers.Main) {
+                            navController.navigateUp()
+                        }
                     }
                 }, "Android")
 

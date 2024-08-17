@@ -10,6 +10,7 @@ import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.YTItem
 import com.zionhuang.innertube.models.clean
+import com.zionhuang.innertube.models.filterExplicit
 import com.zionhuang.innertube.models.oddElements
 import com.zionhuang.innertube.models.splitBySeparator
 import com.zionhuang.innertube.utils.parseTime
@@ -22,6 +23,21 @@ data class SearchSummary(
 data class SearchSummaryPage(
     val summaries: List<SearchSummary>,
 ) {
+    fun filterExplicit(enabled: Boolean) =
+        if (enabled) {
+            SearchSummaryPage(
+                summaries.mapNotNull { s ->
+                    SearchSummary(
+                        title = s.title,
+                        items = s.items.filterExplicit().ifEmpty {
+                            return@mapNotNull null
+                        }
+                    )
+                }
+            )
+        } else this
+
+
     companion object {
         fun fromMusicCardShelfRenderer(renderer: MusicCardShelfRenderer): YTItem? {
             val subtitle = renderer.subtitle.runs?.splitBySeparator()

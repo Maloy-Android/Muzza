@@ -1,6 +1,5 @@
 package com.zionhuang.music.ui.screens.search
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
@@ -24,7 +23,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -52,7 +50,6 @@ import com.zionhuang.music.ui.component.YouTubeListItem
 import com.zionhuang.music.viewmodels.OnlineSearchSuggestionViewModel
 import kotlinx.coroutines.flow.drop
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun OnlineSearchScreen(
     query: String,

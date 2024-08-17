@@ -1,6 +1,5 @@
 package com.zionhuang.music.ui.screens.search
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -63,7 +62,6 @@ import com.zionhuang.music.ui.menu.YouTubeSongMenu
 import com.zionhuang.music.viewmodels.OnlineSearchViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnlineSearchResult(
     navController: NavController,

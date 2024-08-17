@@ -1,14 +1,20 @@
 package com.zionhuang.music.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zionhuang.innertube.YouTube
+import com.zionhuang.innertube.models.filterExplicit
 import com.zionhuang.innertube.pages.ExplorePage
+import com.zionhuang.music.constants.HideExplicitKey
 import com.zionhuang.music.db.MusicDatabase
 import com.zionhuang.music.db.entities.Artist
 import com.zionhuang.music.db.entities.Song
+import com.zionhuang.music.utils.dataStore
+import com.zionhuang.music.utils.get
 import com.zionhuang.music.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
@@ -17,6 +23,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
+    @ApplicationContext val context: Context,
     val database: MusicDatabase,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
@@ -43,6 +50,7 @@ class HomeViewModel @Inject constructor(
                         else if (album.artists.orEmpty().any { it.id in artists }) 1
                         else 2
                     }
+                    .filterExplicit(context.dataStore.get(HideExplicitKey, false))
             )
         }.onFailure {
             reportException(it)

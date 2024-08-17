@@ -74,3 +74,7 @@ data class ArtistItem(
     override val shareLink: String
         get() = "https://music.youtube.com/channel/$id"
 }
+
+fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =
+    if (enabled) filter { !it.explicit }
+    else this

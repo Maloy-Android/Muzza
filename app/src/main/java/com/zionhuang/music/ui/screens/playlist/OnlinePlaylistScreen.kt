@@ -1,6 +1,5 @@
 package com.zionhuang.music.ui.screens.playlist
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -39,6 +38,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,6 +61,7 @@ import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.AlbumThumbnailSize
+import com.zionhuang.music.constants.HideExplicitKey
 import com.zionhuang.music.constants.ThumbnailCornerRadius
 import com.zionhuang.music.db.entities.PlaylistEntity
 import com.zionhuang.music.db.entities.PlaylistSongMap
@@ -79,10 +80,11 @@ import com.zionhuang.music.ui.component.shimmer.TextPlaceholder
 import com.zionhuang.music.ui.menu.YouTubePlaylistMenu
 import com.zionhuang.music.ui.menu.YouTubeSongMenu
 import com.zionhuang.music.ui.utils.backToMain
+import com.zionhuang.music.utils.rememberPreference
 import com.zionhuang.music.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun OnlinePlaylistScreen(
     navController: NavController,
@@ -98,6 +100,8 @@ fun OnlinePlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
+
+    val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
@@ -294,13 +298,14 @@ fun OnlinePlaylistScreen(
                                 }
                             },
                             modifier = Modifier
-                                .clickable {
+                                .clickable(enabled = !hideExplicit || !song.explicit) {
                                     if (song.id == mediaMetadata?.id) {
                                         playerConnection.player.togglePlayPause()
                                     } else {
                                         playerConnection.playQueue(YouTubeQueue(song.endpoint ?: WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
                                     }
                                 }
+                                .alpha(if (hideExplicit && song.explicit) 0.3f else 1f)
                                 .animateItem()
                         )
                     }

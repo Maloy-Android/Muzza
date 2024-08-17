@@ -13,6 +13,7 @@ import com.zionhuang.innertube.models.PlaylistItem
 import com.zionhuang.innertube.models.SectionListRenderer
 import com.zionhuang.innertube.models.SongItem
 import com.zionhuang.innertube.models.YTItem
+import com.zionhuang.innertube.models.filterExplicit
 import com.zionhuang.innertube.models.oddElements
 
 data class ArtistSection(
@@ -26,6 +27,19 @@ data class ArtistPage(
     val sections: List<ArtistSection>,
     val description: String?,
 ) {
+    fun filterExplicit(enabled: Boolean) =
+        if (enabled) {
+            copy(sections = sections.mapNotNull {
+                it.copy(
+                    items = it.items
+                        .filterExplicit()
+                        .ifEmpty {
+                            return@mapNotNull null
+                        }
+                )
+            })
+        } else this
+
     companion object {
         fun fromSectionListRendererContent(content: SectionListRenderer.Content): ArtistSection? {
             return when {

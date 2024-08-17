@@ -1,6 +1,5 @@
 package com.zionhuang.music.ui.screens
 
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.LazyColumn
@@ -43,7 +42,7 @@ import com.zionhuang.music.ui.menu.YouTubeSongMenu
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.viewmodels.YouTubeBrowseViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun YouTubeBrowseScreen(
     navController: NavController,

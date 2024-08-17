@@ -28,6 +28,7 @@ import com.zionhuang.music.constants.ContentLanguageKey
 import com.zionhuang.music.constants.CountryCodeToName
 import com.zionhuang.music.constants.EnableKugouKey
 import com.zionhuang.music.constants.EnableLrcLibKey
+import com.zionhuang.music.constants.HideExplicitKey
 import com.zionhuang.music.constants.InnerTubeCookieKey
 import com.zionhuang.music.constants.LanguageCodeToName
 import com.zionhuang.music.constants.ProxyEnabledKey
@@ -60,6 +61,7 @@ fun ContentSettings(
     }
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
+    val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
 
@@ -105,6 +107,13 @@ fun ContentSettings(
                 }
             },
             onValueSelected = onContentCountryChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.hide_explicit)) },
+            icon = { Icon(painterResource(R.drawable.explicit), null) },
+            checked = hideExplicit,
+            onCheckedChange = onHideExplicitChange
         )
 
         SwitchPreference(

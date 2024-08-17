@@ -61,6 +61,7 @@ import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
 import com.zionhuang.music.constants.DiscordTokenKey
 import com.zionhuang.music.constants.EnableDiscordRPCKey
+import com.zionhuang.music.constants.HideExplicitKey
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleLibrary
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleLike
 import com.zionhuang.music.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -93,6 +94,7 @@ import com.zionhuang.music.playback.queues.EmptyQueue
 import com.zionhuang.music.playback.queues.ListQueue
 import com.zionhuang.music.playback.queues.Queue
 import com.zionhuang.music.playback.queues.YouTubeQueue
+import com.zionhuang.music.playback.queues.filterExplicit
 import com.zionhuang.music.utils.CoilBitmapLoader
 import com.zionhuang.music.utils.DiscordRPC
 import com.zionhuang.music.utils.dataStore
@@ -438,7 +440,9 @@ class MusicService : MediaLibraryService(),
         }
 
         scope.launch(SilentHandler) {
-            val initialStatus = withContext(Dispatchers.IO) { queue.getInitialStatus() }
+            val initialStatus = withContext(Dispatchers.IO) {
+                queue.getInitialStatus().filterExplicit(dataStore.get(HideExplicitKey, false))
+            }
             if (queue.preloadItem != null && player.playbackState == STATE_IDLE) return@launch
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title
@@ -527,7 +531,7 @@ class MusicService : MediaLibraryService(),
             currentQueue.hasNextPage()
         ) {
             scope.launch(SilentHandler) {
-                val mediaItems = currentQueue.nextPage()
+                val mediaItems = currentQueue.nextPage().filterExplicit(dataStore.get(HideExplicitKey, false))
                 if (player.playbackState != STATE_IDLE) {
                     player.addMediaItems(mediaItems)
                 }

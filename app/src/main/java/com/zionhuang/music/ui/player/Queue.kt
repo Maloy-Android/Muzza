@@ -5,6 +5,7 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,6 +32,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DismissValue
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -84,11 +86,13 @@ import com.zionhuang.music.constants.ShowLyricsKey
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.move
 import com.zionhuang.music.extensions.togglePlayPause
+import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.ui.component.BottomSheet
 import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.MediaMetadataListItem
 import com.zionhuang.music.ui.menu.PlayerMenu
+import com.zionhuang.music.ui.menu.SongMenu
 import com.zionhuang.music.utils.makeTimeString
 import com.zionhuang.music.utils.rememberPreference
 import kotlinx.coroutines.delay
@@ -136,6 +140,13 @@ fun Queue(
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
     }
+
+    var selecting by remember {
+        mutableStateOf(false)
+    }
+    val (allSelected, onAllSelectedChange) = remember { mutableStateOf(false)}
+    val selectedSongs: MutableList<MediaMetadata> = remember { mutableStateListOf<MediaMetadata>() }
+    val selectedItems: MutableList<Timeline.Window> = remember { mutableStateListOf<Timeline.Window>() }
 
     LaunchedEffect(sleepTimerEnabled) {
         if (sleepTimerEnabled) {
@@ -428,7 +439,7 @@ fun Queue(
                             true
                         }
                     )
-                    val song by playerConnection.database.song(window.mediaItem.mediaId).collectAsState(initial = null)
+
                     if (!lockQueue) {
                         SwipeToDismiss(
                             state = dismissState,
@@ -438,7 +449,8 @@ fun Queue(
                                     mediaMetadata = window.mediaItem.metadata!!,
                                     isActive = index == currentWindowIndex,
                                     isPlaying = isPlaying,
-                                    isLiked = song?.song?.liked,
+                                    isSelected = selecting && selectedSongs.find { it == window.mediaItem.metadata!! } != null,
+                                    selecting = selecting,
                                     trailingContent = {
                                         IconButton(
                                             onClick = { },
@@ -455,36 +467,35 @@ fun Queue(
                                         .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
-                                                if (index == currentWindowIndex) {
-                                                    playerConnection.player.togglePlayPause()
+                                                if (!selecting) {
+                                                    if (index == currentWindowIndex) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.player.seekToDefaultPosition(
+                                                            window.firstPeriodIndex
+                                                        )
+                                                        playerConnection.player.playWhenReady = true
+                                                    }
                                                 } else {
-                                                    playerConnection.player.seekToDefaultPosition(
-                                                        window.firstPeriodIndex
-                                                    )
-                                                    playerConnection.player.playWhenReady = true
+                                                    if (window.mediaItem.metadata!! in selectedSongs) {
+                                                        selectedSongs.remove(window.mediaItem.metadata!!)
+                                                        selectedItems.remove(currentItem)
+                                                    } else {
+                                                        selectedSongs.add(window.mediaItem.metadata!!)
+                                                        selectedItems.add(currentItem)
+                                                    }
                                                 }
                                             },
                                             onLongClick = {
-                                                menuState.show {
-                                                    PlayerMenu(
-                                                        mediaMetadata = window.mediaItem.metadata!!,
-                                                        navController = navController,
-                                                        playerBottomSheetState = playerBottomSheetState,
-                                                        onShowDetailsDialog = {
-                                                            showDetailsDialog = true
-                                                        },
-                                                        windowIndex = currentItem.firstPeriodIndex,
-                                                        onDismiss = menuState::dismiss
-                                                    )
+                                                selecting = true
+                                                if (window.mediaItem.metadata!! in selectedSongs) {
+                                                    selectedSongs.remove(window.mediaItem.metadata!!)
+                                                    selectedItems.remove(currentItem)
+                                                } else {
+                                                    selectedSongs.add(window.mediaItem.metadata!!)
+                                                    selectedItems.add(currentItem)
                                                 }
                                             },
-                                            onDoubleClick = {
-                                                playerConnection.database.query {
-                                                    song?.song
-                                                        ?.toggleLike()
-                                                        ?.let { update(it) }
-                                                }
-                                            }
                                         )
                                 )
                             }
@@ -494,41 +505,39 @@ fun Queue(
                             mediaMetadata = window.mediaItem.metadata!!,
                             isActive = index == currentWindowIndex,
                             isPlaying = isPlaying,
-                            isLiked = song?.song?.liked,
+                            isSelected = selecting && selectedSongs.find { it == window.mediaItem.metadata!! } != null,
+                            selecting = selecting,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .combinedClickable(
                                     onClick = {
-                                        if (index == currentWindowIndex) {
-                                            playerConnection.player.togglePlayPause()
+                                        if (!selecting) {
+                                            if (index == currentWindowIndex) {
+                                                playerConnection.player.togglePlayPause()
+                                            } else {
+                                                playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                                playerConnection.player.playWhenReady = true
+                                            }
                                         } else {
-                                            playerConnection.player.seekToDefaultPosition(
-                                                window.firstPeriodIndex
-                                            )
-                                            playerConnection.player.playWhenReady = true
+                                            if (window.mediaItem.metadata!! in selectedSongs) {
+                                                selectedSongs.remove(window.mediaItem.metadata!!)
+                                                selectedItems.remove(currentItem)
+                                            } else {
+                                                selectedSongs.add(window.mediaItem.metadata!!)
+                                                selectedItems.add(currentItem)
+                                            }
                                         }
                                     },
                                     onLongClick = {
-                                        menuState.show {
-                                            PlayerMenu(
-                                                mediaMetadata = window.mediaItem.metadata!!,
-                                                navController = navController,
-                                                playerBottomSheetState = playerBottomSheetState,
-                                                onShowDetailsDialog = {
-                                                    showDetailsDialog = true
-                                                },
-                                                windowIndex = currentItem.firstPeriodIndex,
-                                                onDismiss = menuState::dismiss
-                                            )
+                                        selecting = true
+                                        if (window.mediaItem.metadata!! in selectedSongs) {
+                                            selectedSongs.remove(window.mediaItem.metadata!!)
+                                            selectedItems.remove(currentItem)
+                                        } else {
+                                            selectedSongs.add(window.mediaItem.metadata!!)
+                                            selectedItems.add(currentItem)
                                         }
                                     },
-                                    onDoubleClick = {
-                                        playerConnection.database.query {
-                                            song?.song
-                                                ?.toggleLike()
-                                                ?.let { update(it) }
-                                        }
-                                    }
                                 )
                         )
                     }
@@ -541,7 +550,7 @@ fun Queue(
                 .background(
                     MaterialTheme.colorScheme
                         .surfaceColorAtElevation(NavigationBarDefaults.Elevation)
-                        .copy(alpha = 0.95f)
+                        .copy(alpha = if (selecting) 1f else 0.95f)
                 )
                 .windowInsetsPadding(
                     WindowInsets.systemBars
@@ -552,33 +561,90 @@ fun Queue(
                 horizontalArrangement = Arrangement.spacedBy(6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
-                    .padding(horizontal = 12.dp, vertical = 12.dp)
+                    .padding(
+                        horizontal = 12.dp,
+                        vertical = if (selecting) 6.dp else 12.dp
+                    )
+                    .fillMaxWidth()
             ) {
-                Text(
-                    text = queueTitle.orEmpty(),
-                    style = MaterialTheme.typography.titleMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
-                )
+                if (!selecting) {
+                    Text(
+                        text = queueTitle.orEmpty(),
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
 
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(4.dp),
-                    horizontalAlignment = Alignment.End
-                ) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                queueWindows.size,
+                                queueWindows.size
+                            ),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+
+                        Text(
+                            text = makeTimeString(queueLength * 1000L),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+                else {
+                    IconButton(
+                        onClick = {
+                            selectedItems.clear()
+                            selectedSongs.clear()
+                            selecting = false
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = null,
+                        )
+                    }
                     Text(
                         text = pluralStringResource(
-                            R.plurals.n_song,
-                            queueWindows.size,
-                            queueWindows.size
+                            R.plurals.n_selected,
+                            selectedSongs.size,
+                            selectedSongs.size
                         ),
-                        style = MaterialTheme.typography.bodyMedium
+                        style = MaterialTheme.typography.titleMedium,
                     )
-
-                    Text(
-                        text = makeTimeString(queueLength * 1000L),
-                        style = MaterialTheme.typography.bodyMedium
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        Checkbox(
+                            checked = (queueWindows.size == selectedSongs.size),
+                            onCheckedChange = {
+                                if (queueWindows.size == selectedSongs.size) {
+                                    selectedSongs.clear()
+                                    selectedItems.clear()
+                                }
+                                else {
+                                    selectedSongs.clear()
+                                    selectedSongs.addAll(mutableQueueWindows.map { it.mediaItem.metadata!! })
+                                    selectedItems.clear()
+                                    selectedItems.addAll(mutableQueueWindows)
+                                }
+                            }
+                        )
+                        IconButton(
+                            onClick = {
+                            },
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
+                                contentDescription = null,
+                            )
+                        }
+                    }
                 }
             }
         }

@@ -29,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Checkbox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -40,6 +41,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -103,12 +105,22 @@ inline fun ListItem(
     noinline subtitle: (@Composable RowScope.() -> Unit)? = null,
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    isSelected: Boolean? = false,
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .height(ListItemHeight)
-            .padding(horizontal = 6.dp),
+        modifier = if (isSelected == true) {
+            modifier
+                .height(ListItemHeight)
+                .padding(horizontal = 8.dp, vertical = 4.dp)
+                .clip(RoundedCornerShape(8.dp))
+                .background(color = MaterialTheme.colorScheme.inversePrimary.copy( alpha = 0.4f))
+        }
+        else {
+            modifier // default
+                .height(ListItemHeight)
+                .padding(horizontal = 8.dp)
+        }
     ) {
         Box(
             modifier = Modifier.padding(6.dp),
@@ -148,6 +160,7 @@ fun ListItem(
     badges: @Composable RowScope.() -> Unit = {},
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    isSelected: Boolean? = false,
 ) = ListItem(
     title = title,
     subtitle = {
@@ -165,7 +178,8 @@ fun ListItem(
     },
     thumbnailContent = thumbnailContent,
     trailingContent = trailingContent,
-    modifier = modifier
+    modifier = modifier,
+    isSelected = isSelected,
 )
 
 @Composable
@@ -798,7 +812,8 @@ fun MediaMetadataListItem(
     modifier: Modifier,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    isLiked: Boolean? = false,
+    isSelected: Boolean = false,
+    selecting: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) = ListItem(
     title = mediaMetadata.title,
@@ -806,41 +821,73 @@ fun MediaMetadataListItem(
         mediaMetadata.artists.joinToString { it.name },
         makeTimeString(mediaMetadata.duration * 1000L)
     ),
-    badges = {
-        if (isLiked == true) {
-            Icon(
-                painter = painterResource(R.drawable.favorite),
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-                modifier = Modifier
-                    .size(18.dp)
-                    .padding(end = 2.dp)
+    isSelected = isSelected,
+    thumbnailContent = {
+        if (isSelected || selecting){
+            Checkbox(
+                checked = isSelected,
+                onCheckedChange = {  }
             )
         }
-    },
-    thumbnailContent = {
-        AsyncImage(
-            model = mediaMetadata.thumbnailUrl,
-            contentDescription = null,
-            modifier = Modifier
-                .size(ListThumbnailSize)
-                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-        )
-
-        PlayingIndicatorBox(
-            isActive = isActive,
-            playWhenReady = isPlaying,
-            modifier = Modifier
-                .size(ListThumbnailSize)
-                .background(
-                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                )
-        )
+        else {
+            AsyncImage(
+                model = mediaMetadata.thumbnailUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(ListThumbnailSize)
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+            )
+            PlayingIndicatorBox(
+                isActive = isActive,
+                playWhenReady = isPlaying,
+                modifier = Modifier
+                    .size(ListThumbnailSize)
+                    .background(
+                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+            )
+        }
     },
     trailingContent = trailingContent,
     modifier = modifier
 )
+
+//@Composable
+//fun MediaMetadataListItem(
+//    mediaMetadata: MediaMetadata,
+//    modifier: Modifier,
+//    isActive: Boolean = false,
+//    isPlaying: Boolean = false,
+//    trailingContent: @Composable RowScope.() -> Unit = {},
+//) = ListItem(
+//    title = mediaMetadata.title,
+//    subtitle = joinByBullet(
+//        mediaMetadata.artists.joinToString { it.name },
+//        makeTimeString(mediaMetadata.duration * 1000L)
+//    ),
+//    thumbnailContent = {
+//        AsyncImage(
+//            model = mediaMetadata.thumbnailUrl,
+//            contentDescription = null,
+//            modifier = Modifier
+//                .size(ListThumbnailSize)
+//                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+//        )
+//        PlayingIndicatorBox(
+//            isActive = isActive,
+//            playWhenReady = isPlaying,
+//            modifier = Modifier
+//                .size(ListThumbnailSize)
+//                .background(
+//                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+//                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+//                )
+//        )
+//    },
+//    trailingContent = trailingContent,
+//    modifier = modifier
+//)
 
 @Composable
 fun YouTubeListItem(

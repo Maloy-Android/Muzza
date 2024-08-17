@@ -50,6 +50,7 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
 import com.zionhuang.music.constants.ListThumbnailSize
 import com.zionhuang.music.db.entities.Event
+import com.zionhuang.music.db.entities.PlaylistSongMap
 import com.zionhuang.music.db.entities.Song
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.models.toMediaMetadata
@@ -67,7 +68,6 @@ fun SongMenu(
     originalSong: Song,
     event: Event? = null,
     navController: NavController,
-    onDeleteFromPlaylist: (() -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -302,15 +302,6 @@ fun SongMenu(
                 database.query {
                     delete(event)
                 }
-            }
-        }
-        if (onDeleteFromPlaylist != null) {
-            GridMenuItem(
-                icon = R.drawable.delete,
-                title = R.string.remove_from_playlist
-            ) {
-                onDismiss()
-                onDeleteFromPlaylist()
             }
         }
     }

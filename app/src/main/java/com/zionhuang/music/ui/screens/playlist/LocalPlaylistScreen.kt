@@ -586,7 +586,6 @@ fun LocalPlaylistScreen(
                                                 originalSong = song.song,
                                                 navController = navController,
                                                 onDismiss = menuState::dismiss,
-                                                onDeleteFromPlaylist = ::deleteFromPlaylist
                                             )
                                         }
                                     }

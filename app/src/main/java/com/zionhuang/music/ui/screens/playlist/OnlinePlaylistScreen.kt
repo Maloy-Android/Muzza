@@ -247,7 +247,6 @@ fun OnlinePlaylistScreen(
                                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                     Text(stringResource(R.string.shuffle))
                                 }
-
                                 playlist.radioEndpoint?.let { radioEndpoint ->
                                     OutlinedButton(
                                         onClick = {

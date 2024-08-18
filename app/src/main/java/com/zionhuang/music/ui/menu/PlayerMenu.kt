@@ -180,7 +180,7 @@ fun PlayerMenu(
             icon = R.drawable.radio,
             title = R.string.start_radio
         ) {
-            playerConnection.service.startRadioSeamlessly(windowIndex, mediaMetadata)
+            playerConnection.service.startRadioSeamlessly(listOf(mediaMetadata))
             onDismiss()
         }
         GridMenuItem(

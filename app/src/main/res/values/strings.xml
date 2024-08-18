@@ -71,6 +71,7 @@
     <string name="start_radio">Start radio</string>
     <string name="play">Play</string>
     <string name="play_next">Play next</string>
+    <string name="play_selected">Play selected</string>
     <string name="add_to_queue">Add to queue</string>
     <string name="remove_from_queue">Remove from queue</string>
     <string name="add_to_library">Add to library</string>

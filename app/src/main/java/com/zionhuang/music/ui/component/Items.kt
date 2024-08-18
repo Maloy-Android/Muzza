@@ -82,6 +82,7 @@ import com.zionhuang.music.db.entities.Album
 import com.zionhuang.music.db.entities.Artist
 import com.zionhuang.music.db.entities.Playlist
 import com.zionhuang.music.db.entities.Song
+import com.zionhuang.music.db.entities.SongEntity
 import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.playback.queues.ListQueue
@@ -114,7 +115,7 @@ inline fun ListItem(
                 .height(ListItemHeight)
                 .padding(horizontal = 8.dp, vertical = 4.dp)
                 .clip(RoundedCornerShape(8.dp))
-                .background(color = MaterialTheme.colorScheme.inversePrimary.copy( alpha = 0.4f))
+                .background(color = MaterialTheme.colorScheme.inversePrimary.copy(alpha = 0.4f))
         }
         else {
             modifier // default
@@ -335,7 +336,115 @@ fun SongListItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(alpha = ActiveBoxAlpha),
+                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(
+                            alpha = ActiveBoxAlpha
+                        ),
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+            )
+        }
+    },
+    trailingContent = trailingContent,
+    modifier = modifier
+)
+
+@Composable
+fun SongListItem(
+    song: SongEntity,
+    mediaMetadata: MediaMetadata,
+    modifier: Modifier = Modifier,
+    albumIndex: Int? = null,
+    showLikedIcon: Boolean = true,
+    showInLibraryIcon: Boolean = false,
+    showDownloadIcon: Boolean = true,
+    badges: @Composable RowScope.() -> Unit = {
+        if (showLikedIcon && song.liked) {
+            Icon(
+                painter = painterResource(R.drawable.favorite),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+        }
+        if (showInLibraryIcon && song.inLibrary != null) {
+            Icon(
+                painter = painterResource(R.drawable.library_add_check),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+        }
+        if (showDownloadIcon) {
+            val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
+            when (download?.state) {
+                STATE_COMPLETED -> Icon(
+                    painter = painterResource(R.drawable.offline),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .padding(end = 2.dp)
+                )
+
+                STATE_QUEUED, STATE_DOWNLOADING -> CircularProgressIndicator(
+                    strokeWidth = 2.dp,
+                    modifier = Modifier
+                        .size(16.dp)
+                        .padding(end = 2.dp)
+                )
+
+                else -> {}
+            }
+        }
+    },
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    trailingContent: @Composable RowScope.() -> Unit = {},
+) = ListItem(
+    title = song.title,
+    subtitle = joinByBullet(
+        mediaMetadata.artists.joinToString { it.name },
+        makeTimeString(song.duration * 1000L)
+    ),
+    badges = badges,
+    thumbnailContent = {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier.size(ListThumbnailSize)
+        ) {
+            if (albumIndex != null) {
+                AnimatedVisibility(
+                    visible = !isActive,
+                    enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                    exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut()
+                ) {
+                    Text(
+                        text = albumIndex.toString(),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            } else {
+                AsyncImage(
+                    model = song.thumbnailUrl,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+            }
+
+            PlayingIndicatorBox(
+                isActive = isActive,
+                playWhenReady = isPlaying,
+                color = if (albumIndex != null) MaterialTheme.colorScheme.onBackground else Color.White,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(
+                            alpha = ActiveBoxAlpha
+                        ),
                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )
             )
@@ -815,6 +924,7 @@ fun MediaMetadataListItem(
     isSelected: Boolean = false,
     selecting: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    onCheckClick: () -> Unit
 ) = ListItem(
     title = mediaMetadata.title,
     subtitle = joinByBullet(
@@ -823,71 +933,38 @@ fun MediaMetadataListItem(
     ),
     isSelected = isSelected,
     thumbnailContent = {
-        if (isSelected || selecting){
+        AsyncImage(
+            model = mediaMetadata.thumbnailUrl,
+            contentDescription = null,
+            modifier = Modifier
+                .size(ListThumbnailSize)
+                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+        )
+        PlayingIndicatorBox(
+            isActive = isActive,
+            playWhenReady = isPlaying,
+            modifier = Modifier
+                .size(ListThumbnailSize)
+                .background(
+                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                    shape = RoundedCornerShape(ThumbnailCornerRadius),
+                )
+                .aspectRatio(1f)
+        )
+    },
+    trailingContent = {
+        if (selecting){
             Checkbox(
                 checked = isSelected,
-                onCheckedChange = {  }
+                onCheckedChange = { onCheckClick() }
             )
         }
         else {
-            AsyncImage(
-                model = mediaMetadata.thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(ListThumbnailSize)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-            )
-            PlayingIndicatorBox(
-                isActive = isActive,
-                playWhenReady = isPlaying,
-                modifier = Modifier
-                    .size(ListThumbnailSize)
-                    .background(
-                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                    )
-            )
+            trailingContent()
         }
     },
-    trailingContent = trailingContent,
     modifier = modifier
 )
-
-//@Composable
-//fun MediaMetadataListItem(
-//    mediaMetadata: MediaMetadata,
-//    modifier: Modifier,
-//    isActive: Boolean = false,
-//    isPlaying: Boolean = false,
-//    trailingContent: @Composable RowScope.() -> Unit = {},
-//) = ListItem(
-//    title = mediaMetadata.title,
-//    subtitle = joinByBullet(
-//        mediaMetadata.artists.joinToString { it.name },
-//        makeTimeString(mediaMetadata.duration * 1000L)
-//    ),
-//    thumbnailContent = {
-//        AsyncImage(
-//            model = mediaMetadata.thumbnailUrl,
-//            contentDescription = null,
-//            modifier = Modifier
-//                .size(ListThumbnailSize)
-//                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-//        )
-//        PlayingIndicatorBox(
-//            isActive = isActive,
-//            playWhenReady = isPlaying,
-//            modifier = Modifier
-//                .size(ListThumbnailSize)
-//                .background(
-//                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-//                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-//                )
-//        )
-//    },
-//    trailingContent = trailingContent,
-//    modifier = modifier
-//)
 
 @Composable
 fun YouTubeListItem(
@@ -997,7 +1074,9 @@ fun YouTubeListItem(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
-                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(alpha = ActiveBoxAlpha),
+                        color = if (albumIndex != null) Color.Transparent else Color.Black.copy(
+                            alpha = ActiveBoxAlpha
+                        ),
                         shape = thumbnailShape
                     )
             )

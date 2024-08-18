@@ -5,7 +5,6 @@ import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -92,6 +91,7 @@ import com.zionhuang.music.ui.component.BottomSheetState
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.MediaMetadataListItem
 import com.zionhuang.music.ui.menu.PlayerMenu
+import com.zionhuang.music.ui.menu.SelectionMenu
 import com.zionhuang.music.ui.menu.SongMenu
 import com.zionhuang.music.utils.makeTimeString
 import com.zionhuang.music.utils.rememberPreference
@@ -132,7 +132,10 @@ fun Queue(
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
     val (lockQueue, onLockQueueChange) = rememberPreference(key = LockQueueKey, defaultValue = false)
-
+    var lockedBeforeSelecting by remember { 
+        mutableStateOf(false)
+    }
+    
     val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
         playerConnection.service.sleepTimer.isActive
     }
@@ -410,12 +413,13 @@ fun Queue(
             contentPadding = WindowInsets.systemBars
                 .add(
                     WindowInsets(
-                        top = ListItemHeight,
+                        top = if (!selecting) ListItemHeight else 0.dp,
                         bottom = ListItemHeight
                     )
                 )
                 .asPaddingValues(),
             modifier = Modifier
+                .padding(top = if (selecting) ListItemHeight else 0.dp)
                 .reorderable(reorderableState)
                 .nestedScroll(state.preUpPostDownNestedScrollConnection)
         ) {
@@ -439,6 +443,22 @@ fun Queue(
                             true
                         }
                     )
+                    fun toggleSelect(metadata: MediaMetadata) {
+                        if (window.mediaItem.metadata!! in selectedSongs) {
+                            selectedSongs.remove(window.mediaItem.metadata!!)
+                            selectedItems.remove(currentItem)
+
+                            // Stop selecting when all unselected
+                            if (selectedSongs.size == 0) {
+                                selecting = false
+                                onLockQueueChange(lockedBeforeSelecting)
+                            }
+                        } else {
+                            selecting = true
+                            selectedSongs.add(window.mediaItem.metadata!!)
+                            selectedItems.add(currentItem)
+                        }
+                    }
 
                     if (!lockQueue) {
                         SwipeToDismiss(
@@ -451,6 +471,9 @@ fun Queue(
                                     isPlaying = isPlaying,
                                     isSelected = selecting && selectedSongs.find { it == window.mediaItem.metadata!! } != null,
                                     selecting = selecting,
+                                    onCheckClick = {
+                                        toggleSelect(window.mediaItem.metadata!!)
+                                    },
                                     trailingContent = {
                                         IconButton(
                                             onClick = { },
@@ -477,24 +500,13 @@ fun Queue(
                                                         playerConnection.player.playWhenReady = true
                                                     }
                                                 } else {
-                                                    if (window.mediaItem.metadata!! in selectedSongs) {
-                                                        selectedSongs.remove(window.mediaItem.metadata!!)
-                                                        selectedItems.remove(currentItem)
-                                                    } else {
-                                                        selectedSongs.add(window.mediaItem.metadata!!)
-                                                        selectedItems.add(currentItem)
-                                                    }
+                                                    toggleSelect(window.mediaItem.metadata!!)
                                                 }
                                             },
                                             onLongClick = {
-                                                selecting = true
-                                                if (window.mediaItem.metadata!! in selectedSongs) {
-                                                    selectedSongs.remove(window.mediaItem.metadata!!)
-                                                    selectedItems.remove(currentItem)
-                                                } else {
-                                                    selectedSongs.add(window.mediaItem.metadata!!)
-                                                    selectedItems.add(currentItem)
-                                                }
+                                                lockedBeforeSelecting = lockQueue
+                                                onLockQueueChange(true)
+                                                toggleSelect(window.mediaItem.metadata!!)
                                             },
                                         )
                                 )
@@ -507,6 +519,33 @@ fun Queue(
                             isPlaying = isPlaying,
                             isSelected = selecting && selectedSongs.find { it == window.mediaItem.metadata!! } != null,
                             selecting = selecting,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                mediaMetadata = window.mediaItem.metadata,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    menuState.dismiss()
+                                                    selecting = false
+                                                    selectedSongs.clear()
+                                                    selectedItems.clear()
+                                                    onLockQueueChange(lockedBeforeSelecting)
+                                                },
+                                            )
+                                        }
+                                    },
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            onCheckClick = {
+                                toggleSelect(window.mediaItem.metadata!!)
+                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .combinedClickable(
@@ -519,24 +558,12 @@ fun Queue(
                                                 playerConnection.player.playWhenReady = true
                                             }
                                         } else {
-                                            if (window.mediaItem.metadata!! in selectedSongs) {
-                                                selectedSongs.remove(window.mediaItem.metadata!!)
-                                                selectedItems.remove(currentItem)
-                                            } else {
-                                                selectedSongs.add(window.mediaItem.metadata!!)
-                                                selectedItems.add(currentItem)
-                                            }
+                                            toggleSelect(window.mediaItem.metadata!!)
                                         }
                                     },
                                     onLongClick = {
-                                        selecting = true
-                                        if (window.mediaItem.metadata!! in selectedSongs) {
-                                            selectedSongs.remove(window.mediaItem.metadata!!)
-                                            selectedItems.remove(currentItem)
-                                        } else {
-                                            selectedSongs.add(window.mediaItem.metadata!!)
-                                            selectedItems.add(currentItem)
-                                        }
+                                        lockedBeforeSelecting = lockQueue
+                                        toggleSelect(window.mediaItem.metadata!!)
                                     },
                                 )
                         )
@@ -601,6 +628,7 @@ fun Queue(
                             selectedItems.clear()
                             selectedSongs.clear()
                             selecting = false
+                            onLockQueueChange(lockedBeforeSelecting)
                         },
                     ) {
                         Icon(
@@ -626,6 +654,10 @@ fun Queue(
                                 if (queueWindows.size == selectedSongs.size) {
                                     selectedSongs.clear()
                                     selectedItems.clear()
+
+                                    // Stop selecting when all unselected
+                                    selecting = false
+                                    onLockQueueChange(lockedBeforeSelecting)
                                 }
                                 else {
                                     selectedSongs.clear()
@@ -637,6 +669,38 @@ fun Queue(
                         )
                         IconButton(
                             onClick = {
+//                                menuState.show {
+                                    if (selectedSongs.size == 1) {
+                                        menuState.show {
+                                            SongMenu(
+                                                mediaMetadata = if (selectedSongs.size > 0) selectedSongs[0] else null,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    menuState.dismiss()
+                                                    selecting = false
+                                                    selectedSongs.clear()
+                                                    selectedItems.clear()
+                                                    onLockQueueChange(lockedBeforeSelecting)
+                                                },
+                                            )
+                                        }
+                                    }
+                                    else {
+                                        menuState.show {
+                                            SelectionMenu(
+                                                songSelection = selectedSongs,
+                                                onDismiss = { menuState.dismiss() },
+                                                clearAction = {
+                                                    selecting = false
+                                                    selectedSongs.clear()
+                                                    selectedItems.clear()
+                                                    onLockQueueChange(lockedBeforeSelecting)
+                                                },
+                                                currentItems = selectedItems
+                                            )
+                                        }
+                                    }
+//                                }
                             },
                         ) {
                             Icon(
@@ -699,7 +763,12 @@ fun Queue(
 
             IconButton(
                 modifier = Modifier.align(Alignment.CenterEnd),
-                onClick = { onLockQueueChange(!lockQueue) }
+                onClick = {
+                    onLockQueueChange(!lockQueue)
+                    if (selecting) {
+                        lockedBeforeSelecting = !lockQueue
+                    }
+                }
             ) {
                 Icon(
                     painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(R.drawable.lock_open),

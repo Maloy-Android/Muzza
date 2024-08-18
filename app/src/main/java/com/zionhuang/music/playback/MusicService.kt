@@ -429,12 +429,11 @@ class MusicService : MediaLibraryService(),
         }
     }
 
-    fun startRadioSeamlessly(mediaItemIndex: Int, mediaMetadata: MediaMetadata) {
-        val mediaItemCount = player.mediaItemCount + mediaItemIndex
-        if (mediaItemIndex > 0) player.removeMediaItems(0, mediaItemIndex)
-        if (mediaItemIndex < mediaItemCount - 1) player.removeMediaItems(1, mediaItemCount - mediaItemIndex)
+    fun startRadioSeamlessly(mediaMetadatas: List<MediaMetadata>) {
+        player.removeMediaItems(0, player.mediaItemCount)
+        player.addMediaItems(mediaMetadatas.map {it.toMediaItem()})
         scope.launch(SilentHandler) {
-            val radioQueue = YouTubeQueue(endpoint = WatchEndpoint(videoId = mediaMetadata.id))
+            val radioQueue = YouTubeQueue(endpoint = WatchEndpoint(videoId = mediaMetadatas[0].id))
             val initialStatus = radioQueue.getInitialStatus()
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title

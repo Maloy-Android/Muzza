@@ -452,6 +452,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM album WHERE id = :albumId")
     fun albumWithSongs(albumId: String): Flow<AlbumWithSongs?>
 
+    @Query("SELECT * FROM album_artist_map WHERE albumId = :albumId")
+    fun albumArtistMaps(albumId: String): List<AlbumArtistMap>
+
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist ORDER BY rowId")
     fun playlistsByCreateDateAsc(): Flow<List<Playlist>>
@@ -692,22 +695,27 @@ interface DatabaseDao {
                 )
             }
             .forEach(::upsert)
-        albumPage.album.artists
-            ?.map { artist ->
-                ArtistEntity(
-                    id = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId(),
-                    name = artist.name
-                )
-            }
-            ?.onEach(::insert)
-            ?.mapIndexed { index, artist ->
-                AlbumArtistMap(
-                    albumId = albumPage.album.browseId,
-                    artistId = artist.id,
-                    order = index
-                )
-            }
-            ?.forEach(::insert)
+
+        albumPage.album.artists?.let { artists ->
+            // Recreate album artists
+            albumArtistMaps(album.id).forEach(::delete)
+            artists
+                .map { artist ->
+                    ArtistEntity(
+                        id = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId(),
+                        name = artist.name
+                    )
+                }
+                .onEach(::insert)
+                .mapIndexed { index, artist ->
+                    AlbumArtistMap(
+                        albumId = albumPage.album.browseId,
+                        artistId = artist.id,
+                        order = index
+                    )
+                }
+                .forEach(::insert)
+        }
     }
 
     @Upsert
@@ -727,6 +735,9 @@ interface DatabaseDao {
 
     @Delete
     fun delete(album: AlbumEntity)
+
+    @Delete
+    fun delete(albumArtistMap: AlbumArtistMap)
 
     @Delete
     fun delete(playlist: PlaylistEntity)

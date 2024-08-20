@@ -50,6 +50,7 @@ import com.zionhuang.music.ui.component.DefaultDialog
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
 import com.zionhuang.music.ui.component.PreferenceEntry
+import com.zionhuang.music.ui.component.PreferenceGroupTitle
 import com.zionhuang.music.ui.component.SwitchPreference
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberEnumPreference
@@ -171,12 +172,17 @@ fun AppearanceSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
     ) {
+        PreferenceGroupTitle(
+            title = stringResource(R.string.theme)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_dynamic_theme)) },
             icon = { Icon(painterResource(R.drawable.palette), null) },
             checked = dynamicTheme,
             onCheckedChange = onDynamicThemeChange
         )
+
         EnumListPreference(
             title = { Text(stringResource(R.string.dark_theme)) },
             icon = { Icon(painterResource(R.drawable.dark_mode), null) },
@@ -190,6 +196,7 @@ fun AppearanceSettings(
                 }
             }
         )
+
         AnimatedVisibility(useDarkTheme) {
             SwitchPreference(
                 title = { Text(stringResource(R.string.pure_black)) },
@@ -198,24 +205,24 @@ fun AppearanceSettings(
                 onCheckedChange = onPureBlackChange
             )
         }
-        EnumListPreference(
-            title = { Text(stringResource(R.string.default_open_tab)) },
-            icon = { Icon(painterResource(R.drawable.tab), null) },
-            selectedValue = defaultOpenTab,
-            onValueSelected = onDefaultOpenTabChange,
-            valueText = {
-                when (it) {
-                    NavigationTab.HOME -> stringResource(R.string.home)
-                    NavigationTab.SONG -> stringResource(R.string.songs)
-                    NavigationTab.ARTIST -> stringResource(R.string.artists)
-                    NavigationTab.ALBUM -> stringResource(R.string.albums)
-                    NavigationTab.PLAYLIST -> stringResource(R.string.playlists)
-                }
-            }
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.player)
         )
+
         EnumListPreference(
             title = { Text(stringResource(R.string.player_text_alignment)) },
-            icon = { Icon(painterResource(R.drawable.format_align_left), null) },
+            icon = {
+                Icon(
+                    painter = painterResource(
+                        when (playerTextAlignment) {
+                            PlayerTextAlignment.CENTER -> R.drawable.format_align_center
+                            PlayerTextAlignment.SIDED -> R.drawable.format_align_left
+                        }
+                    ),
+                    contentDescription = null
+                )
+            },
             selectedValue = playerTextAlignment,
             onValueSelected = onPlayerTextAlignmentChange,
             valueText = {
@@ -237,18 +244,26 @@ fun AppearanceSettings(
                 showSliderOptionDialog = true
             }
         )
-//        EnumListPreference(
-//            title = { Text(stringResource(R.string.slider_style)) },
-//            icon = { Icon(painterResource(R.drawable.sliders), null) },
-//            selectedValue = sliderStyle,
-//            onValueSelected = onSliderStyleChange,
-//            valueText = {
-//                when (it) {
-//                    SliderStyle.DEFAULT -> stringResource(R.string.default_)
-//                    SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
-//                }
-//            }
-//        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.misc)
+        )
+
+        EnumListPreference(
+            title = { Text(stringResource(R.string.default_open_tab)) },
+            icon = { Icon(painterResource(R.drawable.tab), null) },
+            selectedValue = defaultOpenTab,
+            onValueSelected = onDefaultOpenTabChange,
+            valueText = {
+                when (it) {
+                    NavigationTab.HOME -> stringResource(R.string.home)
+                    NavigationTab.SONG -> stringResource(R.string.songs)
+                    NavigationTab.ARTIST -> stringResource(R.string.artists)
+                    NavigationTab.ALBUM -> stringResource(R.string.albums)
+                    NavigationTab.PLAYLIST -> stringResource(R.string.playlists)
+                }
+            }
+        )
     }
 
     TopAppBar(

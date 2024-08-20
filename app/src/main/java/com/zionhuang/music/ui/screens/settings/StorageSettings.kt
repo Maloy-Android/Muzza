@@ -1,5 +1,6 @@
 package com.zionhuang.music.ui.screens.settings
 
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -60,6 +61,8 @@ fun StorageSettings(
     val downloadCache = LocalPlayerConnection.current?.service?.downloadCache ?: return
 
     val coroutineScope = rememberCoroutineScope()
+    val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(key = MaxImageCacheSizeKey, defaultValue = 512)
+    val (maxSongCacheSize, onMaxSongCacheSizeChange) = rememberPreference(key = MaxSongCacheSizeKey, defaultValue = 1024)
 
     var imageCacheSize by remember {
         mutableLongStateOf(imageDiskCache.size)
@@ -70,6 +73,14 @@ fun StorageSettings(
     var downloadCacheSize by remember {
         mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0)
     }
+    val animatedImageCacheSize by animateFloatAsState(
+        targetValue = (imageCacheSize.toFloat() / imageDiskCache.maxSize).coerceIn(0f, 1f),
+        label = ""
+    )
+    val animatedPlayerCacheSize by animateFloatAsState(
+        targetValue = (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(0f, 1f),
+        label = ""
+    )
 
     LaunchedEffect(imageDiskCache) {
         while (isActive) {
@@ -89,9 +100,6 @@ fun StorageSettings(
             downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
         }
     }
-
-    val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(key = MaxImageCacheSizeKey, defaultValue = 512)
-    val (maxSongCacheSize, onMaxSongCacheSizeChange) = rememberPreference(key = MaxSongCacheSizeKey, defaultValue = 1024)
 
     Column(
         Modifier
@@ -131,7 +139,7 @@ fun StorageSettings(
             )
         } else {
             LinearProgressIndicator(
-                progress = { (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
+                progress = { animatedPlayerCacheSize },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 6.dp),
@@ -170,7 +178,7 @@ fun StorageSettings(
         )
 
         LinearProgressIndicator(
-            progress = { (imageCacheSize.toFloat() / imageDiskCache.maxSize).coerceIn(0f, 1f) },
+            progress = { animatedImageCacheSize },
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),

@@ -1,21 +1,41 @@
 package com.zionhuang.music.ui.screens.settings
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.R
@@ -24,12 +44,17 @@ import com.zionhuang.music.constants.DefaultOpenTabKey
 import com.zionhuang.music.constants.DynamicThemeKey
 import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.PureBlackKey
+import com.zionhuang.music.constants.SliderStyle
+import com.zionhuang.music.constants.SliderStyleKey
+import com.zionhuang.music.ui.component.DefaultDialog
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
+import com.zionhuang.music.ui.component.PreferenceEntry
 import com.zionhuang.music.ui.component.SwitchPreference
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberEnumPreference
 import com.zionhuang.music.utils.rememberPreference
+import me.saket.squiggles.SquigglySlider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,10 +67,103 @@ fun AppearanceSettings(
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (playerTextAlignment, onPlayerTextAlignmentChange) = rememberEnumPreference(PlayerTextAlignmentKey, defaultValue = PlayerTextAlignment.CENTER)
+    val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
         if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
+    }
+
+    var showSliderOptionDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    if (showSliderOptionDialog) {
+        DefaultDialog(
+            buttons = {
+                TextButton(
+                    onClick = { showSliderOptionDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+            },
+            onDismiss = {
+                showSliderOptionDialog = false
+            }
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, if (sliderStyle == SliderStyle.DEFAULT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                        .clickable {
+                            onSliderStyleChange(SliderStyle.DEFAULT)
+                            showSliderOptionDialog = false
+                        }
+                        .padding(16.dp)
+                ) {
+                    var sliderValue by remember {
+                        mutableFloatStateOf(0.5f)
+                    }
+                    Slider(
+                        value = sliderValue,
+                        valueRange = 0f..1f,
+                        onValueChange = {
+                            sliderValue = it
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {}
+                                )
+                            }
+                    )
+
+                    Text(
+                        text = stringResource(R.string.default_),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(1.dp, if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                        .clickable {
+                            onSliderStyleChange(SliderStyle.SQUIGGLY)
+                            showSliderOptionDialog = false
+                        }
+                        .padding(16.dp)
+                ) {
+                    var sliderValue by remember {
+                        mutableFloatStateOf(0.5f)
+                    }
+                    SquigglySlider(
+                        value = sliderValue,
+                        valueRange = 0f..1f,
+                        onValueChange = {
+                            sliderValue = it
+                        },
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Text(
+                        text = stringResource(R.string.squiggly),
+                        style = MaterialTheme.typography.labelLarge
+                    )
+                }
+            }
+        }
     }
 
     Column(
@@ -107,6 +225,30 @@ fun AppearanceSettings(
                 }
             }
         )
+
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.player_slider_style)) },
+            description = when (sliderStyle) {
+                SliderStyle.DEFAULT -> stringResource(R.string.default_)
+                SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
+            },
+            icon = { Icon(painterResource(R.drawable.sliders), null) },
+            onClick = {
+                showSliderOptionDialog = true
+            }
+        )
+//        EnumListPreference(
+//            title = { Text(stringResource(R.string.slider_style)) },
+//            icon = { Icon(painterResource(R.drawable.sliders), null) },
+//            selectedValue = sliderStyle,
+//            onValueSelected = onSliderStyleChange,
+//            valueText = {
+//                when (it) {
+//                    SliderStyle.DEFAULT -> stringResource(R.string.default_)
+//                    SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
+//                }
+//            }
+//        )
     }
 
     TopAppBar(

@@ -9,6 +9,12 @@ val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
+val PlayerTextAlignmentKey = stringPreferencesKey("playerTextAlignment")
+val SliderStyleKey = stringPreferencesKey("sliderStyle")
+
+enum class SliderStyle {
+    DEFAULT, SQUIGGLY
+}
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
@@ -110,7 +116,6 @@ enum class AlbumFilter {
 }
 
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
-val PlayerTextAlignmentKey = stringPreferencesKey("playerTextAlignment")
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")

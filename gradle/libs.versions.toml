@@ -39,6 +39,7 @@ viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-
 
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }
 material3-windowsize = { group = "androidx.compose.material3", name = "material3-window-size-class", version.ref = "material3" }
+squigglyslider = { group = "me.saket.squigglyslider", name = "squigglyslider", version = "1.0.0" }
 
 accompanist-swiperefresh = { group = "com.google.accompanist", name = "accompanist-swiperefresh", version = "0.28.0" }
 

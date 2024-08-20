@@ -220,6 +220,9 @@
     <string name="left">Left</string>
     <string name="center">Center</string>
     <string name="right">Right</string>
+    <string name="player_slider_style">Player slider style</string>
+    <string name="default_">Default</string>
+    <string name="squiggly">Squiggly</string>
 
     <string name="content">Content</string>
     <string name="login">Login</string>

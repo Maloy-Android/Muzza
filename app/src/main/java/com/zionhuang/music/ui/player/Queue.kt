@@ -178,7 +178,7 @@ fun Queue(
                     val pluralString = pluralStringResource(R.plurals.minute, sleepTimerValue.roundToInt(), sleepTimerValue.roundToInt())
                     val endTimeString = SimpleDateFormat
                         .getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
-                        .format(Date(System.currentTimeMillis() + (sleepTimerValue * 60 * 1000).toLong()))
+                        .format(Date(System.currentTimeMillis() + (sleepTimerValue.roundToInt() * 60 * 1000).toLong()))
 
                     Text(
                         text = "$pluralString\n$endTimeString",
@@ -191,7 +191,6 @@ fun Queue(
                         value = sleepTimerValue,
                         onValueChange = { sleepTimerValue = it },
                         valueRange = 5f..120f,
-                        steps = 120 - 5 - 1,
                     )
 
                     OutlinedButton(

@@ -136,13 +136,13 @@ fun PlayerMenu(
         }
     }
 
-    var showPitchTempoDialog by rememberSaveable {
+    var showTempoPitchDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
-    if (showPitchTempoDialog) {
-        PitchTempoDialog(
-            onDismiss = { showPitchTempoDialog = false }
+    if (showTempoPitchDialog) {
+        TempoPitchDialog(
+            onDismiss = { showTempoPitchDialog = false }
         )
     }
 
@@ -270,16 +270,16 @@ fun PlayerMenu(
             onDismiss()
         }
         GridMenuItem(
-            icon = R.drawable.tune,
-            title = R.string.advanced
+            icon = R.drawable.speed,
+            title = R.string.tempo_and_pitch
         ) {
-            showPitchTempoDialog = true
+            showTempoPitchDialog = true
         }
     }
 }
 
 @Composable
-fun PitchTempoDialog(
+fun TempoPitchDialog(
     onDismiss: () -> Unit,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -296,6 +296,9 @@ fun PitchTempoDialog(
     AlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
         onDismissRequest = onDismiss,
+        title = {
+            Text(stringResource(R.string.tempo_and_pitch))
+        },
         dismissButton = {
             TextButton(
                 onClick = {
@@ -317,7 +320,7 @@ fun PitchTempoDialog(
         text = {
             Column {
                 ValueAdjuster(
-                    icon = R.drawable.slow_motion_video,
+                    icon = R.drawable.speed,
                     currentValue = tempo,
                     values = listOf(0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f),
                     onValueUpdate = {

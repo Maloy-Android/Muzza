@@ -85,6 +85,10 @@ fun PlayerMenu(
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
+    val artists = remember(mediaMetadata.artists) {
+        mediaMetadata.artists.filter { it.id != null }
+    }
+
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -110,7 +114,7 @@ fun PlayerMenu(
         ListDialog(
             onDismiss = { showSelectArtistDialog = false }
         ) {
-            items(mediaMetadata.artists) { artist ->
+            items(artists) { artist ->
                 Box(
                     contentAlignment = Alignment.CenterStart,
                     modifier = Modifier
@@ -214,16 +218,18 @@ fun PlayerMenu(
                 )
             }
         )
-        GridMenuItem(
-            icon = R.drawable.artist,
-            title = R.string.view_artist
-        ) {
-            if (mediaMetadata.artists.size == 1) {
-                navController.navigate("artist/${mediaMetadata.artists[0].id}")
-                playerBottomSheetState.collapseSoft()
-                onDismiss()
-            } else {
-                showSelectArtistDialog = true
+        if (artists.isNotEmpty()) {
+            GridMenuItem(
+                icon = R.drawable.artist,
+                title = R.string.view_artist
+            ) {
+                if (artists.size == 1) {
+                    navController.navigate("artist/${artists[0].id}")
+                    playerBottomSheetState.collapseSoft()
+                    onDismiss()
+                } else {
+                    showSelectArtistDialog = true
+                }
             }
         }
         if (mediaMetadata.album != null) {

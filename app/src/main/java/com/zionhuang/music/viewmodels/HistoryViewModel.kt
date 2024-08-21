@@ -22,7 +22,7 @@ class HistoryViewModel @Inject constructor(
 
     val events = database.events()
         .map { events ->
-            events.groupBy {
+            events.distinctBy { it.song }.groupBy {
                 val date = it.event.timestamp.toLocalDate()
                 val daysAgo = ChronoUnit.DAYS.between(date, today).toInt()
                 when {

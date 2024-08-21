@@ -59,6 +59,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -180,7 +181,7 @@ fun Queue(
 
     BottomSheet(
         state = state,
-        backgroundColor = backgroundColor,
+        brushBackgroundColor = Brush.verticalGradient(listOf(backgroundColor, backgroundColor)),
         modifier = modifier,
         collapsedContent = {
             Row(

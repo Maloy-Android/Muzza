@@ -124,6 +124,12 @@ enum class AlbumFilter {
     LIBRARY, LIKED
 }
 
+enum class PlayerBackgroundStyle {
+    DEFAULT,
+    GRADIENT,
+}
+
+val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 val LockQueueKey = booleanPreferencesKey("lockQueue")

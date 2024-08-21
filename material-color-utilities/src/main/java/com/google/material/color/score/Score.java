@@ -16,12 +16,14 @@
 
 package com.google.material.color.score;
 
+import com.google.material.color.hct.Cam16;
 import com.google.material.color.hct.Hct;
 import com.google.material.color.utils.MathUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -156,6 +158,86 @@ public final class Score {
     }
     return colors;
   }
+
+  public static List<Integer> order(Map<Integer, Integer> colorsToPopulation) {
+    // Determine the total count of all colors.
+    double populationSum = 0.;
+    for (Map.Entry<Integer, Integer> entry : colorsToPopulation.entrySet()) {
+      populationSum += entry.getValue();
+    }
+
+    // Turn the count of each color into a proportion by dividing by the total count.
+    // Also, fill a cache of CAM16 colors representing each color, and
+    // record the proportion of colors for each CAM16 hue.
+    Map<Integer, Cam16> colorsToCam = new HashMap<>();
+    double[] hueProportions = new double[361];
+    for (Map.Entry<Integer, Integer> entry : colorsToPopulation.entrySet()) {
+      int color = entry.getKey();
+      double population = entry.getValue();
+      double proportion = population / populationSum;
+
+      Cam16 cam = Cam16.fromInt(color);
+      colorsToCam.put(color, cam);
+
+      int hue = (int) Math.round(cam.getHue());
+      hueProportions[hue] += proportion;
+    }
+
+    // Determine the proportion of the colors around each color, by summing the
+    // proportions around each color's hue.
+    Map<Integer, Double> colorsToExcitedProportion = new HashMap<>();
+    for (Map.Entry<Integer, Cam16> entry : colorsToCam.entrySet()) {
+      int color = entry.getKey();
+      Cam16 cam = entry.getValue();
+      int hue = (int) Math.round(cam.getHue());
+
+      double excitedProportion = 0.;
+      for (int j = (hue - 15); j < (hue + 15); j++) {
+        int neighborHue = MathUtils.sanitizeDegreesInt(j);
+        excitedProportion += hueProportions[neighborHue];
+      }
+
+      colorsToExcitedProportion.put(color, excitedProportion);
+    }
+
+    // Create a list of ScoredHCT objects with scores based on the proportion.
+    List<ScoredHCT> scoredColors = new ArrayList<>();
+    for (Map.Entry<Integer, Cam16> entry : colorsToCam.entrySet()) {
+      int color = entry.getKey();
+      double proportion = colorsToExcitedProportion.get(color);
+      double proportionScore = proportion * 100.0 * WEIGHT_PROPORTION;
+
+      scoredColors.add(new ScoredHCT(Hct.fromInt(color), proportionScore));
+    }
+
+    // Sort the list using the new ScoredComparator.
+    scoredColors.sort(new ScoredComparator());
+
+    // Extract the sorted colors, ensuring no duplicate hues are chosen.
+    List<Integer> colorsByScoreDescending = new ArrayList<>();
+    for (ScoredHCT scoredColor : scoredColors) {
+      Hct hct = scoredColor.hct;
+      int color = hct.toInt();
+      Cam16 cam = colorsToCam.get(color);
+      boolean duplicateHue = false;
+
+      for (Integer alreadyChosenColor : colorsByScoreDescending) {
+        Cam16 alreadyChosenCam = colorsToCam.get(alreadyChosenColor);
+        if (MathUtils.differenceDegrees(cam.getHue(), alreadyChosenCam.getHue()) < 15) {
+          duplicateHue = true;
+          break;
+        }
+      }
+
+      if (duplicateHue) {
+        continue;
+      }
+      colorsByScoreDescending.add(color);
+    }
+
+    return colorsByScoreDescending;
+  }
+
 
   private static class ScoredHCT {
     public final Hct hct;

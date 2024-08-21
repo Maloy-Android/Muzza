@@ -47,6 +47,8 @@ import com.zionhuang.music.constants.DefaultOpenTabKey
 import com.zionhuang.music.constants.DynamicThemeKey
 import com.zionhuang.music.constants.GridCellSize
 import com.zionhuang.music.constants.GridCellSizeKey
+import com.zionhuang.music.constants.PlayerBackgroundStyle
+import com.zionhuang.music.constants.PlayerBackgroundStyleKey
 import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.SliderStyle
@@ -82,6 +84,12 @@ fun AppearanceSettings(
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
         if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
     }
+
+    val (playerBackground, onPlayerBackgroundChange) =
+        rememberEnumPreference(
+            PlayerBackgroundStyleKey,
+            defaultValue = PlayerBackgroundStyle.DEFAULT,
+        )
 
     var showSliderOptionDialog by rememberSaveable {
         mutableStateOf(false)
@@ -203,6 +211,19 @@ fun AppearanceSettings(
                     DarkMode.ON -> stringResource(R.string.dark_theme_on)
                     DarkMode.OFF -> stringResource(R.string.dark_theme_off)
                     DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
+                }
+            }
+        )
+
+        EnumListPreference(
+            title = { Text(stringResource(R.string.player_background_style)) },
+            icon = { Icon(painterResource(R.drawable.gradient), null) },
+            selectedValue = playerBackground,
+            onValueSelected = onPlayerBackgroundChange,
+            valueText = {
+                when (it) {
+                    PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
+                    PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                 }
             }
         )

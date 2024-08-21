@@ -93,7 +93,9 @@ fun MiniPlayer(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_previous),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(26.dp)
                 )
             }
 
@@ -119,7 +121,9 @@ fun MiniPlayer(
             ) {
                 Icon(
                     painter = painterResource(R.drawable.skip_next),
-                    contentDescription = null
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(26.dp)
                 )
             }
         }

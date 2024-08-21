@@ -88,6 +88,16 @@ fun MiniPlayer(
             }
 
             IconButton(
+                enabled = canSkipNext,
+                onClick = playerConnection::seekToPrevious
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.skip_previous),
+                    contentDescription = null
+                )
+            }
+
+            IconButton(
                 onClick = {
                     if (playbackState == Player.STATE_ENDED) {
                         playerConnection.player.seekTo(0, 0)

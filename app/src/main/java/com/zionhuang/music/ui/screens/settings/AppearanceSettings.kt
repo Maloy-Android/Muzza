@@ -51,6 +51,7 @@ import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.SliderStyle
 import com.zionhuang.music.constants.SliderStyleKey
+import com.zionhuang.music.constants.SwipeThumbnailKey
 import com.zionhuang.music.ui.component.DefaultDialog
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
@@ -75,6 +76,7 @@ fun AppearanceSettings(
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
+    val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -239,6 +241,13 @@ fun AppearanceSettings(
                     PlayerTextAlignment.CENTER -> stringResource(R.string.center)
                 }
             }
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_swipe_thumbnail)) },
+            icon = { Icon(painterResource(R.drawable.swipe), null) },
+            checked = swipeThumbnail,
+            onCheckedChange = onSwipeThumbnailChange,
         )
 
         PreferenceEntry(

@@ -10,6 +10,7 @@ val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
 val PlayerTextAlignmentKey = stringPreferencesKey("playerTextAlignment")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
+val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 
 enum class SliderStyle {
     DEFAULT, SQUIGGLY

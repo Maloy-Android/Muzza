@@ -1,6 +1,9 @@
 package com.zionhuang.music.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -34,10 +37,12 @@ fun SettingsScreen(
     val uriHandler = LocalUriHandler.current
 
     Column(
-        modifier = Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+        Modifier
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
+        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+
         PreferenceEntry(
             title = { Text(stringResource(R.string.appearance)) },
             icon = { Icon(painterResource(R.drawable.palette), null) },

@@ -213,10 +213,10 @@
     <string name="privacy">Riêng tư</string>
     <string name="pause_listen_history">Tạm dừng lịch sử nghe</string>
     <string name="clear_listen_history">Xóa lịch sử nghe</string>
-    <string name="clear_listen_history_confirm">Bạn có chắc muốn xoá tất cả lịch sử nghe không?</string>
+    <string name="clear_listen_history_confirm">Bạn có chắc bạn muốn xoá tất cả lịch sử nghe không?</string>
     <string name="pause_search_history">Tạm dừng lịch sử tìm kiếm</string>
     <string name="clear_search_history">Xóa lịch sử tìm kiếm</string>
-    <string name="clear_search_history_confirm">Bạn có chắc muốn xoá tất cả lịch sử tìm kiếm?</string>
+    <string name="clear_search_history_confirm">Bạn có chắc bạn muốn xoá tất cả lịch sử tìm kiếm?</string>
     <string name="enable_kugou">Bật nhà cung cấp lời bài hát KuGou</string>
     <string name="backup_restore">Sao lưu và khôi phục</string>
     <string name="backup">Sao lưu</string>
@@ -239,7 +239,9 @@
     <string name="remove_download_playlist_confirm">Bạn có thực sự muốn xóa tất cả \"%s\" bài hát trong danh sách phát khỏi bộ nhớ Bài hát được tải xuống không?</string>
     <string name="delete_playlist_confirm">Bạn có thực sự muốn xóa \"%s\" danh sách phát không?</string>
     <string name="not_logged_in">Chưa đăng nhập</string>
-    <string name="discord_information">Bạn có thể đăng nhập một cách an toàn. InnerTune sẽ chỉ trích xuất mã thông báo của bạn và mọi thứ khác sẽ được lưu trữ cục bộ.</string>
+    <string name="discord_information">InnerTune sử dụng thư viện KizzyRPC để thiết lập trạng thái tài khoản Discord của bạn. Điều này liên quan đến việc sử dụng kết nối Discord Gateway, có thể được coi là vi phạm điều khoản và dịch vụ của Discord. Tuy nhiên, không có trường hợp nào được biết đến về việc tài khoản người dùng bị đình chỉ vì lý do này. Sử dụng theo rủi ro của riêng bạn.
+\n
+\nInnerTune sẽ chỉ trích xuất mã thông báo của bạn và mọi thứ khác được lưu trữ cục bộ.</string>
     <string name="enable_lrclib">Bật nhà cung cấp lời bài hát LrcLib</string>
     <string name="discord_integration">Tích hợp Discord</string>
     <string name="dismiss">Bỏ qua</string>
@@ -251,4 +253,11 @@
     <string name="sided">Cạnh bên</string>
     <string name="player_text_alignment">Căn chỉnh văn bản của trình phát</string>
     <string name="hide_explicit">Ẩn nội dung phản cảm</string>
+    <string name="squiggly">Uốn lượn</string>
+    <string name="default_">Mặc định</string>
+    <string name="player_slider_style">Kiểu thanh trượt của trình phát</string>
+    <string name="tempo_and_pitch">Nhịp độ và Cao độ</string>
+    <string name="theme">Chủ đề</string>
+    <string name="player">Trình phát</string>
+    <string name="misc">Khác</string>
 </resources>

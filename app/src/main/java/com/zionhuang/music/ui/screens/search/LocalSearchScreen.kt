@@ -97,7 +97,8 @@ fun LocalSearchScreen(
                 LocalFilter.PLAYLIST to stringResource(R.string.filter_playlists)
             ),
             currentValue = searchFilter,
-            onValueUpdate = { viewModel.filter.value = it }
+            onValueUpdate = { viewModel.filter.value = it },
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
         )
 
         LazyColumn(

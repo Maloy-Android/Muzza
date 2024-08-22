@@ -268,12 +268,4 @@
     <string name="enable_discord_rpc">Activer la présence riche</string>
     <string name="login_failed">Échec de la connexion</string>
     <string name="delete_playlist_confirm">Souhaitez-vous vraiment supprimer la liste de lecture « %s » ?</string>
-    <string name="tempo_and_pitch"></string>
-    <string name="theme"></string>
-    <string name="squiggly"></string>
-    <string name="player"></string>
-    <string name="misc"></string>
-    <string name="remove_download_playlist_confirm"></string>
-    <string name="player_slider_style"></string>
-    <string name="default_"></string>
 </resources>

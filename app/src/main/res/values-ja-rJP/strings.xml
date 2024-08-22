@@ -239,23 +239,4 @@
     <string name="new_version_available">新しいバージョンがあります</string>
     <string name="translation_models">翻訳モデル</string>
     <string name="clear_translation_models">翻訳モデルを消去</string>
-    <string name="discord_integration"></string>
-    <string name="not_logged_in"></string>
-    <string name="tempo_and_pitch"></string>
-    <string name="theme"></string>
-    <string name="player"></string>
-    <string name="misc"></string>
-    <string name="hide_explicit"></string>
-    <string name="discord_information"></string>
-    <string name="dismiss"></string>
-    <string name="options"></string>
-    <string name="preview"></string>
-    <string name="login_failed"></string>
-    <string name="logout"></string>
-    <string name="enable_discord_rpc"></string>
-    <string name="player_text_alignment"></string>
-    <string name="sided"></string>
-    <string name="player_slider_style"></string>
-    <string name="squiggly"></string>
-    <string name="default_"></string>
 </resources>

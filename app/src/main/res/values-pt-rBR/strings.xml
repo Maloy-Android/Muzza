@@ -265,11 +265,17 @@
     <string name="logout">Sair</string>
     <string name="enable_discord_rpc">Ativar Rich Presence</string>
     <string name="not_logged_in">Não logado</string>
-    <string name="discord_information">Você pode fazer login com segurança. O InnerTune extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
+    <string name="discord_information">O InnerTune usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco.
+\n
+\nO InnerTune extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
     <string name="sided">Ao lado</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>
     <string name="player_slider_style">Estilo do slider do reprodutor</string>
     <string name="default_">Padrão</string>
     <string name="squiggly">Cobrinha</string>
+    <string name="tempo_and_pitch">Ritmo e Volume</string>
+    <string name="theme">Tema</string>
+    <string name="player">Reprodutor</string>
+    <string name="misc">Misc</string>
 </resources>

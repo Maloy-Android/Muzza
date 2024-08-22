@@ -3,6 +3,7 @@ package com.zionhuang.music.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.zionhuang.music.db.MusicDatabase
+import com.zionhuang.music.extensions.mergeNearbyElements
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
@@ -40,7 +41,19 @@ class HistoryViewModel @Inject constructor(
                     DateAgo.LastWeek -> 3L
                     is DateAgo.Other -> ChronoUnit.DAYS.between(dateAgo.date, today)
                 }
-            })
+            }).mapValues { entry ->
+                // merge neighbor songs with same id
+                entry.value.mergeNearbyElements(
+                    key = { it.song.id },
+                    merge = { first, second ->
+                        first.copy(
+                            event = first.event.copy(
+                                playTime = first.event.playTime + second.event.playTime
+                            )
+                        )
+                    }
+                )
+            }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
 }

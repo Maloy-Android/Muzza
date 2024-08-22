@@ -209,17 +209,25 @@ fun BottomSheetPlayer(
         } else {
             Brush.verticalGradient(
                 listOf(
-                    MaterialTheme.colorScheme.surfaceContainer,
-                    MaterialTheme.colorScheme.surfaceContainer,
-                ),
-            )
+                    MaterialTheme.colorScheme.surfaceColorAtElevation(
+                        NavigationBarDefaults.Elevation,
+                    ),
+                    MaterialTheme.colorScheme.surfaceColorAtElevation(
+                        NavigationBarDefaults.Elevation,
+                        ),
+                    ),
+                )
+        },
+        onDismiss = {
+            playerConnection.player.stop()
+            playerConnection.player.clearMediaItems()
         },
         collapsedContent = {
             MiniPlayer(
                 position = position,
                 duration = duration,
             )
-        }
+        },
     ) {
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(

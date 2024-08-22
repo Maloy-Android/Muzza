@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Bottom navigation -->
     <string name="home">Ana Sayfa</string>
@@ -5,13 +6,11 @@
     <string name="artists">Sanatçılar</string>
     <string name="albums">Albümler</string>
     <string name="playlists">Çalma Listeleri</string>
-
     <!-- Top bar -->
     <plurals name="n_selected">
         <item quantity="one">%d seçildi</item>
         <item quantity="other">%d seçildi</item>
     </plurals>
-
     <!-- Home -->
     <string name="history">Geçmiş</string>
     <string name="stats">İstatistikler</string>
@@ -20,18 +19,15 @@
     <string name="quick_picks">Hızlı seçimler</string>
     <string name="quick_picks_empty">Hızlı seçimlerinizi oluşturmak için birkaç şarkı dinleyin</string>
     <string name="new_release_albums">Yeni çıkan albümler</string>
-
     <!-- History -->
     <string name="today">Bugün</string>
     <string name="yesterday">Dün</string>
     <string name="this_week">Bu hafta</string>
     <string name="last_week">Geçen hafta</string>
-
     <!-- Stats -->
     <string name="most_played_songs">En çok dinlenen şarkılar</string>
     <string name="most_played_artists">En çok dinlenen sanatçılar</string>
     <string name="most_played_albums">En çok dinlenen albümler</string>
-
     <!-- Search -->
     <string name="search">Arama</string>
     <string name="search_yt_music">YouTube Müzik\'te Ara…</string>
@@ -49,21 +45,17 @@
     <string name="filter_featured_playlists">Öne çıkan listeler</string>
     <string name="filter_bookmarked">Favoriler</string>
     <string name="no_results_found">Sonuç bulunamadı</string>
-
     <!-- Artist screen -->
     <string name="from_your_library">Kütüphanenizden</string>
-
     <!-- Playlist -->
     <string name="liked_songs">Beğenilen şarkılar</string>
     <string name="downloaded_songs">İndirilen şarkılar</string>
     <string name="playlist_is_empty">Çalma listesi boş</string>
-
     <!-- Button -->
     <string name="retry">Yeniden dene</string>
     <string name="radio">Radyo</string>
     <string name="shuffle">Karıştır</string>
     <string name="reset">Reset</string>
-
     <!-- Menu -->
     <string name="details">Ayrıntılar</string>
     <string name="edit">Düzenle</string>
@@ -87,7 +79,6 @@
     <string name="search_online">Çevrim içi arama</string>
     <string name="sync">Eşitle</string>
     <string name="advanced">Gelişmiş</string>
-
     <!-- Sort menu -->
     <string name="sort_by_create_date">Eklendiği tarih</string>
     <string name="sort_by_name">Ad</string>
@@ -97,7 +88,6 @@
     <string name="sort_by_length">Uzunluk</string>
     <string name="sort_by_play_time">Çalma süresi</string>
     <string name="sort_by_custom">Özel sıralama</string>
-
     <!-- Dialog -->
     <string name="media_id">Medya kimliği</string>
     <string name="mime_type">MIME türü</string>
@@ -109,27 +99,22 @@
     <string name="file_size">Dosya boyutu</string>
     <string name="unknown">Bilinmiyor</string>
     <string name="copied">Panoya kopyalandı</string>
-
     <string name="edit_lyrics">Sözleri düzenle</string>
     <string name="search_lyrics">Sözleri ara</string>
-
     <string name="edit_song">Şarkıyı düzenle</string>
     <string name="song_title">Şarkı adı</string>
     <string name="song_artists">Şarkı sanatçıları</string>
     <string name="error_song_title_empty">Şarkı adı boş olamaz.</string>
     <string name="error_song_artist_empty">Şarkı sanatçısı boş olamaz.</string>
     <string name="save">Kaydet</string>
-
     <string name="choose_playlist">Çalma listesi seç</string>
     <string name="edit_playlist">Çalma listesini düzenle</string>
     <string name="create_playlist">Çalma listesi oluştur</string>
     <string name="playlist_name">Çalma listesi adı</string>
     <string name="error_playlist_name_empty">Çalma listesi adı boş olamaz.</string>
-
     <string name="edit_artist">Sanatçıyı düzenle</string>
     <string name="artist_name">Sanatçı adı</string>
     <string name="error_artist_name_empty">Sanatçı adı boş olamaz.</string>
-
     <!-- Noun -->
     <plurals name="n_song">
         <item quantity="one">%d şarkı</item>
@@ -159,13 +144,11 @@
         <item quantity="one">%d yıl</item>
         <item quantity="other">%d yıl</item>
     </plurals>
-
     <!-- Snackbar -->
     <string name="playlist_imported">Çalma listesi içe aktarıldı</string>
     <string name="removed_song_from_playlist">\"%s\" çalma listesinden kaldırıldı</string>
     <string name="playlist_synced">Çalma listesi eşitlendi</string>
     <string name="undo">Geri al</string>
-
     <!-- Player -->
     <string name="lyrics_not_found">Şarkı sözleri bulunamadı</string>
     <string name="sleep_timer">Uyku zamanlayıcısı</string>
@@ -178,7 +161,6 @@
     <string name="error_no_internet">Ağ bağlantısı yok</string>
     <string name="error_timeout">Zaman aşımı</string>
     <string name="error_unknown">Bilinmeyen hata</string>
-
     <!-- Player action -->
     <string name="action_like">Beğen</string>
     <string name="action_remove_like">Beğeniyi kaldır</string>
@@ -187,14 +169,11 @@
     <string name="repeat_mode_off">Tekrarlama modu kapalı</string>
     <string name="repeat_mode_one">Şu anki şarkıyı tekrarla</string>
     <string name="repeat_mode_all">Kuyruğu tekrarla</string>
-
     <!-- Queue Title -->
     <string name="queue_all_songs">Tüm şarkılar</string>
     <string name="queue_searched_songs">Aranan şarkılar</string>
-
     <!-- Notification name -->
     <string name="music_player">Müzik Çalar</string>
-
     <!-- Settings -->
     <string name="settings">Ayarlar</string>
     <string name="appearance">Görünüm</string>
@@ -210,7 +189,6 @@
     <string name="left">Sol</string>
     <string name="center">Orta</string>
     <string name="right">Sağ</string>
-
     <string name="content">İçerik</string>
     <string name="login">Giriş yap</string>
     <string name="content_language">Varsayılan dil</string>
@@ -220,7 +198,6 @@
     <string name="proxy_type">Proxy türü</string>
     <string name="proxy_url">Proxy URL\'si</string>
     <string name="restart_to_take_effect">Etkinleştirmek için yeniden başlatın</string>
-
     <string name="player_and_audio">Müzik çalar ve ses</string>
     <string name="audio_quality">Ses kalitesi</string>
     <string name="audio_quality_auto">Otomatik</string>
@@ -230,7 +207,6 @@
     <string name="skip_silence">Sessizliği atla</string>
     <string name="audio_normalization">Ses normalleştirme</string>
     <string name="equalizer">Ekolayzer</string>
-
     <string name="storage">Depolama</string>
     <string name="cache">Önbellek</string>
     <string name="image_cache">Görüntü Önbelleği</string>
@@ -243,7 +219,6 @@
     <string name="max_song_cache_size">Maksimum şarkı önbellek boyutu</string>
     <string name="clear_song_cache">Şarkı önbelleğini temizle</string>
     <string name="size_used">%s kullanıldı</string>
-
     <string name="privacy">Gizlilik</string>
     <string name="pause_listen_history">Dinleme geçmişini duraklat</string>
     <string name="clear_listen_history">Dinleme geçmişini temizle</string>
@@ -253,7 +228,6 @@
     <string name="clear_search_history_confirm">Tüm arama geçmişini temizlemekten emin misiniz?</string>
     <string name="enable_lrclib">LrcLib şarkı sözü sağlayıcısını etkinleştir</string>
     <string name="enable_kugou">KuGou şarkı sözü sağlayıcısını etkinleştir</string>
-
     <string name="backup_restore">Yedekleme ve geri yükleme</string>
     <string name="backup">Yedekle</string>
     <string name="restore">Geri yükle</string>
@@ -261,10 +235,8 @@
     <string name="backup_create_success">Yedekleme başarıyla oluşturuldu</string>
     <string name="backup_create_failed">Yedekleme oluşturulamadı</string>
     <string name="restore_failed">Yedekleme geri yüklenemedi</string>
-
     <string name="about">Hakkında</string>
     <string name="app_version">Uygulama sürümü</string>
-
     <string name="new_version_available">Yeni sürüm mevcut</string>
     <string name="translation_models">Çeviri Modelleri</string>
     <string name="clear_translation_models">Çeviri modellerini temizle</string>

@@ -251,4 +251,11 @@
     <string name="sided">Cạnh bên</string>
     <string name="player_text_alignment">Căn chỉnh văn bản của trình phát</string>
     <string name="hide_explicit">Ẩn nội dung phản cảm</string>
+    <string name="tempo_and_pitch"></string>
+    <string name="theme"></string>
+    <string name="player"></string>
+    <string name="player_slider_style"></string>
+    <string name="default_"></string>
+    <string name="squiggly"></string>
+    <string name="misc"></string>
 </resources>

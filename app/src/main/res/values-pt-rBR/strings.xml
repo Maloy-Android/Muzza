@@ -272,4 +272,8 @@
     <string name="player_slider_style">Estilo do slider do reprodutor</string>
     <string name="default_">Padrão</string>
     <string name="squiggly">Cobrinha</string>
+    <string name="tempo_and_pitch">Ritmo e Tom</string>
+    <string name="theme">Tema</string>
+    <string name="player">Reprodutor</string>
+    <string name="misc">Misc</string>
 </resources>

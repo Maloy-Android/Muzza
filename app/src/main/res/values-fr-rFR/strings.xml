@@ -21,7 +21,7 @@
     <string name="quick_picks_empty">Écoutez quelques musiques pour générer vos sélections rapides</string>
     <string name="new_release_albums">Nouveautés</string>
     <!-- History -->
-    <string name="today">Aujourd\’hui</string>
+    <string name="today">Aujourdhui</string>
     <string name="yesterday">Hier</string>
     <string name="this_week">Cette semaine</string>
     <string name="last_week">Semaine dernière</string>
@@ -63,7 +63,7 @@
     <string name="start_radio">Démarrer la radio</string>
     <string name="play">Jouer</string>
     <string name="play_next">Jouer à la suite</string>
-    <string name="add_to_queue">Ajouter à la file d\’attente</string>
+    <string name="add_to_queue">Ajouter à la file dattente</string>
     <string name="add_to_library">Ajouter à la bibliothèque</string>
     <string name="remove_from_library">Supprimer de la bibliothèque</string>
     <string name="download">Télécharger</string>
@@ -119,23 +119,23 @@
     <!-- Noun -->
     <plurals name="n_song">
         <item quantity="one">%d chanson</item>
-        <item quantity="other">%d chansons</item>
         <item quantity="many">%d chansons</item>
+        <item quantity="other">%d chansons</item>
     </plurals>
     <plurals name="n_artist">
         <item quantity="one">%d artist</item>
-        <item quantity="other">%d artistes</item>
         <item quantity="many">%d artistes</item>
+        <item quantity="other">%d artistes</item>
     </plurals>
     <plurals name="n_album">
         <item quantity="one">%d album</item>
-        <item quantity="other">%d albums</item>
         <item quantity="many">%d albums</item>
+        <item quantity="other">%d albums</item>
     </plurals>
     <plurals name="n_playlist">
         <item quantity="one">%d liste de lecture</item>
-        <item quantity="other">%d listes de lecture</item>
         <item quantity="many">%d listes de lecture</item>
+        <item quantity="other">%d listes de lecture</item>
     </plurals>
     <plurals name="n_week">
         <item quantity="one">%d semaine</item>
@@ -244,7 +244,7 @@
     <string name="backup_create_failed">Impossible de créer la sauvegarde</string>
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
     <string name="about">À propos de</string>
-    <string name="app_version">Version de l\’application</string>
+    <string name="app_version">Version de lapplication</string>
     <string name="new_version_available">Nouvelle version disponible</string>
     <string name="translation_models">Modèles de traduction</string>
     <string name="clear_translation_models">Effacer les modèles de traduction</string>

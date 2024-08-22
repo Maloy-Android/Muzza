@@ -232,4 +232,27 @@
     <string name="clear_translation_models">清除翻译模型</string>
     <string name="delete_playlist_confirm">是否确实要删除播放列表“%s”？</string>
     <string name="remove_download_playlist_confirm">您真的想从下载的歌曲存储中删除所有“%s”播放列表中的歌曲吗？</string>
+    <string name="remove_from_playlist">从播放列表中移除</string>
+    <string name="duplicates">重复项</string>
+    <string name="skip_duplicates">跳过重复项</string>
+    <string name="tempo_and_pitch">节奏和音调</string>
+    <string name="add_anyway">仍要添加</string>
+    <string name="duplicates_description_single">这首歌曲已在您的播放列表中</string>
+    <string name="duplicates_description_multiple">%d 首歌曲已在您的播放列表中</string>
+    <string name="theme">主题</string>
+    <string name="player">播放器</string>
+    <string name="player_text_alignment">播放器文本对齐</string>
+    <string name="player_slider_style">播放器滑块样式</string>
+    <string name="default_">默认</string>
+    <string name="misc">杂项</string>
+    <string name="not_logged_in">未登录</string>
+    <string name="enable_lrclib">启用 LrcLib 提供歌词</string>
+    <string name="hide_explicit">隐藏不适宜内容</string>
+    <string name="discord_integration">Discord 集成</string>
+    <string name="dismiss">关闭</string>
+    <string name="options">选项</string>
+    <string name="preview">预览</string>
+    <string name="login_failed">登录失败</string>
+    <string name="logout">登出</string>
+    <string name="enable_discord_rpc">启用 Rich Presence</string>
 </resources>

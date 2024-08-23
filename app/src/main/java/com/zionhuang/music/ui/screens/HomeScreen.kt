@@ -44,6 +44,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
@@ -138,6 +139,15 @@ fun HomeScreen(
 
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+
+    LaunchedEffect(scrollToTop?.value) {
+        if (scrollToTop?.value == true) {
+            scrollState.animateScrollTo(0)
+            backStackEntry?.savedStateHandle?.set("scrollToTop", false)
+        }
+    }
 
     val localGridItem: @Composable (LocalItem) -> Unit = {
         when (it) {

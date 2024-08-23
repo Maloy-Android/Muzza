@@ -8,12 +8,18 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
-val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val PlayerTextAlignmentKey = stringPreferencesKey("playerTextAlignment")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
 
 enum class SliderStyle {
     DEFAULT, SQUIGGLY
+}
+
+val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
+val GridCellSizeKey = stringPreferencesKey("gridCellSize")
+
+enum class GridCellSize {
+    SMALL, BIG
 }
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"

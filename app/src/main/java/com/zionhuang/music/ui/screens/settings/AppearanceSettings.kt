@@ -45,6 +45,8 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.DarkModeKey
 import com.zionhuang.music.constants.DefaultOpenTabKey
 import com.zionhuang.music.constants.DynamicThemeKey
+import com.zionhuang.music.constants.GridCellSize
+import com.zionhuang.music.constants.GridCellSizeKey
 import com.zionhuang.music.constants.PlayerTextAlignmentKey
 import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.SliderStyle
@@ -69,9 +71,10 @@ fun AppearanceSettings(
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
-    val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (playerTextAlignment, onPlayerTextAlignmentChange) = rememberEnumPreference(PlayerTextAlignmentKey, defaultValue = PlayerTextAlignment.CENTER)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
+    val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
+    val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -268,6 +271,19 @@ fun AppearanceSettings(
                     NavigationTab.PLAYLIST -> stringResource(R.string.playlists)
                 }
             }
+        )
+
+        EnumListPreference(
+            title = { Text(stringResource(R.string.grid_cell_size)) },
+            icon = { Icon(painterResource(R.drawable.grid_view), null) },
+            selectedValue = gridCellSize,
+            onValueSelected = onGridCellSizeChange,
+            valueText = {
+                when (it) {
+                    GridCellSize.SMALL -> stringResource(R.string.small)
+                    GridCellSize.BIG -> stringResource(R.string.big)
+                }
+            },
         )
     }
 

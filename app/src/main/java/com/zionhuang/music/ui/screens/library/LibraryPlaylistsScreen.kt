@@ -46,12 +46,15 @@ import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.CONTENT_TYPE_HEADER
 import com.zionhuang.music.constants.CONTENT_TYPE_PLAYLIST
+import com.zionhuang.music.constants.GridCellSize
+import com.zionhuang.music.constants.GridCellSizeKey
 import com.zionhuang.music.constants.GridThumbnailHeight
 import com.zionhuang.music.constants.LibraryViewType
 import com.zionhuang.music.constants.PlaylistSortDescendingKey
 import com.zionhuang.music.constants.PlaylistSortType
 import com.zionhuang.music.constants.PlaylistSortTypeKey
 import com.zionhuang.music.constants.PlaylistViewTypeKey
+import com.zionhuang.music.constants.SmallGridThumbnailHeight
 import com.zionhuang.music.db.entities.PlaylistEntity
 import com.zionhuang.music.ui.component.HideOnScrollFAB
 import com.zionhuang.music.ui.component.LocalMenuState
@@ -76,6 +79,7 @@ fun LibraryPlaylistsScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(PlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSortDescendingKey, true)
@@ -227,7 +231,12 @@ fun LibraryPlaylistsScreen(
             LibraryViewType.GRID -> {
                 LazyVerticalGrid(
                     state = lazyGridState,
-                    columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
+                    columns = GridCells.Adaptive(
+                        minSize = when (gridCellSize) {
+                            GridCellSize.SMALL -> SmallGridThumbnailHeight
+                            GridCellSize.BIG -> GridThumbnailHeight
+                        } + 24.dp
+                    ),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                 ) {
                     item(

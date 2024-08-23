@@ -49,8 +49,11 @@ import com.zionhuang.music.constants.ArtistSortTypeKey
 import com.zionhuang.music.constants.ArtistViewTypeKey
 import com.zionhuang.music.constants.CONTENT_TYPE_ARTIST
 import com.zionhuang.music.constants.CONTENT_TYPE_HEADER
+import com.zionhuang.music.constants.GridCellSize
+import com.zionhuang.music.constants.GridCellSizeKey
 import com.zionhuang.music.constants.GridThumbnailHeight
 import com.zionhuang.music.constants.LibraryViewType
+import com.zionhuang.music.constants.SmallGridThumbnailHeight
 import com.zionhuang.music.ui.component.ArtistGridItem
 import com.zionhuang.music.ui.component.ArtistListItem
 import com.zionhuang.music.ui.component.ChipsRow
@@ -69,6 +72,8 @@ fun LibraryArtistsScreen(
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
+
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIBRARY)
     var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
@@ -214,7 +219,12 @@ fun LibraryArtistsScreen(
             LibraryViewType.GRID ->
                 LazyVerticalGrid(
                     state = lazyGridState,
-                    columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
+                    columns = GridCells.Adaptive(
+                        minSize = when (gridCellSize) {
+                            GridCellSize.SMALL -> SmallGridThumbnailHeight
+                            GridCellSize.BIG -> GridThumbnailHeight
+                        } + 24.dp
+                    ),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                 ) {
                     item(

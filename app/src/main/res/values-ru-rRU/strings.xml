@@ -246,6 +246,9 @@
     <string name="squiggly">Волнистый</string>
     <string name="misc">Разное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
+    <string name="grid_cell_size">Размер ячейки сетки</string>
+    <string name="small">Маленький</string>
+    <string name="big">Большой</string>
 
     <string name="content">Контент</string>
     <string name="login">Логин</string>

@@ -80,6 +80,10 @@ fun ContentSettings(
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.home)
+        )
+
         PreferenceEntry(
             title = { Text(if (isLoggedIn) accountName else stringResource(R.string.login)) },
             description = if (isLoggedIn) {
@@ -134,9 +138,8 @@ fun ContentSettings(
             checked = enableKugou,
             onCheckedChange = onEnableKugouChange
         )
-
         PreferenceGroupTitle(
-            title = "PROXY"
+            title = stringResource(R.string.proxy)
         )
 
         SwitchPreference(

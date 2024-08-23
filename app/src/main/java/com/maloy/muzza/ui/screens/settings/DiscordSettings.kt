@@ -237,7 +237,7 @@ fun RichPresence(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = "Listening to Muzza",
+                text = stringResource(R.string.listen_to_muzza),
                 style = MaterialTheme.typography.labelLarge,
                 textAlign = TextAlign.Start,
                 fontWeight = FontWeight.ExtraBold,
@@ -261,7 +261,11 @@ fun RichPresence(
                             .align(Alignment.TopStart)
                             .run {
                                 if (song == null) {
-                                    border(2.dp, MaterialTheme.colorScheme.onSurface, RoundedCornerShape(12.dp))
+                                    border(
+                                        2.dp,
+                                        MaterialTheme.colorScheme.onSurface,
+                                        RoundedCornerShape(12.dp)
+                                    )
                                 } else this
                             }
                     )
@@ -269,7 +273,11 @@ fun RichPresence(
                     song?.artists?.firstOrNull()?.thumbnailUrl?.let {
                         Box(
                             modifier = Modifier
-                                .border(2.dp, MaterialTheme.colorScheme.surfaceContainer, CircleShape)
+                                .border(
+                                    2.dp,
+                                    MaterialTheme.colorScheme.surfaceContainer,
+                                    CircleShape
+                                )
                                 .padding(2.dp)
                                 .align(Alignment.BottomEnd)
                         ) {
@@ -290,7 +298,7 @@ fun RichPresence(
                         .padding(horizontal = 6.dp)
                 ) {
                     Text(
-                        text = song?.song?.title ?: "Song Title",
+                        text = song?.song?.title ?: stringResource(R.string.song_title),
                         color = MaterialTheme.colorScheme.onSurface,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold,
@@ -299,7 +307,7 @@ fun RichPresence(
                     )
 
                     Text(
-                        text = song?.artists?.joinToString { it.name } ?: "Artist",
+                        text = song?.artists?.joinToString { it.name } ?: stringResource(R.string.artist),
                         color = MaterialTheme.colorScheme.secondary,
                         fontSize = 16.sp,
                         maxLines = 1,
@@ -328,7 +336,11 @@ fun RichPresence(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Listen on YouTube Music")
+                Text(
+                    text = stringResource(R.string.listen_youtube_music),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
             }
 
             OutlinedButton(
@@ -338,7 +350,11 @@ fun RichPresence(
                 },
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Visit Muzza")
+                Text(
+                    text = stringResource(R.string.visit_muzza),
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.secondary
+                )
             }
         }
     }

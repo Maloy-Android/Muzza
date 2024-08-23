@@ -58,6 +58,12 @@
     <!-- Artist screen -->
     <string name="from_your_library">Из вашей библиотеки</string>
 
+    <!-- Library -->
+    <string name="library_song_empty">Песни из библиотеки будут отображаться здесь</string>
+    <string name="library_artist_empty">Здесь будут представлены исполнители</string>
+    <string name="library_album_empty">Библиотека альбомов будет отображаться здесь</string>
+    <string name="library_playlist_empty">Ваши плейлисты будут отображаться здесь</string>
+
     <!-- Playlist -->
     <string name="liked_songs">Любимые треки</string>
     <string name="downloaded_songs">Загруженная музыка</string>
@@ -233,7 +239,12 @@
     <string name="settings">Настройки</string>
     <string name="appearance">Внешний вид</string>
     <string name="theme">Тема</string>
+    <string name="proxy">ПРОКСИ</string>
     <string name="enable_dynamic_theme">Включить динамическую тему</string>
+    <string name="listen_youtube_music">Слушать в YouTube Music</string>
+    <string name="visit_muzza">Посетить Muzza</string>
+    <string name="artist">Исполнитель</string>
+    <string name="listen_to_muzza">Слушать в Muzza</string>
     <string name="dark_theme">Темная тема</string>
     <string name="dark_theme_on">Вкл.</string>
     <string name="dark_theme_off">Выкл.</string>
@@ -241,7 +252,7 @@
     <string name="pure_black">Режим чистого черного цвета</string>
     <string name="customize_navigation_tabs">Настройка вкладок навигации</string>
     <string name="player">Плеер</string>
-    <string name="player_text_alignment">Выравнивание текста плеера</string>
+    <string name="player_text_alignment">Расположение текста в плеере</string>
     <string name="lyrics_text_position">Расположение текста песни</string>
     <string name="sided">Сбоку</string>
     <string name="left">Слева</string>
@@ -252,6 +263,10 @@
     <string name="squiggly">Волнистый</string>
     <string name="misc">Разное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
+    <string name="developer">Разработано @MaloyBegonia</string>
+    <string name="enable_swipe_thumbnail">Включить свайп по обложке для переключения композиции</string>
+    <string name="player_background_style">Стиль фона плеера</string>
+    <string name="follow_theme">Зависит от темы</string>
     <string name="grid_cell_size">Размер ячейки сетки</string>
     <string name="small">Маленький</string>
     <string name="big">Большой</string>

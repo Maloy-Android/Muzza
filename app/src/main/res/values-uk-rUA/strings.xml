@@ -246,6 +246,9 @@
     <string name="squiggly">Хвилястий</string>
     <string name="misc">Різне</string>
     <string name="default_open_tab">Основна вкладка навігації</string>
+    <string name="grid_cell_size">Розмір клітинки сітки</string>
+    <string name="small">Малий</string>
+    <string name="big">Великий</string>
 
     <string name="content">Контент</string>
     <string name="login">Логін</string>

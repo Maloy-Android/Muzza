@@ -24,7 +24,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
@@ -109,10 +108,7 @@ fun HistoryScreen(
                                 playerConnection.player.togglePlayPause()
                             } else {
                                 playerConnection.playQueue(
-                                    YouTubeQueue(
-                                        endpoint = WatchEndpoint(videoId = event.song.id),
-                                        preloadItem = event.song.toMediaMetadata()
-                                    )
+                                    YouTubeQueue.radio(event.song.toMediaMetadata())
                                 )
                             }
                         }

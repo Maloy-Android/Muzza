@@ -27,7 +27,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
-import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
@@ -126,10 +125,7 @@ fun StatsScreen(
                             playerConnection.player.togglePlayPause()
                         } else {
                             playerConnection.playQueue(
-                                YouTubeQueue(
-                                    endpoint = WatchEndpoint(song.id),
-                                    preloadItem = song.toMediaMetadata()
-                                )
+                                YouTubeQueue.radio(song.toMediaMetadata())
                             )
                         }
                     }

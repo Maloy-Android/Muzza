@@ -272,6 +272,7 @@
     <string name="persistent_queue">Постійна черга</string>
     <string name="skip_silence">Пропуск тиші в композиціях</string>
     <string name="audio_normalization">Нормалізація аудіо</string>
+    <string name="stop_music_on_task_clear">Зупиняти музику при очищенні завдань</string>
     <string name="equalizer">Еквалайзер</string>
 
     <string name="storage">Сховище</string>

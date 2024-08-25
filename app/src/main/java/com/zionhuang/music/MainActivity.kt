@@ -107,6 +107,7 @@ import com.zionhuang.music.constants.PauseSearchHistoryKey
 import com.zionhuang.music.constants.PureBlackKey
 import com.zionhuang.music.constants.SearchSource
 import com.zionhuang.music.constants.SearchSourceKey
+import com.zionhuang.music.constants.StopMusicOnTaskClearKey
 import com.zionhuang.music.db.MusicDatabase
 import com.zionhuang.music.db.entities.SearchHistory
 import com.zionhuang.music.extensions.toEnum
@@ -184,6 +185,15 @@ class MainActivity : ComponentActivity() {
     override fun onStop() {
         unbindService(serviceConnection)
         super.onStop()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        if (dataStore.get(StopMusicOnTaskClearKey, false) && playerConnection?.isPlaying?.value == true) {
+            stopService(Intent(this, MusicService::class.java))
+            unbindService(serviceConnection)
+            playerConnection = null
+        }
     }
 
     @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")

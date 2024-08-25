@@ -21,6 +21,7 @@ import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
 import com.zionhuang.music.constants.PersistentQueueKey
 import com.zionhuang.music.constants.SkipSilenceKey
+import com.zionhuang.music.constants.StopMusicOnTaskClearKey
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
 import com.zionhuang.music.ui.component.SwitchPreference
@@ -38,6 +39,7 @@ fun PlayerSettings(
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
+    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(key = StopMusicOnTaskClearKey, defaultValue = false)
 
     Column(
         Modifier
@@ -74,6 +76,12 @@ fun PlayerSettings(
             icon = { Icon(painterResource(R.drawable.volume_up), null) },
             checked = audioNormalization,
             onCheckedChange = onAudioNormalizationChange
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
+            icon = { Icon(painterResource(R.drawable.clear_all), null) },
+            checked = stopMusicOnTaskClear,
+            onCheckedChange = onStopMusicOnTaskClearChange
         )
     }
 

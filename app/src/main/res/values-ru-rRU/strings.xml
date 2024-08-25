@@ -272,6 +272,7 @@
     <string name="persistent_queue">Постоянная очередь</string>
     <string name="skip_silence">Пропуск тишины в композициях</string>
     <string name="audio_normalization">Нормализация аудио</string>
+    <string name="stop_music_on_task_clear">Останавливать музыку при очистке задач</string>
     <string name="equalizer">Эквалайзер</string>
 
     <string name="storage">Хранилище</string>

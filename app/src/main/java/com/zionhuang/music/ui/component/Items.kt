@@ -798,7 +798,7 @@ fun ItemThumbnail(
                 model = thumbnailUrl,
                 contentDescription = null,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .clip(shape)
             )
         }

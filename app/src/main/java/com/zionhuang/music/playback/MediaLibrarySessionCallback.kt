@@ -176,6 +176,41 @@ class MediaLibrarySessionCallback @Inject constructor(
         )
     }
 
+    override fun onSearch(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<Void>> {
+        session.notifySearchResultChanged(
+            browser,
+            query,
+            1,
+            params
+        )
+        return Futures.immediateFuture(LibraryResult.ofVoid(params))
+    }
+
+    override fun onGetSearchResult(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        page: Int,
+        pageSize: Int,
+        params: MediaLibraryService.LibraryParams?,
+    ): ListenableFuture<LibraryResult<ImmutableList<MediaItem>>>  = scope.future(Dispatchers.IO) {
+        val parentId = "search_all_media"
+        LibraryResult.ofItemList(
+            when (parentId) {
+                MusicService.SEARCH_ALL_MEDIA -> database.searchAllMedia(query).first().map { it.toMediaItem(parentId) }
+                else -> when {
+                    else -> emptyList()
+                }
+            },
+            params
+        )
+    }
+
     override fun onGetItem(
         session: MediaLibrarySession,
         browser: MediaSession.ControllerInfo,
@@ -195,9 +230,34 @@ class MediaLibrarySessionCallback @Inject constructor(
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = scope.future {
         // Play from Android Auto
         val defaultResult = MediaSession.MediaItemsWithStartPosition(emptyList(), startIndex, startPositionMs)
-        val path = mediaItems.firstOrNull()?.mediaId?.split("/")
-            ?: return@future defaultResult
+        var path = mediaItems.firstOrNull()?.mediaId?.split("/") ?: return@future defaultResult
+
+        if (mediaItems.size == 1) {
+            val singleItem = mediaItems[0]
+            val itemId = singleItem.mediaId
+            if (itemId.isBlank() && singleItem.requestMetadata.searchQuery != null) {
+                // Voice search -> return search results
+                val streams = database.searchAllMedia(singleItem.requestMetadata.searchQuery.toString(),1).first().map { it.toMediaItem("search_all_media") }.toMutableList()
+                path = streams.firstOrNull()?.mediaId?.split("/") ?: return@future defaultResult
+            } else {
+                // not relevant
+            }
+        } else {
+            // not relevant
+        }
+
         when (path.firstOrNull()) {
+
+            MusicService.SEARCH_ALL_MEDIA -> {
+                val songId = path.getOrNull(1) ?: return@future defaultResult
+                val selectedSong = database.selectSingleSong(songId).first()
+                MediaSession.MediaItemsWithStartPosition(
+                    selectedSong.map { it.toMediaItem() },
+                    selectedSong.indexOfFirst { it.id == songId }.takeIf { it != -1 } ?: 0,
+                    startPositionMs
+                )
+            }
+
             MusicService.SONG -> {
                 val songId = path.getOrNull(1) ?: return@future defaultResult
                 val allSongs = database.songsByCreateDateAsc().first()

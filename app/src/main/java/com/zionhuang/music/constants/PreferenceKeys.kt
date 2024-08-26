@@ -124,6 +124,7 @@ enum class AlbumFilter {
 
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
+val LockQueueKey = booleanPreferencesKey("lockQueue")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")
 val RepeatModeKey = intPreferencesKey("repeatMode")

@@ -74,6 +74,7 @@ import androidx.navigation.NavController
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
+import com.zionhuang.music.constants.LockQueueKey
 import com.zionhuang.music.constants.ShowLyricsKey
 import com.zionhuang.music.extensions.metadata
 import com.zionhuang.music.extensions.move
@@ -91,7 +92,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.detectReorderAfterLongPress
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import java.text.SimpleDateFormat
@@ -121,6 +121,7 @@ fun Queue(
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+    var lockQueue by rememberPreference(LockQueueKey, defaultValue = false)
 
     val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
         playerConnection.service.sleepTimer.isActive
@@ -418,15 +419,14 @@ fun Queue(
                             true
                         }
                     )
-                    SwipeToDismissBox(
-                        state = dismissState,
-                        backgroundContent = {},
-                        content = {
-                            MediaMetadataListItem(
-                                mediaMetadata = window.mediaItem.metadata!!,
-                                isActive = index == currentWindowIndex,
-                                isPlaying = isPlaying,
-                                trailingContent = {
+
+                    val content = @Composable {
+                        MediaMetadataListItem(
+                            mediaMetadata = window.mediaItem.metadata!!,
+                            isActive = index == currentWindowIndex,
+                            isPlaying = isPlaying,
+                            trailingContent = {
+                                if (!lockQueue) {
                                     IconButton(
                                         onClick = { },
                                         modifier = Modifier
@@ -437,23 +437,32 @@ fun Queue(
                                             contentDescription = null
                                         )
                                     }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable {
-                                        coroutineScope.launch(Dispatchers.Main) {
-                                            if (index == currentWindowIndex) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                                                playerConnection.player.playWhenReady = true
-                                            }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    coroutineScope.launch(Dispatchers.Main) {
+                                        if (index == currentWindowIndex) {
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                            playerConnection.player.playWhenReady = true
                                         }
                                     }
-                                    .detectReorderAfterLongPress(reorderableState)
-                            )
-                        }
-                    )
+                                }
+                        )
+                    }
+
+                    if (!lockQueue) {
+                        SwipeToDismissBox(
+                            state = dismissState,
+                            backgroundContent = {},
+                            content = { content() }
+                        )
+                    } else {
+                        content()
+                    }
                 }
             }
         }
@@ -545,6 +554,18 @@ fun Queue(
                 contentDescription = null,
                 modifier = Modifier.align(Alignment.Center)
             )
+
+            IconButton(
+                modifier = Modifier.align(Alignment.CenterEnd),
+                onClick = {
+                    lockQueue = !lockQueue
+                }
+            ) {
+                Icon(
+                    painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(R.drawable.lock_open),
+                    contentDescription = null,
+                )
+            }
         }
     }
 }

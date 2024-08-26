@@ -3,8 +3,10 @@ package com.zionhuang.music.ui.player
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -99,6 +101,7 @@ import java.util.Date
 import java.util.Locale
 import kotlin.math.roundToInt
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun Queue(
     state: BottomSheetState,
@@ -441,16 +444,32 @@ fun Queue(
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .clickable {
-                                    coroutineScope.launch(Dispatchers.Main) {
-                                        if (index == currentWindowIndex) {
-                                            playerConnection.player.togglePlayPause()
-                                        } else {
-                                            playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
-                                            playerConnection.player.playWhenReady = true
+                                .combinedClickable(
+                                    onClick = {
+                                        coroutineScope.launch(Dispatchers.Main) {
+                                            if (index == currentWindowIndex) {
+                                                playerConnection.player.togglePlayPause()
+                                            } else {
+                                                playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                                playerConnection.player.playWhenReady = true
+                                            }
+                                        }
+                                    },
+                                    onLongClick = {
+                                        menuState.show {
+                                            PlayerMenu(
+                                                mediaMetadata = window.mediaItem.metadata,
+                                                navController = navController,
+                                                playerBottomSheetState = playerBottomSheetState,
+                                                isTriggeredFromQueue = true,
+                                                onDismiss = {
+                                                    menuState.dismiss()
+                                                    state.collapseSoft()
+                                                },
+                                            )
                                         }
                                     }
-                                }
+                                )
                         )
                     }
 

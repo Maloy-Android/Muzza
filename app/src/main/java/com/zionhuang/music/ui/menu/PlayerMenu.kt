@@ -64,6 +64,7 @@ import com.zionhuang.music.ui.component.DownloadGridMenu
 import com.zionhuang.music.ui.component.GridMenu
 import com.zionhuang.music.ui.component.GridMenuItem
 import com.zionhuang.music.ui.component.ListDialog
+import java.time.LocalDateTime
 import kotlin.math.log2
 import kotlin.math.pow
 import kotlin.math.round
@@ -73,7 +74,8 @@ fun PlayerMenu(
     mediaMetadata: MediaMetadata?,
     navController: NavController,
     playerBottomSheetState: BottomSheetState,
-    onShowDetailsDialog: () -> Unit,
+    isTriggeredFromQueue: Boolean = false,
+    onShowDetailsDialog: () -> Unit = {},
     onDismiss: () -> Unit,
 ) {
     mediaMetadata ?: return
@@ -82,6 +84,7 @@ fun PlayerMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
+    val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
 
@@ -150,25 +153,27 @@ fun PlayerMenu(
         )
     }
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(top = 24.dp, bottom = 6.dp)
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.volume_up),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp)
-        )
+    if (!isTriggeredFromQueue) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 24.dp)
+                .padding(top = 24.dp, bottom = 6.dp)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.volume_up),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp)
+            )
 
-        BigSeekBar(
-            progressProvider = playerVolume::value,
-            onProgressChange = { playerConnection.service.playerVolume.value = it },
-            modifier = Modifier.weight(1f)
-        )
+            BigSeekBar(
+                progressProvider = playerVolume::value,
+                onProgressChange = { playerConnection.service.playerVolume.value = it },
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 
     GridMenu(
@@ -218,6 +223,26 @@ fun PlayerMenu(
                 )
             }
         )
+        if (librarySong?.song?.inLibrary != null) {
+            GridMenuItem(
+                icon = R.drawable.library_add_check,
+                title = R.string.remove_from_library,
+            ) {
+                database.query {
+                    inLibrary(mediaMetadata.id, null)
+                }
+            }
+        } else {
+            GridMenuItem(
+                icon = R.drawable.library_add,
+                title = R.string.add_to_library,
+            ) {
+                database.transaction {
+                    insert(mediaMetadata)
+                    inLibrary(mediaMetadata.id, LocalDateTime.now())
+                }
+            }
+        }
         if (artists.isNotEmpty()) {
             GridMenuItem(
                 icon = R.drawable.artist,
@@ -254,32 +279,35 @@ fun PlayerMenu(
             context.startActivity(Intent.createChooser(intent, null))
             onDismiss()
         }
-        GridMenuItem(
-            icon = R.drawable.info,
-            title = R.string.details
-        ) {
-            onShowDetailsDialog()
-            onDismiss()
-        }
-        GridMenuItem(
-            icon = R.drawable.equalizer,
-            title = R.string.equalizer
-        ) {
-            val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
-                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+
+        if (!isTriggeredFromQueue) {
+            GridMenuItem(
+                icon = R.drawable.info,
+                title = R.string.details
+            ) {
+                onShowDetailsDialog()
+                onDismiss()
             }
-            if (intent.resolveActivity(context.packageManager) != null) {
-                activityResultLauncher.launch(intent)
+            GridMenuItem(
+                icon = R.drawable.equalizer,
+                title = R.string.equalizer
+            ) {
+                val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
+                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
+                    putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
+                    putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
+                }
+                if (intent.resolveActivity(context.packageManager) != null) {
+                    activityResultLauncher.launch(intent)
+                }
+                onDismiss()
             }
-            onDismiss()
-        }
-        GridMenuItem(
-            icon = R.drawable.speed,
-            title = R.string.tempo_and_pitch
-        ) {
-            showTempoPitchDialog = true
+            GridMenuItem(
+                icon = R.drawable.speed,
+                title = R.string.tempo_and_pitch
+            ) {
+                showTempoPitchDialog = true
+            }
         }
     }
 }

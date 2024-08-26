@@ -21,6 +21,9 @@
     <string name="account">Аккаунт</string>
     <string name="quick_picks">Быстрый выбор</string>
     <string name="quick_picks_empty">Послушайте несколько песен, чтобы создать ваш быстрый выбор</string>
+    <string name="forgotten_favorites">Забытые избранные</string>
+    <string name="keep_listening">Продолжайте слушать</string>
+    <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
 
     <!-- History -->
@@ -246,6 +249,9 @@
     <string name="squiggly">Волнистый</string>
     <string name="misc">Разное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
+    <string name="grid_cell_size">Размер ячейки сетки</string>
+    <string name="small">Маленький</string>
+    <string name="big">Большой</string>
 
     <string name="content">Контент</string>
     <string name="login">Логин</string>
@@ -266,6 +272,7 @@
     <string name="persistent_queue">Постоянная очередь</string>
     <string name="skip_silence">Пропуск тишины в композициях</string>
     <string name="audio_normalization">Нормализация аудио</string>
+    <string name="stop_music_on_task_clear">Останавливать музыку при очистке задач</string>
     <string name="equalizer">Эквалайзер</string>
 
     <string name="storage">Хранилище</string>

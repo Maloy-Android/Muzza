@@ -89,6 +89,7 @@
     <string name="delete">Delete</string>
     <string name="remove_from_history">Remove from history</string>
     <string name="remove_from_playlist">Remove from playlist</string>
+    <string name="remove_from_queue">Remove from queue</string>
     <string name="search_online">Search online</string>
     <string name="sync">Sync</string>
     <string name="advanced">Advanced</string>

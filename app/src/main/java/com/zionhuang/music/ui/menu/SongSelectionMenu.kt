@@ -1,6 +1,5 @@
 package com.zionhuang.music.ui.menu
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -37,7 +36,6 @@ import com.zionhuang.music.ui.component.GridMenu
 import com.zionhuang.music.ui.component.GridMenuItem
 import java.time.LocalDateTime
 
-@SuppressLint("MutableCollectionMutableState")
 @Composable
 fun SongSelectionMenu(
     selection: List<Song>,

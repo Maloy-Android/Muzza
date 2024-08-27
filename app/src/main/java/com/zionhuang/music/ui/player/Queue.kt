@@ -131,10 +131,10 @@ fun Queue(
     var inSelectMode by remember {
         mutableStateOf(false)
     }
-    val selectedItems = remember { mutableStateListOf<Int>() }
+    val selection = remember { mutableStateListOf<Int>() }
     val onExitSelectionMode = {
         inSelectMode = false
-        selectedItems.clear()
+        selection.clear()
     }
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
@@ -287,9 +287,9 @@ fun Queue(
                 clear()
                 addAll(queueWindows)
             }
-            selectedItems.fastForEachReversed { uidHash ->
+            selection.fastForEachReversed { uidHash ->
                 if (queueWindows.find { it.uid.hashCode() == uidHash } == null) {
-                    selectedItems.remove(uidHash)
+                    selection.remove(uidHash)
                 }
             }
         }
@@ -335,9 +335,9 @@ fun Queue(
 
                     val onCheckedChange: (Boolean) -> Unit = {
                         if (it) {
-                            selectedItems.add(window.uid.hashCode())
+                            selection.add(window.uid.hashCode())
                         } else {
-                            selectedItems.remove(window.uid.hashCode())
+                            selection.remove(window.uid.hashCode())
                         }
                     }
 
@@ -349,7 +349,7 @@ fun Queue(
                             trailingContent = {
                                 if (inSelectMode) {
                                     Checkbox(
-                                        checked = window.uid.hashCode() in selectedItems,
+                                        checked = window.uid.hashCode() in selection,
                                         onCheckedChange = onCheckedChange
                                     )
                                 } else {
@@ -394,7 +394,7 @@ fun Queue(
                                 .combinedClickable(
                                     onClick = {
                                         if (inSelectMode) {
-                                            onCheckedChange(window.uid.hashCode() !in selectedItems)
+                                            onCheckedChange(window.uid.hashCode() !in selection)
                                         } else {
                                             coroutineScope.launch(Dispatchers.Main) {
                                                 if (index == currentWindowIndex) {
@@ -454,18 +454,18 @@ fun Queue(
                         )
                     }
                     Text(
-                        text = pluralStringResource(R.plurals.n_selected, selectedItems.size, selectedItems.size),
+                        text = pluralStringResource(R.plurals.n_selected, selection.size, selection.size),
                         style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f)
                     )
                     Checkbox(
-                        checked = queueWindows.size == selectedItems.size,
+                        checked = queueWindows.size == selection.size,
                         onCheckedChange = {
-                            if (queueWindows.size == selectedItems.size) {
-                                selectedItems.clear()
+                            if (queueWindows.size == selection.size) {
+                                selection.clear()
                             } else {
-                                selectedItems.clear()
-                                selectedItems.addAll(queueWindows.map { it.uid.hashCode() })
+                                selection.clear()
+                                selection.addAll(queueWindows.map { it.uid.hashCode() })
                             }
                         }
                     )
@@ -546,11 +546,11 @@ fun Queue(
 
             if (inSelectMode) {
                 IconButton(
-                    enabled = selectedItems.size > 0,
+                    enabled = selection.size > 0,
                     onClick = {
                         menuState.show {
                             QueueSelectionMenu(
-                                selection = selectedItems.mapNotNull { uidHash ->
+                                selection = selection.mapNotNull { uidHash ->
                                     mutableQueueWindows.find { it.uid.hashCode() == uidHash }
                                 },
                                 onExitSelectionMode = onExitSelectionMode,

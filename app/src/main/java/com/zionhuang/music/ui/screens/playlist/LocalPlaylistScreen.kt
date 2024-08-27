@@ -67,6 +67,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -147,13 +148,6 @@ fun LocalPlaylistScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
 
-    LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            addAll(songs)
-        }
-    }
-
     var showEditDialog by remember {
         mutableStateOf(false)
     }
@@ -227,6 +221,18 @@ fun LocalPlaylistScreen(
     }
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
+    }
+
+    LaunchedEffect(songs) {
+        mutableSongs.apply {
+            clear()
+            addAll(songs)
+        }
+        selection.fastForEachReversed { mapId ->
+            if (songs.find { it.map.id == mapId } == null) {
+                selection.remove(mapId)
+            }
+        }
     }
 
     val headerItems = 2

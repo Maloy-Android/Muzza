@@ -59,6 +59,7 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.AudioNormalizationKey
 import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
+import com.zionhuang.music.constants.AutoSkipNextOnErrorKey
 import com.zionhuang.music.constants.DiscordTokenKey
 import com.zionhuang.music.constants.EnableDiscordRPCKey
 import com.zionhuang.music.constants.HideExplicitKey
@@ -580,6 +581,14 @@ class MusicService : MediaLibraryService(),
             dataStore.edit { settings ->
                 settings[RepeatModeKey] = repeatMode
             }
+        }
+    }
+
+    override fun onPlayerError(error: PlaybackException) {
+        if (dataStore.get(AutoSkipNextOnErrorKey, false) && player.hasNextMediaItem()) {
+            player.seekToNext()
+            player.prepare()
+            player.playWhenReady = true
         }
     }
 

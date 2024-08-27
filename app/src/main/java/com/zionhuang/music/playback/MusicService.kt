@@ -136,6 +136,7 @@ import kotlin.math.min
 import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
+const val MAX_CONSECUTIVE_ERR = 3
 
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
@@ -184,6 +185,7 @@ class MusicService : MediaLibraryService(),
 
     lateinit var player: ExoPlayer
     private lateinit var mediaSession: MediaLibrarySession
+    private var consecutivePlaybackErr = 0
 
     private var isAudioEffectSessionOpened = false
 
@@ -525,6 +527,11 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        // +2 when and error happens, and -1 when transition. Thus when error, number increments by 1, else doesn't change
+        if (consecutivePlaybackErr > 0) {
+            consecutivePlaybackErr --
+        }
+
         // Auto load more songs
         if (reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.playbackState != STATE_IDLE &&
@@ -585,10 +592,14 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onPlayerError(error: PlaybackException) {
-        if (dataStore.get(AutoSkipNextOnErrorKey, false) && player.hasNextMediaItem()) {
+        if (dataStore.get(AutoSkipNextOnErrorKey, false) && consecutivePlaybackErr <= MAX_CONSECUTIVE_ERR && player.hasNextMediaItem()) {
+            consecutivePlaybackErr += 2
             player.seekToNext()
             player.prepare()
             player.playWhenReady = true
+        } else {
+            player.pause()
+            consecutivePlaybackErr = 0
         }
     }
 

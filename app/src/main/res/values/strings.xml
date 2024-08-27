@@ -194,7 +194,9 @@
 
     <!-- Player action -->
     <string name="action_like">Like</string>
+    <string name="action_like_all">Like all</string>
     <string name="action_remove_like">Remove like</string>
+    <string name="action_remove_like_all">Remove all likes</string>
     <string name="action_shuffle_on">Shuffle on</string>
     <string name="action_shuffle_off">Shuffle off</string>
     <string name="repeat_mode_off">Repeat mode off</string>

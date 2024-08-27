@@ -409,7 +409,7 @@ fun Queue(
                                     onLongClick = {
                                         if (!inSelectMode) {
                                             inSelectMode = true
-                                            selectedItems.add(window.uid.hashCode())
+                                            onCheckedChange(true)
                                         }
                                     }
                                 )

@@ -186,7 +186,9 @@
 
     <!-- Player action -->
     <string name="action_like">喜歡</string>
+    <string name="action_like_all">全部喜歡</string>
     <string name="action_remove_like">取消喜歡</string>
+    <string name="action_remove_like_all">全部取消喜歡</string>
     <string name="action_shuffle_on">隨機播放開啟</string>
     <string name="action_shuffle_off">隨機播放關閉</string>
     <string name="repeat_mode_off">重複播放關閉</string>

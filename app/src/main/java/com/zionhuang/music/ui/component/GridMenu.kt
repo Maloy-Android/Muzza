@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ShapeDefaults
 import androidx.compose.material3.Text
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -50,6 +52,7 @@ fun GridMenu(
 fun LazyGridScope.GridMenuItem(
     modifier: Modifier = Modifier,
     @DrawableRes icon: Int,
+    tint: @Composable () -> Color = { LocalContentColor.current },
     @StringRes title: Int,
     enabled: Boolean = true,
     onClick: () -> Unit,
@@ -58,6 +61,7 @@ fun LazyGridScope.GridMenuItem(
     icon = {
         Icon(
             painter = painterResource(icon),
+            tint = tint(),
             contentDescription = null
         )
     },

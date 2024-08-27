@@ -54,7 +54,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,8 +115,6 @@ fun Queue(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
-    val clipboardManager = LocalClipboardManager.current
     val menuState = LocalMenuState.current
 
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -127,7 +124,6 @@ fun Queue(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
-    val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
     var lockQueue by rememberPreference(LockQueueKey, defaultValue = false)
@@ -140,7 +136,6 @@ fun Queue(
         inSelectMode = false
         selectedItems.clear()
     }
-
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
     }
@@ -166,130 +161,17 @@ fun Queue(
         }
     }
 
-    var showSleepTimerDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var sleepTimerValue by remember {
-        mutableFloatStateOf(30f)
-    }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
     if (showSleepTimerDialog) {
-        AlertDialog(
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            onDismissRequest = { showSleepTimerDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.bedtime), contentDescription = null) },
-            title = { Text(stringResource(R.string.sleep_timer)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        showSleepTimerDialog = false
-                        playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt())
-                    }
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showSleepTimerDialog = false }
-                ) {
-                    Text(stringResource(android.R.string.cancel))
-                }
-            },
-            text = {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    val pluralString = pluralStringResource(R.plurals.minute, sleepTimerValue.roundToInt(), sleepTimerValue.roundToInt())
-                    val endTimeString = SimpleDateFormat
-                        .getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
-                        .format(Date(System.currentTimeMillis() + (sleepTimerValue.roundToInt() * 60 * 1000).toLong()))
-
-                    Text(
-                        text = "$pluralString\n$endTimeString",
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.padding(vertical = 8.dp)
-                    )
-
-                    Slider(
-                        value = sleepTimerValue,
-                        onValueChange = { sleepTimerValue = it },
-                        valueRange = 5f..120f,
-                    )
-
-                    OutlinedButton(
-                        onClick = {
-                            showSleepTimerDialog = false
-                            playerConnection.service.sleepTimer.start(-1)
-                        }
-                    ) {
-                        Text(stringResource(R.string.end_of_song))
-                    }
-                }
-            }
+        SleepTimerDialog(
+            onDismiss = { showSleepTimerDialog = false }
         )
     }
 
-    var showDetailsDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-
+    var showDetailsDialog by remember { mutableStateOf(false) }
     if (showDetailsDialog) {
-        AlertDialog(
-            properties = DialogProperties(usePlatformDefaultWidth = false),
-            onDismissRequest = { showDetailsDialog = false },
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.info),
-                    contentDescription = null
-                )
-            },
-            confirmButton = {
-                TextButton(
-                    onClick = { showDetailsDialog = false }
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-            },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
-                        .verticalScroll(rememberScrollState())
-                ) {
-                    listOf(
-                        stringResource(R.string.song_title) to mediaMetadata?.title,
-                        stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
-                        stringResource(R.string.media_id) to mediaMetadata?.id,
-                        "Itag" to currentFormat?.itag?.toString(),
-                        stringResource(R.string.mime_type) to currentFormat?.mimeType,
-                        stringResource(R.string.codecs) to currentFormat?.codecs,
-                        stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
-                        stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
-                        stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" },
-                        stringResource(R.string.volume) to "${(playerConnection.player.volume * 100).toInt()}%",
-                        stringResource(R.string.file_size) to currentFormat?.contentLength?.let { Formatter.formatShortFileSize(context, it) }
-                    ).forEach { (label, text) ->
-                        val displayText = text ?: stringResource(R.string.unknown)
-                        Text(
-                            text = label,
-                            style = MaterialTheme.typography.labelMedium
-                        )
-                        Text(
-                            text = displayText,
-                            style = MaterialTheme.typography.titleMedium,
-                            modifier = Modifier.clickable(
-                                interactionSource = remember { MutableInteractionSource() },
-                                indication = null,
-                                onClick = {
-                                    clipboardManager.setText(AnnotatedString(displayText))
-                                    Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
-                                }
-                            )
-                        )
-                        Spacer(Modifier.height(8.dp))
-                    }
-                }
-            }
+        DetailsDialog(
+            onDismiss = { showDetailsDialog = false }
         )
     }
 
@@ -314,6 +196,7 @@ fun Queue(
                         contentDescription = null
                     )
                 }
+
                 IconButton(onClick = { showLyrics = !showLyrics }) {
                     Icon(
                         painter = painterResource(R.drawable.lyrics),
@@ -321,6 +204,7 @@ fun Queue(
                         modifier = Modifier.alpha(if (showLyrics) 1f else 0.5f)
                     )
                 }
+
                 AnimatedContent(
                     label = "sleepTimer",
                     targetState = sleepTimerEnabled
@@ -343,12 +227,14 @@ fun Queue(
                         }
                     }
                 }
+
                 IconButton(onClick = playerConnection::toggleLibrary) {
                     Icon(
                         painter = painterResource(if (currentSong?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add),
                         contentDescription = null
                     )
                 }
+
                 IconButton(
                     onClick = {
                         menuState.show {
@@ -436,9 +322,7 @@ fun Queue(
                 ) {
                     val currentItem by rememberUpdatedState(window)
                     val dismissState = rememberSwipeToDismissBoxState(
-                        positionalThreshold = { totalDistance ->
-                            totalDistance
-                        },
+                        positionalThreshold = { totalDistance -> totalDistance },
                         confirmValueChange = { dismissValue ->
                             if (dismissValue == SwipeToDismissBoxValue.StartToEnd || dismissValue == SwipeToDismissBoxValue.EndToStart) {
                                 playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
@@ -585,7 +469,6 @@ fun Queue(
                     )
                 } else {
                     Column(
-//                        verticalArrangement = Arrangement.spacedBy(4.dp),
                         modifier = Modifier
                             .padding(horizontal = 6.dp)
                             .weight(1f)
@@ -695,4 +578,134 @@ fun Queue(
             }
         }
     }
+}
+
+@Composable
+fun SleepTimerDialog(
+    onDismiss: () -> Unit,
+) {
+    val playerConnection = LocalPlayerConnection.current ?: return
+    var sleepTimerValue by remember {
+        mutableFloatStateOf(30f)
+    }
+
+    AlertDialog(
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        onDismissRequest = onDismiss,
+        icon = { Icon(painter = painterResource(R.drawable.bedtime), contentDescription = null) },
+        title = { Text(stringResource(R.string.sleep_timer)) },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    onDismiss()
+                    playerConnection.service.sleepTimer.start(sleepTimerValue.roundToInt())
+                }
+            ) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                val pluralString = pluralStringResource(R.plurals.minute, sleepTimerValue.roundToInt(), sleepTimerValue.roundToInt())
+                val endTimeString = SimpleDateFormat
+                    .getTimeInstance(SimpleDateFormat.SHORT, Locale.getDefault())
+                    .format(Date(System.currentTimeMillis() + (sleepTimerValue.roundToInt() * 60 * 1000).toLong()))
+
+                Text(
+                    text = "$pluralString\n$endTimeString",
+                    style = MaterialTheme.typography.bodyLarge,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+
+                Slider(
+                    value = sleepTimerValue,
+                    onValueChange = { sleepTimerValue = it },
+                    valueRange = 5f..120f,
+                )
+
+                OutlinedButton(
+                    onClick = {
+                        onDismiss()
+                        playerConnection.service.sleepTimer.start(-1)
+                    }
+                ) {
+                    Text(stringResource(R.string.end_of_song))
+                }
+            }
+        }
+    )
+}
+
+@Composable
+fun DetailsDialog(
+    onDismiss: () -> Unit,
+) {
+    val context = LocalContext.current
+    val clipboardManager = LocalClipboardManager.current
+
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)
+
+    AlertDialog(
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                painter = painterResource(R.drawable.info),
+                contentDescription = null
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier
+                    .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                listOf(
+                    stringResource(R.string.song_title) to mediaMetadata?.title,
+                    stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
+                    stringResource(R.string.media_id) to mediaMetadata?.id,
+                    "Itag" to currentFormat?.itag?.toString(),
+                    stringResource(R.string.mime_type) to currentFormat?.mimeType,
+                    stringResource(R.string.codecs) to currentFormat?.codecs,
+                    stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },
+                    stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
+                    stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" },
+                    stringResource(R.string.volume) to "${(playerConnection.player.volume * 100).toInt()}%",
+                    stringResource(R.string.file_size) to currentFormat?.contentLength?.let { Formatter.formatShortFileSize(context, it) }
+                ).forEach { (label, text) ->
+                    val displayText = text ?: stringResource(R.string.unknown)
+                    Text(
+                        text = label,
+                        style = MaterialTheme.typography.labelMedium
+                    )
+                    Text(
+                        text = displayText,
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                clipboardManager.setText(AnnotatedString(displayText))
+                                Toast.makeText(context, R.string.copied, Toast.LENGTH_SHORT).show()
+                            }
+                        )
+                    )
+                    Spacer(Modifier.height(8.dp))
+                }
+            }
+        }
+    )
 }

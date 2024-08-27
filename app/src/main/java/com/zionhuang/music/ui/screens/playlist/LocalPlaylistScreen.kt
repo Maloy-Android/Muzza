@@ -516,12 +516,15 @@ fun LocalPlaylistScreen(
                                         val sel = selection.toList()
                                         val sortedSongs = songs.sortedBy { it.map.position }
                                         database.transaction {
+                                            val remainSongs = mutableListOf<PlaylistSong>()
                                             sortedSongs.forEach { song ->
                                                 if (song.map.id in sel) {
                                                     delete(song.map)
+                                                } else {
+                                                    remainSongs.add(song)
                                                 }
                                             }
-                                            sortedSongs.forEachIndexed { index, song ->
+                                            remainSongs.forEachIndexed { index, song ->
                                                 if (song.map.position != index) {
                                                     update(song.map.copy(position = index))
                                                 }

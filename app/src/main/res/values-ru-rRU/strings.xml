@@ -92,6 +92,7 @@
     <string name="delete">Удалить</string>
     <string name="remove_from_history">Удалить из истории</string>
     <string name="remove_from_playlist">Удалить из плейлиста</string>
+    <string name="remove_from_queue">Удалить из очереди</string>
     <string name="search_online">Поиск в Интернете</string>
     <string name="sync">Синхронизировать</string>
     <string name="advanced">Контроль аудио</string>
@@ -270,8 +271,11 @@
     <string name="audio_quality_high">Высокое</string>
     <string name="audio_quality_low">Низкое</string>
     <string name="persistent_queue">Постоянная очередь</string>
+    <string name="persistent_queue_desc">Восстанавливать последнюю очередь при запуске приложения</string>
     <string name="skip_silence">Пропуск тишины в композициях</string>
     <string name="audio_normalization">Нормализация аудио</string>
+    <string name="auto_skip_next_on_error">Автоматический переход к следующей песне при возникновении ошибки</string>
+    <string name="auto_skip_next_on_error_desc">Обеспечить непрерывное воспроизведение</string>
     <string name="stop_music_on_task_clear">Останавливать музыку при очистке задач</string>
     <string name="equalizer">Эквалайзер</string>
 

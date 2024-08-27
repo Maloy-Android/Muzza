@@ -28,6 +28,7 @@ import com.zionhuang.music.constants.SkipSilenceKey
 import com.zionhuang.music.constants.StopMusicOnTaskClearKey
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
+import com.zionhuang.music.ui.component.PreferenceGroupTitle
 import com.zionhuang.music.ui.component.SwitchPreference
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberEnumPreference
@@ -53,6 +54,10 @@ fun PlayerSettings(
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.player)
+        )
+
         EnumListPreference(
             title = { Text(stringResource(R.string.audio_quality)) },
             icon = { Icon(painterResource(R.drawable.graphic_eq), null) },
@@ -66,6 +71,25 @@ fun PlayerSettings(
                 }
             }
         )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.skip_silence)) },
+            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
+            checked = skipSilence,
+            onCheckedChange = onSkipSilenceChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.audio_normalization)) },
+            icon = { Icon(painterResource(R.drawable.volume_up), null) },
+            checked = audioNormalization,
+            onCheckedChange = onAudioNormalizationChange
+        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.queue)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.persistent_queue)) },
             description = stringResource(R.string.persistent_queue_desc),
@@ -73,18 +97,7 @@ fun PlayerSettings(
             checked = persistentQueue,
             onCheckedChange = onPersistentQueueChange
         )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.skip_silence)) },
-            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
-            checked = skipSilence,
-            onCheckedChange = onSkipSilenceChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.audio_normalization)) },
-            icon = { Icon(painterResource(R.drawable.volume_up), null) },
-            checked = audioNormalization,
-            onCheckedChange = onAudioNormalizationChange
-        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
             description = stringResource(R.string.auto_skip_next_on_error_desc),
@@ -92,6 +105,11 @@ fun PlayerSettings(
             checked = autoSkipNextOnError,
             onCheckedChange = onAutoSkipNextOnErrorChange
         )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.misc)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
             icon = { Icon(painterResource(R.drawable.clear_all), null) },

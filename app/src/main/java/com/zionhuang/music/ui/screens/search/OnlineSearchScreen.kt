@@ -21,6 +21,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,8 +45,13 @@ import com.zionhuang.music.constants.SuggestionItemHeight
 import com.zionhuang.music.extensions.togglePlayPause
 import com.zionhuang.music.models.toMediaMetadata
 import com.zionhuang.music.playback.queues.YouTubeQueue
+import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.SearchBarIconOffsetX
 import com.zionhuang.music.ui.component.YouTubeListItem
+import com.zionhuang.music.ui.menu.YouTubeAlbumMenu
+import com.zionhuang.music.ui.menu.YouTubeArtistMenu
+import com.zionhuang.music.ui.menu.YouTubePlaylistMenu
+import com.zionhuang.music.ui.menu.YouTubeSongMenu
 import com.zionhuang.music.viewmodels.OnlineSearchSuggestionViewModel
 import kotlinx.coroutines.flow.drop
 
@@ -58,9 +64,13 @@ fun OnlineSearchScreen(
     onDismiss: () -> Unit,
     viewModel: OnlineSearchSuggestionViewModel = hiltViewModel(),
 ) {
+    val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val keyboardController = LocalSoftwareKeyboardController.current
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val scope = rememberCoroutineScope()
+
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
@@ -155,6 +165,47 @@ fun OnlineSearchScreen(
                     else -> false
                 },
                 isPlaying = isPlaying,
+                trailingContent = {
+                    IconButton(
+                        onClick = {
+                            menuState.show {
+                                when (item) {
+                                    is SongItem ->
+                                        YouTubeSongMenu(
+                                            song = item,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss,
+                                        )
+
+                                    is AlbumItem ->
+                                        YouTubeAlbumMenu(
+                                            albumItem = item,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss,
+                                        )
+
+                                    is ArtistItem ->
+                                        YouTubeArtistMenu(
+                                            artist = item,
+                                            onDismiss = menuState::dismiss,
+                                        )
+
+                                    is PlaylistItem ->
+                                        YouTubePlaylistMenu(
+                                            playlist = item,
+                                            coroutineScope = scope,
+                                            onDismiss = menuState::dismiss,
+                                        )
+                                }
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_vert),
+                            contentDescription = null
+                        )
+                    }
+                },
                 modifier = Modifier
                     .clickable {
                         when (item) {

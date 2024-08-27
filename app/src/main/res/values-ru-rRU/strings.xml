@@ -213,7 +213,9 @@
 
     <!-- Player action -->
     <string name="action_like">Поставить «Нравится»</string>
+    <string name="action_like_all">Отметить все как «Нравится»</string>
     <string name="action_remove_like">Убрать «Нравится»</string>
+    <string name="action_remove_like_all">Убрать все отметки «Нравится»</string>
     <string name="action_shuffle_on">Включить перемешивание</string>
     <string name="action_shuffle_off">Выключить перемешивание</string>
     <string name="repeat_mode_off">Выключить повторение</string>
@@ -270,11 +272,12 @@
     <string name="audio_quality_auto">Авто</string>
     <string name="audio_quality_high">Высокое</string>
     <string name="audio_quality_low">Низкое</string>
+    <string name="queue">Очередь</string>
     <string name="persistent_queue">Постоянная очередь</string>
     <string name="persistent_queue_desc">Восстанавливать последнюю очередь при запуске приложения</string>
     <string name="skip_silence">Пропуск тишины в композициях</string>
     <string name="audio_normalization">Нормализация аудио</string>
-    <string name="auto_skip_next_on_error">Автоматический переход к следующей песне при возникновении ошибки</string>
+    <string name="auto_skip_next_on_error">Автопереход к следующей песне при ошибке</string>
     <string name="auto_skip_next_on_error_desc">Обеспечить непрерывное воспроизведение</string>
     <string name="stop_music_on_task_clear">Останавливать музыку при очистке задач</string>
     <string name="equalizer">Эквалайзер</string>

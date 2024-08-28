@@ -33,6 +33,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
@@ -85,6 +86,7 @@ import com.zionhuang.music.extensions.toggleRepeatMode
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.ui.component.BottomSheet
 import com.zionhuang.music.ui.component.BottomSheetState
+import com.zionhuang.music.ui.component.PlayerSliderTrack
 import com.zionhuang.music.ui.component.ResizableIconButton
 import com.zionhuang.music.ui.component.rememberBottomSheetState
 import com.zionhuang.music.ui.screens.settings.DarkMode
@@ -306,6 +308,13 @@ fun BottomSheetPlayer(
                                 position = it
                             }
                             sliderPosition = null
+                        },
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
                         },
                         modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
                     )

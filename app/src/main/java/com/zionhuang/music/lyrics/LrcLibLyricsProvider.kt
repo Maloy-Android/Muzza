@@ -1,7 +1,7 @@
 package com.zionhuang.music.lyrics
 
 import android.content.Context
-import com.malopieds.lrclib.LrcLib
+import com.zionhuang.lrclib.LrcLib
 import com.zionhuang.music.constants.EnableLrcLibKey
 import com.zionhuang.music.utils.dataStore
 import com.zionhuang.music.utils.get

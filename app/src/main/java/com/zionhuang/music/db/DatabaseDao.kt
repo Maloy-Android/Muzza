@@ -551,6 +551,14 @@ interface DatabaseDao {
     fun searchSongs(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
 
     @Transaction
+    @Query("WITH RECURSIVE split(content, last, rest) AS (VALUES('', '', :query) UNION ALL SELECT CASE WHEN last = ' ' THEN substr(rest, 1, 1) ELSE content || substr(rest, 1, 1) END, substr(rest, 1, 1), substr(rest, 2) FROM split WHERE rest <> '')" +
+            "SELECT distinct song.id, song.title, song.duration, song.liked, song.totalPlayTime, song.thumbnailUrl FROM song JOIN song_artist_map ON song.id = song_artist_map.songId JOIN Artist ON song_artist_map.artistId = Artist.Id where (exists (select trim(content) from split where artist.name LIKE '%' || trim(content) || '%' AND (last = ' ' OR rest ='')) AND exists (select trim(content) from split where song.title LIKE '%' || trim(content) || '%' AND (last = ' ' OR rest ='')) OR exists (select trim(content) from split where artist.name LIKE '%' || trim(content) || '%' AND (last = ' ' OR rest ='') OR exists (select trim(content) from split where song.title LIKE '%' || trim(content) || '%' AND (last = ' ' OR rest ='')))) LIMIT :previewSize")
+    fun searchAllMedia(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Song>>
+
+    @Query("SELECT * FROM song WHERE id = :songId")
+    fun selectSingleSong(songId: String): Flow<List<Song>>
+
+    @Transaction
     @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE name LIKE '%' || :query || '%' AND songCount > 0 LIMIT :previewSize")
     fun searchArtists(query: String, previewSize: Int = Int.MAX_VALUE): Flow<List<Artist>>
 

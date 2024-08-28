@@ -418,13 +418,14 @@ object YouTube {
 
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
         val response = innerTube.next(WEB_REMIX, endpoint.videoId, endpoint.playlistId, endpoint.playlistSetVideoId, endpoint.index, endpoint.params, continuation).body<NextResponse>()
+        val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
         val playlistPanelRenderer = response.continuationContents?.playlistPanelContinuation
             ?: response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer!!
         // load automix items
         playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.let { watchPlaylistEndpoint ->
             return@runCatching next(watchPlaylistEndpoint).getOrThrow().let { result ->
                 result.copy(
-                    title = playlistPanelRenderer.title,
+                    title = title,
                     items = playlistPanelRenderer.contents.mapNotNull {
                         it.playlistPanelVideoRenderer?.let { renderer ->
                             NextPage.fromPlaylistPanelVideoRenderer(renderer)
@@ -438,7 +439,7 @@ object YouTube {
             }
         }
         NextResult(
-            title = playlistPanelRenderer.title,
+            title = title,
             items = playlistPanelRenderer.contents.mapNotNull {
                 it.playlistPanelVideoRenderer?.let(NextPage::fromPlaylistPanelVideoRenderer)
             },

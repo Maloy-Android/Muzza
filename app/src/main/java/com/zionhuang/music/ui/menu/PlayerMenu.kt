@@ -21,8 +21,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -56,6 +58,7 @@ import com.zionhuang.music.LocalDownloadUtil
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
 import com.zionhuang.music.constants.ListItemHeight
+import com.zionhuang.music.db.entities.SongEntity
 import com.zionhuang.music.models.MediaMetadata
 import com.zionhuang.music.playback.ExoDownloadService
 import com.zionhuang.music.ui.component.BigSeekBar
@@ -64,6 +67,7 @@ import com.zionhuang.music.ui.component.DownloadGridMenu
 import com.zionhuang.music.ui.component.GridMenu
 import com.zionhuang.music.ui.component.GridMenuItem
 import com.zionhuang.music.ui.component.ListDialog
+import com.zionhuang.music.ui.component.MediaMetadataListItem
 import java.time.LocalDateTime
 import kotlin.math.log2
 import kotlin.math.pow
@@ -174,6 +178,35 @@ fun PlayerMenu(
                 modifier = Modifier.weight(1f)
             )
         }
+    } else {
+        MediaMetadataListItem(
+            mediaMetadata = mediaMetadata,
+            badges = {},
+            trailingContent = {
+                val song by database.song(mediaMetadata.id).collectAsState(initial = null)
+
+                IconButton(
+                    onClick = {
+                        database.query {
+                            val currentSong = song
+                            if (currentSong == null) {
+                                insert(mediaMetadata, SongEntity::toggleLike)
+                            } else {
+                                update(currentSong.song.toggleLike())
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(if (song?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border),
+                        tint = if (song?.song?.liked == true) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                        contentDescription = null
+                    )
+                }
+            }
+        )
+
+        HorizontalDivider()
     }
 
     GridMenu(
@@ -356,7 +389,7 @@ fun TempoPitchDialog(
                 ValueAdjuster(
                     icon = R.drawable.speed,
                     currentValue = tempo,
-                    values = listOf(0.25f, 0.5f, 0.75f, 1f, 1.25f, 1.5f, 1.75f, 2f),
+                    values = (0..35).map { round((0.25f + it * 0.05f) * 100) / 100 },
                     onValueUpdate = {
                         tempo = it
                         updatePlaybackParameters()

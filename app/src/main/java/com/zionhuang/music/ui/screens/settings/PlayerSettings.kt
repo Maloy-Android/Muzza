@@ -22,11 +22,13 @@ import com.zionhuang.music.R
 import com.zionhuang.music.constants.AudioNormalizationKey
 import com.zionhuang.music.constants.AudioQuality
 import com.zionhuang.music.constants.AudioQualityKey
+import com.zionhuang.music.constants.AutoSkipNextOnErrorKey
 import com.zionhuang.music.constants.PersistentQueueKey
 import com.zionhuang.music.constants.SkipSilenceKey
 import com.zionhuang.music.constants.StopMusicOnTaskClearKey
 import com.zionhuang.music.ui.component.EnumListPreference
 import com.zionhuang.music.ui.component.IconButton
+import com.zionhuang.music.ui.component.PreferenceGroupTitle
 import com.zionhuang.music.ui.component.SwitchPreference
 import com.zionhuang.music.ui.utils.backToMain
 import com.zionhuang.music.utils.rememberEnumPreference
@@ -38,11 +40,12 @@ fun PlayerSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val (audioQuality, onAudioQualityChange) = rememberEnumPreference(key = AudioQualityKey, defaultValue = AudioQuality.AUTO)
-    val (persistentQueue, onPersistentQueueChange) = rememberPreference(key = PersistentQueueKey, defaultValue = true)
-    val (skipSilence, onSkipSilenceChange) = rememberPreference(key = SkipSilenceKey, defaultValue = false)
-    val (audioNormalization, onAudioNormalizationChange) = rememberPreference(key = AudioNormalizationKey, defaultValue = true)
-    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(key = StopMusicOnTaskClearKey, defaultValue = false)
+    val (audioQuality, onAudioQualityChange) = rememberEnumPreference(AudioQualityKey, defaultValue = AudioQuality.AUTO)
+    val (persistentQueue, onPersistentQueueChange) = rememberPreference(PersistentQueueKey, defaultValue = true)
+    val (skipSilence, onSkipSilenceChange) = rememberPreference(SkipSilenceKey, defaultValue = false)
+    val (audioNormalization, onAudioNormalizationChange) = rememberPreference(AudioNormalizationKey, defaultValue = true)
+    val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(AutoSkipNextOnErrorKey, defaultValue = false)
+    val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
 
     Column(
         Modifier
@@ -50,6 +53,10 @@ fun PlayerSettings(
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.player)
+        )
 
         EnumListPreference(
             title = { Text(stringResource(R.string.audio_quality)) },
@@ -64,24 +71,45 @@ fun PlayerSettings(
                 }
             }
         )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.persistent_queue)) },
-            icon = { Icon(painterResource(R.drawable.queue_music), null) },
-            checked = persistentQueue,
-            onCheckedChange = onPersistentQueueChange
-        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.skip_silence)) },
-            icon = { Icon(painterResource(R.drawable.skip_next), null) },
+            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
             checked = skipSilence,
             onCheckedChange = onSkipSilenceChange
         )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.audio_normalization)) },
             icon = { Icon(painterResource(R.drawable.volume_up), null) },
             checked = audioNormalization,
             onCheckedChange = onAudioNormalizationChange
         )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.queue)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.persistent_queue)) },
+            description = stringResource(R.string.persistent_queue_desc),
+            icon = { Icon(painterResource(R.drawable.queue_music), null) },
+            checked = persistentQueue,
+            onCheckedChange = onPersistentQueueChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.auto_skip_next_on_error)) },
+            description = stringResource(R.string.auto_skip_next_on_error_desc),
+            icon = { Icon(painterResource(R.drawable.skip_next), null) },
+            checked = autoSkipNextOnError,
+            onCheckedChange = onAutoSkipNextOnErrorChange
+        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.misc)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.stop_music_on_task_clear)) },
             icon = { Icon(painterResource(R.drawable.clear_all), null) },

@@ -92,6 +92,7 @@
     <string name="delete">Видалити</string>
     <string name="remove_from_history">Видалити з історії</string>
     <string name="remove_from_playlist">Видалити з плейлиста</string>
+    <string name="remove_from_queue">Видалити з черги</string>
     <string name="search_online">Пошук в Інтернеті</string>
     <string name="sync">Синхронізувати</string>
     <string name="advanced">Контроль аудіо</string>
@@ -212,7 +213,9 @@
 
     <!-- Player action -->
     <string name="action_like">Поставити «Подобається»</string>
+    <string name="action_like_all">Відзначити все як «Подобається»</string>
     <string name="action_remove_like">Прибрати «Подобається»</string>
+    <string name="action_remove_like_all">Прибрати всі позначки «Подобається»</string>
     <string name="action_shuffle_on">Увімкнути перемішування</string>
     <string name="action_shuffle_off">Вимкнути перемішування</string>
     <string name="repeat_mode_off">Вимкнути повторення</string>
@@ -269,9 +272,13 @@
     <string name="audio_quality_auto">Авто</string>
     <string name="audio_quality_high">Висока</string>
     <string name="audio_quality_low">Низька</string>
+    <string name="queue">Черга</string>
     <string name="persistent_queue">Постійна черга</string>
+    <string name="persistent_queue_desc">Відновлювати останню чергу після запуску програми</string>
     <string name="skip_silence">Пропуск тиші в композиціях</string>
     <string name="audio_normalization">Нормалізація аудіо</string>
+    <string name="auto_skip_next_on_error">Автоперехід до наступної пісні при помилці</string>
+    <string name="auto_skip_next_on_error_desc">Забезпечити безперервне відтворення</string>
     <string name="stop_music_on_task_clear">Зупиняти музику при очищенні завдань</string>
     <string name="equalizer">Еквалайзер</string>
 

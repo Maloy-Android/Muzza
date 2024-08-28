@@ -8,15 +8,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -34,6 +38,8 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -55,6 +61,9 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +73,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -151,6 +161,25 @@ fun LocalPlaylistScreen(
 
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+
+    var isSearching by rememberSaveable { mutableStateOf(false) }
+    var query by rememberSaveable { mutableStateOf("") }
+    val filteredSongs = remember(songs, query) {
+        if (query.isEmpty()) songs
+        else songs.filter { it.song.title.contains(query, ignoreCase = true) }
+    }
+    val focusRequester = remember { FocusRequester() }
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            focusRequester.requestFocus()
+        }
+    }
+    if (isSearching) {
+        BackHandler {
+            isSearching = false
+            query = ""
+        }
+    }
 
     var showEditDialog by remember {
         mutableStateOf(false)
@@ -266,7 +295,7 @@ fun LocalPlaylistScreen(
     ) {
         LazyColumn(
             state = reorderableState.listState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
             modifier = Modifier.reorderable(reorderableState)
         ) {
             playlist?.let { playlist ->
@@ -278,16 +307,17 @@ fun LocalPlaylistScreen(
                         )
                     }
                 } else {
-
-                    item {
-                        LocalPlaylistHeader(
-                            playlist = playlist,
-                            songs = songs,
-                            onShowEditDialog = { showEditDialog = true },
-                            onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
-                            snackbarHostState = snackbarHostState,
-                            modifier = Modifier.animateItem()
-                        )
+                    if (!isSearching) {
+                        item {
+                            LocalPlaylistHeader(
+                                playlist = playlist,
+                                songs = songs,
+                                onShowEditDialog = { showEditDialog = true },
+                                onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
+                                snackbarHostState = snackbarHostState,
+                                modifier = Modifier.animateItem()
+                            )
+                        }
                     }
 
                     item {
@@ -314,7 +344,7 @@ fun LocalPlaylistScreen(
                                 modifier = Modifier.weight(1f)
                             )
 
-                            if (sortType == PlaylistSongSortType.CUSTOM && !inSelectMode) {
+                            if (!inSelectMode && !isSearching) {
                                 IconButton(
                                     onClick = { locked = !locked },
                                     modifier = Modifier.padding(horizontal = 6.dp)
@@ -331,7 +361,7 @@ fun LocalPlaylistScreen(
             }
 
             itemsIndexed(
-                items = mutableSongs,
+                items = if (isSearching) filteredSongs else mutableSongs,
                 key = { _, song -> song.map.id }
             ) { index, song ->
                 ReorderableItem(
@@ -412,7 +442,7 @@ fun LocalPlaylistScreen(
                                         )
                                     }
 
-                                    if (sortType == PlaylistSongSortType.CUSTOM && !locked) {
+                                    if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching) {
                                         IconButton(
                                             onClick = { },
                                             modifier = Modifier.detectReorder(reorderableState)
@@ -471,6 +501,30 @@ fun LocalPlaylistScreen(
             title = {
                 if (inSelectMode) {
                     Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                } else if (isSearching) {
+                    TextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester)
+                    )
                 } else if (showTopBarTitle) {
                     Text(playlist?.playlist?.name.orEmpty())
                 }
@@ -485,8 +539,19 @@ fun LocalPlaylistScreen(
                     }
                 } else {
                     IconButton(
-                        onClick = navController::navigateUp,
-                        onLongClick = navController::backToMain
+                        onClick = {
+                            if (isSearching) {
+                                isSearching = false
+                                query = ""
+                            } else {
+                                navController.navigateUp()
+                            }
+                        },
+                        onLongClick = {
+                            if (!isSearching) {
+                                navController.backToMain()
+                            }
+                        }
                     ) {
                         Icon(
                             painterResource(R.drawable.arrow_back),
@@ -545,6 +610,18 @@ fun LocalPlaylistScreen(
                             contentDescription = null
                         )
                     }
+                } else if (!isSearching) {
+                    IconButton(
+                        onClick = {
+                            isSearching = true
+//                            focusRequester.requestFocus()
+                        }
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.search),
+                            contentDescription = null
+                        )
+                    }
                 }
             },
             scrollBehavior = scrollBehavior
@@ -553,7 +630,7 @@ fun LocalPlaylistScreen(
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
-                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime))
                 .align(Alignment.BottomCenter)
         )
     }

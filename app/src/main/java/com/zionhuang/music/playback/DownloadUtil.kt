@@ -124,7 +124,7 @@ class DownloadUtil @Inject constructor(
     }
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
-    fun getDownload(songId: String): Flow<Download?> = downloads.map { it[songId] }
+    fun getDownload(songId: String?): Flow<Download?> = downloads.map { it[songId] }
 
     init {
         val result = mutableMapOf<String, Download>()

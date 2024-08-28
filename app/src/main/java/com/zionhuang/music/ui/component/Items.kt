@@ -587,7 +587,20 @@ fun PlaylistGridItem(
 @Composable
 fun MediaMetadataListItem(
     mediaMetadata: MediaMetadata,
-    modifier: Modifier,
+    modifier: Modifier = Modifier,
+    badges: @Composable RowScope.() -> Unit = {
+        val database = LocalDatabase.current
+        val song by database.song(mediaMetadata.id).collectAsState(initial = null)
+
+        if (song?.song?.liked == true) {
+            Icon.Favorite()
+        }
+        if (song?.song?.inLibrary != null) {
+            Icon.Library()
+        }
+        val download by LocalDownloadUtil.current.getDownload(song?.id).collectAsState(initial = null)
+        Icon.Download(download?.state)
+    },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
@@ -597,6 +610,7 @@ fun MediaMetadataListItem(
         mediaMetadata.artists.joinToString { it.name },
         makeTimeString(mediaMetadata.duration * 1000L)
     ),
+    badges = badges,
     thumbnailContent = {
         ItemThumbnail(
             thumbnailUrl = mediaMetadata.thumbnailUrl,

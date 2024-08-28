@@ -45,6 +45,7 @@ import com.zionhuang.music.extensions.toMediaItem
 import com.zionhuang.music.extensions.togglePlayPause
 import com.zionhuang.music.playback.queues.ListQueue
 import com.zionhuang.music.ui.component.ChipsRow
+import com.zionhuang.music.ui.component.EmptyPlaceholder
 import com.zionhuang.music.ui.component.HideOnScrollFAB
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.SongListItem
@@ -130,70 +131,84 @@ fun LibrarySongsScreen(
 
                     Spacer(Modifier.weight(1f))
 
-                    Text(
-                        text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    songs?.let { songs ->
+                        Text(
+                            text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
 
-            itemsIndexed(
-                items = songs,
-                key = { _, item -> item.id },
-                contentType = { _, _ -> CONTENT_TYPE_SONG }
-            ) { index, song ->
-                SongListItem(
-                    song = song,
-                    isActive = song.id == mediaMetadata?.id,
-                    isPlaying = isPlaying,
-                    trailingContent = {
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    SongMenu(
-                                        originalSong = song,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss
+            songs?.let { songs ->
+                if (songs.isEmpty()) {
+                    item {
+                        EmptyPlaceholder(
+                            icon = R.drawable.music_note,
+                            text = stringResource(R.string.library_song_empty),
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                }
+
+                itemsIndexed(
+                    items = songs,
+                    key = { _, item -> item.id },
+                    contentType = { _, _ -> CONTENT_TYPE_SONG }
+                ) { index, song ->
+                    SongListItem(
+                        song = song,
+                        isActive = song.id == mediaMetadata?.id,
+                        isPlaying = isPlaying,
+                        trailingContent = {
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable {
+                                if (song.id == mediaMetadata?.id) {
+                                    playerConnection.player.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = context.getString(R.string.queue_all_songs),
+                                            items = songs.map { it.toMediaItem() },
+                                            startIndex = index
+                                        )
                                     )
                                 }
                             }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null
-                            )
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable {
-                            if (song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = context.getString(R.string.queue_all_songs),
-                                        items = songs.map { it.toMediaItem() },
-                                        startIndex = index
-                                    )
-                                )
-                            }
-                        }
-                        .animateItem()
-                )
+                            .animateItem()
+                    )
+                }
             }
         }
 
         HideOnScrollFAB(
-            visible = songs.isNotEmpty(),
+            visible = !songs.isNullOrEmpty(),
             lazyListState = lazyListState,
             icon = R.drawable.shuffle,
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(
                         title = context.getString(R.string.queue_all_songs),
-                        items = songs.shuffled().map { it.toMediaItem() },
+                        items = songs!!.shuffled().map { it.toMediaItem() },
                     )
                 )
             }

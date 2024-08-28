@@ -234,7 +234,8 @@ fun LocalSearchScreen(
                 ) {
                     EmptyPlaceholder(
                         icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found)
+                        text = stringResource(R.string.no_results_found),
+                        modifier = Modifier.animateItem()
                     )
                 }
             }

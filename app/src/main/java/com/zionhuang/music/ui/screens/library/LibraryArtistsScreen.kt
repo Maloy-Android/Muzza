@@ -57,6 +57,7 @@ import com.zionhuang.music.constants.SmallGridThumbnailHeight
 import com.zionhuang.music.ui.component.ArtistGridItem
 import com.zionhuang.music.ui.component.ArtistListItem
 import com.zionhuang.music.ui.component.ChipsRow
+import com.zionhuang.music.ui.component.EmptyPlaceholder
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.SortHeader
 import com.zionhuang.music.ui.menu.ArtistMenu
@@ -150,11 +151,13 @@ fun LibraryArtistsScreen(
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = pluralStringResource(R.plurals.n_artist, artists.size, artists.size),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            artists?.let { artists ->
+                Text(
+                    text = pluralStringResource(R.plurals.n_artist, artists.size, artists.size),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 
@@ -181,38 +184,50 @@ fun LibraryArtistsScreen(
                         headerContent()
                     }
 
-                    items(
-                        items = artists,
-                        key = { it.id },
-                        contentType = { CONTENT_TYPE_ARTIST }
-                    ) { artist ->
-                        ArtistListItem(
-                            artist = artist,
-                            trailingContent = {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            ArtistMenu(
-                                                originalArtist = artist,
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss
-                                            )
+                    artists?.let { artists ->
+                        if (artists.isEmpty()) {
+                            item {
+                                EmptyPlaceholder(
+                                    icon = R.drawable.artist,
+                                    text = stringResource(R.string.library_artist_empty),
+                                    modifier = Modifier.animateItem()
+                                )
+                            }
+                        }
+
+                        items(
+                            items = artists,
+                            key = { it.id },
+                            contentType = { CONTENT_TYPE_ARTIST }
+                        ) { artist ->
+                            ArtistListItem(
+                                artist = artist,
+                                trailingContent = {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                ArtistMenu(
+                                                    originalArtist = artist,
+                                                    coroutineScope = coroutineScope,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
                                         }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    navController.navigate("artist/${artist.id}")
-                                }
-                                .animateItem()
-                        )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        navController.navigate("artist/${artist.id}")
+                                    }
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
 
@@ -243,33 +258,45 @@ fun LibraryArtistsScreen(
                         headerContent()
                     }
 
-                    items(
-                        items = artists,
-                        key = { it.id },
-                        contentType = { CONTENT_TYPE_ARTIST }
-                    ) { artist ->
-                        ArtistGridItem(
-                            artist = artist,
-                            fillMaxWidth = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("artist/${artist.id}")
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            ArtistMenu(
-                                                originalArtist = artist,
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    }
+                    artists?.let { artists ->
+                        if (artists.isEmpty()) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                EmptyPlaceholder(
+                                    icon = R.drawable.artist,
+                                    text = stringResource(R.string.library_artist_empty),
+                                    modifier = Modifier.animateItem()
                                 )
-                                .animateItem()
-                        )
+                            }
+                        }
+
+                        items(
+                            items = artists,
+                            key = { it.id },
+                            contentType = { CONTENT_TYPE_ARTIST }
+                        ) { artist ->
+                            ArtistGridItem(
+                                artist = artist,
+                                fillMaxWidth = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("artist/${artist.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                ArtistMenu(
+                                                    originalArtist = artist,
+                                                    coroutineScope = coroutineScope,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
         }

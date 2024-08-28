@@ -57,6 +57,7 @@ import com.zionhuang.music.constants.SmallGridThumbnailHeight
 import com.zionhuang.music.ui.component.AlbumGridItem
 import com.zionhuang.music.ui.component.AlbumListItem
 import com.zionhuang.music.ui.component.ChipsRow
+import com.zionhuang.music.ui.component.EmptyPlaceholder
 import com.zionhuang.music.ui.component.LocalMenuState
 import com.zionhuang.music.ui.component.SortHeader
 import com.zionhuang.music.ui.menu.AlbumMenu
@@ -157,11 +158,13 @@ fun LibraryAlbumsScreen(
 
             Spacer(Modifier.weight(1f))
 
-            Text(
-                text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
-                style = MaterialTheme.typography.titleSmall,
-                color = MaterialTheme.colorScheme.secondary
-            )
+            albums?.let { albums ->
+                Text(
+                    text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.secondary
+                )
+            }
         }
     }
 
@@ -188,40 +191,52 @@ fun LibraryAlbumsScreen(
                         headerContent()
                     }
 
-                    items(
-                        items = albums,
-                        key = { it.id },
-                        contentType = { CONTENT_TYPE_ALBUM }
-                    ) { album ->
-                        AlbumListItem(
-                            album = album,
-                            isActive = album.id == mediaMetadata?.album?.id,
-                            isPlaying = isPlaying,
-                            trailingContent = {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            AlbumMenu(
-                                                originalAlbum = album,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
+                    albums?.let { albums ->
+                        if (albums.isEmpty()) {
+                            item {
+                                EmptyPlaceholder(
+                                    icon = R.drawable.album,
+                                    text = stringResource(R.string.library_album_empty),
+                                    modifier = Modifier.animateItem()
+                                )
+                            }
+                        }
+
+                        items(
+                            items = albums,
+                            key = { it.id },
+                            contentType = { CONTENT_TYPE_ALBUM }
+                        ) { album ->
+                            AlbumListItem(
+                                album = album,
+                                isActive = album.id == mediaMetadata?.album?.id,
+                                isPlaying = isPlaying,
+                                trailingContent = {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                AlbumMenu(
+                                                    originalAlbum = album,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
                                         }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null
+                                        )
                                     }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
-                                    )
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable {
-                                    navController.navigate("album/${album.id}")
-                                }
-                                .animateItem()
-                        )
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable {
+                                        navController.navigate("album/${album.id}")
+                                    }
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
 
@@ -252,36 +267,48 @@ fun LibraryAlbumsScreen(
                         headerContent()
                     }
 
-                    items(
-                        items = albums,
-                        key = { it.id },
-                        contentType = { CONTENT_TYPE_ALBUM }
-                    ) { album ->
-                        AlbumGridItem(
-                            album = album,
-                            isActive = album.id == mediaMetadata?.album?.id,
-                            isPlaying = isPlaying,
-                            coroutineScope = coroutineScope,
-                            fillMaxWidth = true,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("album/${album.id}")
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            AlbumMenu(
-                                                originalAlbum = album,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    }
+                    albums?.let { albums ->
+                        if (albums.isEmpty()) {
+                            item(span = { GridItemSpan(maxLineSpan) }) {
+                                EmptyPlaceholder(
+                                    icon = R.drawable.album,
+                                    text = stringResource(R.string.library_album_empty),
+                                    modifier = Modifier.animateItem()
                                 )
-                                .animateItem()
-                        )
+                            }
+                        }
+
+                        items(
+                            items = albums,
+                            key = { it.id },
+                            contentType = { CONTENT_TYPE_ALBUM }
+                        ) { album ->
+                            AlbumGridItem(
+                                album = album,
+                                isActive = album.id == mediaMetadata?.album?.id,
+                                isPlaying = isPlaying,
+                                coroutineScope = coroutineScope,
+                                fillMaxWidth = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("album/${album.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                AlbumMenu(
+                                                    originalAlbum = album,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
         }

@@ -101,6 +101,7 @@ import com.zionhuang.music.utils.DiscordRPC
 import com.zionhuang.music.utils.dataStore
 import com.zionhuang.music.utils.enumPreference
 import com.zionhuang.music.utils.get
+import com.zionhuang.music.utils.isInternetAvailable
 import com.zionhuang.music.utils.reportException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -585,7 +586,10 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onPlayerError(error: PlaybackException) {
-        if (dataStore.get(AutoSkipNextOnErrorKey, false) && player.hasNextMediaItem()) {
+        if (dataStore.get(AutoSkipNextOnErrorKey, false) &&
+            isInternetAvailable(this) &&
+            player.hasNextMediaItem()
+        ) {
             player.seekToNext()
             player.prepare()
             player.playWhenReady = true

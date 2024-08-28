@@ -78,6 +78,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
@@ -163,10 +164,15 @@ fun LocalPlaylistScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
-    var query by rememberSaveable { mutableStateOf("") }
+    var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+        mutableStateOf(TextFieldValue())
+    }
     val filteredSongs = remember(songs, query) {
-        if (query.isEmpty()) songs
-        else songs.filter { it.song.title.contains(query, ignoreCase = true) }
+        if (query.text.isEmpty()) songs
+        else songs.filter { song ->
+            song.song.title.contains(query.text, ignoreCase = true) ||
+                    song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
+        }
     }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(isSearching) {
@@ -177,68 +183,8 @@ fun LocalPlaylistScreen(
     if (isSearching) {
         BackHandler {
             isSearching = false
-            query = ""
+            query = TextFieldValue()
         }
-    }
-
-    var showEditDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showEditDialog) {
-        playlist?.playlist?.let { playlistEntity ->
-            TextFieldDialog(
-                icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
-                title = { Text(text = stringResource(R.string.edit_playlist)) },
-                onDismiss = { showEditDialog = false },
-                initialTextFieldValue = TextFieldValue(playlistEntity.name, TextRange(playlistEntity.name.length)),
-                onDone = { name ->
-                    database.query {
-                        update(playlistEntity.copy(name = name))
-                    }
-                }
-            )
-        }
-    }
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showRemoveDownloadDialog) {
-        DefaultDialog(
-            onDismiss = { showRemoveDownloadDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist?.playlist!!.name),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showRemoveDownloadDialog = false }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showRemoveDownloadDialog = false
-                        songs.forEach { song ->
-                            DownloadService.sendRemoveDownload(
-                                context,
-                                ExoDownloadService::class.java,
-                                song.song.id,
-                                false
-                            )
-                        }
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            }
-        )
     }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
@@ -289,6 +235,60 @@ fun LocalPlaylistScreen(
     }
 
     var dismissJob: Job? by remember { mutableStateOf(null) }
+
+    var showEditDialog by remember { mutableStateOf(false) }
+    if (showEditDialog) {
+        playlist?.playlist?.let { playlistEntity ->
+            TextFieldDialog(
+                icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
+                title = { Text(text = stringResource(R.string.edit_playlist)) },
+                onDismiss = { showEditDialog = false },
+                initialTextFieldValue = TextFieldValue(playlistEntity.name, TextRange(playlistEntity.name.length)),
+                onDone = { name ->
+                    database.query {
+                        update(playlistEntity.copy(name = name))
+                    }
+                }
+            )
+        }
+    }
+
+    var showRemoveDownloadDialog by remember { mutableStateOf(false) }
+    if (showRemoveDownloadDialog) {
+        DefaultDialog(
+            onDismiss = { showRemoveDownloadDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_download_playlist_confirm, playlist?.playlist!!.name),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = { showRemoveDownloadDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                        songs.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.song.id,
+                                false
+                            )
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
 
     Box(
         modifier = Modifier.fillMaxSize()
@@ -361,7 +361,7 @@ fun LocalPlaylistScreen(
             }
 
             itemsIndexed(
-                items = if (isSearching) filteredSongs else mutableSongs,
+                items = if (isSearching) filteredSongs else mutableSongs, // mutableSongs has higher response when reordering
                 key = { _, song -> song.map.id }
             ) { index, song ->
                 ReorderableItem(
@@ -542,7 +542,7 @@ fun LocalPlaylistScreen(
                         onClick = {
                             if (isSearching) {
                                 isSearching = false
-                                query = ""
+                                query = TextFieldValue()
                             } else {
                                 navController.navigateUp()
                             }
@@ -612,10 +612,7 @@ fun LocalPlaylistScreen(
                     }
                 } else if (!isSearching) {
                     IconButton(
-                        onClick = {
-                            isSearching = true
-//                            focusRequester.requestFocus()
-                        }
+                        onClick = { isSearching = true }
                     ) {
                         Icon(
                             painterResource(R.drawable.search),

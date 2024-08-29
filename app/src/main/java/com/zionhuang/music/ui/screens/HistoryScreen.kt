@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
@@ -103,15 +104,30 @@ fun HistoryScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable {
-                            if (event.song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    YouTubeQueue.radio(event.song.toMediaMetadata())
-                                )
+                        .combinedClickable (
+                            onClick = {
+                                if (event.song.id == mediaMetadata?.id) {
+                                    playerConnection.player.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(
+                                        YouTubeQueue(
+                                            endpoint = WatchEndpoint(videoId = event.song.id),
+                                            preloadItem = event.song.toMediaMetadata()
+                                        )
+                                    )
+                                }
+                            },
+                            onLongClick = {
+                                menuState.show {
+                                    SongMenu(
+                                        originalSong = event.song,
+                                        event = event.event,
+                                        navController = navController,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
                             }
-                        }
+                        )
                         .animateItem()
                 )
             }

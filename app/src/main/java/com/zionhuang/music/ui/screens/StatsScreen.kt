@@ -27,6 +27,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import com.zionhuang.innertube.models.WatchEndpoint
 import com.zionhuang.music.LocalPlayerAwareWindowInsets
 import com.zionhuang.music.LocalPlayerConnection
 import com.zionhuang.music.R
@@ -120,15 +121,29 @@ fun StatsScreen(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .combinedClickable {
-                        if (song.id == mediaMetadata?.id) {
-                            playerConnection.player.togglePlayPause()
-                        } else {
-                            playerConnection.playQueue(
-                                YouTubeQueue.radio(song.toMediaMetadata())
-                            )
+                    .combinedClickable (
+                        onClick = {
+                            if (song.id == mediaMetadata?.id) {
+                                playerConnection.player.togglePlayPause()
+                            } else {
+                                playerConnection.playQueue(
+                                    YouTubeQueue(
+                                        endpoint = WatchEndpoint(song.id),
+                                        preloadItem = song.toMediaMetadata()
+                                    )
+                                )
+                            }
+                        },
+                        onLongClick = {
+                            menuState.show {
+                                SongMenu(
+                                    originalSong = song,
+                                    navController = navController,
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
                         }
-                    }
+                    )
                     .animateItem()
             )
         }

@@ -26,6 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toLowerCase
 import androidx.navigation.NavController
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -42,6 +45,8 @@ import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.HistoryDuration
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LanguageCodeToName
+import com.maloy.muzza.constants.PreferredLyricsProvider
+import com.maloy.muzza.constants.PreferredLyricsProviderKey
 import com.maloy.muzza.constants.ProxyEnabledKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
@@ -82,6 +87,8 @@ fun ContentSettings(
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
     val (historyDuration, onHistoryDurationChange) = rememberPreference(key = HistoryDuration, defaultValue = 30f)
+    val (enableLrclib, onEnableLrclibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
+    val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(key = PreferredLyricsProviderKey, defaultValue = PreferredLyricsProvider.LRCLIB)
 
 
     Column(
@@ -182,6 +189,14 @@ fun ContentSettings(
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
             checked = enableKugou,
             onCheckedChange = onEnableKugouChange
+        )
+
+        ListPreference(
+            title = { Text(stringResource(R.string.default_lyrics_provider)) },
+            selectedValue = preferredProvider,
+            values = listOf(PreferredLyricsProvider.KUGOU, PreferredLyricsProvider.LRCLIB),
+            valueText = { it.name.toLowerCase(Locale.current).capitalize(Locale.current) },
+            onValueSelected = onPreferredProviderChange
         )
 
         SliderPreference(

@@ -2,16 +2,32 @@ package com.maloy.muzza.lyrics
 
 import android.content.Context
 import android.util.LruCache
+import com.maloy.muzza.constants.PreferredLyricsProvider
+import com.maloy.muzza.constants.PreferredLyricsProviderKey
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
+import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 
 class LyricsHelper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    private val lyricsProviders = listOf(YouTubeSubtitleLyricsProvider, LrcLibLyricsProvider, KuGouLyricsProvider, YouTubeLyricsProvider)
+    private var lyricsProviders = listOf(LrcLibLyricsProvider,KuGouLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
+    val preferred = context.dataStore.data.map {
+        it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.LRCLIB)
+    }.distinctUntilChanged()
+        .map {
+            lyricsProviders = if (it == PreferredLyricsProvider.LRCLIB) {
+                listOf(LrcLibLyricsProvider,KuGouLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
+            } else {
+                listOf(KuGouLyricsProvider, LrcLibLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
+            }
+        }
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
 
     suspend fun getLyrics(mediaMetadata: MediaMetadata): String {

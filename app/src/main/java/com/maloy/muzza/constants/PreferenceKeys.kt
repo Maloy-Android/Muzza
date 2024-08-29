@@ -77,6 +77,7 @@ val AlbumFilterKey = stringPreferencesKey("albumFilter")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
 val HistoryDuration = floatPreferencesKey("historyDuration")
+val PreferredLyricsProviderKey = stringPreferencesKey("lyricsProvider")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 
@@ -87,6 +88,10 @@ enum class LibraryViewType {
         LIST -> GRID
         GRID -> LIST
     }
+}
+
+enum class PreferredLyricsProvider {
+    KUGOU, LRCLIB
 }
 
 enum class SongSortType {

@@ -143,6 +143,23 @@ fun ContentSettings(
             )
         }
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.open_supported_links)) },
+                description = stringResource(R.string.configure_supported_links),
+                icon = { Icon(painterResource(R.drawable.add_link), null) },
+                onClick = {
+                    try {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, Uri.parse("package:${context.packageName}")),
+                        )
+                    } catch (e: ActivityNotFoundException) {
+                        Toast.makeText(context, R.string.intent_supported_links_not_found, Toast.LENGTH_LONG).show()
+                    }
+                },
+            )
+        }
+
         SwitchPreference(
             title = { Text(stringResource(R.string.hide_explicit)) },
             icon = { Icon(painterResource(R.drawable.explicit), null) },

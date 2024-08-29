@@ -284,6 +284,9 @@
     <string name="app_language">Язык приложения</string>
     <string name="configure_app_language">Выбрать язык приложения</string>
     <string name="intent_app_language_not_found">Не удалось найти языковые настройки приложения, пожалуйста, настройте их вручную</string>
+    <string name="open_supported_links">Открывать поддерживаемую ссылку по умолчанию</string>
+    <string name="configure_supported_links">Настройка поддерживаемых ссылок</string>
+    <string name="intent_supported_links_not_found">Не удалось найти настройки поддерживаемых ссылок, пожалуйста, настройте их вручную</string>
 
     <string name="player_and_audio">Плеер и аудио</string>
     <string name="audio_quality">Качество аудио</string>

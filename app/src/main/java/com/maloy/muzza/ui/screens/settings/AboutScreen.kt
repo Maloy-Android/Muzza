@@ -149,19 +149,28 @@ fun AboutScreen(
             }
 
             IconButton(
-                onClick = { uriHandler.openUri("https://liberapay.com/zionhuang") }
+                onClick = { uriHandler.openUri("https://t.me/maloybegoniadev")}
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.liberapay),
+                    painter = painterResource(R.drawable.person),
                     contentDescription = null
                 )
             }
 
             IconButton(
-                onClick = { uriHandler.openUri("https://www.buymeacoffee.com/zionhuang") }
+                onClick = { uriHandler.openUri("https://www.tinkoff.ru/cf/4xwhg7twXkh") }
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.buymeacoffee),
+                    painter = painterResource(R.drawable.tinkoff),
+                    contentDescription = null
+                )
+            }
+
+            IconButton(
+                onClick = { uriHandler.openUri("https://t.me/appmuzzaupdatesnews") }
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.telegram),
                     contentDescription = null
                 )
             }

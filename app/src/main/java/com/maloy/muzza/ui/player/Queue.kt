@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -33,11 +34,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
@@ -91,6 +94,7 @@ import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.MediaMetadataListItem
+import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.menu.QueueSelectionMenu
 import com.maloy.muzza.utils.joinByBullet
@@ -593,6 +597,7 @@ fun Queue(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SleepTimerDialog(
     onDismiss: () -> Unit,
@@ -640,6 +645,13 @@ fun SleepTimerDialog(
                     value = sleepTimerValue,
                     onValueChange = { sleepTimerValue = it },
                     valueRange = 5f..120f,
+                    thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                    track = { sliderState ->
+                        PlayerSliderTrack(
+                            sliderState = sliderState,
+                            colors = SliderDefaults.colors()
+                        )
+                    },
                 )
 
                 OutlinedButton(

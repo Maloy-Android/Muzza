@@ -1,4 +1,4 @@
-package com.zionhuang.music.utils
+package com.maloy.muzza.utils
 
 import android.util.LruCache
 import com.github.houbb.opencc4j.util.ZhConverterUtil
@@ -9,8 +9,8 @@ import com.google.mlkit.nl.translate.TranslateLanguage
 import com.google.mlkit.nl.translate.TranslateRemoteModel
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.TranslatorOptions
-import com.zionhuang.music.db.entities.LyricsEntity
-import com.zionhuang.music.lyrics.LyricsUtils
+import com.maloy.muzza.db.entities.LyricsEntity
+import com.maloy.muzza.lyrics.LyricsUtils
 import kotlinx.coroutines.tasks.await
 import java.util.Locale
 

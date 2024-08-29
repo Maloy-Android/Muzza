@@ -18,11 +18,11 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
 }
 
 android {
-    namespace = "com.zionhuang.music"
+    namespace = "com.maloy.muzza"
     compileSdk = 35
     buildToolsVersion = "35.0.0"
     defaultConfig {
-        applicationId = "com.zionhuang.music"
+        applicationId = "com.maloy.muzza"
         minSdk = 24
         targetSdk = 35
         versionCode = 25

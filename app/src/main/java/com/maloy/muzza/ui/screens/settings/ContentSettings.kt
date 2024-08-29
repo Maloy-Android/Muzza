@@ -39,6 +39,7 @@ import com.maloy.muzza.constants.CountryCodeToName
 import com.maloy.muzza.constants.EnableKugouKey
 import com.maloy.muzza.constants.EnableLrcLibKey
 import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.constants.HistoryDuration
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LanguageCodeToName
 import com.maloy.muzza.constants.ProxyEnabledKey
@@ -50,6 +51,7 @@ import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ListPreference
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
+import com.maloy.muzza.ui.component.SliderPreference
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -79,6 +81,7 @@ fun ContentSettings(
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
+    val (historyDuration, onHistoryDurationChange) = rememberPreference(key = HistoryDuration, defaultValue = 30f)
 
 
     Column(
@@ -180,6 +183,13 @@ fun ContentSettings(
             checked = enableKugou,
             onCheckedChange = onEnableKugouChange
         )
+
+        SliderPreference(
+            title = { Text(stringResource(R.string.history_duration)) },
+            value = historyDuration,
+            onValueChange = onHistoryDurationChange,
+        )
+
         PreferenceGroupTitle(
             title = stringResource(R.string.proxy)
         )

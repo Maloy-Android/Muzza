@@ -63,6 +63,7 @@ import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
 import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.constants.HistoryDuration
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLibrary
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLike
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -723,7 +724,13 @@ class MusicService : MediaLibraryService(),
 
     override fun onPlaybackStatsReady(eventTime: AnalyticsListener.EventTime, playbackStats: PlaybackStats) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(PauseListenHistoryKey, false)) {
+
+        if (playbackStats.totalPlayTimeMs >= (
+                    dataStore[HistoryDuration]?.times(1000f)
+                        ?: 30000f
+                    ) &&
+            !dataStore.get(PauseListenHistoryKey, false)
+        ) {
             database.query {
                 incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
                 try {

@@ -345,7 +345,7 @@ fun RichPresence(
 
             OutlinedButton(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/z-huang/Muzza"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Maloy-Android/Muzza"))
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth()

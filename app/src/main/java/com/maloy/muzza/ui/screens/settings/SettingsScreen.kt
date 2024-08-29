@@ -99,7 +99,7 @@ fun SettingsScreen(
                     }
                 },
                 onClick = {
-                    uriHandler.openUri("https://github.com/z-huang/Muzza/releases/latest")
+                    uriHandler.openUri("https://github.com/Maloy-Android/Muzza/releases/latest")
                 }
             )
         }

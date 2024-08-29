@@ -117,6 +117,7 @@ fun Queue(
     backgroundColor: Color,
     navController: NavController,
     modifier: Modifier = Modifier,
+    onBackgroundColor: Color,
 ) {
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
@@ -197,6 +198,7 @@ fun Queue(
                 IconButton(onClick = { state.expandSoft() }) {
                     Icon(
                         painter = painterResource(R.drawable.queue_music),
+                        tint = onBackgroundColor,
                         contentDescription = null
                     )
                 }
@@ -204,6 +206,7 @@ fun Queue(
                 IconButton(onClick = { showLyrics = !showLyrics }) {
                     Icon(
                         painter = painterResource(R.drawable.lyrics),
+                        tint = onBackgroundColor,
                         contentDescription = null,
                         modifier = Modifier.alpha(if (showLyrics) 1f else 0.5f)
                     )
@@ -226,6 +229,7 @@ fun Queue(
                         IconButton(onClick = { showSleepTimerDialog = true }) {
                             Icon(
                                 painter = painterResource(R.drawable.bedtime),
+                                tint = onBackgroundColor,
                                 contentDescription = null
                             )
                         }
@@ -235,6 +239,7 @@ fun Queue(
                 IconButton(onClick = playerConnection::toggleLibrary) {
                     Icon(
                         painter = painterResource(if (currentSong?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add),
+                        tint = onBackgroundColor,
                         contentDescription = null
                     )
                 }
@@ -254,6 +259,7 @@ fun Queue(
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.more_horiz),
+                        tint = onBackgroundColor,
                         contentDescription = null
                     )
                 }

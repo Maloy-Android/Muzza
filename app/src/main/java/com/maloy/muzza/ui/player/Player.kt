@@ -162,7 +162,10 @@ fun BottomSheetPlayer(
                                         .allowHardware(false)
                                         .build(),
                                 ).drawable as? BitmapDrawable
-                            )?.bitmap?.extractGradientColors()
+                            )?.bitmap?.extractGradientColors(
+                            darkTheme =
+                            darkTheme == DarkMode.ON || (darkTheme == DarkMode.AUTO && isSystemInDarkTheme),
+                        )
 
                 result?.let {
                     gradientColors = it
@@ -516,7 +519,13 @@ fun BottomSheetPlayer(
             state = queueSheetState,
             playerBottomSheetState = state,
             navController = navController,
-            backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+            backgroundColor =
+            if (useBlackBackground) {
+                Color.Black
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer
+            },
+            onBackgroundColor = onBackgroundColor,
         )
     }
 }

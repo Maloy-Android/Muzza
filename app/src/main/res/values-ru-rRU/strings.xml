@@ -281,6 +281,9 @@
     <string name="proxy_type">Тип прокси</string>
     <string name="proxy_url">URL прокси</string>
     <string name="restart_to_take_effect">Перезапуск приложения</string>
+    <string name="app_language">Язык приложения</string>
+    <string name="configure_app_language">Выбрать язык приложения</string>
+    <string name="intent_app_language_not_found">Не удалось найти языковые настройки приложения, пожалуйста, настройте их вручную</string>
 
     <string name="player_and_audio">Плеер и аудио</string>
     <string name="audio_quality">Качество аудио</string>

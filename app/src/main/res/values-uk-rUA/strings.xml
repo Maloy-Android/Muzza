@@ -285,6 +285,9 @@
     <string name="proxy_type">Тип проксі</string>
     <string name="proxy_url">URL проксі</string>
     <string name="restart_to_take_effect">Перезапуск програми</string>
+    <string name="app_language">Мова додатки</string>
+    <string name="configure_app_language">Вибрати мову додатки</string>
+    <string name="intent_app_language_not_found">Не вдалося знайти мовні налаштування програми, будь ласка, налаштуйте їх вручну</string>
 
     <string name="player_and_audio">Плеєр та аудіо</string>
     <string name="audio_quality">Якість аудіо</string>

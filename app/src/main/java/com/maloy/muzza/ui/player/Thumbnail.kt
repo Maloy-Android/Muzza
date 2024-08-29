@@ -3,6 +3,7 @@ package com.maloy.muzza.ui.player
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -40,6 +41,7 @@ import kotlin.math.roundToInt
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
+    showLyricsOnClick: Boolean = false,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentView = LocalView.current
@@ -47,7 +49,7 @@ fun Thumbnail(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val error by playerConnection.error.collectAsState()
 
-    val showLyrics by rememberPreference(ShowLyricsKey, false)
+    var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
 
     DisposableEffect(showLyrics) {
@@ -73,6 +75,7 @@ fun Thumbnail(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = PlayerHorizontalPadding)
+                    .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onDragCancel = {
@@ -106,6 +109,7 @@ fun Thumbnail(
                         .offset { IntOffset(offsetX.roundToInt(), 0) }
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
+                        .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
                         .pointerInput(Unit) {
                             detectTapGestures(
                                 onDoubleTap = { offset ->

@@ -75,7 +75,7 @@ fun AboutScreen(
             verticalAlignment = Alignment.Top,
         ) {
             Text(
-                text = "InnerTune",
+                text = "Muzza",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
@@ -140,7 +140,7 @@ fun AboutScreen(
 
         Row {
             IconButton(
-                onClick = { uriHandler.openUri("https://github.com/z-huang/InnerTune") }
+                onClick = { uriHandler.openUri("https://github.com/z-huang/Muzza") }
             ) {
                 Icon(
                     painter = painterResource(R.drawable.github),

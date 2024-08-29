@@ -239,7 +239,7 @@
     <string name="remove_download_playlist_confirm">Bạn có thực sự muốn xóa tất cả \"%s\" bài hát trong danh sách phát khỏi bộ nhớ Bài hát được tải xuống không?</string>
     <string name="delete_playlist_confirm">Bạn có thực sự muốn xóa \"%s\" danh sách phát không?</string>
     <string name="not_logged_in">Chưa đăng nhập</string>
-    <string name="discord_information">Bạn có thể đăng nhập một cách an toàn. InnerTune sẽ chỉ trích xuất mã thông báo của bạn và mọi thứ khác sẽ được lưu trữ cục bộ.</string>
+    <string name="discord_information">Bạn có thể đăng nhập một cách an toàn. Muzza sẽ chỉ trích xuất mã thông báo của bạn và mọi thứ khác sẽ được lưu trữ cục bộ.</string>
     <string name="enable_lrclib">Bật nhà cung cấp lời bài hát LrcLib</string>
     <string name="discord_integration">Tích hợp Discord</string>
     <string name="dismiss">Bỏ qua</string>

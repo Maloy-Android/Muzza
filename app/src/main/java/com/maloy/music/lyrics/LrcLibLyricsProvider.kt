@@ -7,7 +7,7 @@ import com.maloy.music.utils.dataStore
 import com.maloy.music.utils.get
 
 /**
- * Source: https://github.com/Malopieds/InnerTune
+ * Source: https://github.com/Malopieds/Muzza
  */
 object LrcLibLyricsProvider : LyricsProvider {
     override val name = "LrcLib"

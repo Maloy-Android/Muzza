@@ -265,7 +265,7 @@
     <string name="logout">Sair</string>
     <string name="enable_discord_rpc">Ativar Rich Presence</string>
     <string name="not_logged_in">Não logado</string>
-    <string name="discord_information">Você pode fazer login com segurança. O InnerTune extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
+    <string name="discord_information">Você pode fazer login com segurança. O Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
     <string name="sided">Ao lado</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>

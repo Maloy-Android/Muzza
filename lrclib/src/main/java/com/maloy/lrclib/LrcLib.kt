@@ -13,7 +13,7 @@ import kotlinx.serialization.json.Json
 import kotlin.math.abs
 
 /**
- * Source: https://github.com/Malopieds/InnerTune
+ * Source: https://github.com/Malopieds/Muzza
  */
 object LrcLib {
     private val client by lazy {

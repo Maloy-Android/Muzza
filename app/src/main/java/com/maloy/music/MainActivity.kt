@@ -134,7 +134,7 @@ import com.maloy.music.ui.screens.settings.DarkMode
 import com.maloy.music.ui.screens.settings.NavigationTab
 import com.maloy.music.ui.theme.ColorSaver
 import com.maloy.music.ui.theme.DefaultThemeColor
-import com.maloy.music.ui.theme.InnerTuneTheme
+import com.maloy.music.ui.theme.MuzzaTheme
 import com.maloy.music.ui.theme.extractThemeColor
 import com.maloy.music.ui.utils.appBarScrollBehavior
 import com.maloy.music.ui.utils.backToMain
@@ -249,7 +249,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            InnerTuneTheme(
+            MuzzaTheme(
                 darkTheme = useDarkTheme,
                 pureBlack = pureBlack,
                 themeColor = themeColor

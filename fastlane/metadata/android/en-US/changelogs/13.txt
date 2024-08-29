@@ -1,4 +1,4 @@
-Music is now renamed to InnerTune!
+Music is now renamed to Muzza!
 
 - Player redesign
 - Queue redesign

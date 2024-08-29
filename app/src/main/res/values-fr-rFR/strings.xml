@@ -260,7 +260,7 @@
     <string name="enable_lrclib">Activer le fournisseur de paroles LrcLib</string>
     <string name="hide_explicit">Masquer le contenu explicite</string>
     <string name="discord_integration">Intégration Discord</string>
-    <string name="discord_information">Vous pouvez vous connecter en toute sécurité. InnerTune ne fera qu’extraire votre jeton et tout le reste sera stocké localement.</string>
+    <string name="discord_information">Vous pouvez vous connecter en toute sécurité. Muzza ne fera qu’extraire votre jeton et tout le reste sera stocké localement.</string>
     <string name="dismiss">Abandonner</string>
     <string name="options">Options</string>
     <string name="preview">Prévisualisation</string>

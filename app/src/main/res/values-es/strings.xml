@@ -277,7 +277,7 @@
     <string name="restore_failed">Error al restaurar la copia de seguridad</string>
 
     <string name="discord_integration">Integración con Discord</string>
-    <string name="discord_information">InnerTune utiliza la biblioteca KizzyRPC para configurar el estado de tu cuenta de Discord. Esto implica el uso de la conexión Discord Gateway, lo que puede considerarse una violación de las Condiciones del servicio de Discord. Sin embargo, no se conocen casos de cuentas de usuario suspendidas por este motivo. Úsalo bajo tu propio riesgo.\n\nInnerTune solo extraerá tu token y todo lo demás se almacenará localmente.</string>
+    <string name="discord_information">Muzza utiliza la biblioteca KizzyRPC para configurar el estado de tu cuenta de Discord. Esto implica el uso de la conexión Discord Gateway, lo que puede considerarse una violación de las Condiciones del servicio de Discord. Sin embargo, no se conocen casos de cuentas de usuario suspendidas por este motivo. Úsalo bajo tu propio riesgo.\n\nMuzza solo extraerá tu token y todo lo demás se almacenará localmente.</string>
     <string name="dismiss">Cerrar</string>
     <string name="options">Opciones</string>
     <string name="preview">Vista previa</string>

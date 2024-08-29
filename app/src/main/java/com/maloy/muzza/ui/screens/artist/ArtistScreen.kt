@@ -63,6 +63,7 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection

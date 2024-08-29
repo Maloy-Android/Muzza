@@ -25,12 +25,6 @@
     <string name="keep_listening">Продовжуйте слухати</string>
     <string name="similar_to">Схожі на</string>
     <string name="new_release_albums">Нові релізи альбомів</string>
-    <string name="keep_listening">Продовжуйте слухати</string>
-    <string name="similar_to">Похожі на</string>
-    <string name="forgotten_favorites">Забуті любимі пісні</string>
-    <string name="your_ytb_playlists">Ваші плейлисти на YouTube</string>
-    <string name="liked">Подобатися</string>
-    <string name="offline">Не в мережі</string>
 
     <!-- History -->
     <string name="today">Сьогодні</string>

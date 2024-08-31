@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -131,10 +132,8 @@ import com.maloy.muzza.viewmodels.LocalPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -215,22 +214,40 @@ fun LocalPlaylistScreen(
     }
 
     val headerItems = 2
+    val lazyListState = rememberLazyListState()
+    var dragInfo by remember {
+        mutableStateOf<Pair<Int, Int>?>(null)
+    }
     val reorderableState = rememberReorderableLazyListState(
-        onMove = { from, to ->
-            if (to.index >= headerItems && from.index >= headerItems) {
-                mutableSongs.move(from.index - headerItems, to.index - headerItems)
+        lazyListState = lazyListState,
+        scrollThresholdPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+    ) { from, to ->
+        if (to.index >= headerItems && from.index >= headerItems) {
+            val currentDragInfo = dragInfo
+            dragInfo = if (currentDragInfo == null) {
+                (from.index - headerItems) to (to.index - headerItems)
+            } else {
+                currentDragInfo.first to (to.index - headerItems)
             }
-        },
-        onDragEnd = { fromIndex, toIndex ->
-            database.transaction {
-                move(viewModel.playlistId, fromIndex - headerItems, toIndex - headerItems)
+
+            mutableSongs.move(from.index - headerItems, to.index - headerItems)
+        }
+    }
+
+    LaunchedEffect(reorderableState.isAnyItemDragging) {
+        if (!reorderableState.isAnyItemDragging) {
+            dragInfo?.let { (from, to) ->
+                database.transaction {
+                    move(viewModel.playlistId, from, to)
+                }
+                dragInfo = null
             }
         }
-    )
+    }
 
     val showTopBarTitle by remember {
         derivedStateOf {
-            reorderableState.listState.firstVisibleItemIndex > 0
+            lazyListState.firstVisibleItemIndex > 0
         }
     }
 
@@ -294,9 +311,8 @@ fun LocalPlaylistScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
-            state = reorderableState.listState,
+            state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
-            modifier = Modifier.reorderable(reorderableState)
         ) {
             playlist?.let { playlist ->
                 if (playlist.songCount == 0) {
@@ -366,7 +382,7 @@ fun LocalPlaylistScreen(
                 key = { _, song -> song.map.id }
             ) { index, song ->
                 ReorderableItem(
-                    reorderableState = reorderableState,
+                    state = reorderableState,
                     key = song.map.id
                 ) {
                     val currentItem by rememberUpdatedState(song)
@@ -446,7 +462,7 @@ fun LocalPlaylistScreen(
                                     if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching) {
                                         IconButton(
                                             onClick = { },
-                                            modifier = Modifier.detectReorder(reorderableState)
+                                            modifier = Modifier.draggableHandle()
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.drag_handle),

@@ -300,6 +300,8 @@
     <string name="queue">Черга</string>
     <string name="persistent_queue">Постійна черга</string>
     <string name="persistent_queue_desc">Відновлювати останню чергу після запуску програми</string>
+    <string name="auto_load_more">Автозавантаження більшої кількості пісень</string>
+    <string name="auto_load_more_desc">Автоматично додавати більше пісень при досягненні кінця черги, якщо це можливо</string>
     <string name="skip_silence">Пропуск тиші в композиціях</string>
     <string name="audio_normalization">Нормалізація аудіо</string>
     <string name="auto_skip_next_on_error">Автоперехід до наступної пісні при помилці</string>

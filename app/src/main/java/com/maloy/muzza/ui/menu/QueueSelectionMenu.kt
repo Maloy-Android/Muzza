@@ -114,6 +114,15 @@ fun QueueSelectionMenu(
         }
 
         GridMenuItem(
+            icon = R.drawable.playlist_play,
+            title = R.string.play_next,
+        ) {
+            onDismiss()
+            playerConnection.playNext(selection.map { it.mediaItem })
+            onExitSelectionMode()
+        }
+
+        GridMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
         ) {

@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -40,6 +41,7 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.util.fastForEachReversed
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -106,6 +108,14 @@ fun ArtistSongsScreen(
     }
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
+    }
+
+    LaunchedEffect(songIndex) {
+        selection.fastForEachReversed { songId ->
+            if (songIndex[songId] == null) {
+                selection.remove(songId)
+            }
+        }
     }
 
     Box(

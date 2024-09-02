@@ -132,8 +132,6 @@ dependencies {
     implementation(projects.materialColorUtilities)
     implementation(libs.squigglyslider)
 
-    implementation(libs.accompanist.swiperefresh)
-
     implementation(libs.coil)
 
     implementation(libs.shimmer)

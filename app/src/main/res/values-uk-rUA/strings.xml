@@ -324,6 +324,7 @@
     <string name="enable_lrclib">Увімкнути провайдера текстів LrcLib</string>
     <string name="enable_kugou">Увімкнути провайдера текстів KuGou</string>
     <string name="hide_explicit">Приховувати контент із нецензурною лексикою</string>
+    <string name="default_lyrics_provider">Поставшик текстів за замовчуванням</string>
 
     <string name="backup_restore">Резервне копіювання</string>
     <string name="backup">Створити резервну копію</string>
@@ -348,4 +349,9 @@
     <string name="new_version_available">Доступна нова версія</string>
     <string name="translation_models">Моделі перекладу</string>
     <string name="clear_translation_models">Очистити моделі перекладу</string>
+    <string name="history_duration">Тривалість історії</string>
+    <plurals name="seconds" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
+        <item quantity="other">%d секунд</item>
+    </plurals>
 </resources>

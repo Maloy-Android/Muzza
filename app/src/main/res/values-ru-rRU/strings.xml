@@ -326,6 +326,7 @@
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>
     <string name="enable_kugou">Включить провайдера текстов KuGou</string>
     <string name="hide_explicit">Скрывать контент с нецензурной лексикой</string>
+    <string name="default_lyrics_provider">Поставшик текстов по умолчанию</string>
 
     <string name="backup_restore">Резервное копирование</string>
     <string name="backup">Создать резервную копию</string>
@@ -350,4 +351,9 @@
     <string name="new_version_available">Доступна новая версия</string>
     <string name="translation_models">Модели перевода</string>
     <string name="clear_translation_models">Очистить модели перевода</string>
+    <string name="history_duration">Продолжительность истории</string>
+    <plurals name="seconds" tools:ignore="MissingQuantity">
+        <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
+        <item quantity="other">%d секунд</item>
+    </plurals>
 </resources>

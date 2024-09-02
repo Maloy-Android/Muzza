@@ -418,16 +418,18 @@ fun HomeScreen(
                         title = stringResource(R.string.forgotten_favorites)
                     )
 
+                    // take min in case list size is less than 4
+                    val rows = min(4, forgottenFavorites.size)
                     LazyHorizontalGrid(
                         state = forgottenFavoritesLazyGridState,
-                        rows = GridCells.Fixed(min(4, forgottenFavorites.size)), // take min in case list size is less than 4
+                        rows = GridCells.Fixed(rows),
                         flingBehavior = rememberSnapFlingBehavior(forgottenFavoritesSnapLayoutInfoProvider),
                         contentPadding = WindowInsets.systemBars
                             .only(WindowInsetsSides.Horizontal)
                             .asPaddingValues(),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(ListItemHeight * 4)
+                            .height(ListItemHeight * rows)
                     ) {
                         items(
                             items = forgottenFavorites,

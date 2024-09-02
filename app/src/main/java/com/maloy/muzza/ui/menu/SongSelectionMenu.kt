@@ -42,6 +42,7 @@ fun SongSelectionMenu(
     onDismiss: () -> Unit,
     onExitSelectionMode: () -> Unit,
     onRemoveFromQueue: (() -> Unit)? = null,
+    onRemoveFromHistory: (() -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -213,6 +214,16 @@ fun SongSelectionMenu(
             ) {
                 onDismiss()
                 onRemoveFromQueue()
+                onExitSelectionMode()
+            }
+        }
+        if (onRemoveFromHistory != null) {
+            GridMenuItem(
+                icon = R.drawable.delete,
+                title = R.string.remove_from_history,
+            ) {
+                onDismiss()
+                onRemoveFromHistory()
                 onExitSelectionMode()
             }
         }

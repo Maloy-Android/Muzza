@@ -29,6 +29,15 @@ class ExoDownloadService : DownloadService(
     @Inject
     lateinit var downloadUtil: DownloadUtil
 
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        if (intent?.action == REMOVE_ALL_PENDING_DOWNLOADS) {
+            downloadManager.currentDownloads.forEach { download ->
+                downloadManager.removeDownload(download.request.id)
+            }
+        }
+        return super.onStartCommand(intent, flags, startId)
+    }
+
     override fun getDownloadManager() = downloadUtil.downloadManager
 
     override fun getScheduler(): Scheduler = PlatformScheduler(this, JOB_ID)
@@ -51,7 +60,7 @@ class ExoDownloadService : DownloadService(
                 PendingIntent.getService(
                     this,
                     0,
-                    Intent(this, ExoDownloadService::class.java).setAction(ACTION_REMOVE_ALL_DOWNLOADS),
+                    Intent(this, ExoDownloadService::class.java).setAction(REMOVE_ALL_PENDING_DOWNLOADS),
                     PendingIntent.FLAG_IMMUTABLE
                 )
             ).build()
@@ -86,5 +95,6 @@ class ExoDownloadService : DownloadService(
         const val CHANNEL_ID = "download"
         const val NOTIFICATION_ID = 1
         const val JOB_ID = 1
+        const val REMOVE_ALL_PENDING_DOWNLOADS = "REMOVE_ALL_PENDING_DOWNLOADS"
     }
 }

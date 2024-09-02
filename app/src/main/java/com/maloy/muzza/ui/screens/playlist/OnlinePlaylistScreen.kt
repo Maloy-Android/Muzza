@@ -533,6 +533,7 @@ fun OnlinePlaylistScreen(
                         }
                     )
                     IconButton(
+                        enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
                                 YouTubeSongSelectionMenu(

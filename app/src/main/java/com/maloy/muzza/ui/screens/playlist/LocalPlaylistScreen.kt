@@ -575,6 +575,7 @@ fun LocalPlaylistScreen(
                         }
                     )
                     IconButton(
+                        enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
                                 SongSelectionMenu(

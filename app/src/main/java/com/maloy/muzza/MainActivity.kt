@@ -234,6 +234,7 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
@@ -343,9 +344,11 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(intent?.action == ACTION_SEARCH)
                     }
 
-                    val shouldShowSearchBar = remember(active, navBackStackEntry) {
-                        active || navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
-                                navBackStackEntry?.destination?.route?.startsWith("search/") == true
+                    val shouldShowSearchBar = remember(active, navBackStackEntry, inSelectMode?.value) {
+                        (active ||
+                                navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
+                                navBackStackEntry?.destination?.route?.startsWith("search/") == true) &&
+                                inSelectMode?.value != true
                     }
                     val shouldShowNavigationBar = remember(navBackStackEntry, active) {
                         navBackStackEntry?.destination?.route == null ||
@@ -727,7 +730,7 @@ class MainActivity : ComponentActivity() {
                                     },
                                     onClick = {
                                         if (navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true) {
-                                            navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                            navBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                             coroutineScope.launch {
                                                 searchBarScrollBehavior.state.resetHeightOffset()
                                             }

@@ -49,10 +49,10 @@ fun SongSelectionMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
 
     val allInLibrary by remember(selection) {
-        mutableStateOf(selection.all { it.song.inLibrary != null })
+        mutableStateOf(selection.isNotEmpty() && selection.all { it.song.inLibrary != null })
     }
     val allLiked by remember(selection) {
-        mutableStateOf(selection.all { it.song.liked })
+        mutableStateOf(selection.isNotEmpty() && selection.all { it.song.liked })
     }
 
     var downloadState by remember {
@@ -60,12 +60,15 @@ fun SongSelectionMenu(
     }
 
     LaunchedEffect(selection) {
-        if (selection.isEmpty()) return@LaunchedEffect
-        downloadUtil.downloads.collect { downloads ->
-            downloadState = when {
-                selection.all { downloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                selection.all { downloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING, STATE_COMPLETED) } -> STATE_DOWNLOADING
-                else -> Download.STATE_STOPPED
+        if (selection.isEmpty()) {
+            onDismiss()
+        } else {
+            downloadUtil.downloads.collect { downloads ->
+                downloadState = when {
+                    selection.all { downloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
+                    selection.all { downloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING, STATE_COMPLETED) } -> STATE_DOWNLOADING
+                    else -> Download.STATE_STOPPED
+                }
             }
         }
     }
@@ -79,10 +82,6 @@ fun SongSelectionMenu(
         onGetSong = { selection.map { it.song.id } },
         onDismiss = { showChoosePlaylistDialog = false },
     )
-
-    var showRemoveDownloadDialog by remember {
-        mutableStateOf(false)
-    }
 
     GridMenu(
         contentPadding =
@@ -154,7 +153,14 @@ fun SongSelectionMenu(
                 }
             },
             onRemoveDownload = {
-                showRemoveDownloadDialog = true
+                selection.forEach { song ->
+                    DownloadService.sendRemoveDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        song.song.id,
+                        false
+                    )
+                }
             },
         )
 

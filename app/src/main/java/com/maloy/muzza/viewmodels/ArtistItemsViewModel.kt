@@ -40,7 +40,7 @@ class ArtistItemsViewModel @Inject constructor(
             ).onSuccess { artistItemsPage ->
                 title.value = artistItemsPage.title
                 itemsPage.value = ItemsPage(
-                    items = artistItemsPage.items,
+                    items = artistItemsPage.items.distinctBy { it.id },
                     continuation = artistItemsPage.continuation
                 )
             }.onFailure {

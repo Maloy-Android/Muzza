@@ -103,6 +103,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+import kotlin.math.min
 
 @Suppress("DEPRECATION")
 @OptIn(ExperimentalFoundationApi::class)
@@ -419,7 +420,7 @@ fun HomeScreen(
 
                     LazyHorizontalGrid(
                         state = forgottenFavoritesLazyGridState,
-                        rows = GridCells.Fixed(4),
+                        rows = GridCells.Fixed(min(4, forgottenFavorites.size)), // take min in case list size is less than 4
                         flingBehavior = rememberSnapFlingBehavior(forgottenFavoritesSnapLayoutInfoProvider),
                         contentPadding = WindowInsets.systemBars
                             .only(WindowInsetsSides.Horizontal)

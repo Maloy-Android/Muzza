@@ -578,7 +578,7 @@ interface DatabaseDao {
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + :playTime WHERE id = :songId")
     fun incrementTotalPlayTime(songId: String, playTime: Long)
 
-    @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId")
+    @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId AND inLibrary IS NULL")
     fun inLibrary(songId: String, inLibrary: LocalDateTime?)
 
     @Query("SELECT COUNT(1) FROM related_song_map WHERE songId = :songId LIMIT 1")

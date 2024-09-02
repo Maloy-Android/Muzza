@@ -19,6 +19,7 @@ import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
+import java.time.LocalDateTime
 
 @Composable
 fun YouTubeSongSelectionMenu(
@@ -83,6 +84,15 @@ fun YouTubeSongSelectionMenu(
         }
 
         GridMenuItem(
+            icon = R.drawable.playlist_play,
+            title = R.string.play_next,
+        ) {
+            onDismiss()
+            playerConnection.playNext(selection.map { it.toMediaItem() })
+            onExitSelectionMode()
+        }
+
+        GridMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
         ) {
@@ -96,6 +106,21 @@ fun YouTubeSongSelectionMenu(
             title = R.string.add_to_playlist,
         ) {
             showChoosePlaylistDialog = true
+        }
+
+        GridMenuItem(
+            icon = R.drawable.library_add,
+            title = R.string.add_to_library,
+        ) {
+            database.query {
+                selection.forEach { song ->
+                    insert(song.toMediaMetadata())
+                }
+                selection.forEach { song ->
+                    inLibrary(song.id, LocalDateTime.now())
+                }
+            }
+            onDismiss()
         }
     }
 }

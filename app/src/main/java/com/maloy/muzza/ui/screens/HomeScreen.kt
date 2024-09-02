@@ -30,6 +30,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -39,6 +40,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -474,7 +476,10 @@ fun HomeScreen(
                         rows = GridCells.Fixed(rows),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height((GridThumbnailHeight + 72.dp) * rows),
+                            .height((GridThumbnailHeight + 24.dp + with(LocalDensity.current) {
+                                MaterialTheme.typography.bodyLarge.lineHeight.toDp() * 2 +
+                                        MaterialTheme.typography.bodyMedium.lineHeight.toDp() * 2
+                            }) * rows),
                     ) {
                         items(keepListening) {
                             localGridItem(it)
@@ -529,13 +534,10 @@ fun HomeScreen(
                         }
                     )
 
-                    val rows = if (it.items.size > 6) 2 else 1
-                    LazyHorizontalGrid(
-                        state = rememberLazyGridState(),
-                        rows = GridCells.Fixed(rows),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height((GridThumbnailHeight + 72.dp) * rows),
+                    LazyRow(
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues()
                     ) {
                         items(it.items) { item ->
                             ytGridItem(item)

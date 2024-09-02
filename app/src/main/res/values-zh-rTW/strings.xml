@@ -259,6 +259,8 @@
     <string name="audio_quality_low">低</string>
     <string name="queue">播放佇列</string>
     <string name="persistent_queue">保留播放佇列</string>
+    <string name="auto_load_more">自動載入更多歌曲</string>
+    <string name="auto_load_more_desc">當播放佇列快結束時，自動加入更多歌曲，如果可以的話</string>
     <string name="persistent_queue_desc">開啟應用程式時還原上次的播放佇列</string>
     <string name="skip_silence">跳過無聲片段</string>
     <string name="audio_normalization">標準化音量</string>

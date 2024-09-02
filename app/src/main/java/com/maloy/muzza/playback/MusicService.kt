@@ -59,6 +59,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.AudioNormalizationKey
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
+import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
@@ -528,7 +529,8 @@ class MusicService : MediaLibraryService(),
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         // Auto load more songs
-        if (reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
+        if (dataStore.get(AutoLoadMoreKey, true) &&
+            reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.playbackState != STATE_IDLE &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
             currentQueue.hasNextPage()

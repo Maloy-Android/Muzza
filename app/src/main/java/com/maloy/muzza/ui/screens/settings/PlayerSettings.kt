@@ -22,6 +22,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.AudioNormalizationKey
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
+import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
@@ -46,6 +47,7 @@ fun PlayerSettings(
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(AudioNormalizationKey, defaultValue = true)
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(AutoSkipNextOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
+    val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
 
     Column(
         Modifier
@@ -96,6 +98,14 @@ fun PlayerSettings(
             icon = { Icon(painterResource(R.drawable.queue_music), null) },
             checked = persistentQueue,
             onCheckedChange = onPersistentQueueChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.auto_load_more)) },
+            description = stringResource(R.string.auto_load_more_desc),
+            icon = { Icon(painterResource(R.drawable.playlist_add), null) },
+            checked = autoLoadMore,
+            onCheckedChange = onAutoLoadMoreChange
         )
 
         SwitchPreference(

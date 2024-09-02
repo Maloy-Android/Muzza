@@ -43,6 +43,7 @@ val PersistentQueueKey = booleanPreferencesKey("persistentQueue")
 val SkipSilenceKey = booleanPreferencesKey("skipSilence")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
+val AutoLoadMoreKey = booleanPreferencesKey("autoLoadMore")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")

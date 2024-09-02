@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
@@ -39,6 +40,7 @@ class HomeViewModel @Inject constructor(
     val forgottenFavorites = MutableStateFlow<List<Song>?>(null)
     val keepListening = MutableStateFlow<List<LocalItem>?>(null)
     val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
+    val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
 
@@ -67,6 +69,15 @@ class HomeViewModel @Inject constructor(
 
         allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
             .filter { it is Song || it is Album }
+
+
+        if (YouTube.cookie != null) { // if logged in
+            YouTube.likedPlaylists().onSuccess {
+                accountPlaylists.value = it
+            }.onFailure {
+                reportException(it)
+            }
+        }
 
         // Similar to artists
         val artistRecommendations =

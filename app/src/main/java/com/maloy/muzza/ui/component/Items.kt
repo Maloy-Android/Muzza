@@ -75,9 +75,8 @@ import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.reportException
@@ -520,16 +519,11 @@ fun AlbumGridItem(
             visible = !isActive,
             onClick = {
                 coroutineScope.launch {
-                    database.albumWithSongs(album.id).first()?.songs
-                        ?.map { it.toMediaItem() }
-                        ?.let {
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = album.album.title,
-                                    items = it
-                                )
-                            )
-                        }
+                    database.albumWithSongs(album.id).first()?.let { albumWithSongs ->
+                        playerConnection.playQueue(
+                            LocalAlbumRadio(albumWithSongs)
+                        )
+                    }
                 }
             }
         )
@@ -766,26 +760,21 @@ fun YouTubeGridItem(
             visible = item is AlbumItem && !isActive,
             onClick = {
                 coroutineScope?.launch(Dispatchers.IO) {
-                    var songs = database
-                        .albumWithSongs(item.id)
-                        .first()?.songs?.map { it.toMediaItem() }
-                    if (songs == null) {
+                    var albumWithSongs = database.albumWithSongs(item.id).first()
+                    if (albumWithSongs?.songs.isNullOrEmpty()) {
                         YouTube.album(item.id).onSuccess { albumPage ->
                             database.transaction {
                                 insert(albumPage)
                             }
-                            songs = albumPage.songs.map { it.toMediaItem() }
+                            albumWithSongs = database.albumWithSongs(item.id).first()
                         }.onFailure {
                             reportException(it)
                         }
                     }
-                    songs?.let {
+                    albumWithSongs?.let {
                         withContext(Dispatchers.Main) {
                             playerConnection.playQueue(
-                                ListQueue(
-                                    title = item.title,
-                                    items = it
-                                )
+                                LocalAlbumRadio(it)
                             )
                         }
                     }

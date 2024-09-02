@@ -71,10 +71,9 @@ import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AlbumGridItem
@@ -682,13 +681,11 @@ fun HomeScreen(
                             is Song -> playerConnection.playQueue(YouTubeQueue.radio(luckyItem.toMediaMetadata()))
                             is Album -> {
                                 scope.launch(Dispatchers.IO) {
-                                    val songs = database.albumSongs(luckyItem.id).first()
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = luckyItem.title,
-                                            items = songs.map(Song::toMediaItem)
+                                    database.albumWithSongs(luckyItem.id).first()?.let {
+                                        playerConnection.playQueue(
+                                            LocalAlbumRadio(it)
                                         )
-                                    )
+                                    }
                                 }
                             }
                             // not possible, already filtered out

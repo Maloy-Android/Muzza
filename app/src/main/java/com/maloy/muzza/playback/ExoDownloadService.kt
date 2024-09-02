@@ -1,8 +1,11 @@
 package com.maloy.muzza.playback
 
 import android.app.Notification
+import android.app.PendingIntent
 import android.content.Context
 import androidx.media3.common.util.NotificationUtil
+import android.content.Intent
+import android.graphics.drawable.Icon
 import androidx.media3.common.util.Util
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
@@ -31,15 +34,28 @@ class ExoDownloadService : DownloadService(
     override fun getScheduler(): Scheduler = PlatformScheduler(this, JOB_ID)
 
     override fun getForegroundNotification(downloads: MutableList<Download>, notMetRequirements: Int): Notification =
-        downloadUtil.downloadNotificationHelper.buildProgressNotification(
-            this,
-            R.drawable.download,
-            null,
-            if (downloads.size == 1) Util.fromUtf8Bytes(downloads[0].request.data)
-            else resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size),
-            downloads,
-            notMetRequirements
-        )
+        Notification.Builder.recoverBuilder(
+            this, downloadUtil.downloadNotificationHelper.buildProgressNotification(
+                this,
+                R.drawable.download,
+                null,
+                if (downloads.size == 1) Util.fromUtf8Bytes(downloads[0].request.data)
+                else resources.getQuantityString(R.plurals.n_song, downloads.size, downloads.size),
+                downloads,
+                notMetRequirements
+            )
+        ).addAction(
+            Notification.Action.Builder(
+                Icon.createWithResource(this, R.drawable.close),
+                getString(android.R.string.cancel),
+                PendingIntent.getService(
+                    this,
+                    0,
+                    Intent(this, ExoDownloadService::class.java).setAction(ACTION_REMOVE_ALL_DOWNLOADS),
+                    PendingIntent.FLAG_IMMUTABLE
+                )
+            ).build()
+        ).build()
 
     /**
      * This helper will outlive the lifespan of a single instance of [ExoDownloadService]

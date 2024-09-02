@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -17,9 +18,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -33,18 +36,25 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
@@ -88,6 +98,7 @@ import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.SongMenu
+import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.AlbumViewModel
@@ -104,18 +115,40 @@ fun AlbumScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val scope = rememberCoroutineScope()
+
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val scope = rememberCoroutineScope()
-    val otherVersions by viewModel.otherVersions.collectAsState()
-
-
     val albumWithSongs by viewModel.albumWithSongs.collectAsState()
+    val otherVersions by viewModel.otherVersions.collectAsState()
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
+    }
+
+    val state = rememberLazyListState()
+    val showTopBarTitle by remember {
+        derivedStateOf {
+            state.firstVisibleItemIndex > 0
+        }
+    }
+
+    var inSelectMode by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberSaveable(
+        saver = listSaver<MutableList<Int>, Int>(
+            save = { it.toList() },
+            restore = { it.toMutableStateList() }
+        )
+    ) { mutableStateListOf() }
+    val onExitSelectionMode = {
+        inSelectMode = false
+        selection.clear()
+    }
+    if (inSelectMode) {
+        BackHandler(onBack = onExitSelectionMode)
     }
 
     LaunchedEffect(albumWithSongs) {
@@ -137,6 +170,7 @@ fun AlbumScreen(
     }
 
     LazyColumn(
+        state = state,
         contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
     ) {
         val albumWithSongs = albumWithSongs
@@ -353,6 +387,14 @@ fun AlbumScreen(
                 items = albumWithSongs.songs,
                 key = { _, song -> song.id }
             ) { index, song ->
+                val onCheckedChange: (Boolean) -> Unit = {
+                    if (it) {
+                        selection.add(index)
+                    } else {
+                        selection.remove(index)
+                    }
+                }
+
                 SongListItem(
                     song = song,
                     albumIndex = index + 1,
@@ -360,28 +402,37 @@ fun AlbumScreen(
                     isPlaying = isPlaying,
                     showInLibraryIcon = true,
                     trailingContent = {
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    SongMenu(
-                                        originalSong = song,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss
-                                    )
-                                }
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null
+                        if (inSelectMode) {
+                            Checkbox(
+                                checked = index in selection,
+                                onCheckedChange = onCheckedChange
                             )
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
+                                    contentDescription = null
+                                )
+                            }
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {
-                                if (song.id == mediaMetadata?.id) {
+                                if (inSelectMode) {
+                                    onCheckedChange(index !in selection)
+                                } else if (song.id == mediaMetadata?.id) {
                                     playerConnection.player.togglePlayPause()
                                 } else {
                                     playerConnection.playQueue(
@@ -394,12 +445,10 @@ fun AlbumScreen(
                                 }
                             },
                             onLongClick = {
-                                menuState.show {
-                                    SongMenu(
-                                        originalSong = song,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss
-                                    )
+                                if (!inSelectMode) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    inSelectMode = true
+                                    onCheckedChange(true)
                                 }
                             }
                         )
@@ -487,16 +536,66 @@ fun AlbumScreen(
     }
 
     TopAppBar(
-        title = { },
+        title = {
+            if (inSelectMode) {
+                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+            } else if (showTopBarTitle) {
+                Text(albumWithSongs?.album?.title.orEmpty())
+            }
+        },
         navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null
+            if (inSelectMode) {
+                IconButton(onClick = onExitSelectionMode) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = null,
+                    )
+                }
+            } else {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null
+                    )
+                }
+            }
+        },
+        actions = {
+            if (inSelectMode) {
+                Checkbox(
+                    checked = selection.size == albumWithSongs?.songs?.size,
+                    onCheckedChange = {
+                        albumWithSongs?.let { albumWithSongs ->
+                            if (selection.size == albumWithSongs.songs.size) {
+                                selection.clear()
+                            } else {
+                                selection.clear()
+                                selection.addAll(albumWithSongs.songs.indices)
+                            }
+                        }
+                    }
                 )
+                IconButton(
+                    onClick = {
+                        menuState.show {
+                            SongSelectionMenu(
+                                selection = selection.mapNotNull { index ->
+                                    albumWithSongs?.songs?.getOrNull(index)
+                                },
+                                onDismiss = menuState::dismiss,
+                                onExitSelectionMode = onExitSelectionMode
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        painterResource(R.drawable.more_vert),
+                        contentDescription = null
+                    )
+                }
             }
         },
         scrollBehavior = scrollBehavior

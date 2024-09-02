@@ -578,6 +578,7 @@ interface DatabaseDao {
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + :playTime WHERE id = :songId")
     fun incrementTotalPlayTime(songId: String, playTime: Long)
 
+    // If the song is already in the library, the time won't be updated
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId AND (inLibrary IS NULL OR :inLibrary IS NULL)")
     fun inLibrary(songId: String, inLibrary: LocalDateTime?)
 

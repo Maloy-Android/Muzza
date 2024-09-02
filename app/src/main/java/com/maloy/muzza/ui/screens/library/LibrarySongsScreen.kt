@@ -298,7 +298,7 @@ fun LibrarySongsScreen(
             },
             actions = {
                 Checkbox(
-                    checked = selection.size == songs?.size,
+                    checked = selection.size == songs?.size && selection.isNotEmpty(),
                     onCheckedChange = {
                         if (selection.size == songs?.size) {
                             selection.clear()

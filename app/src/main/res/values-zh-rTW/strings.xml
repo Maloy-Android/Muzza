@@ -278,12 +278,16 @@
     <string name="size_used">已使用 %s</string>
 
     <string name="privacy">隱私</string>
+    <string name="listen_history">觀看記錄</string>
     <string name="pause_listen_history">暫停觀看記錄</string>
     <string name="clear_listen_history">清除觀看記錄</string>
     <string name="clear_listen_history_confirm">您確定要清除所有觀看記錄嗎？</string>
+    <string name="search_history">搜尋記錄</string>
     <string name="pause_search_history">暫停搜尋記錄</string>
     <string name="clear_search_history">清除搜尋記錄</string>
     <string name="clear_search_history_confirm">您確定要清除所有搜尋記錄嗎？</string>
+    <string name="disable_screenshot">禁用截圖</string>
+    <string name="disable_screenshot_desc">當此選項開啟時，您無法截圖，也無法在「最近使用」中看到此應用程式的畫面。</string>
     <string name="enable_lrclib">使用 LrcLib 提供歌詞</string>
     <string name="enable_kugou">使用酷狗音樂提供歌詞</string>
     <string name="hide_explicit">移除不適當內容</string>

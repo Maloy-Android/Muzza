@@ -28,11 +28,13 @@ import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PauseSearchHistoryKey
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.PreferenceEntry
+import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
@@ -46,10 +48,9 @@ fun PrivacySettings(
     val database = LocalDatabase.current
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
     val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(key = PauseSearchHistoryKey, defaultValue = false)
+    val (disableScreenshot, onDisableScreenshotChange) = rememberPreference(key = DisableScreenshotKey, defaultValue = false)
 
-    var showClearListenHistoryDialog by remember {
-        mutableStateOf(false)
-    }
+    var showClearListenHistoryDialog by remember { mutableStateOf(false) }
 
     if (showClearListenHistoryDialog) {
         DefaultDialog(
@@ -82,9 +83,7 @@ fun PrivacySettings(
         )
     }
 
-    var showClearSearchHistoryDialog by remember {
-        mutableStateOf(false)
-    }
+    var showClearSearchHistoryDialog by remember { mutableStateOf(false) }
 
     if (showClearSearchHistoryDialog) {
         DefaultDialog(
@@ -124,27 +123,46 @@ fun PrivacySettings(
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.listen_history)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.pause_listen_history)) },
             icon = { Icon(painterResource(R.drawable.history), null) },
             checked = pauseListenHistory,
             onCheckedChange = onPauseListenHistoryChange
         )
+
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_listen_history)) },
             icon = { Icon(painterResource(R.drawable.delete_history), null) },
             onClick = { showClearListenHistoryDialog = true }
         )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.pause_search_history)) },
             icon = { Icon(painterResource(R.drawable.search_off), null) },
             checked = pauseSearchHistory,
             onCheckedChange = onPauseSearchHistoryChange
         )
+
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_search_history)) },
             icon = { Icon(painterResource(R.drawable.clear_all), null) },
             onClick = { showClearSearchHistoryDialog = true }
+        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.misc)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.disable_screenshot)) },
+            description = stringResource(R.string.disable_screenshot_desc),
+            icon = { Icon(painterResource(R.drawable.screenshot), null) },
+            checked = disableScreenshot,
+            onCheckedChange = onDisableScreenshotChange
         )
     }
 

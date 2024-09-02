@@ -9,6 +9,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.AnimatedVisibility
@@ -100,6 +101,7 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
+import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.NavigationBarAnimationSpec
@@ -151,6 +153,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import java.net.URLDecoder
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.days
@@ -204,6 +208,22 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
+
+        lifecycleScope.launch {
+            dataStore.data
+                .map { it[DisableScreenshotKey] ?: false }
+                .distinctUntilChanged()
+                .collectLatest {
+                    if (it) {
+                        window.setFlags(
+                            WindowManager.LayoutParams.FLAG_SECURE,
+                            WindowManager.LayoutParams.FLAG_SECURE
+                        )
+                    } else {
+                        window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+                    }
+                }
+        }
 
         setContent {
             LaunchedEffect(Unit) {

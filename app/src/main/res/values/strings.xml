@@ -61,6 +61,9 @@
     <!-- Artist screen -->
     <string name="from_your_library">From your library</string>
 
+    <!-- Album screen -->
+    <string name="other_versions">Other versions</string>
+
     <!-- Playlist -->
     <string name="liked_songs">Liked songs</string>
     <string name="downloaded_songs">Downloaded songs</string>

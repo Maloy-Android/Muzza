@@ -61,6 +61,9 @@
     <!-- Artist screen -->
     <string name="from_your_library">來自你的媒體庫</string>
 
+    <!-- Album screen -->
+    <string name="other_versions">其他版本</string>
+
     <!-- Playlist -->
     <string name="liked_songs">喜歡的歌曲</string>
     <string name="downloaded_songs">已下載的歌曲</string>

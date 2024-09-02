@@ -58,11 +58,14 @@
     <!-- Artist screen -->
     <string name="from_your_library">Из вашей библиотеки</string>
 
+    <!-- Album screen -->
+    <string name="other_versions">Другие версии</string>
+
     <!-- Library -->
-    <string name="library_song_empty">Песни из библиотеки будут отображаться здесь</string>
-    <string name="library_artist_empty">Здесь будут представлены исполнители</string>
-    <string name="library_album_empty">Библиотека альбомов будет отображаться здесь</string>
-    <string name="library_playlist_empty">Ваши плейлисты будут отображаться здесь</string>
+    <string name="library_song_empty">Здесь будут отображаться песни из вашей библиотеки</string>
+    <string name="library_artist_empty">Здесь будут отображаться исполнители из вашей библиотеки</string>
+    <string name="library_album_empty">Здесь будут отображаться альбомы из вашей библиотеки</string>
+    <string name="library_playlist_empty">Здесь будут отображаться ваши плейлисты</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Любимые треки</string>
@@ -85,7 +88,9 @@
     <string name="play_next">Воспроизвести следующим</string>
     <string name="add_to_queue">Добавить в очередь</string>
     <string name="add_to_library">Добавить в библиотеку</string>
+    <string name="add_all_to_library">Добавить все в библиотеку</string>
     <string name="remove_from_library">Удалить из библиотеки</string>
+    <string name="remove_all_from_library">Удалить все из библиотеки</string>
     <string name="download">Загрузить</string>
     <string name="downloading">Загрузка</string>
     <string name="remove_download">Удалить из загруженных</string>
@@ -317,12 +322,16 @@
     <string name="size_used">%s использовано</string>
 
     <string name="privacy">Конфиденциальность</string>
+    <string name="listen_history">История прослушивания</string>
     <string name="pause_listen_history">Приостановить историю прослушивания</string>
     <string name="clear_listen_history">Очистить историю прослушивания</string>
     <string name="clear_listen_history_confirm">Вы уверены, что хотите очистить всю историю прослушивания?</string>
+    <string name="search_history">История поиска</string>
     <string name="pause_search_history">Приостановить историю поиска</string>
     <string name="clear_search_history">Очистить историю поиска</string>
     <string name="clear_search_history_confirm">Вы уверены, что хотите очистить всю историю поиска?</string>
+    <string name="disable_screenshot">Отключить снимок экрана</string>
+    <string name="disable_screenshot_desc">При включении этой опции скриншоты и отображение приложения в списке последних отключаются.</string>
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>
     <string name="enable_kugou">Включить провайдера текстов KuGou</string>
     <string name="hide_explicit">Скрывать контент с нецензурной лексикой</string>

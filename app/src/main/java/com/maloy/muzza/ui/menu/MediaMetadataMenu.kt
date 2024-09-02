@@ -1,36 +1,25 @@
 package com.maloy.muzza.ui.menu
 
+
 import android.content.Intent
-import android.media.audiofx.AudioEffect
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -39,15 +28,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogProperties
 import androidx.core.net.toUri
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
@@ -56,33 +41,28 @@ import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
+import com.maloy.muzza.db.entities.SongEntity
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
-import com.maloy.muzza.ui.component.BigSeekBar
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.DownloadGridMenu
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.MediaMetadataListItem
 import java.time.LocalDateTime
-import kotlin.math.log2
-import kotlin.math.pow
-import kotlin.math.round
 
 @Composable
-fun PlayerMenu(
-    mediaMetadata: MediaMetadata?,
+fun MediaMetadataMenu(
+    mediaMetadata: MediaMetadata,
     navController: NavController,
     bottomSheetState: BottomSheetState,
-    onShowDetailsDialog: () -> Unit = {},
     onDismiss: () -> Unit,
 ) {
-    mediaMetadata ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val playerVolume = playerConnection.service.playerVolume.collectAsState()
-    val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
 
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
@@ -142,36 +122,35 @@ fun PlayerMenu(
         }
     }
 
-    var showTempoPitchDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
 
-    if (showTempoPitchDialog) {
-        TempoPitchDialog(
-            onDismiss = { showTempoPitchDialog = false }
-        )
-    }
+    MediaMetadataListItem(
+        mediaMetadata = mediaMetadata,
+        badges = {},
+        trailingContent = {
+            val song by database.song(mediaMetadata.id).collectAsState(initial = null)
 
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 24.dp)
-            .padding(top = 24.dp, bottom = 6.dp)
-    ) {
-        Icon(
-            painter = painterResource(R.drawable.volume_up),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp)
-        )
+            IconButton(
+                onClick = {
+                    database.query {
+                        val currentSong = song
+                        if (currentSong == null) {
+                            insert(mediaMetadata, SongEntity::toggleLike)
+                        } else {
+                            update(currentSong.song.toggleLike())
+                        }
+                    }
+                }
+            ) {
+                Icon(
+                    painter = painterResource(if (song?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border),
+                    tint = if (song?.song?.liked == true) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                    contentDescription = null
+                )
+            }
+        }
+    )
 
-        BigSeekBar(
-            progressProvider = playerVolume::value,
-            onProgressChange = { playerConnection.service.playerVolume.value = it },
-            modifier = Modifier.weight(1f)
-        )
-    }
+    HorizontalDivider()
 
     GridMenu(
         contentPadding = PaddingValues(
@@ -187,6 +166,20 @@ fun PlayerMenu(
         ) {
             playerConnection.service.startRadioSeamlessly()
             onDismiss()
+        }
+        GridMenuItem(
+            icon = R.drawable.playlist_play,
+            title = R.string.play_next
+        ) {
+            onDismiss()
+            playerConnection.playNext(mediaMetadata.toMediaItem())
+        }
+        GridMenuItem(
+            icon = R.drawable.queue_music,
+            title = R.string.add_to_queue
+        ) {
+            onDismiss()
+            playerConnection.addToQueue(mediaMetadata.toMediaItem())
         }
         GridMenuItem(
             icon = R.drawable.playlist_add,
@@ -275,168 +268,6 @@ fun PlayerMenu(
             }
             context.startActivity(Intent.createChooser(intent, null))
             onDismiss()
-        }
-
-        GridMenuItem(
-            icon = R.drawable.info,
-            title = R.string.details
-        ) {
-            onShowDetailsDialog()
-            onDismiss()
-        }
-        GridMenuItem(
-            icon = R.drawable.equalizer,
-            title = R.string.equalizer
-        ) {
-            val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
-                putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-            }
-            GridMenuItem(
-                icon = R.drawable.equalizer,
-                title = R.string.equalizer
-            ) {
-                val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
-                    putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
-                    putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
-                }
-                if (intent.resolveActivity(context.packageManager) != null) {
-                    activityResultLauncher.launch(intent)
-                }
-                onDismiss()
-            }
-            if (intent.resolveActivity(context.packageManager) != null) {
-                activityResultLauncher.launch(intent)
-            }
-            onDismiss()
-        }
-        GridMenuItem(
-            icon = R.drawable.speed,
-            title = R.string.tempo_and_pitch
-        ) {
-            showTempoPitchDialog = true
-        }
-    }
-}
-
-@Composable
-fun TempoPitchDialog(
-    onDismiss: () -> Unit,
-) {
-    val playerConnection = LocalPlayerConnection.current ?: return
-    var tempo by remember {
-        mutableFloatStateOf(playerConnection.player.playbackParameters.speed)
-    }
-    var transposeValue by remember {
-        mutableIntStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
-    }
-    val updatePlaybackParameters = {
-        playerConnection.player.playbackParameters = PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))
-    }
-
-    AlertDialog(
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-        onDismissRequest = onDismiss,
-        title = {
-            Text(stringResource(R.string.tempo_and_pitch))
-        },
-        dismissButton = {
-            TextButton(
-                onClick = {
-                    tempo = 1f
-                    transposeValue = 0
-                    updatePlaybackParameters()
-                }
-            ) {
-                Text(stringResource(R.string.reset))
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = onDismiss
-            ) {
-                Text(stringResource(android.R.string.ok))
-            }
-        },
-        text = {
-            Column {
-                ValueAdjuster(
-                    icon = R.drawable.speed,
-                    currentValue = tempo,
-                    values = (0..35).map { round((0.25f + it * 0.05f) * 100) / 100 },
-                    onValueUpdate = {
-                        tempo = it
-                        updatePlaybackParameters()
-                    },
-                    valueText = { "x$it" },
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                ValueAdjuster(
-                    icon = R.drawable.discover_tune,
-                    currentValue = transposeValue,
-                    values = (-12..12).toList(),
-                    onValueUpdate = {
-                        transposeValue = it
-                        updatePlaybackParameters()
-                    },
-                    valueText = { "${if (it > 0) "+" else ""}$it" }
-                )
-            }
-        }
-    )
-}
-
-@Composable
-fun <T> ValueAdjuster(
-    @DrawableRes icon: Int,
-    currentValue: T,
-    values: List<T>,
-    onValueUpdate: (T) -> Unit,
-    valueText: (T) -> String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp)
-        )
-
-        IconButton(
-            enabled = currentValue != values.first(),
-            onClick = {
-                onValueUpdate(values[values.indexOf(currentValue) - 1])
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.remove),
-                contentDescription = null
-            )
-        }
-
-        Text(
-            text = valueText(currentValue),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(80.dp)
-        )
-
-        IconButton(
-            enabled = currentValue != values.last(),
-            onClick = {
-                onValueUpdate(values[values.indexOf(currentValue) + 1])
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.add),
-                contentDescription = null
-            )
         }
     }
 }

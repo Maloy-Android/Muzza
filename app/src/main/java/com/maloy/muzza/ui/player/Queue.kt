@@ -95,6 +95,7 @@ import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import com.maloy.muzza.ui.component.PlayerSliderTrack
+import com.maloy.muzza.ui.menu.MediaMetadataMenu
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.menu.QueueSelectionMenu
 import com.maloy.muzza.utils.joinByBullet
@@ -254,7 +255,7 @@ fun Queue(
                             PlayerMenu(
                                 mediaMetadata = mediaMetadata,
                                 navController = navController,
-                                playerBottomSheetState = playerBottomSheetState,
+                                bottomSheetState = playerBottomSheetState,
                                 onShowDetailsDialog = { showDetailsDialog = true },
                                 onDismiss = menuState::dismiss
                             )
@@ -370,15 +371,11 @@ fun Queue(
                                     IconButton(
                                         onClick = {
                                             menuState.show {
-                                                PlayerMenu(
-                                                    mediaMetadata = window.mediaItem.metadata,
+                                                MediaMetadataMenu(
+                                                    mediaMetadata = window.mediaItem.metadata!!,
                                                     navController = navController,
-                                                    playerBottomSheetState = playerBottomSheetState,
-                                                    isTriggeredFromQueue = true,
-                                                    onDismiss = {
-                                                        menuState.dismiss()
-                                                        state.collapseSoft()
-                                                    },
+                                                    bottomSheetState = state,
+                                                    onDismiss = menuState::dismiss,
                                                 )
                                             }
                                         }

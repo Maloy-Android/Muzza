@@ -18,7 +18,7 @@
     <string name="mood_and_genres">Humor e Gêneros</string>
     <string name="account">Conta</string>
     <string name="quick_picks">Escolhas rápidas</string>
-    <string name="quick_picks_empty">Escute mais para gerar suas escolhas rápidas</string>
+    <string name="quick_picks_empty">Escute à mais música para gerar suas escolhas rápidas</string>
     <string name="new_release_albums">Novos álbuns lançados</string>
     <!-- History -->
     <string name="today">Hoje</string>
@@ -229,9 +229,9 @@
     <string name="clear_song_cache">Limpar a cache de músicas</string>
     <string name="size_used">%s usados</string>
     <string name="privacy">Privacidade</string>
-    <string name="pause_listen_history">Pausar o histórico</string>
-    <string name="clear_listen_history">Limpar o histórico</string>
-    <string name="clear_listen_history_confirm">Você tem certeza que deseja limpar todo o histórico?</string>
+    <string name="pause_listen_history">Pausar o histórico de escuta</string>
+    <string name="clear_listen_history">Limpar o histórico de escuta</string>
+    <string name="clear_listen_history_confirm">Você tem certeza que deseja limpar todo o histórico de escuta?</string>
     <string name="pause_search_history">Pausar histórico de pesquisa</string>
     <string name="clear_search_history">Limpar histórico de pesquisa</string>
     <string name="clear_search_history_confirm">Tem certeza que deseja limpar todo o seu histórico de pesquisa?</string>
@@ -265,11 +265,45 @@
     <string name="logout">Sair</string>
     <string name="enable_discord_rpc">Ativar Rich Presence</string>
     <string name="not_logged_in">Não logado</string>
-    <string name="discord_information">Você pode fazer login com segurança. O Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
+    <string name="discord_information">O Muzza usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco.
+\n
+\nO Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
     <string name="sided">Ao lado</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>
     <string name="player_slider_style">Estilo do slider do reprodutor</string>
     <string name="default_">Padrão</string>
     <string name="squiggly">Cobrinha</string>
+    <string name="your_youtube_playlists">Suas playlists do YouTube</string>
+    <string name="action_like_all">Curtir tudo</string>
+    <string name="action_remove_like_all">Remover todos os likes</string>
+    <string name="grid_cell_size">Tamanho da célula da grade</string>
+    <string name="auto_load_more_desc">Adicionar mais músicas automaticamente quando o fim da fila é atingido, se possível</string>
+    <string name="listen_history">Histórico de escuta</string>
+    <string name="disable_screenshot">Desativar capturas de tela</string>
+    <string name="similar_to">Parecido com</string>
+    <string name="library_song_empty">Músicas da biblioteca aparecerão aqui</string>
+    <string name="library_artist_empty">Artistas da biblioteca aparecerão aqui</string>
+    <string name="library_album_empty">Álbuns da biblioteca aparecerão aqui</string>
+    <string name="other_versions">Outras versões</string>
+    <string name="keep_listening">Continue ouvindo</string>
+    <string name="add_all_to_library">Adicionar tudo à biblioteca</string>
+    <string name="remove_from_queue">Remover da fila</string>
+    <string name="tempo_and_pitch">Tempo e Tom</string>
+    <string name="player">Reprodutor</string>
+    <string name="misc">Outros</string>
+    <string name="small">Pequeno</string>
+    <string name="big">Grande</string>
+    <string name="queue">Fila</string>
+    <string name="persistent_queue_desc">Restaurar sua última fila ao iniciar o app</string>
+    <string name="auto_load_more">Tocar mais músicas automaticamente</string>
+    <string name="auto_skip_next_on_error">Pular automaticamente para a próxima música quando um erro ocorre</string>
+    <string name="auto_skip_next_on_error_desc">Garanta uma experiência de reprodução contínua</string>
+    <string name="stop_music_on_task_clear">Parar música ao remover dos apps recentes</string>
+    <string name="search_history">Histórico de pesquisa</string>
+    <string name="disable_screenshot_desc">Quando esta opção está ativada, as capturas de tela e a visualização do app nos recentes são desativadas.</string>
+    <string name="forgotten_favorites">Favoritos esquecidos</string>
+    <string name="library_playlist_empty">Suas playlists aparecerão aqui</string>
+    <string name="theme">Tema</string>
+    <string name="remove_all_from_library">Remover tudo da biblioteca</string>
 </resources>

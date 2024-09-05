@@ -7,15 +7,19 @@ import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -29,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -96,7 +101,13 @@ fun ContentSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.home)
@@ -144,14 +155,38 @@ fun ContentSettings(
                 onClick = {
                     try {
                         context.startActivity(
-                            Intent(Settings.ACTION_APPLICATION_SETTINGS, Uri.parse("package:${context.packageName}")),
+                            Intent(
+                                Settings.ACTION_APPLICATION_SETTINGS,
+                                Uri.parse("package:${context.packageName}")
+                            ),
                         )
                     } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(context, R.string.intent_app_language_not_found, Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            context,
+                            R.string.intent_app_language_not_found,
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 },
             )
         }
+
+
+        Text(
+            text = "EXPERIMENTAL",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.secondary,
+            modifier = Modifier
+                .border(
+                    width = 1.dp,
+                    color = MaterialTheme.colorScheme.secondary,
+                    shape = CircleShape
+                )
+                .padding(
+                    horizontal = 6.dp,
+                    vertical = 2.dp
+                )
+        )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PreferenceEntry(
@@ -161,10 +196,17 @@ fun ContentSettings(
                 onClick = {
                     try {
                         context.startActivity(
-                            Intent(Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS, Uri.parse("package:${context.packageName}")),
+                            Intent(
+                                Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
+                                Uri.parse("package:${context.packageName}")
+                            ),
                         )
                     } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(context, R.string.intent_supported_links_not_found, Toast.LENGTH_LONG).show()
+                        Toast.makeText(
+                            context,
+                            R.string.intent_supported_links_not_found,
+                            Toast.LENGTH_LONG
+                        ).show()
                     }
                 },
             )

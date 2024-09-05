@@ -49,9 +49,9 @@ import com.maloy.muzza.constants.DefaultOpenTabKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
+import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
-import com.maloy.muzza.constants.PlayerTextAlignmentKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -77,7 +77,7 @@ fun AppearanceSettings(
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
-    val (playerTextAlignment, onPlayerTextAlignmentChange) = rememberEnumPreference(PlayerTextAlignmentKey, defaultValue = PlayerTextAlignment.CENTER)
+    val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(LyricsTextPositionKey, defaultValue = LyricsPosition.CENTER)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
@@ -252,24 +252,15 @@ fun AppearanceSettings(
         )
 
         EnumListPreference(
-            title = { Text(stringResource(R.string.player_text_alignment)) },
-            icon = {
-                Icon(
-                    painter = painterResource(
-                        when (playerTextAlignment) {
-                            PlayerTextAlignment.CENTER -> R.drawable.format_align_center
-                            PlayerTextAlignment.SIDED -> R.drawable.format_align_left
-                        }
-                    ),
-                    contentDescription = null
-                )
-            },
-            selectedValue = playerTextAlignment,
-            onValueSelected = onPlayerTextAlignmentChange,
+            title = { Text(stringResource(R.string.lyrics_text_position)) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
+            selectedValue = lyricsPosition,
+            onValueSelected = onLyricsPositionChange,
             valueText = {
                 when (it) {
-                    PlayerTextAlignment.SIDED -> stringResource(R.string.sided)
-                    PlayerTextAlignment.CENTER -> stringResource(R.string.center)
+                    LyricsPosition.LEFT -> stringResource(R.string.left)
+                    LyricsPosition.CENTER -> stringResource(R.string.center)
+                    LyricsPosition.RIGHT -> stringResource(R.string.right)
                 }
             }
         )
@@ -352,6 +343,6 @@ enum class NavigationTab {
     HOME, SONG, ARTIST, ALBUM, PLAYLIST
 }
 
-enum class PlayerTextAlignment {
-    SIDED, CENTER
+enum class LyricsPosition {
+    LEFT, CENTER, RIGHT
 }

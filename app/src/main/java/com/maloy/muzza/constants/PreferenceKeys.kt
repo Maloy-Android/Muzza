@@ -8,7 +8,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
-val PlayerTextAlignmentKey = stringPreferencesKey("playerTextAlignment")
+val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 

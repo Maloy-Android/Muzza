@@ -78,13 +78,10 @@ import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerHorizontalPadding
-import com.maloy.muzza.constants.PlayerTextAlignmentKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
-import com.maloy.muzza.db.entities.Event
-import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.models.MediaMetadata
@@ -96,7 +93,6 @@ import com.maloy.muzza.ui.component.ResizableIconButton
 import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.screens.settings.DarkMode
-import com.maloy.muzza.ui.screens.settings.PlayerTextAlignment
 import com.maloy.muzza.ui.theme.extractGradientColors
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -130,7 +126,6 @@ fun BottomSheetPlayer(
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-    val playerTextAlignment by rememberEnumPreference(PlayerTextAlignmentKey, PlayerTextAlignment.CENTER)
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
     val playbackState by playerConnection.playbackState.collectAsState()

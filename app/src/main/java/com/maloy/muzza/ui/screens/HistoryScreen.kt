@@ -4,9 +4,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.only
@@ -14,6 +16,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -41,6 +44,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -56,9 +60,12 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.EventWithSong
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
@@ -76,6 +83,7 @@ fun HistoryScreen(
     navController: NavController,
     viewModel: HistoryViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
@@ -142,101 +150,120 @@ fun HistoryScreen(
         }
     }
 
-    LazyColumn(
-        contentPadding = LocalPlayerAwareWindowInsets.current
-            .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
-            .union(WindowInsets.ime)
-            .asPaddingValues(),
-        modifier = Modifier.windowInsetsPadding(
-            LocalPlayerAwareWindowInsets.current
-                .only(WindowInsetsSides.Top)
-        )
-    ) {
-        filteredEventsMap.forEach { (dateAgo, events) ->
-            stickyHeader {
-                NavigationTitle(
-                    title = when (dateAgo) {
-                        DateAgo.Today -> stringResource(R.string.today)
-                        DateAgo.Yesterday -> stringResource(R.string.yesterday)
-                        DateAgo.ThisWeek -> stringResource(R.string.this_week)
-                        DateAgo.LastWeek -> stringResource(R.string.last_week)
-                        is DateAgo.Other -> dateAgo.date.format(DateTimeFormatter.ofPattern("yyyy/MM"))
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(MaterialTheme.colorScheme.surface)
-                )
-            }
+    val lazyListState = rememberLazyListState()
 
-            items(
-                items = events,
-                key = { it.event.id }
-            ) { event ->
-                val onCheckedChange: (Boolean) -> Unit = {
-                    if (it) {
-                        selection.add(event.event.id)
-                    } else {
-                        selection.remove(event.event.id)
-                    }
+    Box(Modifier.fillMaxSize()) {
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = LocalPlayerAwareWindowInsets.current
+                .only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom)
+                .union(WindowInsets.ime)
+                .asPaddingValues(),
+            modifier = Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current
+                    .only(WindowInsetsSides.Top)
+            )
+        ) {
+            filteredEventsMap.forEach { (dateAgo, events) ->
+                stickyHeader {
+                    NavigationTitle(
+                        title = when (dateAgo) {
+                            DateAgo.Today -> stringResource(R.string.today)
+                            DateAgo.Yesterday -> stringResource(R.string.yesterday)
+                            DateAgo.ThisWeek -> stringResource(R.string.this_week)
+                            DateAgo.LastWeek -> stringResource(R.string.last_week)
+                            is DateAgo.Other -> dateAgo.date.format(DateTimeFormatter.ofPattern("yyyy/MM"))
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(MaterialTheme.colorScheme.surface)
+                    )
                 }
 
-                SongListItem(
-                    song = event.song,
-                    isActive = event.song.id == mediaMetadata?.id,
-                    isPlaying = isPlaying,
-                    showInLibraryIcon = true,
-                    trailingContent = {
-                        if (inSelectMode) {
-                            Checkbox(
-                                checked = event.event.id in selection,
-                                onCheckedChange = onCheckedChange
-                            )
+                items(
+                    items = events,
+                    key = { it.event.id }
+                ) { event ->
+                    val onCheckedChange: (Boolean) -> Unit = {
+                        if (it) {
+                            selection.add(event.event.id)
                         } else {
-                            IconButton(
-                                onClick = {
-                                    menuState.show {
-                                        SongMenu(
-                                            originalSong = event.song,
-                                            event = event.event,
-                                            navController = navController,
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.more_vert),
-                                    contentDescription = null
-                                )
-                            }
+                            selection.remove(event.event.id)
                         }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            onClick = {
-                                if (inSelectMode) {
-                                    onCheckedChange(event.event.id !in selection)
-                                } else if (event.song.id == mediaMetadata?.id) {
-                                    playerConnection.player.togglePlayPause()
-                                } else {
-                                    playerConnection.playQueue(
-                                        YouTubeQueue.radio(event.song.toMediaMetadata())
+                    }
+
+                    SongListItem(
+                        song = event.song,
+                        isActive = event.song.id == mediaMetadata?.id,
+                        isPlaying = isPlaying,
+                        showInLibraryIcon = true,
+                        trailingContent = {
+                            if (inSelectMode) {
+                                Checkbox(
+                                    checked = event.event.id in selection,
+                                    onCheckedChange = onCheckedChange
+                                )
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = event.song,
+                                                event = event.event,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
                                     )
                                 }
-                            },
-                            onLongClick = {
-                                if (!inSelectMode) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    inSelectMode = true
-                                    onCheckedChange(true)
-                                }
                             }
-                        )
-                        .animateItem()
-                )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    if (inSelectMode) {
+                                        onCheckedChange(event.event.id !in selection)
+                                    } else if (event.song.id == mediaMetadata?.id) {
+                                        playerConnection.player.togglePlayPause()
+                                    } else {
+                                        playerConnection.playQueue(
+                                            YouTubeQueue.radio(event.song.toMediaMetadata())
+                                        )
+                                    }
+                                },
+                                onLongClick = {
+                                    if (!inSelectMode) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        inSelectMode = true
+                                        onCheckedChange(true)
+                                    }
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
             }
         }
+
+        HideOnScrollFAB(
+            visible = filteredEventsMap.isNotEmpty(),
+            lazyListState = lazyListState,
+            icon = R.drawable.shuffle,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = context.getString(R.string.history),
+                        items = filteredEventIndex.values.map { it.song.toMediaItem() }.shuffled(),
+                    )
+                )
+            }
+        )
     }
 
     TopAppBar(

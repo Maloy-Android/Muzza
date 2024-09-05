@@ -11,10 +11,10 @@
         <item quantity="other">已选择 %d 个项目</item>
     </plurals>
     <!-- Home -->
-    <string name="history">历史记录</string>
+    <string name="history">历史</string>
     <string name="stats">统计</string>
     <string name="mood_and_genres">情绪和流派</string>
-    <string name="account">Account</string>
+    <string name="account">账号</string>
     <string name="quick_picks">歌曲快选</string>
     <string name="quick_picks_empty">听一些歌曲来生成歌曲快选</string>
     <string name="new_release_albums">新专辑</string>
@@ -31,7 +31,7 @@
     <string name="search">搜索</string>
     <string name="search_yt_music">搜索 YouTube Music…</string>
     <string name="search_library">搜索媒体库…</string>
-    <string name="filter_library">库</string>
+    <string name="filter_library">媒体库</string>
     <string name="filter_liked">喜欢</string>
     <string name="filter_downloaded">已下载</string>
     <string name="filter_all">全部</string>
@@ -54,7 +54,7 @@
     <string name="retry">重试</string>
     <string name="radio">电台</string>
     <string name="shuffle">随机播放</string>
-    <string name="reset">Reset</string>
+    <string name="reset">重置</string>
     <!-- Menu -->
     <string name="details">详情</string>
     <string name="edit">编辑</string>
@@ -74,7 +74,7 @@
     <string name="refetch">刷新</string>
     <string name="share">分享</string>
     <string name="delete">移除</string>
-    <string name="remove_from_history">从记录中移除</string>
+    <string name="remove_from_history">从历史中移除</string>
     <string name="search_online">在线搜索</string>
     <string name="sync">同步</string>
     <string name="advanced">高级</string>
@@ -211,12 +211,12 @@
     <string name="clear_song_cache">清除歌曲缓存</string>
     <string name="size_used">已使用 %s</string>
     <string name="privacy">隐私</string>
-    <string name="pause_listen_history">暂停听歌记录</string>
+    <string name="pause_listen_history">暂停听歌历史</string>
     <string name="clear_listen_history">清除听歌历史</string>
-    <string name="clear_listen_history_confirm">你确定要清除所有听歌记录吗？</string>
-    <string name="pause_search_history">暂停搜索记录</string>
-    <string name="clear_search_history">清除搜索记录</string>
-    <string name="clear_search_history_confirm">您确定要清除所有搜索记录吗？</string>
+    <string name="clear_listen_history_confirm">是否确定要清除所有听歌历史？</string>
+    <string name="pause_search_history">暂停搜索历史</string>
+    <string name="clear_search_history">清除搜索历史</string>
+    <string name="clear_search_history_confirm">是否确定要清除所有搜索历史？</string>
     <string name="enable_kugou">使用酷狗音乐提供歌词</string>
     <string name="backup_restore">备份与还原</string>
     <string name="backup">备份</string>
@@ -232,4 +232,48 @@
     <string name="clear_translation_models">清除翻译模型</string>
     <string name="delete_playlist_confirm">是否确实要删除播放列表“%s”？</string>
     <string name="remove_download_playlist_confirm">您真的想从下载的歌曲存储中删除所有“%s”播放列表中的歌曲吗？</string>
+    <string name="your_youtube_playlists">您的 YouTube 播放列表</string>
+    <string name="other_versions">其他版本</string>
+    <string name="library_artist_empty">媒体库音乐人将显示在此处</string>
+    <string name="library_album_empty">媒体库专辑将显示在此处</string>
+    <string name="library_playlist_empty">您的播放列表将显示在此处</string>
+    <string name="add_anyway">仍要添加</string>
+    <string name="duplicates_description_multiple">%d 首歌曲已在您的播放列表中</string>
+    <string name="action_remove_like_all">移除全部喜欢</string>
+    <string name="theme">主题</string>
+    <string name="player">播放器</string>
+    <string name="player_text_alignment">播放器文本对齐</string>
+    <string name="default_">默认</string>
+    <string name="misc">杂项</string>
+    <string name="grid_cell_size">网格大小</string>
+    <string name="small">小</string>
+    <string name="big">大</string>
+    <string name="not_logged_in">未登录</string>
+    <string name="queue">排队</string>
+    <string name="hide_explicit">隐藏不适宜内容</string>
+    <string name="enable_lrclib">使用 LrcLib 提供歌词</string>
+    <string name="options">选项</string>
+    <string name="preview">预览</string>
+    <string name="login_failed">登录失败</string>
+    <string name="logout">登出</string>
+    <string name="discord_integration">Discord 集成</string>
+    <string name="enable_discord_rpc">启用 Rich Presence</string>
+    <string name="action_like_all">喜欢全部</string>
+    <string name="library_song_empty">媒体库歌曲将显示在此处</string>
+    <string name="duplicates_description_single">这首歌曲已在您的播放列表中</string>
+    <string name="dismiss">关闭</string>
+    <string name="player_slider_style">播放器滑块样式</string>
+    <string name="keep_listening">继续听</string>
+    <string name="add_all_to_library">全部添加到媒体库</string>
+    <string name="remove_all_from_library">全部从媒体库中移除</string>
+    <string name="remove_from_playlist">从播放列表中移除</string>
+    <string name="tempo_and_pitch">节奏和音调</string>
+    <string name="duplicates">重复项</string>
+    <string name="skip_duplicates">跳过重复项</string>
+    <string name="sided">靠边</string>
+    <string name="squiggly">波浪</string>
+    <string name="listen_history">听歌历史</string>
+    <string name="search_history">搜索历史</string>
+    <string name="disable_screenshot">禁用截屏</string>
+    <string name="disable_screenshot_desc">启用此选项后， 您无法截屏，也无法在“最近用过”中看到此应用的内容。</string>
 </resources>

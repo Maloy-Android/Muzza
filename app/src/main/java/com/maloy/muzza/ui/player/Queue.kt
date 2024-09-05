@@ -247,26 +247,6 @@ fun Queue(
                         contentDescription = null
                     )
                 }
-
-                IconButton(
-                    onClick = {
-                        menuState.show {
-                            PlayerMenu(
-                                mediaMetadata = mediaMetadata,
-                                navController = navController,
-                                bottomSheetState = playerBottomSheetState,
-                                onShowDetailsDialog = { showDetailsDialog = true },
-                                onDismiss = menuState::dismiss
-                            )
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.more_horiz),
-                        tint = onBackgroundColor,
-                        contentDescription = null
-                    )
-                }
             }
         }
     ) {

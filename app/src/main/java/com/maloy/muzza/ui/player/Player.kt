@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.player
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.core.LinearEasing
@@ -21,6 +22,7 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -69,6 +71,7 @@ import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.request.ImageRequest
+import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkModeKey
@@ -80,14 +83,18 @@ import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.db.entities.Event
+import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
+import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.ResizableIconButton
 import com.maloy.muzza.ui.component.rememberBottomSheetState
+import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.screens.settings.PlayerTextAlignment
 import com.maloy.muzza.ui.theme.extractGradientColors
@@ -109,6 +116,7 @@ fun BottomSheetPlayer(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
 
+    val menuState = LocalMenuState.current
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
@@ -186,6 +194,13 @@ fun BottomSheetPlayer(
         mutableStateOf<Long?>(null)
     }
 
+    var showDetailsDialog by remember { mutableStateOf(false) }
+    if (showDetailsDialog) {
+        DetailsDialog(
+            onDismiss = { showDetailsDialog = false }
+        )
+    }
+
     LaunchedEffect(playbackState) {
         if (playbackState == STATE_READY) {
             while (isActive) {
@@ -240,61 +255,111 @@ fun BottomSheetPlayer(
                 label = "playPauseRoundness"
             )
 
-            Text(
-                text = mediaMetadata.title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier
-                    .padding(horizontal = PlayerHorizontalPadding)
-                    .basicMarquee()
-                    .clickable(enabled = mediaMetadata.album != null) {
-                        navController.navigate("album/${mediaMetadata.album!!.id}")
-                        state.collapseSoft()
-                    }
-                    .align(
-                        when (playerTextAlignment) {
-                            PlayerTextAlignment.SIDED -> Alignment.Start
-                            PlayerTextAlignment.CENTER -> Alignment.CenterHorizontally
-                        },
-                    )
-            )
-
-            Spacer(Modifier.height(6.dp))
-
             Row(
-                horizontalArrangement = when (playerTextAlignment) {
-                    PlayerTextAlignment.SIDED -> Arrangement.Start
-                    PlayerTextAlignment.CENTER -> Arrangement.Center
-                },
+                horizontalArrangement = Arrangement.Start,
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
-                mediaMetadata.artists.fastForEachIndexed { index, artist ->
-                    Text(
-                        text = artist.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        maxLines = 1,
+                Row {
+                    Box(
                         modifier = Modifier
-                            .clickable(enabled = artist.id != null) {
-                                navController.navigate("artist/${artist.id}")
-                                state.collapseSoft()
-                            }
-                    )
-
-                    if (index != mediaMetadata.artists.lastIndex) {
+                            .weight(1f)
+                    ) {
                         Text(
-                            text = ", ",
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.secondary
+                            text = mediaMetadata.title,
+                            style = MaterialTheme.typography.titleLarge,
+                            color = onBackgroundColor,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier
+                                .basicMarquee(
+                                    iterations = 1,
+                                )
+                                .clickable(enabled = mediaMetadata.album != null) {
+                                    navController.navigate("album/${mediaMetadata.album!!.id}")
+                                    state.collapseSoft()
+                                }
+                        )
+
+                        Row(
+                            modifier = Modifier.offset(y = 25.dp)
+                        ) {
+                            mediaMetadata.artists.fastForEachIndexed { index, artist ->
+                                Text(
+                                    text = artist.name,
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = onBackgroundColor,
+                                    maxLines = 1,
+                                    modifier = Modifier.clickable(enabled = artist.id != null) {
+                                        navController.navigate("artist/${artist.id}")
+                                        state.collapseSoft()
+                                    }
+                                )
+
+                                if (index != mediaMetadata.artists.lastIndex) {
+                                    Text(
+                                        text = ", ",
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = onBackgroundColor
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(10.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .offset(y = 5.dp)
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        ResizableIconButton(
+                            icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(24.dp),
+                            onClick = playerConnection::toggleLike
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(7.dp))
+
+                    Box(
+                        modifier = Modifier
+                            .offset(y = 5.dp)
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        ResizableIconButton(
+                            icon = R.drawable.more_vert,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .size(24.dp)
+                                .align(Alignment.Center),
+                            onClick = {
+                                menuState.show {
+                                    PlayerMenu(
+                                        mediaMetadata = mediaMetadata,
+                                        navController = navController,
+                                        bottomSheetState = state,
+                                        onShowDetailsDialog = { showDetailsDialog = true },
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
                         )
                     }
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
+    Spacer(Modifier.height(12.dp))
 
             when (sliderStyle) {
                 SliderStyle.DEFAULT -> {
@@ -378,13 +443,16 @@ fun BottomSheetPlayer(
             ) {
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
-                        icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .padding(4.dp)
-                            .align(Alignment.Center),
-                        onClick = playerConnection::toggleLike
-                    )
+                        icon = R.drawable.share,
+                    ) {
+                        val intent =
+                            Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${mediaMetadata.id}")
+                            }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    }
                 }
 
                 Box(modifier = Modifier.weight(1f)) {

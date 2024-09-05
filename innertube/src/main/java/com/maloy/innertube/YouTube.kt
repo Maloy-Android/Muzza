@@ -440,29 +440,30 @@ object YouTube {
         val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
         val playlistPanelRenderer = response.continuationContents?.playlistPanelContinuation
             ?: response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer!!
+        val items = playlistPanelRenderer.contents.mapNotNull { content ->
+            content.playlistPanelVideoRenderer
+                ?.let(NextPage::fromPlaylistPanelVideoRenderer)
+                ?.let { it to content.playlistPanelVideoRenderer.selected }
+        }
+        val songs = items.map { it.first }
+        val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
         // load automix items
         playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.let { watchPlaylistEndpoint ->
             return@runCatching next(watchPlaylistEndpoint).getOrThrow().let { result ->
                 result.copy(
                     title = title,
-                    items = playlistPanelRenderer.contents.mapNotNull {
-                        it.playlistPanelVideoRenderer?.let { renderer ->
-                            NextPage.fromPlaylistPanelVideoRenderer(renderer)
-                        }
-                    } + result.items,
+                    items = songs + result.items,
                     lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
                     relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
-                    currentIndex = playlistPanelRenderer.currentIndex,
+                    currentIndex = currentIndex,
                     endpoint = watchPlaylistEndpoint
                 )
             }
         }
         NextResult(
             title = title,
-            items = playlistPanelRenderer.contents.mapNotNull {
-                it.playlistPanelVideoRenderer?.let(NextPage::fromPlaylistPanelVideoRenderer)
-            },
-            currentIndex = playlistPanelRenderer.currentIndex,
+            items = songs,
+            currentIndex = currentIndex,
             lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
             relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
             continuation = playlistPanelRenderer.continuations?.getContinuation(),

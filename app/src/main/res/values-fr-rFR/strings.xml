@@ -243,7 +243,7 @@
     <string name="backup_create_success">Sauvegarde créée avec succès</string>
     <string name="backup_create_failed">Impossible de créer la sauvegarde</string>
     <string name="restore_failed">Échec de la restauration de la sauvegarde</string>
-    <string name="about">À propos de</string>
+    <string name="about">À propos</string>
     <string name="app_version">Version de l\’application</string>
     <string name="new_version_available">Nouvelle version disponible</string>
     <string name="translation_models">Modèles de traduction</string>
@@ -267,4 +267,9 @@
     <string name="enable_discord_rpc">Activer la présence riche</string>
     <string name="login_failed">Échec de la connexion</string>
     <string name="delete_playlist_confirm">Souhaitez-vous vraiment supprimer la liste de lecture « %s » ?</string>
+    <string name="listen_history">Historique d\'écoute</string>
+    <string name="disable_screenshot">Désactiver les captures d\'écran</string>
+    <string name="search_history">Historique de recherche</string>
+    <string name="disable_screenshot_desc">Cette option désactive les captures d\'écran ainsi que la vu de l\'application dans le menu Récent.</string>
+    <string name="stop_music_on_task_clear">Arrêter la musique en fermant la page</string>
 </resources>

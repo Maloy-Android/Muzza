@@ -15,7 +15,7 @@
     <!-- Home -->
     <string name="history">Histórico</string>
     <string name="stats">Estatísticas</string>
-    <string name="mood_and_genres">Humor e Gêneros</string>
+    <string name="mood_and_genres">Momentos e Gêneros</string>
     <string name="account">Conta</string>
     <string name="quick_picks">Escolhas rápidas</string>
     <string name="quick_picks_empty">Escute à mais música para gerar suas escolhas rápidas</string>
@@ -77,7 +77,7 @@
     <string name="share">Compartilhar</string>
     <string name="delete">Excluir</string>
     <string name="remove_from_history">Remover do histórico</string>
-    <string name="search_online">Buscar online</string>
+    <string name="search_online">Pesquisar online</string>
     <string name="sync">Sincronizar</string>
     <string name="advanced">Avançado</string>
     <!-- Sort menu -->
@@ -85,7 +85,7 @@
     <string name="sort_by_name">Nome</string>
     <string name="sort_by_artist">Artista</string>
     <string name="sort_by_year">Ano</string>
-    <string name="sort_by_song_count">Quantidade de músicas</string>
+    <string name="sort_by_song_count">Número de músicas</string>
     <string name="sort_by_length">Duração</string>
     <string name="sort_by_play_time">Tempo de reprodução</string>
     <string name="sort_by_custom">Ordem customizada</string>
@@ -101,7 +101,7 @@
     <string name="unknown">Desconhecido</string>
     <string name="copied">Copiado para a área de transferência</string>
     <string name="edit_lyrics">Editar letras</string>
-    <string name="search_lyrics">Buscar letras</string>
+    <string name="search_lyrics">Pesquisar letras</string>
     <string name="edit_song">Editar música</string>
     <string name="song_title">Título da música</string>
     <string name="song_artists">Artistas da música</string>
@@ -220,13 +220,13 @@
     <string name="cache">Cache</string>
     <string name="image_cache">Cache de Imagens</string>
     <string name="song_cache">Cache de Músicas</string>
-    <string name="max_cache_size">Tamanho máximo da cache</string>
+    <string name="max_cache_size">Tamanho máximo do cache</string>
     <string name="unlimited">Ilimitado</string>
     <string name="clear_all_downloads">Limpar todos os downloads</string>
     <string name="max_image_cache_size">Tamanho máximo do cache de imagens</string>
     <string name="clear_image_cache">Limpar cache de imagens</string>
     <string name="max_song_cache_size">Tamanho máximo do cache de músicas</string>
-    <string name="clear_song_cache">Limpar a cache de músicas</string>
+    <string name="clear_song_cache">Limpar o cache de músicas</string>
     <string name="size_used">%s usados</string>
     <string name="privacy">Privacidade</string>
     <string name="pause_listen_history">Pausar o histórico de escuta</string>

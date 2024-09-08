@@ -9,9 +9,9 @@
     <!-- Top bar -->
     <plurals name="n_selected">
         <item quantity="one">%d zaznaczony</item>
-        <item quantity="few">%d zaznaczone</item>
-        <item quantity="many">%d zaznaczonych</item>
-        <item quantity="other">%d zaznaczonych</item>
+        <item quantity="few">%d zaznaczonych</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <!-- Home -->
     <string name="history">Historia</string>
@@ -120,45 +120,45 @@
     <!-- Noun -->
     <plurals name="n_song">
         <item quantity="one">%d utwór</item>
-        <item quantity="few">%d utwory</item>
-        <item quantity="many">%d utworów</item>
-        <item quantity="other">%d utworów</item>
+        <item quantity="few">%d utworów</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <plurals name="n_artist">
         <item quantity="one">%d wykonawca</item>
         <item quantity="few">%d wykonawców</item>
-        <item quantity="many">%d wykonawców</item>
-        <item quantity="other">%d wykonawców</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <plurals name="n_album">
         <item quantity="one">%d album</item>
-        <item quantity="few">%d albumy</item>
-        <item quantity="many">%d albumów</item>
-        <item quantity="other">%d albumów</item>
+        <item quantity="few">%d albumów</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <plurals name="n_playlist">
         <item quantity="one">%d playlista</item>
-        <item quantity="few">%d playlisty</item>
-        <item quantity="many">%d playlist</item>
-        <item quantity="other">%d playlist</item>
+        <item quantity="few">%d playlist</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <plurals name="n_week">
         <item quantity="one">%d tydzień</item>
-        <item quantity="few">%d tygodnie</item>
-        <item quantity="many">%d tygodni</item>
-        <item quantity="other">%d tygodni</item>
+        <item quantity="few">%d tygodni</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <plurals name="n_month">
         <item quantity="one">%d miesiąc</item>
-        <item quantity="few">%d miesiące</item>
-        <item quantity="many">%d miesięcy</item>
-        <item quantity="other">%d miesięcy</item>
+        <item quantity="few">%d miesięcy</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <plurals name="n_year">
         <item quantity="one">%d rok</item>
-        <item quantity="few">%d lata</item>
-        <item quantity="many">%d lat</item>
-        <item quantity="other">%d lat</item>
+        <item quantity="few">%d lat</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <!-- Snackbar -->
     <string name="playlist_imported">Playlista zaimportowana</string>
@@ -171,9 +171,9 @@
     <string name="end_of_song">Koniec utworu</string>
     <plurals name="minute">
         <item quantity="one">1 minuta</item>
-        <item quantity="few">%d minuty</item>
-        <item quantity="many">%d minut</item>
-        <item quantity="other">%d minut</item>
+        <item quantity="few">%d minut</item>
+        <item quantity="many"></item>
+        <item quantity="other"></item>
     </plurals>
     <string name="error_no_stream">Brak dostępnego źródła</string>
     <string name="error_no_internet">Brak połączenia z internetem</string>
@@ -257,4 +257,62 @@
     <string name="new_version_available">Dostępna nowa wersja</string>
     <string name="translation_models">Modele Tłumaczenia</string>
     <string name="clear_translation_models">Wyczyść modele tłumaczenia</string>
+    <string name="auto_skip_next_on_error_desc">Zapewnij ciągłość odtwarzania</string>
+    <string name="add_all_to_library">Dodaj wszystko do biblioteki</string>
+    <string name="big">Duży</string>
+    <string name="theme">Motyw</string>
+    <string name="queue">Kolejka</string>
+    <string name="persistent_queue_desc">Przywróć ostatnią kolejkę podczas uruchomienia aplikacji</string>
+    <string name="auto_load_more">Automatycznie załaduj więcej utworów</string>
+    <string name="auto_load_more_desc">Automatycznie dodaje więcej utworów, kiedy kolejka się skończy, jeśli to możliwe</string>
+    <string name="auto_skip_next_on_error">Automatycznie pomiń do następnego utworu, gdy wystąpi błąd</string>
+    <string name="stop_music_on_task_clear">Zatrzymywanie muzyki po wykonaniu zadania</string>
+    <string name="disable_screenshot_desc">Kiedy opcja jest aktywna, zrzuty ekranu i widok aplikacji na ekranie Ostatnie są wyłączone</string>
+    <string name="enable_lrclib">Pobieraj teksty utworów z LrcLib</string>
+    <string name="small">Mały</string>
+    <string name="action_like_all">Polub wszystkie</string>
+    <string name="default_">Domyślny</string>
+    <string name="remove_from_playlist">Usuń z playlisty</string>
+    <string name="remove_all_from_library">Usuń wszystko z biblioteki</string>
+    <string name="your_youtube_playlists">Twoje playlisty YouTube</string>
+    <string name="enable_discord_rpc">Włącz Rich Presence</string>
+    <string name="remove_from_queue">Usuń z kolejki</string>
+    <string name="login_failed">Błąd logowania</string>
+    <string name="similar_to">Podobne do</string>
+    <string name="library_playlist_empty">Twoje playlisty pojawią się tutaj</string>
+    <string name="other_versions">Inne wersje</string>
+    <string name="duplicates_description_single">Utwór jest już obecny w Twojej playliście</string>
+    <string name="action_remove_like_all">Usuń wszystkie polubienia</string>
+    <string name="player_text_alignment">Wyrównanie tekstu odtwarzacza</string>
+    <string name="sided">Z boku</string>
+    <string name="squiggly">Falisty</string>
+    <string name="forgotten_favorites">Zapomniane ulubione</string>
+    <string name="keep_listening">Słuchaj dalej</string>
+    <string name="library_song_empty">Utwory z biblioteki pojawią się tutaj</string>
+    <string name="library_artist_empty">Artyści z biblioteki pojawią się tutaj</string>
+    <string name="library_album_empty">Albumy z biblioteki pojawią się tutaj</string>
+    <string name="remove_download_playlist_confirm">Czy na pewno chcesz usunąć wszystkie utwory playlisty \"%s\" z Pobranych Utworów?</string>
+    <string name="delete_playlist_confirm">Czy na pewno chcesz usunąć playlistę \"%s\"?</string>
+    <string name="tempo_and_pitch">Tempo i Wysokość</string>
+    <string name="duplicates">Duplikaty</string>
+    <string name="skip_duplicates">Pomiń duplikaty</string>
+    <string name="add_anyway">Dodaj mimo wszystko</string>
+    <string name="duplicates_description_multiple">%d utwory są już obecne w Twojej playliście</string>
+    <string name="player">Odtwarzacz</string>
+    <string name="player_slider_style">Styl suwaka odtwarzacza</string>
+    <string name="misc">Różne</string>
+    <string name="grid_cell_size">Rozmiar komórki siatki</string>
+    <string name="not_logged_in">Nie zalogowano</string>
+    <string name="listen_history">Słuchaj historii</string>
+    <string name="search_history">Szukaj w historii</string>
+    <string name="disable_screenshot">Wyłącz zrzut ekranu</string>
+    <string name="hide_explicit">Ukryj wulgarne treści</string>
+    <string name="discord_integration">Integracja z Discordem</string>
+    <string name="discord_information">InnerTune korzysta z biblioteki KizzyRPC, aby móc ustawić status Twojego konta Discord. Wiąże się to z wykorzystaniem połączenia Discord Gateway, co może być uznane za naruszenie Warunków korzystania z usługi Discord. Nie ma jednak znanych przypadków zawieszania kont użytkowników z tego powodu. Używasz na własne ryzyko.
+\n
+\nInnerTune wyodrębni tylko Twój token, a wszystkie inne dane będą przechowywane lokalnie.</string>
+    <string name="dismiss">Odrzuć</string>
+    <string name="options">Opcje</string>
+    <string name="preview">Podgląd</string>
+    <string name="logout">Wyloguj</string>
 </resources>

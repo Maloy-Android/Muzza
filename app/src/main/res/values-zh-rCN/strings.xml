@@ -66,20 +66,20 @@
     <string name="remove_from_library">从媒体库中移除</string>
     <string name="download">下载</string>
     <string name="downloading">正在下载</string>
-    <string name="remove_download">删除下载</string>
+    <string name="remove_download">移除下载</string>
     <string name="import_playlist">导入播放列表</string>
     <string name="add_to_playlist">加入播放列表</string>
     <string name="view_artist">浏览音乐人</string>
     <string name="view_album">浏览专辑</string>
     <string name="refetch">刷新</string>
     <string name="share">分享</string>
-    <string name="delete">移除</string>
+    <string name="delete">删除</string>
     <string name="remove_from_history">从历史中移除</string>
     <string name="search_online">在线搜索</string>
     <string name="sync">同步</string>
     <string name="advanced">高级</string>
     <!-- Sort menu -->
-    <string name="sort_by_create_date">新建时间</string>
+    <string name="sort_by_create_date">添加日期</string>
     <string name="sort_by_name">名称</string>
     <string name="sort_by_artist">音乐人</string>
     <string name="sort_by_year">年份</string>
@@ -137,8 +137,8 @@
         <item quantity="other">%d 年</item>
     </plurals>
     <!-- Snackbar -->
-    <string name="playlist_imported">已导入此播放列表</string>
-    <string name="removed_song_from_playlist">已从播放列表中删除“%s”</string>
+    <string name="playlist_imported">播放列表已导入</string>
+    <string name="removed_song_from_playlist">已从播放列表中移除“%s”</string>
     <string name="playlist_synced">播放列表已同步</string>
     <string name="undo">撤销</string>
     <!-- Player -->
@@ -155,8 +155,8 @@
     <!-- Player action -->
     <string name="action_like">喜欢</string>
     <string name="action_remove_like">取消喜欢</string>
-    <string name="action_shuffle_on">乱序播放开启</string>
-    <string name="action_shuffle_off">乱序播放关闭</string>
+    <string name="action_shuffle_on">随机播放打开</string>
+    <string name="action_shuffle_off">随机播放关闭</string>
     <string name="repeat_mode_off">循环播放关闭</string>
     <string name="repeat_mode_one">循环播放当前歌曲</string>
     <string name="repeat_mode_all">循环播放队列</string>
@@ -176,14 +176,14 @@
     <string name="pure_black">纯黑</string>
     <string name="default_open_tab">默认启动选项卡</string>
     <string name="customize_navigation_tabs">自定义导航选项卡</string>
-    <string name="lyrics_text_position">歌词文字位置</string>
+    <string name="lyrics_text_position">歌词文本位置</string>
     <string name="left">靠左</string>
-    <string name="center">置中</string>
+    <string name="center">居中</string>
     <string name="right">靠右</string>
     <string name="content">内容</string>
     <string name="login">登录</string>
     <string name="content_language">默认内容语言</string>
-    <string name="content_country">默认内容国家</string>
+    <string name="content_country">默认内容国家/地区</string>
     <string name="system_default">系统默认</string>
     <string name="enable_proxy">启用代理</string>
     <string name="proxy_type">代理类型</string>
@@ -230,8 +230,8 @@
     <string name="new_version_available">有新版本</string>
     <string name="translation_models">翻译模型</string>
     <string name="clear_translation_models">清除翻译模型</string>
-    <string name="delete_playlist_confirm">是否确实要删除播放列表“%s”？</string>
-    <string name="remove_download_playlist_confirm">您真的想从下载的歌曲存储中删除所有“%s”播放列表中的歌曲吗？</string>
+    <string name="delete_playlist_confirm">是否确定要删除播放列表“%s”？</string>
+    <string name="remove_download_playlist_confirm">是否确定要从已下载的歌曲存储中移除所有“%s”播放列表歌曲？</string>
     <string name="your_youtube_playlists">您的 YouTube 播放列表</string>
     <string name="other_versions">其他版本</string>
     <string name="library_artist_empty">媒体库音乐人将显示在此处</string>
@@ -249,7 +249,7 @@
     <string name="small">小</string>
     <string name="big">大</string>
     <string name="not_logged_in">未登录</string>
-    <string name="queue">排队</string>
+    <string name="queue">播放队列</string>
     <string name="hide_explicit">隐藏不适宜内容</string>
     <string name="enable_lrclib">使用 LrcLib 提供歌词</string>
     <string name="options">选项</string>
@@ -264,7 +264,7 @@
     <string name="dismiss">关闭</string>
     <string name="player_slider_style">播放器滑块样式</string>
     <string name="keep_listening">继续听</string>
-    <string name="add_all_to_library">全部添加到媒体库</string>
+    <string name="add_all_to_library">全部加入媒体库</string>
     <string name="remove_all_from_library">全部从媒体库中移除</string>
     <string name="remove_from_playlist">从播放列表中移除</string>
     <string name="tempo_and_pitch">节奏和音调</string>
@@ -276,4 +276,16 @@
     <string name="search_history">搜索历史</string>
     <string name="disable_screenshot">禁用截屏</string>
     <string name="disable_screenshot_desc">启用此选项后， 您无法截屏，也无法在“最近用过”中看到此应用的内容。</string>
+    <string name="remove_from_queue">从播放队列中移除</string>
+    <string name="auto_skip_next_on_error_desc">确保您的连续播放体验</string>
+    <string name="forgotten_favorites">重温最爱</string>
+    <string name="similar_to">类似风格</string>
+    <string name="persistent_queue_desc">应用启动时还原上次的播放队列</string>
+    <string name="auto_load_more">自动加载更多歌曲</string>
+    <string name="auto_load_more_desc">如果可能，在播放队列快结束时自动添加更多歌曲</string>
+    <string name="auto_skip_next_on_error">发生错误时自动跳到下一首歌曲</string>
+    <string name="stop_music_on_task_clear">任务清除时停止音乐</string>
+    <string name="discord_information">InnerTune 使用 KizzyRPC 库来设置您的 Discord 账号的状态。这会用到 Discord 网关连接，可能会违反 Discord 的服务条款。不过，目前还没有因此原因暂停用户账号的情况。使用风险自负。
+\n
+\nInnerTune 只提取您的令牌，其他内容都存储在本地。</string>
 </resources>

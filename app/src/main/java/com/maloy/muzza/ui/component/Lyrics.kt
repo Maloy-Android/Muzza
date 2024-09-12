@@ -1,6 +1,8 @@
 package com.maloy.muzza.ui.component
 
+import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
@@ -16,9 +18,10 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -38,6 +41,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -46,11 +50,13 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.LyricsTextPositionKey
-import com.maloy.muzza.constants.TranslateLyricsKey
+import com.maloy.muzza.constants.PlayerBackgroundStyle
+import com.maloy.muzza.constants.PlayerBackgroundStyleKey
+import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.lyrics.LyricsEntry
 import com.maloy.muzza.lyrics.LyricsEntry.Companion.HEAD_LYRICS_ENTRY
@@ -59,6 +65,7 @@ import com.maloy.muzza.lyrics.LyricsUtils.parseLyrics
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.LyricsMenu
+import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.screens.settings.LyricsPosition
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -75,16 +82,21 @@ fun Lyrics(
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
     val density = LocalDensity.current
+    var showLyrics by rememberPreference(ShowLyricsKey, false)
+    val landscapeOffset = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
-    var translationEnabled by rememberPreference(TranslateLyricsKey, false)
 
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val translating by playerConnection.translating.collectAsState()
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
-    val lyrics = remember(lyricsEntity, translating) {
-        if (translating) null
-        else lyricsEntity?.lyrics
+    val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.trim() }
+
+    val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+
+    val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val isSystemInDarkTheme = isSystemInDarkTheme()
+    val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
+        if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
     }
 
     val lines = remember(lyrics) {
@@ -94,6 +106,15 @@ fun Lyrics(
     }
     val isSynced = remember(lyrics) {
         !lyrics.isNullOrEmpty() && lyrics.startsWith("[")
+    }
+
+    val textColor = when (playerBackground) {
+        PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
+        else ->
+            if (useDarkTheme)
+                MaterialTheme.colorScheme.onSurface
+            else
+                MaterialTheme.colorScheme.onPrimary
     }
 
     var currentLineIndex by remember {
@@ -137,14 +158,32 @@ fun Lyrics(
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(currentLineIndex, lastPreviewTime) {
+        /**
+         * Count number of new lines in a lyric
+         */
+        fun countNewLine(str: String) = str.count { it == '\n' }
+
+        /**
+         * Calculate the lyric offset Based on how many lines (\n chars)
+         */
+        fun calculateOffset() = with(density) {
+            if (landscapeOffset) {
+                16.dp.toPx().toInt() * countNewLine(lines[currentLineIndex].text) // landscape sits higher by default
+            } else {
+                20.dp.toPx().toInt() * countNewLine(lines[currentLineIndex].text)
+            }
+        }
+
         if (!isSynced) return@LaunchedEffect
         if (currentLineIndex != -1) {
             deferredCurrentLineIndex = currentLineIndex
             if (lastPreviewTime == 0L) {
                 if (isSeeking) {
-                    lazyListState.scrollToItem(currentLineIndex, with(density) { 36.dp.toPx().toInt() })
+                    lazyListState.scrollToItem(currentLineIndex,
+                        with(density) { 36.dp.toPx().toInt() } + calculateOffset())
                 } else {
-                    lazyListState.animateScrollToItem(currentLineIndex, with(density) { 36.dp.toPx().toInt() })
+                    lazyListState.animateScrollToItem(currentLineIndex,
+                        with(density) { 36.dp.toPx().toInt() } + calculateOffset())
                 }
             }
         }
@@ -166,12 +205,19 @@ fun Lyrics(
                 .fadingEdge(vertical = 64.dp)
                 .nestedScroll(remember {
                     object : NestedScrollConnection {
-                        override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset {
+                        override fun onPostScroll(
+                            consumed: Offset,
+                            available: Offset,
+                            source: NestedScrollSource
+                        ): Offset {
                             lastPreviewTime = System.currentTimeMillis()
                             return super.onPostScroll(consumed, available, source)
                         }
 
-                        override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+                        override suspend fun onPostFling(
+                            consumed: Velocity,
+                            available: Velocity
+                        ): Velocity {
                             lastPreviewTime = System.currentTimeMillis()
                             return super.onPostFling(consumed, available)
                         }
@@ -180,7 +226,7 @@ fun Lyrics(
         ) {
             val displayedCurrentLineIndex = if (isSeeking) deferredCurrentLineIndex else currentLineIndex
 
-            if (lyrics == null || translating) {
+            if (lyrics == null) {
                 item {
                     ShimmerHost {
                         repeat(10) {
@@ -206,7 +252,7 @@ fun Lyrics(
                     Text(
                         text = item.text,
                         fontSize = 20.sp,
-                        color = if (index == displayedCurrentLineIndex) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.secondary,
+                        color = textColor,
                         textAlign = when (lyricsTextPosition) {
                             LyricsPosition.LEFT -> TextAlign.Left
                             LyricsPosition.CENTER -> TextAlign.Center
@@ -250,20 +296,15 @@ fun Lyrics(
                     .align(Alignment.BottomEnd)
                     .padding(end = 12.dp)
             ) {
-                if (BuildConfig.FLAVOR != "foss") {
-                    IconButton(
-                        onClick = {
-                            translationEnabled = !translationEnabled
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.translate),
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = if (translationEnabled) 1f else 0.3f)
-                        )
-                    }
+                IconButton(
+                    onClick = { showLyrics = false }
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.Close,
+                        contentDescription = null,
+                        tint = textColor
+                    )
                 }
-
                 IconButton(
                     onClick = {
                         menuState.show {
@@ -276,8 +317,9 @@ fun Lyrics(
                     }
                 ) {
                     Icon(
-                        painter = painterResource(id = R.drawable.more_horiz),
-                        contentDescription = null
+                        painterResource(id = R.drawable.more_horiz),
+                        contentDescription = null,
+                        tint = textColor
                     )
                 }
             }

@@ -84,6 +84,7 @@ import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
+import com.maloy.muzza.extensions.toggleShuffleMode
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
@@ -246,8 +247,8 @@ fun BottomSheetPlayer(
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             val playPauseRoundness by animateDpAsState(
                 targetValue = if (isPlaying) 24.dp else 36.dp,
-                animationSpec = tween(durationMillis = 100, easing = LinearEasing),
-                label = "playPauseRoundness"
+                animationSpec = tween(durationMillis = 90, easing = LinearEasing),
+                label = "playPauseRoundness",
             )
 
             Row(
@@ -436,18 +437,17 @@ fun BottomSheetPlayer(
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
+                val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(
-                        icon = R.drawable.share,
-                    ) {
-                        val intent =
-                            Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${mediaMetadata.id}")
-                            }
-                        context.startActivity(Intent.createChooser(intent, null))
-                    }
+                        icon = R.drawable.shuffle,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .padding(4.dp)
+                            .align(Alignment.Center)
+                            .alpha(if (shuffleModeEnabled) 1f else 0.5f),
+                        onClick = playerConnection.player::toggleShuffleMode
+                    )
                 }
 
                 Box(modifier = Modifier.weight(1f)) {

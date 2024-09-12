@@ -39,6 +39,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
@@ -47,6 +48,7 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -149,34 +151,6 @@ fun Queue(
         BackHandler(onBack = onExitSelectionMode)
     }
 
-    val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
-        playerConnection.service.sleepTimer.isActive
-    }
-
-    var sleepTimerTimeLeft by remember {
-        mutableLongStateOf(0L)
-    }
-
-    LaunchedEffect(sleepTimerEnabled) {
-        if (sleepTimerEnabled) {
-            while (isActive) {
-                sleepTimerTimeLeft = if (playerConnection.service.sleepTimer.pauseWhenSongEnd) {
-                    playerConnection.player.duration - playerConnection.player.currentPosition
-                } else {
-                    playerConnection.service.sleepTimer.triggerTime - System.currentTimeMillis()
-                }
-                delay(1000L)
-            }
-        }
-    }
-
-    var showSleepTimerDialog by remember { mutableStateOf(false) }
-    if (showSleepTimerDialog) {
-        SleepTimerDialog(
-            onDismiss = { showSleepTimerDialog = false }
-        )
-    }
-
     var showDetailsDialog by remember { mutableStateOf(false) }
     if (showDetailsDialog) {
         DetailsDialog(
@@ -186,7 +160,13 @@ fun Queue(
 
     BottomSheet(
         state = state,
-        brushBackgroundColor = Brush.verticalGradient(listOf(backgroundColor, backgroundColor)),
+        brushBackgroundColor =
+        Brush.verticalGradient(
+            listOf(
+                Color.Unspecified,
+                Color.Unspecified,
+            )
+        ),
         modifier = modifier,
         collapsedContent = {
             Row(
@@ -197,54 +177,13 @@ fun Queue(
                     .windowInsetsPadding(
                         WindowInsets.systemBars
                             .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                    )
+                        )
             ) {
                 IconButton(onClick = { state.expandSoft() }) {
                     Icon(
-                        painter = painterResource(R.drawable.queue_music),
-                        tint = onBackgroundColor,
-                        contentDescription = null
-                    )
-                }
-
-                IconButton(onClick = { showLyrics = !showLyrics }) {
-                    Icon(
-                        painter = painterResource(R.drawable.lyrics),
+                        painter = painterResource(R.drawable.expand_less),
                         tint = onBackgroundColor,
                         contentDescription = null,
-                        modifier = Modifier.alpha(if (showLyrics) 1f else 0.5f)
-                    )
-                }
-
-                AnimatedContent(
-                    label = "sleepTimer",
-                    targetState = sleepTimerEnabled
-                ) { sleepTimerEnabled ->
-                    if (sleepTimerEnabled) {
-                        Text(
-                            text = makeTimeString(sleepTimerTimeLeft),
-                            style = MaterialTheme.typography.labelLarge,
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(50))
-                                .clickable(onClick = playerConnection.service.sleepTimer::clear)
-                                .padding(8.dp)
-                        )
-                    } else {
-                        IconButton(onClick = { showSleepTimerDialog = true }) {
-                            Icon(
-                                painter = painterResource(R.drawable.bedtime),
-                                tint = onBackgroundColor,
-                                contentDescription = null
-                            )
-                        }
-                    }
-                }
-
-                IconButton(onClick = playerConnection::toggleLibrary) {
-                    Icon(
-                        painter = painterResource(if (currentSong?.song?.inLibrary != null) R.drawable.library_add_check else R.drawable.library_add),
-                        tint = onBackgroundColor,
-                        contentDescription = null
                     )
                 }
             }
@@ -410,7 +349,9 @@ fun Queue(
                                                 if (index == currentWindowIndex) {
                                                     playerConnection.player.togglePlayPause()
                                                 } else {
-                                                    playerConnection.player.seekToDefaultPosition(window.firstPeriodIndex)
+                                                    playerConnection.player.seekToDefaultPosition(
+                                                        window.firstPeriodIndex
+                                                    )
                                                     playerConnection.player.playWhenReady = true
                                                 }
                                             }

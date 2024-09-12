@@ -256,6 +256,12 @@ fun Queue(
             }
         }
 
+        Box(
+            modifier =
+            Modifier
+                .fillMaxSize()
+                .background(backgroundColor),
+        ) {
         LazyColumn(
             state = lazyListState,
             contentPadding = WindowInsets.systemBars
@@ -436,6 +442,7 @@ fun Queue(
                                 overflow = TextOverflow.Ellipsis
                             )
                         }
+                    }
 
                         Text(
                             text = joinByBullet(pluralStringResource(R.plurals.n_song, queueWindows.size, queueWindows.size), makeTimeString(queueLength * 1000L)),

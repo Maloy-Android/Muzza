@@ -308,9 +308,9 @@
     <string name="disable_screenshot">Wyłącz zrzut ekranu</string>
     <string name="hide_explicit">Ukryj wulgarne treści</string>
     <string name="discord_integration">Integracja z Discordem</string>
-    <string name="discord_information">InnerTune korzysta z biblioteki KizzyRPC, aby móc ustawić status Twojego konta Discord. Wiąże się to z wykorzystaniem połączenia Discord Gateway, co może być uznane za naruszenie Warunków korzystania z usługi Discord. Nie ma jednak znanych przypadków zawieszania kont użytkowników z tego powodu. Używasz na własne ryzyko.
+    <string name="discord_information">Muzza korzysta z biblioteki KizzyRPC, aby móc ustawić status Twojego konta Discord. Wiąże się to z wykorzystaniem połączenia Discord Gateway, co może być uznane za naruszenie Warunków korzystania z usługi Discord. Nie ma jednak znanych przypadków zawieszania kont użytkowników z tego powodu. Używasz na własne ryzyko.
 \n
-\nInnerTune wyodrębni tylko Twój token, a wszystkie inne dane będą przechowywane lokalnie.</string>
+\nMuzza wyodrębni tylko Twój token, a wszystkie inne dane będą przechowywane lokalnie.</string>
     <string name="dismiss">Odrzuć</string>
     <string name="options">Opcje</string>
     <string name="preview">Podgląd</string>

@@ -1,4 +1,4 @@
-¡La aplicación Music ahora se llama InnerTune!
+¡La aplicación Music ahora se llama Muzza!
 
 - Rediseño del reproductor
 - Rediseño de la cola

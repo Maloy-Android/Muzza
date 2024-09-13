@@ -31,10 +31,27 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import android.content.Context
+import android.content.res.Configuration
+import android.os.LocaleList
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
@@ -67,6 +84,7 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import java.net.Proxy
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -147,47 +165,6 @@ fun ContentSettings(
             onValueSelected = onContentCountryChange
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.app_language)) },
-                description = stringResource(R.string.configure_app_language),
-                icon = { Icon(painterResource(R.drawable.language), null) },
-                onClick = {
-                    try {
-                        context.startActivity(
-                            Intent(
-                                Settings.ACTION_APPLICATION_SETTINGS,
-                                Uri.parse("package:${context.packageName}")
-                            ),
-                        )
-                    } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(
-                            context,
-                            R.string.intent_app_language_not_found,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                },
-            )
-        }
-
-
-        Text(
-            text = "EXPERIMENTAL",
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier
-                .border(
-                    width = 1.dp,
-                    color = MaterialTheme.colorScheme.secondary,
-                    shape = CircleShape
-                )
-                .padding(
-                    horizontal = 6.dp,
-                    vertical = 2.dp
-                )
-        )
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PreferenceEntry(
                 title = { Text(stringResource(R.string.open_supported_links)) },
@@ -219,6 +196,12 @@ fun ContentSettings(
             onCheckedChange = onHideExplicitChange
         )
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.app_language),
+        )
+
+        LanguageSelector()
+
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_lrclib)) },
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
@@ -237,7 +220,7 @@ fun ContentSettings(
             title = { Text(stringResource(R.string.default_lyrics_provider)) },
             selectedValue = preferredProvider,
             values = listOf(PreferredLyricsProvider.KUGOU, PreferredLyricsProvider.LRCLIB),
-            valueText = { it.name.toLowerCase(Locale.current).capitalize(Locale.current) },
+            valueText = { it.name.toLowerCase(androidx.compose.ui.text.intl.Locale.current).capitalize(androidx.compose.ui.text.intl.Locale.current) },
             onValueSelected = onPreferredProviderChange
         )
 
@@ -291,4 +274,111 @@ fun ContentSettings(
         },
         scrollBehavior = scrollBehavior
     )
+}
+
+
+@Composable
+fun LanguageSelector() {
+    val context = LocalContext.current
+    // List of supported languages and their locale codes
+    val languages = listOf(
+        "Arabic" to "ar",
+        "Belarusian" to "be",
+        "Chinese Simplified" to "zh",
+        "Czech" to "cs",
+        "Dutch" to "nl",
+        "English" to "en",
+        "French" to "fr",
+        "German" to "de",
+        "Indonesian" to "id",
+        "Italian" to "it",
+        "Japanese" to "ja",
+        "Korean" to "ko",
+        "Portuguese, Brazilian" to "pt-BR",
+        "Russian" to "ru",
+        "Spanish" to "es",
+        "Turkish" to "tr",
+        "Ukrainian" to "uk",
+        "Vietnamese" to "vi"
+    )
+
+    // State to hold the currently selected language
+    var selectedLanguage by remember { mutableStateOf(languages[0].second) }
+    var expanded by remember { mutableStateOf(false) } // Dropdown expanded state
+
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+
+        ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+
+            // Dropdown button
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(48.dp),
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                onClick = { expanded = true },
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.translate),
+                    contentDescription = null
+                )
+            }
+
+
+            Box(
+                modifier = Modifier.padding(16.dp),
+                contentAlignment = Alignment.Center
+
+            )
+            {
+
+
+                // Dropdown menu for language selection
+                DropdownMenu(
+
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    modifier = Modifier
+                        .fillMaxWidth(0.8f)
+                        .background(MaterialTheme.colorScheme.background, shape = RoundedCornerShape(16.dp))
+                ) {
+                    languages.forEach { language ->
+                        DropdownMenuItem(
+                            text = { Text(text = language.first) },
+                            onClick = {
+                                selectedLanguage = language.second
+                                expanded = false
+                                updateLanguage(context, selectedLanguage)
+                            },
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+fun updateLanguage(context: Context, languageCode: String) {
+    val locale: Locale = if (languageCode.contains("-")) {
+        // Handle languages with regions like pt-BR
+        val parts = languageCode.split("-")
+        Locale(parts[0], parts[1])
+    } else {
+        Locale(languageCode)
+    }
+
+    val config = Configuration(context.resources.configuration)
+    config.setLocales(LocaleList(locale))
+
+    // Update the configuration
+    context.resources.updateConfiguration(config, context.resources.displayMetrics)
+
+    // Optionally, recreate the activity to apply the language change throughout the app
+    (context as? androidx.activity.ComponentActivity)?.recreate()
 }

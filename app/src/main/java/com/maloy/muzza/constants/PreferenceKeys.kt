@@ -13,7 +13,7 @@ val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 
 enum class SliderStyle {
-    DEFAULT, SQUIGGLY
+    DEFAULT, SQUIGGLY, COMPOSE
 }
 
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")

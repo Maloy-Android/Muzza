@@ -121,7 +121,11 @@ fun AppearanceSettings(
                         .aspectRatio(1f)
                         .weight(1f)
                         .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, if (sliderStyle == SliderStyle.DEFAULT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                        .border(
+                            1.dp,
+                            if (sliderStyle == SliderStyle.DEFAULT) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(16.dp)
+                        )
                         .clickable {
                             onSliderStyleChange(SliderStyle.DEFAULT)
                             showSliderOptionDialog = false
@@ -152,11 +156,6 @@ fun AppearanceSettings(
                                 )
                             }
                     )
-
-                    Text(
-                        text = stringResource(R.string.default_),
-                        style = MaterialTheme.typography.labelLarge
-                    )
                 }
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -165,7 +164,11 @@ fun AppearanceSettings(
                         .aspectRatio(1f)
                         .weight(1f)
                         .clip(RoundedCornerShape(16.dp))
-                        .border(1.dp, if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant, RoundedCornerShape(16.dp))
+                        .border(
+                            1.dp,
+                            if (sliderStyle == SliderStyle.SQUIGGLY) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(16.dp)
+                        )
                         .clickable {
                             onSliderStyleChange(SliderStyle.SQUIGGLY)
                             showSliderOptionDialog = false
@@ -183,10 +186,35 @@ fun AppearanceSettings(
                         },
                         modifier = Modifier.weight(1f)
                     )
-
-                    Text(
-                        text = stringResource(R.string.squiggly),
-                        style = MaterialTheme.typography.labelLarge
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    modifier = Modifier
+                        .aspectRatio(1f)
+                        .weight(1f)
+                        .clip(RoundedCornerShape(16.dp))
+                        .border(
+                            1.dp,
+                            if (sliderStyle == SliderStyle.COMPOSE) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable {
+                            onSliderStyleChange(SliderStyle.COMPOSE)
+                            showSliderOptionDialog = false
+                        }
+                        .padding(16.dp)
+                ) {
+                    var sliderValue by remember {
+                        mutableFloatStateOf(0.5f)
+                    }
+                    Slider(
+                        value = sliderValue,
+                        valueRange = 0f..1f,
+                        onValueChange = {
+                            sliderValue = it
+                        },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -277,6 +305,7 @@ fun AppearanceSettings(
             description = when (sliderStyle) {
                 SliderStyle.DEFAULT -> stringResource(R.string.default_)
                 SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
+                SliderStyle.COMPOSE -> stringResource(R.string.compose)
             },
             icon = { Icon(painterResource(R.drawable.sliders), null) },
             onClick = {

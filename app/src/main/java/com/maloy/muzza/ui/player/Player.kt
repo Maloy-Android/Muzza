@@ -288,7 +288,11 @@ fun BottomSheetPlayer(
                                     style = MaterialTheme.typography.titleMedium,
                                     color = onBackgroundColor,
                                     maxLines = 1,
-                                    modifier = Modifier.clickable(enabled = artist.id != null) {
+                                    modifier = Modifier
+                                        .basicMarquee(
+                                            iterations = 1,
+                                        )
+                                        .clickable(enabled = artist.id != null) {
                                         navController.navigate("artist/${artist.id}")
                                         state.collapseSoft()
                                     }

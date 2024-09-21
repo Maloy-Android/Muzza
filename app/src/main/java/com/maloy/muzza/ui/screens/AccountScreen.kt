@@ -31,6 +31,7 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
+import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.AccountViewModel
@@ -46,6 +47,8 @@ fun AccountScreen(
     val haptic = LocalHapticFeedback.current
 
     val coroutineScope = rememberCoroutineScope()
+
+    val albums by viewModel.albums.collectAsState()
 
     val playlists by viewModel.playlists.collectAsState()
 
@@ -71,6 +74,31 @@ fun AccountScreen(
                                 YouTubePlaylistMenu(
                                     playlist = item,
                                     coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
+                        }
+                    )
+            )
+        }
+
+        items(
+            items = albums.orEmpty(),
+            key = { it.id }
+        ) { item ->
+            YouTubeGridItem(
+                item = item,
+                fillMaxWidth = true,
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {
+                            navController.navigate("album/${item.id}")
+                        },
+                        onLongClick = {
+                            menuState.show {
+                                YouTubeAlbumMenu(
+                                    albumItem = item,
+                                    navController = navController,
                                     onDismiss = menuState::dismiss
                                 )
                             }

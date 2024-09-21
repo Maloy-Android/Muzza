@@ -32,6 +32,7 @@ import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
+import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.AccountViewModel
@@ -49,6 +50,8 @@ fun AccountScreen(
     val coroutineScope = rememberCoroutineScope()
 
     val albums by viewModel.albums.collectAsState()
+
+    val artists by viewModel.artists.collectAsState()
 
     val playlists by viewModel.playlists.collectAsState()
 
@@ -99,6 +102,30 @@ fun AccountScreen(
                                 YouTubeAlbumMenu(
                                     albumItem = item,
                                     navController = navController,
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
+                        }
+                    )
+            )
+        }
+
+        items(
+            items = artists.orEmpty(),
+            key = { it.id }
+        ) { item ->
+            YouTubeGridItem(
+                item = item,
+                fillMaxWidth = true,
+                modifier = Modifier
+                    .combinedClickable(
+                        onClick = {
+                            navController.navigate("artist/${item.id}")
+                        },
+                        onLongClick = {
+                            menuState.show {
+                                YouTubeArtistMenu(
+                                    artist = item,
                                     onDismiss = menuState::dismiss
                                 )
                             }

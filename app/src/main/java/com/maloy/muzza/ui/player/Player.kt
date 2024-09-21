@@ -289,11 +289,7 @@ fun BottomSheetPlayer(
                         }
 
                         Row(
-                            horizontalArrangement = Arrangement.Start,
-                            modifier =
-                            Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = PlayerHorizontalPadding),
+                            modifier = Modifier.offset(y = 25.dp)
                         ) {
                             mediaMetadata.artists.fastForEachIndexed { index, artist ->
                                 AnimatedContent(

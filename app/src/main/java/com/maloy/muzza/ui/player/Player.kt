@@ -3,9 +3,13 @@ package com.maloy.muzza.ui.player
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -262,48 +266,66 @@ fun BottomSheetPlayer(
                         modifier = Modifier
                             .weight(1f)
                     ) {
-                        Text(
-                            text = mediaMetadata.title,
-                            style = MaterialTheme.typography.titleLarge,
-                            color = onBackgroundColor,
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier
-                                .basicMarquee(
-                                    iterations = 1,
-                                )
-                                .clickable(enabled = mediaMetadata.album != null) {
-                                    navController.navigate("album/${mediaMetadata.album!!.id}")
-                                    state.collapseSoft()
-                                }
-                        )
+                        AnimatedContent(
+                            targetState = mediaMetadata.title,
+                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                            label = "",
+                        ) { title ->
+                            Text(
+                                text = title,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                color = onBackgroundColor,
+                                modifier =
+                                Modifier
+                                    .basicMarquee()
+                                    .clickable(enabled = mediaMetadata.album != null) {
+                                        navController.navigate("album/${mediaMetadata.album!!.id}")
+                                        state.collapseSoft()
+                                    },
+                            )
+                        }
 
                         Row(
-                            modifier = Modifier.offset(y = 25.dp)
+                            horizontalArrangement = Arrangement.Start,
+                            modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = PlayerHorizontalPadding),
                         ) {
                             mediaMetadata.artists.fastForEachIndexed { index, artist ->
-                                Text(
-                                    text = artist.name,
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = onBackgroundColor,
-                                    maxLines = 1,
-                                    modifier = Modifier
-                                        .basicMarquee(
-                                            iterations = 1,
-                                        )
-                                        .clickable(enabled = artist.id != null) {
-                                        navController.navigate("artist/${artist.id}")
-                                        state.collapseSoft()
-                                    }
-                                )
+                                AnimatedContent(
+                                    targetState = artist.name,
+                                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                    label = "",
+                                ) { name ->
+                                    Text(
+                                        text = name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = onBackgroundColor,
+                                        maxLines = 1,
+                                        modifier =
+                                        Modifier.clickable(enabled = artist.id != null) {
+                                            navController.navigate("artist/${artist.id}")
+                                            state.collapseSoft()
+                                        },
+                                    )
+                                }
 
                                 if (index != mediaMetadata.artists.lastIndex) {
-                                    Text(
-                                        text = ", ",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = onBackgroundColor
-                                    )
+                                    AnimatedContent(
+                                        targetState = ", ",
+                                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                        label = "",
+                                    ) { comma ->
+                                        Text(
+                                            text = comma,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = onBackgroundColor,
+                                        )
+                                    }
                                 }
                             }
                         }

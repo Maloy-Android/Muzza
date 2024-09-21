@@ -3,9 +3,11 @@ package com.maloy.muzza.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -33,18 +35,26 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -97,6 +107,7 @@ import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
 import kotlinx.coroutines.Dispatchers
@@ -321,6 +332,47 @@ fun HomeScreen(
                 lazyGridState = forgottenFavoritesLazyGridState,
                 positionInLayout = { layoutSize, itemSize ->
                     (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
+                }
+            )
+        }
+
+        val context = LocalContext.current
+        var showNoInternetDialog by remember { mutableStateOf(false) }
+
+        if (!isInternetAvailable(context)) {
+            showNoInternetDialog = true
+        }
+
+        // No Internet Dialog
+        if (showNoInternetDialog) {
+            AlertDialog(
+                onDismissRequest = { showNoInternetDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.signal_cellular_nodata),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.not_internet))
+                    }
+                },
+                text = { Text(stringResource(R.string.internet_required)) },
+                confirmButton = {},
+                dismissButton = {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Button(onClick = {
+
+                            navController.navigate("settings")
+                            showNoInternetDialog = false
+                        }) {
+                            Text(stringResource(R.string.settings))
+                        }
+                    }
                 }
             )
         }

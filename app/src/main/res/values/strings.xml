@@ -355,4 +355,7 @@
     <string name="appwidget_text">EXAMPLE</string>
     <string name="add_widget">Add widget</string>
     <string name="app_widget_description">Muzza</string>
+    <string name="not_internet">No Internet Connection</string>
+    <string name="internet_required">It looks like you have no Internet connection. Please check your network.</string>
+    <string name="downloadspage">Go to downloads</string>
 </resources>

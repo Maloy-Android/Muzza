@@ -135,6 +135,7 @@ enum class AlbumFilter {
 enum class PlayerBackgroundStyle {
     DEFAULT,
     GRADIENT,
+    BLUR,
 }
 
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")

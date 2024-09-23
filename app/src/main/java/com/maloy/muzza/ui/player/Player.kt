@@ -5,8 +5,13 @@ import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -57,6 +62,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
@@ -163,6 +169,12 @@ fun BottomSheetPlayer(
     }
 
     LaunchedEffect(mediaMetadata, playerBackground) {
+        if (useBlackBackground && playerBackground != PlayerBackgroundStyle.BLUR ) {
+            gradientColors = listOf(Color.Black, Color.Black)
+        }
+        if (useBlackBackground && playerBackground != PlayerBackgroundStyle.BLURMOV ) {
+            gradientColors = listOf(Color.Black, Color.Black)
+        }
         if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
             withContext(Dispatchers.IO) {
                 val result =
@@ -585,7 +597,33 @@ fun BottomSheetPlayer(
                         .alpha(0.8f)
                         .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                 )
-            } else if (useBlackBackground && playerBackground == PlayerBackgroundStyle.DEFAULT) {
+            }
+            else if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
+                val infiniteTransition = rememberInfiniteTransition(label = "")
+                val rotation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            durationMillis = 100000,
+                            easing = FastOutSlowInEasing // Easing suave
+                        ),
+                        repeatMode = RepeatMode.Restart
+                    ), label = ""
+                )
+                AsyncImage(
+                    model = mediaMetadata?.thumbnailUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(200.dp)
+                        .alpha(0.8f)
+                        .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
+                        .rotate(rotation)
+                )
+            }
+                else if (useBlackBackground && playerBackground == PlayerBackgroundStyle.DEFAULT) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

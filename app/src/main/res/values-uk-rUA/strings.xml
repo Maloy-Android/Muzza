@@ -26,6 +26,8 @@
     <string name="your_youtube_playlists">Ваші плейлисти YouTube</string>
     <string name="similar_to">Схожі на</string>
     <string name="new_release_albums">Нові релізи альбомів</string>
+    <string name="not_internet">Немає підключення до Інтернету</string>
+    <string name="internet_required">Здається, у вас немає підключення до Інтернету. Будь ласка, перевірте свою мережу.</string>
 
     <!-- History -->
     <string name="today">Сьогодні</string>
@@ -274,6 +276,8 @@
     <string name="player_background_style">Стиль фону плеєра</string>
     <string name="follow_theme">Залежить від теми</string>
     <string name="gradient">Градієнт</string>
+    <string name="blur">Розмиття</string>
+    <string name="blurmv">Розмиття (рух)</string>
 
     <string name="content">Контент</string>
     <string name="login">Логін</string>

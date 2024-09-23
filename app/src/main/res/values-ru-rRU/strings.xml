@@ -26,6 +26,8 @@
     <string name="your_youtube_playlists">Ваши плейлисты YouTube</string>
     <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
+    <string name="not_internet">Нет подключения к интернету</string>
+    <string name="internet_required">Похоже, у вас нет подключения к интернету. Пожалуйста, проверьте свою сеть.</string>
 
     <!-- History -->
     <string name="today">Сегодня</string>
@@ -273,6 +275,9 @@
     <string name="enable_swipe_thumbnail">Включить свайп по обложке для переключения композиции</string>
     <string name="player_background_style">Стиль фона плеера</string>
     <string name="follow_theme">Зависит от темы</string>
+    <string name="gradient">Градиент</string>
+    <string name="blur">Размытие</string>
+    <string name="blurmv">Размытие (движение)</string>
     <string name="grid_cell_size">Размер ячейки сетки</string>
     <string name="small">Маленький</string>
     <string name="big">Большой</string>

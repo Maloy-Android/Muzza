@@ -299,7 +299,19 @@ fun LanguageSelector() {
         "Spanish" to "es",
         "Turkish" to "tr",
         "Ukrainian" to "uk",
-        "Vietnamese" to "vi"
+        "Vietnamese" to "vi",
+        "Bulgarian" to "bg",
+        "Bengali" to "bn-rIN",
+        "German" to "DE",
+        "Greek" to "el-rGR",
+        "Perdita" to "fa-rIR",
+        "Finnish" to "fi-rFi",
+        "Hungarian" to "hu",
+        "Indonesian" to "id",
+        "Malayalam" to "ml-rIN",
+        "Punjabi" to "pa",
+        "Polish" to "pl",
+        "Swedish" to "sv-rSE"
     )
 
     // State to hold the currently selected language

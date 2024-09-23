@@ -29,7 +29,7 @@
     <string name="most_played_albums">播放次数最多的专辑</string>
     <!-- Search -->
     <string name="search">搜索</string>
-    <string name="search_yt_music">搜索 YouTube Music…</string>
+    <string name="search_yt_music">搜索 Muzza</string>
     <string name="search_library">搜索媒体库…</string>
     <string name="filter_library">媒体库</string>
     <string name="filter_liked">喜欢</string>

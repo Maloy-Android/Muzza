@@ -40,7 +40,7 @@
 
     <!-- Search -->
     <string name="search">Поиск</string>
-    <string name="search_yt_music">Поиск в YouTube Music…</string>
+    <string name="search_yt_music">Поиск в Muzza</string>
     <string name="search_library">Поиск в библиотеке…</string>
     <string name="filter_library">Библиотека</string>
     <string name="filter_liked">Понравившиеся</string>

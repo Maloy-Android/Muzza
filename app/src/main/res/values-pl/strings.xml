@@ -32,7 +32,7 @@
     <string name="most_played_albums">Najczęściej słuchane albumy</string>
     <!-- Search -->
     <string name="search">Szukaj</string>
-    <string name="search_yt_music">Szukaj w YouTube Music…</string>
+    <string name="search_yt_music">Szukaj w Muzza</string>
     <string name="search_library">Szukaj w bibliotece…</string>
     <string name="filter_library">Biblioteka</string>
     <string name="filter_liked">Polubione</string>

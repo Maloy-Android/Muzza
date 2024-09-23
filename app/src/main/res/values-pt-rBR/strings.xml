@@ -31,7 +31,7 @@
     <string name="most_played_albums">Álbuns mais tocados</string>
     <!-- Search -->
     <string name="search">Pesquisar</string>
-    <string name="search_yt_music">Pesquisar no YouTube Music…</string>
+    <string name="search_yt_music">Pesquisar no Muzza</string>
     <string name="search_library">Pesquisar na biblioteca…</string>
     <string name="filter_library">Biblioteca</string>
     <string name="filter_liked">Curtidos</string>

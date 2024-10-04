@@ -1,5 +1,6 @@
 package com.maloy.muzza
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
@@ -12,7 +13,9 @@ import android.os.IBinder
 import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.compose.animation.AnimatedVisibility
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
@@ -26,11 +29,13 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
@@ -45,13 +50,19 @@ import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -74,6 +85,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -85,6 +98,8 @@ import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
@@ -160,6 +175,8 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.net.URLDecoder
 import javax.inject.Inject
+import org.json.JSONObject
+import java.net.URL
 import kotlin.time.Duration.Companion.days
 
 @AndroidEntryPoint
@@ -644,29 +661,33 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     } else if (navBackStackEntry?.destination?.route in topLevelScreens) {
-                                        Box(
-                                            contentAlignment = Alignment.Center,
-                                            modifier = Modifier
-                                                .size(48.dp)
-                                                .clip(CircleShape)
-                                                .clickable {
-                                                    navController.navigate("settings")
-                                                }
-                                        ) {
-                                            BadgedBox(
-                                                badge = {
-                                                    if (latestVersionName != BuildConfig.VERSION_NAME) {
-                                                        Badge()
-                                                    }
-                                                }
-                                            ) {
-
-                                                Icon(
-                                                    painter = painterResource(R.drawable.settings),
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
+//                                        Box(
+//                                            contentAlignment = Alignment.Center,
+//                                            modifier =
+//                                                Modifier
+//                                                    .size(48.dp)
+//                                                    .clip(CircleShape)
+//                                                    .clickable {
+//                                                        navController.navigate("settings")
+//                                                    },
+//                                        ) {
+//                                            BadgedBox(
+//                                                badge = {
+//                                                    if (latestVersion > BuildConfig.VERSION_CODE) {
+//                                                        Badge()
+//                                                    }
+//                                                },
+//                                            ) {
+//                                                Icon(
+//                                                    painter = painterResource(R.drawable.settingsv2),
+//                                                    contentDescription = null,
+//                                                )
+//                                            }
+//                                        }
+                                        SettingsIconWithUpdateBadge(
+                                            currentVersion = BuildConfig.VERSION_NAME,
+                                            onSettingsClick = { navController.navigate("settings") }
+                                        )
                                     }
                                 },
                                 focusRequester = searchBarFocusRequester,
@@ -833,3 +854,134 @@ val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database
 val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error("No PlayerConnection provided") }
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
+
+@Composable
+fun NotificationPermissionPreference() {
+    val context = LocalContext.current
+    var permissionGranted by remember { mutableStateOf(false) }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        permissionGranted = isGranted
+    }
+    val checkNotificationPermission = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PermissionChecker.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+    LaunchedEffect(Unit) {
+        permissionGranted = checkNotificationPermission()
+    }
+    SwitchPreference(
+        title = { Text("Activar notificaciones") },
+        icon = {
+            Icon(
+                painter = painterResource(id = if (permissionGranted) R.drawable.notification_on else R.drawable.notifications_off),
+                contentDescription = null
+            )
+        },
+        checked = permissionGranted,
+        onCheckedChange = { checked ->
+            if (checked && !permissionGranted) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+            // Note: We don't update permissionGranted here because it will be updated by the LaunchedEffect
+        }
+    )
+}
+@Composable
+fun SwitchPreference(
+    title: @Composable () -> Unit,
+    icon: @Composable () -> Unit,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(modifier = Modifier.size(24.dp)) {
+                icon()
+            }
+            Spacer(Modifier.width(16.dp))
+            Box(Modifier.weight(1f)) {
+                title()
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange
+            )
+        }
+    }
+}
+@Composable
+fun SettingsIconWithUpdateBadge(
+    currentVersion: String,
+    onSettingsClick: () -> Unit
+) {
+    var showUpdateBadge by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        val latestVersion = checkForUpdates()
+        if (latestVersion != null) {
+            showUpdateBadge = isNewerVersion(latestVersion, currentVersion)
+        }
+    }
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(48.dp)
+            .clip(CircleShape)
+            .clickable(onClick = onSettingsClick)
+    ) {
+        BadgedBox(
+            badge = {
+                if (showUpdateBadge) {
+                    Badge()
+                }
+            }
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.settings),
+                contentDescription = "Configuración"
+            )
+        }
+    }
+}
+suspend fun checkForUpdates(): String? = withContext(Dispatchers.IO) {
+    try {
+        val url = URL("https://api.github.com/repos/Maloy-Android/Muzza/releases/latest")
+        val connection = url.openConnection()
+        connection.connect()
+        val json = connection.getInputStream().bufferedReader().use { it.readText() }
+        val jsonObject = JSONObject(json)
+        return@withContext jsonObject.getString("tag_name")
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return@withContext null
+    }
+}
+fun isNewerVersion(remoteVersion: String, currentVersion: String): Boolean {
+    val remote = remoteVersion.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
+    val current = currentVersion.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
+    for (i in 0 until maxOf(remote.size, current.size)) {
+        val r = remote.getOrNull(i) ?: 0
+        val c = current.getOrNull(i) ?: 0
+        if (r > c) return true
+        if (r < c) return false
+    }
+    return false
+}

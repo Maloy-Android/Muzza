@@ -54,6 +54,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.NotificationPermissionPreference
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountChannelHandleKey
 import com.maloy.muzza.constants.AccountEmailKey
@@ -194,6 +195,8 @@ fun ContentSettings(
             checked = hideExplicit,
             onCheckedChange = onHideExplicitChange
         )
+
+        NotificationPermissionPreference()
 
         PreferenceGroupTitle(
             title = stringResource(R.string.app_language),

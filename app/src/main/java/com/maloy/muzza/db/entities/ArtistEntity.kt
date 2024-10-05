@@ -1,6 +1,7 @@
 package com.maloy.muzza.db.entities
 
 import androidx.compose.runtime.Immutable
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.apache.commons.lang3.RandomStringUtils
@@ -14,7 +15,10 @@ data class ArtistEntity(
     val thumbnailUrl: String? = null,
     val lastUpdateTime: LocalDateTime = LocalDateTime.now(),
     val bookmarkedAt: LocalDateTime? = null,
+    @ColumnInfo(name = "isLocal", defaultValue = false.toString())
+    val isLocal: Boolean = false
 ) {
+
     val isYouTubeArtist: Boolean
         get() = id.startsWith("UC")
 

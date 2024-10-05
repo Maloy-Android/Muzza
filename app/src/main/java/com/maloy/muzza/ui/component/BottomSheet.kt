@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.derivedStateOf
@@ -41,6 +42,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.input.pointer.util.addPointerInputChange
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Velocity
@@ -58,6 +60,8 @@ fun BottomSheet(
     state: BottomSheetState,
     modifier: Modifier = Modifier,
     brushBackgroundColor: Brush,
+    backgroundColor: Color = MaterialTheme.colorScheme.surface,
+    collapsedBackgroundColor: Color = Color.Transparent,
     onDismiss: (() -> Unit)? = null,
     collapsedContent: @Composable BoxScope.() -> Unit,
     content: @Composable BoxScope.() -> Unit,
@@ -96,7 +100,6 @@ fun BottomSheet(
                     topEnd = if (!state.isExpanded) 16.dp else 0.dp
                 )
             )
-            .background(brushBackgroundColor)
     ) {
         if (!state.isCollapsed && !state.isDismissed) {
             BackHandler(onBack = state::collapseSoft)
@@ -108,7 +111,8 @@ fun BottomSheet(
                     .fillMaxSize()
                     .graphicsLayer {
                         alpha = ((state.progress - 0.25f) * 4).coerceIn(0f, 1f)
-                    },
+                    }
+                    .background(backgroundColor),
                 content = content
             )
         }
@@ -125,7 +129,8 @@ fun BottomSheet(
                         onClick = state::expandSoft
                     )
                     .fillMaxWidth()
-                    .height(state.collapsedBound),
+                    .height(state.collapsedBound)
+                    .background(collapsedBackgroundColor),
                 content = collapsedContent
             )
         }

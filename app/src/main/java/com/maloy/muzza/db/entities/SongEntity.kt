@@ -1,6 +1,7 @@
 package com.maloy.muzza.db.entities
 
 import androidx.compose.runtime.Immutable
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
@@ -31,7 +32,12 @@ data class SongEntity(
     val liked: Boolean = false,
     val totalPlayTime: Long = 0, // in milliseconds
     val inLibrary: LocalDateTime? = null,
+    @ColumnInfo(name = "isLocal", defaultValue = false.toString())
+    val isLocal: Boolean,
+    val localPath: String?,
 ) {
+    val isLocalSong: Boolean
+        get() = id.startsWith("LA")
         fun localToggleLike() = copy(
             liked = !liked,
             inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary

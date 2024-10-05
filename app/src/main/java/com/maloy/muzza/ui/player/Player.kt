@@ -3,6 +3,7 @@ package com.maloy.muzza.ui.player
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
+import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -101,6 +102,8 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.ui.component.AsyncLocalImage
+import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -254,6 +257,7 @@ fun BottomSheetPlayer(
                     ),
                 )
         },
+        collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()
@@ -597,8 +601,7 @@ fun BottomSheetPlayer(
                         .alpha(0.8f)
                         .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
                 )
-            }
-            else if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
+            } else if (playerBackground == PlayerBackgroundStyle.BLURMOV) {
                 val infiniteTransition = rememberInfiniteTransition(label = "")
                 val rotation by infiniteTransition.animateFloat(
                     initialValue = 0f,
@@ -611,24 +614,37 @@ fun BottomSheetPlayer(
                         repeatMode = RepeatMode.Restart
                     ), label = ""
                 )
-                AsyncImage(
-                    model = mediaMetadata?.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(200.dp)
-                        .alpha(0.8f)
-                        .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
-                        .rotate(rotation)
-                )
-            }
-                else if (useBlackBackground && playerBackground == PlayerBackgroundStyle.DEFAULT) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black)
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (mediaMetadata?.isLocal == true) {
+                        mediaMetadata?.let {
+                            AsyncLocalImage(
+                                image = { getLocalThumbnail(it.localPath) },
+                                contentDescription = null,
+                                contentScale = ContentScale.FillBounds,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .blur(200.dp)
+                            )
+                        }
+                    } else {
+                        AsyncImage(
+                            model = mediaMetadata?.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.FillBounds,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .blur(200.dp)
+                                .alpha(0.8f)
+                                .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
+                                .rotate(rotation)
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Black.copy(alpha = 0.3f))
+                    )
+                }
             }
         }
 

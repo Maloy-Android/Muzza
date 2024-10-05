@@ -29,9 +29,10 @@ data class AlbumEntity(
 ) {
     val isLocalAlbum: Boolean
         get() = id.startsWith("LA")
-    fun toggleLike() = copy(
+    fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()
-    ).also {
+    )
+    fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch {
             if (playlistId != null)
                 YouTube.likePlaylist(playlistId, bookmarkedAt == null)

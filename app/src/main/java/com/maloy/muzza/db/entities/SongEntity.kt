@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
 import java.time.LocalDateTime
 
 @Immutable
@@ -34,7 +35,11 @@ data class SongEntity(
         fun localToggleLike() = copy(
             liked = !liked,
             inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
-        )
+        ).also {
+            GlobalScope.launch() {
+                YouTube.likeVideo(id, !liked)
+            }
+        }
 
         fun toggleLike() = localToggleLike().also {
             CoroutineScope(Dispatchers.IO).launch() {

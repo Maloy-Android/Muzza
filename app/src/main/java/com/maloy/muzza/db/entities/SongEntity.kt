@@ -4,6 +4,11 @@ import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.Index
 import androidx.room.PrimaryKey
+import com.maloy.innertube.YouTube
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @Immutable
@@ -26,10 +31,17 @@ data class SongEntity(
     val totalPlayTime: Long = 0, // in milliseconds
     val inLibrary: LocalDateTime? = null,
 ) {
-    fun toggleLike() = copy(
-        liked = !liked,
-        inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
-    )
+        fun localToggleLike() = copy(
+            liked = !liked,
+            inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
+        )
+
+        fun toggleLike() = localToggleLike().also {
+            CoroutineScope(Dispatchers.IO).launch() {
+                YouTube.likeVideo(id, !liked)
+                this.cancel()
+            }
+        }
 
     fun toggleLibrary() = copy(inLibrary = if (inLibrary == null) LocalDateTime.now() else null)
 }

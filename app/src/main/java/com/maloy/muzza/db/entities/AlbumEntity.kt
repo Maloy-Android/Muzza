@@ -5,8 +5,9 @@ import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import com.maloy.innertube.YouTube
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -28,13 +29,13 @@ data class AlbumEntity(
 ) {
     val isLocalAlbum: Boolean
         get() = id.startsWith("LA")
-    @OptIn(DelicateCoroutinesApi::class)
     fun toggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now()
     ).also {
-        GlobalScope.launch {
+        CoroutineScope(Dispatchers.IO).launch {
             if (playlistId != null)
                 YouTube.likePlaylist(playlistId, bookmarkedAt == null)
+            this.cancel()
         }
     }
 }

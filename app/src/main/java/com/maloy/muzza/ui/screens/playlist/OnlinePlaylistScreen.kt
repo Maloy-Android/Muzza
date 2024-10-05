@@ -93,6 +93,7 @@ import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
+import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
@@ -112,6 +113,7 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -266,22 +268,33 @@ fun OnlinePlaylistScreen(
                                                                 syncUtils.syncLikedSongs()
                                                             }
                                                         } else {
-                                                            val playlistEntity = PlaylistEntity(
-                                                                name = playlist.title,
-                                                                browseId = playlist.id
-                                                            )
-
-                                                            insert(playlistEntity)
-                                                            songs.map(SongItem::toMediaMetadata)
-                                                                .onEach(::insert)
-                                                                .mapIndexed { index, song ->
-                                                                    PlaylistSongMap(
-                                                                        songId = song.id,
-                                                                        playlistId = playlistEntity.id,
-                                                                        position = index
-                                                                    )
+                                                            if (playlist.id == "LM") {
+                                                                for (song in songs) {
+                                                                    viewModel.viewModelScope.launch(Dispatchers.IO) {
+                                                                        val dbSong = database.song(song.id).firstOrNull()
+                                                                        if (dbSong == null)
+                                                                            insert(song.toMediaMetadata(), SongEntity::toggleLike)
+                                                                        else
+                                                                            update(dbSong.song.setLiked())
+                                                                    }
                                                                 }
-                                                                .forEach(::insert)
+                                                            } else {
+                                                                val playlistEntity = PlaylistEntity(
+                                                                    name = playlist.title,
+                                                                    browseId = playlist.id
+                                                                )
+                                                                insert(playlistEntity)
+                                                                songs.map(SongItem::toMediaMetadata)
+                                                                    .onEach(::insert)
+                                                                    .mapIndexed { index, song ->
+                                                                        PlaylistSongMap(
+                                                                            songId = song.id,
+                                                                            playlistId = playlistEntity.id,
+                                                                            position = index
+                                                                        )
+                                                                    }
+                                                                    .forEach(::insert)
+                                                            }
                                                         }
 
                                                         coroutineScope.launch {

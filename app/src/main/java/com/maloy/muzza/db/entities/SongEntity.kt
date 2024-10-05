@@ -47,6 +47,10 @@ data class SongEntity(
             }
         }
 
+    fun setLiked() = copy(
+        liked = true,
+    )
+
         fun toggleLike() = localToggleLike().also {
             CoroutineScope(Dispatchers.IO).launch() {
                 YouTube.likeVideo(id, !liked)

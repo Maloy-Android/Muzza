@@ -22,6 +22,7 @@ import com.maloy.innertube.models.getContinuation
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.models.response.AccountMenuResponse
 import com.maloy.innertube.models.response.BrowseResponse
+import com.maloy.innertube.models.response.CreatePlaylistResponse
 import com.maloy.innertube.models.response.GetQueueResponse
 import com.maloy.innertube.models.response.GetSearchSuggestionsResponse
 import com.maloy.innertube.models.response.GetTranscriptResponse
@@ -451,6 +452,10 @@ object YouTube {
             return it.artist.channelId!!
         }
         return ""
+    }
+
+    suspend fun createPlaylist(title: String) = runCatching {
+        innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
     }
 
     suspend fun likeVideo(videoId: String, like: Boolean) = runCatching {

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
+import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListThumbnailSize
@@ -34,6 +35,7 @@ import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @Composable
 fun AddToPlaylistDialog(
@@ -120,12 +122,16 @@ fun AddToPlaylistDialog(
             title = { Text(text = stringResource(R.string.create_playlist)) },
             onDismiss = { showCreatePlaylistDialog = false },
             onDone = { playlistName ->
-                database.query {
-                    insert(
-                        PlaylistEntity(
-                            name = playlistName
+                coroutineScope.launch(Dispatchers.IO) {
+                    val browseId = YouTube.createPlaylist(playlistName).getOrNull()
+                    database.query {
+                        insert(
+                            PlaylistEntity(
+                                name = playlistName,
+                                browseId = browseId,
+                            )
                         )
-                    )
+                    }
                 }
             }
         )

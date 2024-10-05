@@ -39,8 +39,10 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
@@ -67,6 +69,9 @@ import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryPlaylistsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -112,12 +117,16 @@ fun LibraryPlaylistsScreen(
             title = { Text(text = stringResource(R.string.create_playlist)) },
             onDismiss = { showAddPlaylistDialog = false },
             onDone = { playlistName ->
-                database.query {
-                    insert(
-                        PlaylistEntity(
-                            name = playlistName
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    val browseId = YouTube.createPlaylist(playlistName).getOrNull()
+                    database.query {
+                        insert(
+                            PlaylistEntity(
+                                name = playlistName,
+                                browseId = browseId,
+                            )
                         )
-                    )
+                    }
                 }
             }
         )

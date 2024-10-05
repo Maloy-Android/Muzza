@@ -677,6 +677,7 @@ interface DatabaseDao {
     fun insert(albumPage: AlbumPage) {
         if (insert(AlbumEntity(
                 id = albumPage.album.browseId,
+                playlistId = albumPage.album.playlistId,
                 title = albumPage.album.title,
                 year = albumPage.album.year,
                 thumbnailUrl = albumPage.album.thumbnail,
@@ -772,6 +773,7 @@ interface DatabaseDao {
         update(
             album.copy(
                 id = albumPage.album.browseId,
+                playlistId = albumPage.album.playlistId,
                 title = albumPage.album.title,
                 year = albumPage.album.year,
                 thumbnailUrl = albumPage.album.thumbnail,

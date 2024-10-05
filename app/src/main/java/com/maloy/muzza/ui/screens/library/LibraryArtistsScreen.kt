@@ -40,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ArtistFilter
 import com.maloy.muzza.constants.ArtistFilterKey
@@ -64,6 +65,8 @@ import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryArtistsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -76,9 +79,16 @@ fun LibraryArtistsScreen(
 
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIKED)
+    val syncUtils = LocalSyncUtils.current
     var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            syncUtils.syncArtistsSubscriptions()
+        }
+    }
 
     val artists by viewModel.allArtists.collectAsState()
     val coroutineScope = rememberCoroutineScope()

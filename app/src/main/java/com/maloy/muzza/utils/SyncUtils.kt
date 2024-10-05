@@ -2,13 +2,16 @@ package com.maloy.muzza.utils
 
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
+import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
 import com.maloy.muzza.db.MusicDatabase
+import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -48,6 +51,34 @@ class SyncUtils @Inject constructor(
                         }
                         else -> if (dbAlbum.album.bookmarkedAt == null)
                             database.update(dbAlbum.album.localToggleLike())
+                    }
+                }
+            }
+        }
+    }
+    suspend fun syncArtistsSubscriptions() {
+        YouTube.libraryArtistsSubscriptions().onSuccess { ytArtists ->
+            val artists: List<ArtistItem> = ytArtists
+            database.artistsBookmarkedByNameAsc().first()
+                .filterNot { it.id in artists.map(ArtistItem::id) }
+                .forEach { database.update(it.artist.localToggleLike()) }
+            artists.forEach { artist ->
+                val dbArtist = database.artist(artist.id).firstOrNull()
+                database.transaction {
+                    when (dbArtist) {
+                        null -> {
+                            insert(
+                                ArtistEntity(
+                                    id = artist.id,
+                                    name = artist.title,
+                                    thumbnailUrl = artist.thumbnail,
+                                    channelId = artist.channelId,
+                                    bookmarkedAt = LocalDateTime.now()
+                                )
+                            )
+                        }
+                        else -> if (dbArtist.artist.bookmarkedAt == null)
+                            update(dbArtist.artist.localToggleLike())
                     }
                 }
             }

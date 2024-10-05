@@ -31,9 +31,10 @@ data class ArtistEntity(
     val isLocalArtist: Boolean
         get() = id.startsWith("LA")
 
-    fun toggleLike() = copy(
+    fun localToggleLike() = copy(
         bookmarkedAt = if (bookmarkedAt != null) null else LocalDateTime.now(),
-    ).also {
+    )
+    fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch {
             if (channelId == null)
                 YouTube.subscribeChannel(YouTube.getChannelId(id), bookmarkedAt == null)

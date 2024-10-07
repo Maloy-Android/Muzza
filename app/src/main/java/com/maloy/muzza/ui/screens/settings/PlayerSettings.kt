@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -29,6 +31,7 @@ import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.utils.backToMain
@@ -72,6 +75,13 @@ fun PlayerSettings(
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                 }
             }
+        )
+
+        // lyrics settings
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.lyrics_settings_title)) },
+            icon = { Icon(Icons.Rounded.Lyrics, null) },
+            onClick = { navController.navigate("settings/player/lyrics") }
         )
 
         SwitchPreference(

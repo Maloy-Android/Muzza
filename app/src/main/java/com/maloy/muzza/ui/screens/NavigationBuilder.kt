@@ -28,6 +28,7 @@ import com.maloy.muzza.ui.screens.settings.BackupAndRestore
 import com.maloy.muzza.ui.screens.settings.ContentSettings
 import com.maloy.muzza.ui.screens.settings.DiscordLoginScreen
 import com.maloy.muzza.ui.screens.settings.DiscordSettings
+import com.maloy.muzza.ui.screens.settings.LyricsSettings
 import com.maloy.muzza.ui.screens.settings.PlayerSettings
 import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
@@ -198,6 +199,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)
+    }
+    composable("settings/player/lyrics") {
+        LyricsSettings(navController, scrollBehavior)
     }
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)

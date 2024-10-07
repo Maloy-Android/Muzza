@@ -590,6 +590,10 @@ interface DatabaseDao {
     fun hasRelatedSongs(songId: String): Boolean
 
     @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isEditable AND bookmarkedAt IS NOT NULL ORDER BY rowId")
+    fun editablePlaylistsByCreateDateAsc(): Flow<List<Playlist>>
+
+    @Transaction
     @Query(
         """
         SELECT song.*

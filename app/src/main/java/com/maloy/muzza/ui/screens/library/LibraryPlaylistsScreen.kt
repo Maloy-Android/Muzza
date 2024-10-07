@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -130,7 +132,7 @@ fun LibraryPlaylistsScreen(
 
     if (showAddPlaylistDialog) {
         TextFieldDialog(
-            icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
+            icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
             title = { Text(text = stringResource(R.string.create_playlist)) },
             onDismiss = { showAddPlaylistDialog = false },
             onDone = { playlistName ->
@@ -138,11 +140,13 @@ fun LibraryPlaylistsScreen(
                     val browseId = if (syncedPlaylist)
                         YouTube.createPlaylist(playlistName).getOrNull()
                     else null
+
                     database.query {
                         insert(
                             PlaylistEntity(
                                 name = playlistName,
                                 browseId = browseId,
+                                bookmarkedAt = LocalDateTime.now()
                             )
                         )
                     }

@@ -51,7 +51,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
@@ -78,7 +77,6 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryPlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class)
@@ -89,7 +87,6 @@ fun LibraryPlaylistsScreen(
 ) {
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
-    val syncUtils = LocalSyncUtils.current
     val haptic = LocalHapticFeedback.current
 
     val coroutineScope = rememberCoroutineScope()
@@ -99,11 +96,7 @@ fun LibraryPlaylistsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(PlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSortDescendingKey, true)
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            syncUtils.syncSavedPlaylists()
-        }
-    }
+    LaunchedEffect(Unit) { viewModel.sync() }
 
     val playlists by viewModel.allPlaylists.collectAsState()
 

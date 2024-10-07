@@ -5,13 +5,18 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -67,11 +72,9 @@ fun PlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val dbPlaylist by database.playlist(playlist.id).collectAsState(initial = playlist)
     var songs by remember {
         mutableStateOf(emptyList<Song>())
-    }
-    val playlistLength = remember(songs) {
-        songs.fastSumBy { it.song.duration }
     }
 
     LaunchedEffect(Unit) {
@@ -100,6 +103,8 @@ fun PlaylistMenu(
                     Download.STATE_STOPPED
         }
     }
+
+    val editable: Boolean = playlist.playlist.isEditable == true
 
     var showEditDialog by remember {
         mutableStateOf(false)
@@ -206,13 +211,21 @@ fun PlaylistMenu(
     PlaylistListItem(
         playlist = playlist,
         trailingContent = {
-            Text(
-                text = makeTimeString(playlistLength * 1000L),
-                fontSize = 14.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(end = 12.dp)
-            )
+            if (playlist.playlist.isEditable != true) {
+                IconButton(
+                    onClick = {
+                        database.query {
+                            dbPlaylist?.playlist?.toggleLike()?.let { update(it) }
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
+                        tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                        contentDescription = null
+                    )
+                }
+            }
         }
     )
 

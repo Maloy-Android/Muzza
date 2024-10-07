@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 12,
-    "identityHash": "d8897a4f3a6dcbe163b46fb604ce9ffd",
+    "identityHash": "851a6d56f19380975c306fac5715c9a1",
     "entities": [
       {
         "tableName": "song",
@@ -235,7 +235,7 @@
       },
       {
         "tableName": "playlist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, `isEditable` INTEGER NOT NULL DEFAULT true, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -253,6 +253,19 @@
             "fieldPath": "browseId",
             "columnName": "browseId",
             "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "isEditable",
+            "columnName": "isEditable",
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "true"
+          },
+          {
+            "fieldPath": "bookmarkedAt",
+            "columnName": "bookmarkedAt",
+            "affinity": "INTEGER",
             "notNull": false
           }
         ],
@@ -845,7 +858,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd8897a4f3a6dcbe163b46fb604ce9ffd')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '851a6d56f19380975c306fac5715c9a1')"
     ]
   }
 }

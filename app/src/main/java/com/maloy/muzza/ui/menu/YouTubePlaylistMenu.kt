@@ -5,12 +5,19 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.PlaylistItem
@@ -19,11 +26,14 @@ import com.maloy.innertube.utils.completed
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.db.entities.PlaylistEntity
+import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.YouTubeListItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -39,6 +49,7 @@ fun YouTubePlaylistMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -60,6 +71,54 @@ fun YouTubePlaylistMenu(
         },
         onDismiss = { showChoosePlaylistDialog = false }
     )
+
+    YouTubeListItem(
+        item = playlist,
+        trailingContent = {
+            if (playlist.id != "LM" && !playlist.isEditable) {
+                IconButton(
+                    onClick = {
+                        if (dbPlaylist?.playlist == null) {
+                            database.transaction {
+                                val playlistEntity = PlaylistEntity(
+                                    name = playlist.title,
+                                    browseId = playlist.id,
+                                    isEditable = false,
+                                ).toggleLike()
+                                insert(playlistEntity)
+                                coroutineScope.launch(Dispatchers.IO) {
+                                    songs.ifEmpty {
+                                        YouTube.playlist(playlist.id).completed()
+                                            .getOrNull()?.songs.orEmpty()
+                                    }.map { it.toMediaMetadata() }
+                                        .onEach(::insert)
+                                        .mapIndexed { index, song ->
+                                            PlaylistSongMap(
+                                                songId = song.id,
+                                                playlistId = playlistEntity.id,
+                                                position = index
+                                            )
+                                        }
+                                        .forEach(::insert)
+                                }
+                            }
+                        } else {
+                            database.transaction {
+                                update(dbPlaylist!!.playlist.toggleLike())
+                            }
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
+                        tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                        contentDescription = null
+                    )
+                }
+            }
+        }
+    )
+    HorizontalDivider()
 
     GridMenu(
         contentPadding = PaddingValues(

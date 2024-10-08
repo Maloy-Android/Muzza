@@ -86,6 +86,7 @@ import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
@@ -266,6 +267,9 @@ fun LocalPlaylistScreen(
                 onDone = { name ->
                     database.query {
                         update(playlistEntity.copy(name = name))
+                    }
+                    viewModel.viewModelScope.launch(Dispatchers.IO) {
+                        playlistEntity.browseId?.let { YouTube.renamePlaylist(it, name) }
                     }
                 }
             )

@@ -124,6 +124,9 @@ fun PlaylistMenu(
                 database.query {
                     update(playlist.playlist.copy(name = name))
                 }
+                coroutineScope.launch(Dispatchers.IO) {
+                    playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
+                }
             }
         )
     }

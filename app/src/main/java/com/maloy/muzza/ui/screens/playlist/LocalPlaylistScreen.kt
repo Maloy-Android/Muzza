@@ -22,6 +22,8 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -93,8 +95,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.utils.completed
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -109,11 +109,9 @@ import com.maloy.muzza.constants.PlaylistSongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
-import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
@@ -313,6 +311,50 @@ fun LocalPlaylistScreen(
         )
     }
 
+
+    var showDeletePlaylistDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDeletePlaylistDialog) {
+        DefaultDialog(
+            onDismiss = { showDeletePlaylistDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.delete_playlist_confirm, playlist?.playlist!!.name),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showDeletePlaylistDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showDeletePlaylistDialog = false
+                        database.query {
+                            playlist?.let { delete(it.playlist) }
+                        }
+
+                        viewModel.viewModelScope.launch(Dispatchers.IO) {
+                            playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
+                        }
+
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -336,6 +378,7 @@ fun LocalPlaylistScreen(
                                 playlist = playlist,
                                 songs = songs,
                                 onShowEditDialog = { showEditDialog = true },
+                                onShowDeletePlaylistDialog = { showDeletePlaylistDialog = true},
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 snackbarHostState = snackbarHostState,
                                 modifier = Modifier.animateItem()
@@ -662,6 +705,7 @@ fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
     onShowEditDialog: () -> Unit,
+    onShowDeletePlaylistDialog: () -> Unit ,
     onShowRemoveDownloadDialog: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
@@ -680,6 +724,8 @@ fun LocalPlaylistHeader(
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
     }
+
+    val editable: Boolean = playlist?.playlist?.isEditable == true
 
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
@@ -763,19 +809,30 @@ fun LocalPlaylistHeader(
                 )
 
                 Row {
-                    IconButton(
-                        onClick = {
-                            database.transaction {
-                                update(playlist.playlist.toggleLike())
-                            }
+                    if (editable) {
+                        IconButton(
+                                onClick = onShowDeletePlaylistDialog
+                        ) {
+                            Icon(
+                                Icons.Rounded.Delete,
+                                contentDescription = null,
+                            )
                         }
-                    ) {
-                        val liked = playlist?.playlist?.bookmarkedAt != null
-                        Icon(
+                    } else {
+                        IconButton(
+                            onClick = {
+                                database.transaction {
+                                    update(playlist.playlist.toggleLike())
+                                }
+                            }
+                        ) {
+                            val liked = playlist?.playlist?.bookmarkedAt != null
+                            Icon(
                                 painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
                                 contentDescription = null,
                                 tint = if (liked) MaterialTheme.colorScheme.error else LocalContentColor.current
-                        )
+                            )
+                        }
                     }
                     IconButton(
                         onClick = onShowEditDialog

@@ -76,6 +76,7 @@ import com.maloy.muzza.constants.PlayerVolumeKey
 import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
+import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
 import com.maloy.muzza.db.entities.FormatEntity
@@ -740,13 +741,10 @@ class MusicService : MediaLibraryService(),
 
     override fun onPlaybackStatsReady(eventTime: AnalyticsListener.EventTime, playbackStats: PlaybackStats) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-
-        if (playbackStats.totalPlayTimeMs >= (
-                    dataStore[HistoryDuration]?.times(1000f)
-                        ?: 30000f
-                    ) &&
-            !dataStore.get(PauseListenHistoryKey, false)
-        ) {
+        var minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100)
+        // ensure within bounds. Ehhh 99 is good enough to avoid any rounding errors
+        if (playbackStats.totalPlayTimeMs.toFloat() / ((mediaItem.metadata?.duration?.times(1000)) ?: -1) >= minPlaybackDur
+            && !dataStore.get(PauseListenHistoryKey, false)) {
             database.query {
                 incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
                 try {

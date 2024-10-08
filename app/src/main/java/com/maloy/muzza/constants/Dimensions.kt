@@ -31,3 +31,5 @@ val ThumbnailCornerRadius = 6.dp
 val PlayerHorizontalPadding = 32.dp
 
 val NavigationBarAnimationSpec = spring<Dp>(stiffness = Spring.StiffnessMediumLow)
+
+val DialogCornerRadius = 32.dp

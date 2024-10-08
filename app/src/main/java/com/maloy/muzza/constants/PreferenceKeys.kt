@@ -11,6 +11,7 @@ val PureBlackKey = booleanPreferencesKey("pureBlack")
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
+val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 
 enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE

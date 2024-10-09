@@ -237,6 +237,7 @@ object YouTube {
         ArtistPage(
             artist = ArtistItem(
                 id = browseId,
+                channelId = response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.channelId,
                 title = response.header?.musicImmersiveHeaderRenderer?.title?.runs?.firstOrNull()?.text
                     ?: response.header?.musicVisualHeaderRenderer?.title?.runs?.firstOrNull()?.text!!,
                 thumbnail = response.header?.musicImmersiveHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
@@ -438,6 +439,19 @@ object YouTube {
             .mapNotNull {
                 ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
             }
+    }
+
+    suspend fun subscribeChannel(channelId: String, subscribe: Boolean) = runCatching {
+        if (subscribe)
+            innerTube.subscribeChannel(WEB_REMIX, channelId)
+        else
+            innerTube.unsubscribeChannel(WEB_REMIX, channelId)
+    }
+    suspend fun getChannelId(browseId: String): String {
+        YouTube.artist(browseId).onSuccess {
+            return it.artist.channelId!!
+        }
+        return ""
     }
 
     suspend fun createPlaylist(title: String) = runCatching {

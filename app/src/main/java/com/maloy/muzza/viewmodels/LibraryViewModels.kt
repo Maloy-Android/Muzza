@@ -81,7 +81,10 @@ class LibrarySongsViewModel @Inject constructor(
                         }
                         .map { songs ->
                             when (sortType) {
-                                SongSortType.CREATE_DATE -> songs.sortedBy { downloads[it.id]?.updateTimeMs ?: 0L }
+                                SongSortType.CREATE_DATE -> songs.sortedBy {
+                                    downloads[it.id]?.updateTimeMs ?: 0L
+                                }
+
                                 SongSortType.NAME -> songs.sortedBy { it.song.title }
                                 SongSortType.ARTIST -> songs.sortedBy { song ->
                                     song.artists.joinToString(separator = "") { it.name }
@@ -93,10 +96,9 @@ class LibrarySongsViewModel @Inject constructor(
                 }
             }
         }.stateIn(viewModelScope, SharingStarted.Lazily, null)
-    fun sync() {
-        viewModelScope.launch(Dispatchers.IO) {
-            syncUtils.syncLikedSongs()
-        }
+
+    fun syncLikedSongs() {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
 }
 

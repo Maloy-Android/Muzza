@@ -86,9 +86,14 @@ fun LibrarySongsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
-    LaunchedEffect(Unit) { viewModel.sync() }
-
     val songs by viewModel.allSongs.collectAsState()
+
+    LaunchedEffect(Unit) {
+        when (filter) {
+            SongFilter.LIKED -> viewModel.syncLikedSongs()
+            else -> return@LaunchedEffect
+        }
+    }
 
     val lazyListState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()

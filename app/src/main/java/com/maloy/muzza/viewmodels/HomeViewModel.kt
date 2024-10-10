@@ -32,7 +32,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
-    val syncUtils: SyncUtils
+    val syncUtils: SyncUtils,
     val database: MusicDatabase,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)

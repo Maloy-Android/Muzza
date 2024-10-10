@@ -140,6 +140,7 @@ import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
 
+@Suppress("DEPRECATION")
 @OptIn(ExperimentalCoroutinesApi::class, FlowPreview::class)
 @AndroidEntryPoint
 class MusicService : MediaLibraryService(),

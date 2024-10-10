@@ -175,6 +175,7 @@ import org.json.JSONObject
 import java.net.URL
 import kotlin.time.Duration.Companion.days
 
+@Suppress("DEPRECATION")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject

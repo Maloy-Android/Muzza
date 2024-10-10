@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.maloy.muzza.ui.screens.settings
 
 import android.content.ActivityNotFoundException

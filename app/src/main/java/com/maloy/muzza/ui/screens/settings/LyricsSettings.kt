@@ -76,15 +76,18 @@ fun LyricsSettings(
                 }
             }
         )
-    }
 
         ListPreference(
             title = { Text(stringResource(R.string.default_lyrics_provider)) },
             selectedValue = preferredProvider,
             values = listOf(PreferredLyricsProvider.KUGOU, PreferredLyricsProvider.LRCLIB),
-            valueText = { it.name.toLowerCase(androidx.compose.ui.text.intl.Locale.current).capitalize(androidx.compose.ui.text.intl.Locale.current) },
+            valueText = {
+                it.name.toLowerCase(androidx.compose.ui.text.intl.Locale.current)
+                    .capitalize(androidx.compose.ui.text.intl.Locale.current)
+            },
             onValueSelected = onPreferredProviderChange
         )
+    }
     TopAppBar(
         title = { Text(stringResource(R.string.lyrics_settings_title)) },
         navigationIcon = {

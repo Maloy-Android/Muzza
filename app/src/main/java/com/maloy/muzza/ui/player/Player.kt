@@ -2,7 +2,6 @@ package com.maloy.muzza.ui.player
 
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
-import android.os.Build
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing

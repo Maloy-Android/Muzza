@@ -144,7 +144,7 @@ fun BottomSheetPlayer(
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-    val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+    var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 

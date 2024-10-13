@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
@@ -49,7 +50,7 @@ fun Thumbnail(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val error by playerConnection.error.collectAsState()
 
-    var showLyrics by rememberPreference(ShowLyricsKey, false)
+    var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
 
     DisposableEffect(showLyrics) {
@@ -75,7 +76,6 @@ fun Thumbnail(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = PlayerHorizontalPadding)
-                    .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
                     .pointerInput(Unit) {
                         detectHorizontalDragGestures(
                             onDragCancel = {
@@ -110,17 +110,6 @@ fun Thumbnail(
                         .fillMaxWidth()
                         .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
                         .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onDoubleTap = { offset ->
-                                    if (offset.x < size.width / 2) {
-                                        playerConnection.player.seekBack()
-                                    } else {
-                                        playerConnection.player.seekForward()
-                                    }
-                                }
-                            )
-                        }
                 )
             }
         }

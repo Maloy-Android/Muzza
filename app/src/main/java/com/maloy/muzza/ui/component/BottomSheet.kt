@@ -59,7 +59,6 @@ import kotlinx.coroutines.launch
 fun BottomSheet(
     state: BottomSheetState,
     modifier: Modifier = Modifier,
-    brushBackgroundColor: Brush,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     collapsedBackgroundColor: Color = Color.Transparent,
     onDismiss: (() -> Unit)? = null,

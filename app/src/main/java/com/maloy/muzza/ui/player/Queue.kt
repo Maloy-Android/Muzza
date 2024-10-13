@@ -160,13 +160,7 @@ fun Queue(
 
     BottomSheet(
         state = state,
-        brushBackgroundColor =
-        Brush.verticalGradient(
-            listOf(
-                Color.Unspecified,
-                Color.Unspecified,
-            )
-        ),
+        backgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
         modifier = modifier,
         collapsedContent = {
             Row(

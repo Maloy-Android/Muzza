@@ -252,11 +252,19 @@ fun PlayerMenu(
             .padding(horizontal = 24.dp)
             .padding(top = 24.dp, bottom = 6.dp)
     ) {
-        Icon(
-            painter = painterResource(R.drawable.volume_up),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp)
-        )
+        if (playerVolume.value == 0f) {
+            Icon(
+                painter = painterResource(R.drawable.volume_off),
+                contentDescription = null,
+                modifier = Modifier.size(26.dp)
+            )
+        } else {
+            Icon(
+                painter = painterResource(R.drawable.volume_up),
+                contentDescription = null,
+                modifier = Modifier.size(28.dp)
+            )
+        }
 
         BigSeekBar(
             progressProvider = playerVolume::value,

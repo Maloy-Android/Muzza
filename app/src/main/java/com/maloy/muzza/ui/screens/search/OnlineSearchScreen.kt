@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -28,7 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -92,13 +95,23 @@ fun OnlineSearchScreen(
 
     LazyColumn(
         state = lazyListState,
-        contentPadding = WindowInsets.systemBars
+        contentPadding =
+        WindowInsets.systemBars
             .only(WindowInsetsSides.Bottom)
-            .asPaddingValues()
+            .asPaddingValues(),
     ) {
+        item {
+            Text(
+                text = (stringResource(R.string.SearchHistory)),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+            )
+        }
+
         items(
             items = viewState.history,
-            key = { it.query }
+            key = { it.query },
         ) { history ->
             SuggestionItem(
                 query = history.query,
@@ -116,17 +129,28 @@ fun OnlineSearchScreen(
                     onQueryChange(
                         TextFieldValue(
                             text = history.query,
-                            selection = TextRange(history.query.length)
-                        )
+                            selection = TextRange(history.query.length),
+                        ),
                     )
                 },
-                modifier = Modifier.animateItem()
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
             )
         }
+        if (viewState.suggestions.isNotEmpty()) {
+            item {
+                Text(
+                    text = (stringResource(R.string.Sujestions)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        }
+
 
         items(
             items = viewState.suggestions,
-            key = { it }
+            key = { it },
         ) { query ->
             SuggestionItem(
                 query = query,
@@ -139,17 +163,22 @@ fun OnlineSearchScreen(
                     onQueryChange(
                         TextFieldValue(
                             text = query,
-                            selection = TextRange(query.length)
-                        )
+                            selection = TextRange(query.length),
+                        ),
                     )
                 },
-                modifier = Modifier.animateItem()
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
             )
         }
 
-        if (viewState.items.isNotEmpty() && viewState.history.size + viewState.suggestions.size > 0) {
+        if (viewState.items.isNotEmpty()) {
             item {
-                HorizontalDivider()
+                Text(
+                    text = (stringResource(R.string.SearchResutls)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
         }
 

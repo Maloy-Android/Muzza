@@ -39,6 +39,9 @@
     <string name="search">Search</string>
     <string name="search_yt_music">Search Muzza</string>
     <string name="search_library">Search library…</string>
+    <string name="SearchHistory">Search History</string>
+    <string name="Sujestions">Suggestions</string>
+    <string name="SearchResutls">Search Results</string>
     <string name="filter_library">Library</string>
     <string name="filter_liked">Liked</string>
     <string name="filter_downloaded">Downloaded</string>

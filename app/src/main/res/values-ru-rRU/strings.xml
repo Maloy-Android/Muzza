@@ -271,7 +271,6 @@
     <string name="squiggly">Волнистый</string>
     <string name="misc">Разное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
-    <string name="developer">Разработано @MaloyBegonia</string>
     <string name="enable_swipe_thumbnail">Включить свайп по обложке для переключения композиции</string>
     <string name="player_background_style">Стиль фона плеера</string>
     <string name="follow_theme">Зависит от темы</string>

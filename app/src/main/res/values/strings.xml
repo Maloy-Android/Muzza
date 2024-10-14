@@ -263,8 +263,27 @@
     <string name="grid_cell_size">Grid cell size</string>
     <string name="small">Small</string>
     <string name="big">Big</string>
-
-    <string name="developer">Developed by @MaloyBegonia</string>
+    <string name="Changelog">Changelog</string>
+    <string name="no_changes">No recent changes found</string>
+    <string name="changelogs">Recent changes:</string>
+    <string name="closepopup">Close</string>
+    <string name="NewVersion">New version available</string>
+    <string name="Hi">Hello Again</string>
+    <string name="Donate">Donate</string>
+    <string name="Telegramchanel">Official Channel</string>
+    <string name="code">Source code</string>
+    <string name="code_text">Access the source code of the app ❯</string>
+    <string name="bugs">Issues</string>
+    <string name="bugs_text">Bugs or Problems? Report them here ❯</string>
+    <string name="help">Help</string>
+    <string name="help_text">Contact Dev ❯</string>
+    <string name="contribution">Contribution ?</string>
+    <string name="contribution_text">If you want to contribute, click here ❯</string>
+    <string name="donate_help">Please support me with a donation to further developing Muzza ❯</string>
+    <string name="telegram_info">Official channel with new news and Muzza development process ❯</string>
+    <string name="my_channel">My Telegram channel</string>
+    <string name="my_channel_info">A channel about my life</string>
+    <string name="Developer">Developer ❯</string>
 
     <string name="content">Content</string>
     <string name="login">Login</string>

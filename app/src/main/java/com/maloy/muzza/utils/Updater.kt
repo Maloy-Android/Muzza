@@ -10,11 +10,12 @@ object Updater {
     var lastCheckTime = -1L
         private set
 
-    suspend fun getLatestVersionName(): Result<String> = runCatching {
-        val response = client.get("https://api.github.com/repos/Maloy-Android/Muzza/releases/latest").bodyAsText()
-        val json = JSONObject(response)
-        val versionName = json.getString("name")
-        lastCheckTime = System.currentTimeMillis()
-        versionName
-    }
+    suspend fun getLatestVersionName(): Result<String> =
+        runCatching {
+            val response = client.get("https://api.github.com/repos/Malopieds/InnerTune/releases/latest").bodyAsText()
+            val json = JSONObject(response)
+            val versionName = json.getString("name")
+            lastCheckTime = System.currentTimeMillis()
+            versionName
+        }
 }

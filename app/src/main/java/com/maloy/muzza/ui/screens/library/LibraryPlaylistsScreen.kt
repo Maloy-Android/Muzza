@@ -152,11 +152,11 @@ fun LibraryPlaylistsScreen(
                 ) {
                     Column() {
                         Text(
-                            text = "Sync Playlist",
+                            text = stringResource(R.string.sync_playlist),
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
-                            text = "Note: This allows for syncing with YouTube Music. This is NOT changeable later. You cannot add local songs to synced playlists.",
+                            text = stringResource(R.string.allows_for_sync_witch_youtube),
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.fillMaxWidth(0.7f)
                         )
@@ -295,7 +295,8 @@ fun LibraryPlaylistsScreen(
                                                 )
                                             }
                                         },
-                                    ).animateItem(),
+                                    )
+                                    .animateItem(),
                             )
                         }
                     }

@@ -142,6 +142,7 @@
     <string name="error_song_artist_empty">Song artist cannot be empty.</string>
     <string name="save">Save</string>
 
+    <string name="sync_playlist">Sync Playlist</string>
     <string name="choose_playlist">Choose playlist</string>
     <string name="edit_playlist">Edit playlist</string>
     <string name="create_playlist">Create playlist</string>
@@ -157,6 +158,9 @@
     <string name="add_anyway">Add anyway</string>
     <string name="duplicates_description_single">The song is already in your playlist</string>
     <string name="duplicates_description_multiple">%d songs are already in your playlist</string>
+
+    <string name="adding_local_songs_playlist">Note: Adding local songs to synced/remote playlists is unsupported. Any other combination is valid.</string>
+    <string name="allows_for_sync_witch_youtube">Note: This allows for syncing with YouTube Music. This is NOT changeable later. You cannot add local songs to synced playlists.</string>
 
     <!-- Noun -->
     <plurals name="n_song">
@@ -307,6 +311,8 @@
     <string name="audio_quality_auto">Auto</string>
     <string name="audio_quality_high">High</string>
     <string name="audio_quality_low">Low</string>
+    <string name="minimum_playback_duration">Minimum playback duration</string>
+    <string name="minimum_playback_duration_info">The minimum amount of a song that must be played before it is considered \"played\"</string>
     <string name="queue">Queue</string>
     <string name="persistent_queue">Persistent queue</string>
     <string name="persistent_queue_desc">Restore your last queue when the app starts</string>

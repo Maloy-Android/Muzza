@@ -77,7 +77,7 @@ fun PlayerSettings(
 
     if (showMinPlaybackDur) {
         ActionPromptDialog(
-            title = "Minimum playback duration",
+            title = stringResource(R.string.minimum_playback_duration),
             onDismiss = { showMinPlaybackDur = false },
             onConfirm = {
                 showMinPlaybackDur = false
@@ -89,7 +89,7 @@ fun PlayerSettings(
             }
         ) {
             Text(
-                text = "The minimum amount of a song that must be played before it is considered \"played\"",
+                text = stringResource(R.string.minimum_playback_duration_info),
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(horizontal = 4.dp)
             )
@@ -144,7 +144,7 @@ fun PlayerSettings(
         )
 
         PreferenceEntry(
-            title = { Text("Minimum playback duration") },
+            title = { Text(stringResource(R.string.minimum_playback_duration)) },
             icon = { Icon(Icons.Rounded.Sync, null) },
             onClick = { showMinPlaybackDur = true }
         )

@@ -57,6 +57,9 @@
     <string name="filter_featured_playlists">Обрані плейлисти</string>
     <string name="filter_bookmarked">Додано в закладки</string>
     <string name="no_results_found">Результатів не знайдено</string>
+    <string name="SearchHistory">Історія пошуку</string>
+    <string name="Sujestions">Пропозиції</string>
+    <string name="SearchResutls">Результати пошуку</string>
 
     <!-- Artist screen -->
     <string name="from_your_library">З вашої бібліотеки</string>
@@ -144,6 +147,7 @@
     <string name="error_song_artist_empty">Вкажіть виконавців композиції</string>
     <string name="save">Зберегти</string>
 
+    <string name="sync_playlist">Синхронізувати плейлист</string>
     <string name="choose_playlist">Вибрати плейлист</string>
     <string name="edit_playlist">Редагувати плейлист</string>
     <string name="create_playlist">Створити плейлист</string>
@@ -159,6 +163,9 @@
     <string name="add_anyway">Додати в будь-якому разі</string>
     <string name="duplicates_description_single">Ця пісня вже у вашому плейлисті</string>
     <string name="duplicates_description_multiple">%d пісень вже у вашому плейлисті</string>
+
+    <string name="adding_local_songs_playlist">Примітка: Додавання локальних пісень до синхронізованих/віддалених плейлистів не підтримується. Будь-яка інша комбінація допустима.</string>
+    <string name="allows_for_sync_witch_youtube">Примітка: Це дозволяє синхронізуватися з YouTube Music. Це не можна змінити пізніше. Ви не можете додавати локальні пісні до синхронізованих плейлистів.</string>
 
     <!-- Noun -->
     <plurals name="n_song">
@@ -277,6 +284,27 @@
     <string name="gradient">Градієнт</string>
     <string name="blur">Розмиття</string>
     <string name="blurmv">Розмиття (рух)</string>
+    <string name="Changelog">Історія змін</string>
+    <string name="no_changes">Останні зміни не знайдено</string>
+    <string name="changelogs">Останні зміни:</string>
+    <string name="closepopup">Закрити</string>
+    <string name="NewVersion">Доступна нова версія</string>
+    <string name="Hi">Привіт знову</string>
+    <string name="Donate">Пожертвувати</string>
+    <string name="Telegramchanel">Офіційний канал</string>
+    <string name="code">Вихідний код</string>
+    <string name="code_text">Отримайте доступ до вихідного коду програми ❯</string>
+    <string name="bugs">Проблеми</string>
+    <string name="bugs_text">Є помилки чи проблеми? Повідомте про це тут ❯</string>
+    <string name="help">Допомога</string>
+    <string name="help_text">Зв\'язатися з розробником ❯</string>
+    <string name="contribution">Вклад?</string>
+    <string name="contribution_text">Якщо ви хочете внести вклад, натисніть тут ❯</string>
+    <string name="donate_help">Будь ласка, підтримайте мене пожертвуванням для подальшої розробки Muzza ❯</string>
+    <string name="telegram_info">Офіційний канал з новими новинами та процесом розробки Muzza ❯</string>
+    <string name="my_channel">Мій Telegram канал</string>
+    <string name="my_channel_info">Канал про моє життя</string>
+    <string name="Developer">Розробник ❯</string>
 
     <string name="content">Контент</string>
     <string name="login">Логін</string>
@@ -300,6 +328,8 @@
     <string name="audio_quality_auto">Авто</string>
     <string name="audio_quality_high">Висока</string>
     <string name="audio_quality_low">Низька</string>
+    <string name="minimum_playback_duration">Мінімальна тривалість відтворення</string>
+    <string name="minimum_playback_duration_info">Мінімальна кількість часу, протягом якого пісня повинна відтворюватися, перш ніж вона буде вважатися "відтвореною"</string>
     <string name="queue">Черга</string>
     <string name="persistent_queue">Постійна черга</string>
     <string name="persistent_queue_desc">Відновлювати останню чергу після запуску програми</string>
@@ -311,6 +341,7 @@
     <string name="auto_skip_next_on_error_desc">Забезпечити безперервне відтворення</string>
     <string name="stop_music_on_task_clear">Зупиняти музику при очищенні завдань</string>
     <string name="equalizer">Еквалайзер</string>
+    <string name="lyrics_settings_title">Налаштування текстів</string>
 
     <string name="storage">Сховище</string>
     <string name="cache">Кеш</string>

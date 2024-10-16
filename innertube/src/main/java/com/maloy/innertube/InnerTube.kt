@@ -1,6 +1,5 @@
 package com.maloy.innertube
 
-import com.maloy.innertube.encoder.brotli
 import com.maloy.innertube.models.Context
 import com.maloy.innertube.models.YouTubeClient
 import com.maloy.innertube.models.YouTubeLocale
@@ -60,7 +59,6 @@ class InnerTube {
         }
 
         install(ContentEncoding) {
-            brotli(1.0F)
             gzip(0.9F)
             deflate(0.8F)
         }

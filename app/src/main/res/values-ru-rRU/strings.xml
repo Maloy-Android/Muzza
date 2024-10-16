@@ -277,6 +277,7 @@
     <string name="default_">По умолчанию</string>
     <string name="squiggly">Волнистый</string>
     <string name="misc">Разное</string>
+    <string name="main">Основное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
     <string name="enable_swipe_thumbnail">Включить свайп по обложке для переключения композиции</string>
     <string name="player_background_style">Стиль фона плеера</string>
@@ -372,8 +373,9 @@
     <string name="disable_screenshot_desc">При включении этой опции скриншоты и отображение приложения в списке последних отключаются.</string>
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>
     <string name="enable_kugou">Включить провайдера текстов KuGou</string>
-    <string name="hide_explicit">Скрывать контент с нецензурной лексикой</string>
     <string name="default_lyrics_provider">Поставшик текстов по умолчанию</string>
+    <string name="hide_explicit">Скрывать контент с нецензурной лексикой</string>
+    <string name="enable_notifications">Включить уведомления</string>
 
     <string name="backup_restore">Резервное копирование</string>
     <string name="backup">Создать резервную копию</string>

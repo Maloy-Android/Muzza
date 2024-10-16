@@ -28,6 +28,7 @@ import com.maloy.muzza.constants.PreferredLyricsProviderKey
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ListPreference
+import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -48,6 +49,10 @@ fun LyricsSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
     ) {
+        PreferenceGroupTitle(
+            title = stringResource(R.string.main)
+        )
+
         // KuGou
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_kugou)) },
@@ -75,6 +80,10 @@ fun LyricsSettings(
                     LyricsPosition.RIGHT -> stringResource(R.string.right)
                 }
             }
+        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.misc)
         )
 
         ListPreference(

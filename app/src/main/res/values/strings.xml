@@ -263,6 +263,7 @@
     <string name="squiggly">Squiggly</string>
     <string name="compose">Compose</string>
     <string name="misc">Misc</string>
+    <string name="main">Main</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="grid_cell_size">Grid cell size</string>
     <string name="small">Small</string>
@@ -354,6 +355,7 @@
     <string name="enable_kugou">Enable KuGou lyrics provider</string>
     <string name="default_lyrics_provider">Default lyrics provider</string>
     <string name="hide_explicit">Hide explicit content</string>
+    <string name="enable_notifications">Enable notifications</string>
 
     <string name="backup_restore">Backup and restore</string>
     <string name="backup">Backup</string>

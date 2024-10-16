@@ -203,6 +203,10 @@ fun ContentSettings(
 
         LanguageSelector()
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.misc)
+        )
+
         SliderPreference(
             title = { Text(stringResource(R.string.history_duration)) },
             value = historyDuration,

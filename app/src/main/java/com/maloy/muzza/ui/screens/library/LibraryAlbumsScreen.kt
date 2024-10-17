@@ -233,10 +233,21 @@ fun LibraryAlbumsScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .combinedClickable {
-                                        navController.navigate("album/${album.id}")
-                                    }
-                                    .animateItem()
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("album/${album.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                AlbumMenu(
+                                                    originalAlbum = album,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        },
+                                    ).animateItem(),
                             )
                         }
                     }

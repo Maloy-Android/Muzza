@@ -438,6 +438,16 @@ fun LocalPlaylistScreen(
 
                     fun deleteFromPlaylist() {
                         database.transaction {
+                            coroutineScope.launch {
+                                playlist?.playlist?.browseId?.let { it1 ->
+                                    var setVideoId = getSetVideoId(currentItem.map.songId)
+                                    if (setVideoId?.setVideoId != null) {
+                                        YouTube.removeFromPlaylist(
+                                            it1, currentItem.map.songId, setVideoId.setVideoId!!
+                                        )
+                                    }
+                                }
+                            }
                             move(currentItem.map.playlistId, currentItem.map.position, Int.MAX_VALUE)
                             delete(currentItem.map.copy(position = Int.MAX_VALUE))
                         }
@@ -495,9 +505,10 @@ fun LocalPlaylistScreen(
                                             menuState.show {
                                                 SongMenu(
                                                     originalSong = song.song,
+                                                    playlistSong = song,
+                                                    playlistBrowseId = playlist?.playlist?.browseId,
                                                     navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                    onDeleteFromPlaylist = ::deleteFromPlaylist
+                                                    onDismiss = menuState::dismiss
                                                 )
                                             }
                                         }

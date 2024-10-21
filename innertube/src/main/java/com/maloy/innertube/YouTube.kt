@@ -21,6 +21,7 @@ import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.getContinuation
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.models.response.AccountMenuResponse
+import com.maloy.innertube.models.response.AddItemYouTubePlaylistResponse
 import com.maloy.innertube.models.response.BrowseResponse
 import com.maloy.innertube.models.response.CreatePlaylistResponse
 import com.maloy.innertube.models.response.GetQueueResponse
@@ -641,6 +642,16 @@ object YouTube {
             .actions[0].openPopupAction.popup.multiPageMenuRenderer
             .header?.activeAccountHeaderRenderer
             ?.toAccountInfo()!!
+    }
+
+
+    suspend fun addToPlaylist(playlistId: String, videoId: String) = runCatching {
+        innerTube.addToPlaylist(WEB_REMIX, playlistId, videoId).body<AddItemYouTubePlaylistResponse>()
+    }
+    suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String?): Result<Any> = runCatching {
+        if (setVideoId != null) {
+            innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
+        }
     }
 
     @JvmInline

@@ -3,6 +3,7 @@ package com.maloy.muzza.utils
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
 import com.maloy.muzza.db.MusicDatabase
@@ -89,6 +90,10 @@ class SyncUtils @Inject constructor(
     suspend fun syncSavedPlaylists() {
         YouTube.likedPlaylists().onSuccess { playlistList ->
             val dbPlaylists = database.playlistsByNameAsc().first()
+
+            dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
+                .forEach { database.update(it.playlist.localToggleLike()) }
+
             playlistList.drop(1).forEach { playlist ->
                 var playlistEntity = dbPlaylists.find { playlist.id == it.playlist.browseId }?.playlist
                 if (playlistEntity == null) {

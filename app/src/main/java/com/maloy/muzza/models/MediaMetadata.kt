@@ -14,6 +14,7 @@ data class MediaMetadata(
     val duration: Int,
     val thumbnailUrl: String? = null,
     val album: Album? = null,
+    val setVideoId: String? = null,
     val explicit: Boolean = false,
     val isLocal: Boolean = false,
     val localPath: String? = null,
@@ -85,5 +86,6 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
             title = it.name
         )
     },
-    explicit = explicit
+    explicit = explicit,
+    setVideoId = setVideoId
 )

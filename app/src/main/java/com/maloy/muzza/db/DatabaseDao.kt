@@ -34,6 +34,7 @@ import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.db.entities.RelatedSongMap
 import com.maloy.muzza.db.entities.SearchHistory
+import com.maloy.muzza.db.entities.SetVideoIdEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongAlbumMap
 import com.maloy.muzza.db.entities.SongArtistMap
@@ -290,6 +291,11 @@ interface DatabaseDao {
     @Transaction
     @Query("SELECT * FROM song")
     fun allSongs(): Flow<List<Song>>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity)
+    @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
+    suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 
     @Query("SELECT * FROM format WHERE id = :id")
     fun format(id: String?): Flow<FormatEntity?>

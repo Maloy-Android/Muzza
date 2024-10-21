@@ -21,7 +21,7 @@ import com.google.material.color.hct.Hct
 import com.google.material.color.scheme.SchemeTonalSpot
 import com.google.material.color.score.Score
 
-val DefaultThemeColor = Color(0xFF4285F4)
+val DefaultThemeColor = Color(0xFFED5564)
 
 @Composable
 fun MuzzaTheme(

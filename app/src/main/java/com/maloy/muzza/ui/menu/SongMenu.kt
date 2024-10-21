@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -56,6 +58,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.db.entities.Event
+import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.toMediaMetadata
@@ -75,7 +78,8 @@ fun SongMenu(
     originalSong: Song,
     event: Event? = null,
     navController: NavController,
-    onDeleteFromPlaylist: (() -> Unit)? = null,
+    playlistSong: PlaylistSong? = null,
+    playlistBrowseId: String? = null,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -83,7 +87,9 @@ fun SongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
-    val download by LocalDownloadUtil.current.getDownload(originalSong.id).collectAsState(initial = null)
+    val download by LocalDownloadUtil.current.getDownload(originalSong.id)
+        .collectAsState(initial = null)
+    val coroutineScope = rememberCoroutineScope()
 
     val scope = rememberCoroutineScope()
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
@@ -103,7 +109,10 @@ fun SongMenu(
             icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
             title = { Text(text = stringResource(R.string.edit_song)) },
             onDismiss = { showEditDialog = false },
-            initialTextFieldValue = TextFieldValue(song.song.title, TextRange(song.song.title.length)),
+            initialTextFieldValue = TextFieldValue(
+                song.song.title,
+                TextRange(song.song.title.length)
+            ),
             onDone = { title ->
                 onDismiss()
                 database.query {
@@ -119,9 +128,17 @@ fun SongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { listOf(song.id) },
+        onGetSong = { playlist ->
+            coroutineScope.launch(Dispatchers.IO) {
+                playlist.playlist.browseId?.let { browseId ->
+                    YouTube.addToPlaylist(browseId, song.id)
+                }
+            }
+            listOf(song.id)
+        },
         onDismiss = { showChoosePlaylistDialog = false }
     )
+
 
     var showSelectArtistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -236,6 +253,28 @@ fun SongMenu(
         ) {
             showChoosePlaylistDialog = true
         }
+        if (playlistSong != null) {
+            GridMenuItem(
+                icon = R.drawable.playlist_remove,
+                title = R.string.remove_from_playlist
+            ) {
+                database.transaction {
+                    coroutineScope.launch {
+                        playlistBrowseId?.let { playlistId ->
+                            if (playlistSong.map.setVideoId != null) {
+                                YouTube.removeFromPlaylist(
+                                    playlistId, playlistSong.map.songId, playlistSong.map.setVideoId
+                                )
+                            }
+                        }
+                    }
+                    move(playlistSong.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
+                    delete(playlistSong.map.copy(position = Int.MAX_VALUE))
+                }
+
+                onDismiss()
+            }
+        }
         DownloadGridMenu(
             state = download?.state,
             onDownload = {
@@ -341,15 +380,6 @@ fun SongMenu(
                 database.query {
                     delete(event)
                 }
-            }
-        }
-        if (onDeleteFromPlaylist != null) {
-            GridMenuItem(
-                icon = R.drawable.delete,
-                title = R.string.remove_from_playlist
-            ) {
-                onDismiss()
-                onDeleteFromPlaylist()
             }
         }
     }

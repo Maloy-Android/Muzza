@@ -306,7 +306,7 @@ fun SettingsScreen(
                             )
                         } else {
                             Icon(
-                                painter = painterResource(R.drawable.music_note),
+                                painter = painterResource(R.drawable.small_icon),
                                 contentDescription = null,
                                 tint = Color.White,
                                 )

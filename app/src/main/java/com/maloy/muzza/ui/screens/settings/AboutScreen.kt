@@ -206,7 +206,7 @@ fun AboutScreen(
                 .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(R.drawable.launcher_monochrome),
+                painter = painterResource(R.drawable.small_icon),
                 contentDescription = null,
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                 modifier = Modifier

@@ -241,7 +241,7 @@ class InnerTube {
         continuation: String? = null,
         setLogin: Boolean = false,
     ) = httpClient.post("browse") {
-        ytClient(client, setLogin)
+        ytClient(client, setLogin = setLogin || useLoginForBrowse)
         setBody(
             BrowseBody(
                 context = client.toContext(locale, visitorData),

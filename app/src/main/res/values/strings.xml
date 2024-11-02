@@ -6,6 +6,10 @@
     <string name="albums">Albums</string>
     <string name="playlists">Playlists</string>
 
+    <string name="liked">Liked</string>
+    <string name="offline">Offline</string>
+    <string name="my_top">My top</string>
+
     <!-- Top bar -->
     <plurals name="n_selected">
         <item quantity="other">%d selected</item>

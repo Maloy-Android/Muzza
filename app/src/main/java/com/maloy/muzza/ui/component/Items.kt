@@ -541,12 +541,13 @@ fun PlaylistListItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     thumbnailContent = {
+        val auto = if (playlist.playlist.name == "Liked") 1 else if (playlist.playlist.name == "Downloaded") 2 else 0
         PlaylistThumbnail(
             thumbnails = playlist.thumbnails,
             size = ListThumbnailSize,
             placeHolder = {
                 Icon(
-                    painter = painterResource(R.drawable.queue_music),
+                    painter = painterResource( if (auto == 0) R.drawable.queue_music else if (auto == 1) R.drawable.favorite else R.drawable.offline),
                     contentDescription = null,
                     modifier = Modifier.size(ListThumbnailSize)
                 )
@@ -569,13 +570,14 @@ fun PlaylistGridItem(
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     badges = badges,
     thumbnailContent = {
+        val auto = if (playlist.playlist.name == "Liked") 1 else if (playlist.playlist.name == "Downloaded") 2 else 0
         val width = maxWidth
         PlaylistThumbnail(
             thumbnails = playlist.thumbnails,
             size = width,
             placeHolder = {
                 Icon(
-                    painter = painterResource(R.drawable.queue_music),
+                    painter = painterResource( if (auto == 0) R.drawable.queue_music else if (auto == 1) R.drawable.favorite else R.drawable.offline),
                     contentDescription = null,
                     tint = LocalContentColor.current.copy(alpha = 0.8f),
                     modifier = Modifier

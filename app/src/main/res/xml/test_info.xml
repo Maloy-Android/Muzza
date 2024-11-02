@@ -5,7 +5,7 @@
     android:initialLayout="@layout/test"
     android:minWidth="180dp"
     android:minHeight="180dp"
-    android:previewImage="@drawable/launcher_foreground"
+    android:previewImage="@drawable/small_icon"
     android:previewLayout="@layout/test"
     android:resizeMode="horizontal"
     android:targetCellWidth="2"

@@ -37,6 +37,7 @@ import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.BuildConfig
+import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -192,6 +193,16 @@ fun NavGraphBuilder.navigationBuilder(
         )
     ) {
         YouTubeBrowseScreen(navController, scrollBehavior)
+    }
+    composable(
+        route = "auto_playlist/{playlist}",
+        arguments = listOf(
+            navArgument("playlist") {
+                type = NavType.StringType
+            }
+        )
+    ) {
+        AutoPlaylistScreen(navController, scrollBehavior)
     }
     composable("settings") {
         val latestVersion by mutableLongStateOf(BuildConfig.VERSION_CODE.toLong())

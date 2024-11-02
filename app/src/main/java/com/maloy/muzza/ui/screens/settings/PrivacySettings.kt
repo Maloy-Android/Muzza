@@ -32,7 +32,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PauseSearchHistoryKey
-import com.maloy.muzza.constants.UseLoginOnArtistPage
+import com.maloy.muzza.constants.UseLoginForBrowse
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.PreferenceEntry
@@ -51,7 +51,7 @@ fun PrivacySettings(
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
     val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(key = PauseSearchHistoryKey, defaultValue = false)
     val (disableScreenshot, onDisableScreenshotChange) = rememberPreference(key = DisableScreenshotKey, defaultValue = false)
-    val (useLoginOnArtistPage, onUseLoginOnArtistPageChange) = rememberPreference(key = UseLoginOnArtistPage, defaultValue = false)
+    val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
 
     var showClearListenHistoryDialog by remember { mutableStateOf(false) }
 
@@ -160,13 +160,13 @@ fun PrivacySettings(
             title = stringResource(R.string.account)
         )
         SwitchPreference(
-            title = { Text(stringResource(R.string.use_login_on_artist_page)) },
-            description = stringResource(R.string.use_login_on_artist_page_desc),
+            title = { Text(stringResource(R.string.use_login_for_browse)) },
+            description = stringResource(R.string.use_login_for_browse_desc),
             icon = { Icon(painterResource(R.drawable.person), null) },
-            checked = useLoginOnArtistPage,
+            checked = useLoginForBrowse,
             onCheckedChange = {
-                YouTube.useLoginOnArtistPage = it
-                onUseLoginOnArtistPageChange(it)
+                YouTube.useLoginForBrowse = it
+                onUseLoginForBrowseChange(it)
             }
         )
 

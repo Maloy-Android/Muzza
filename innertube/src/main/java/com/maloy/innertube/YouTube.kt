@@ -284,7 +284,7 @@ object YouTube {
     }
 
     suspend fun artistItemsContinuation(continuation: String): Result<ArtistItemsContinuationPage> = runCatching {
-        val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
+        val response = innerTube.browse(WEB_REMIX, continuation = continuation, setLogin = true).body<BrowseResponse>()
         ArtistItemsContinuationPage(
             items = response.continuationContents?.musicPlaylistShelfContinuation?.contents?.mapNotNull {
                 ArtistItemsContinuationPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)

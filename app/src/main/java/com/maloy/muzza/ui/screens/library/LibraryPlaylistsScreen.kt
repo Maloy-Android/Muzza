@@ -425,15 +425,6 @@ fun LibraryPlaylistsScreen(
                                         onClick = {
                                             navController.navigate("auto_playlist/liked")
                                         },
-                                        onLongClick = {
-                                            menuState.show {
-                                                PlaylistMenu(
-                                                    playlist = likedPlaylist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
                                     )
                                     .animateItem()
                             )
@@ -451,15 +442,6 @@ fun LibraryPlaylistsScreen(
                                         onClick = {
                                             navController.navigate("auto_playlist/downloaded")
                                         },
-                                        onLongClick = {
-                                            menuState.show {
-                                                PlaylistMenu(
-                                                    playlist = downloadPlaylist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
                                     )
                                     .animateItem()
                             )

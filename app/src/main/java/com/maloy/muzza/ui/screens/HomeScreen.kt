@@ -404,6 +404,19 @@ fun HomeScreen(
                         modifier = Modifier.weight(1f)
                     )
 
+                    NavigationTile(
+                        title = stringResource(R.string.liked_songs),
+                        icon = R.drawable.favorite,
+                        onClick = { navController.navigate("auto_playlist/liked") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    NavigationTile(
+                        title = stringResource(R.string.downloaded_songs),
+                        icon = R.drawable.download,
+                        onClick = { navController.navigate("auto_playlist/downloads") },
+                        modifier = Modifier.weight(1f)
+                    )
+
                     if (isLoggedIn) {
                         NavigationTile(
                             title = stringResource(R.string.account),

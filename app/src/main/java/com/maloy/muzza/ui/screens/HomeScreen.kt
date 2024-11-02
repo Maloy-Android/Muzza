@@ -337,46 +337,46 @@ fun HomeScreen(
             )
         }
 
-        val context = LocalContext.current
-        var showNoInternetDialog by remember { mutableStateOf(false) }
-
-        if (!isInternetAvailable(context)) {
-            showNoInternetDialog = true
-        }
-
-        // No Internet Dialog
-        if (showNoInternetDialog) {
-            AlertDialog(
-                onDismissRequest = { showNoInternetDialog = false },
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(id = R.drawable.signal_cellular_nodata),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.not_internet))
-                    }
-                },
-                text = { Text(stringResource(R.string.internet_required)) },
-                confirmButton = {},
-                dismissButton = {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Button(onClick = {
-
-                            navController.navigate("settings")
-                            showNoInternetDialog = false
-                        }) {
-                            Text(stringResource(R.string.settings))
-                        }
-                    }
-                }
-            )
-        }
+//        val context = LocalContext.current
+//        var showNoInternetDialog by remember { mutableStateOf(false) }
+//
+//        if (!isInternetAvailable(context)) {
+//            showNoInternetDialog = true
+//        }
+//
+//        // No Internet Dialog
+//        if (showNoInternetDialog) {
+//            AlertDialog(
+//                onDismissRequest = { showNoInternetDialog = false },
+//                title = {
+//                    Row(verticalAlignment = Alignment.CenterVertically) {
+//                        Icon(
+//                            painter = painterResource(id = R.drawable.signal_cellular_nodata),
+//                            contentDescription = null,
+//                            modifier = Modifier.size(24.dp)
+//                        )
+//                        Spacer(modifier = Modifier.width(8.dp))
+//                        Text(stringResource(R.string.not_internet))
+//                    }
+//                },
+//                text = { Text(stringResource(R.string.internet_required)) },
+//                confirmButton = {},
+//                dismissButton = {
+//                    Box(
+//                        modifier = Modifier.fillMaxWidth(),
+//                        contentAlignment = Alignment.Center
+//                    ) {
+//                        Button(onClick = {
+//
+//                            navController.navigate("settings")
+//                            showNoInternetDialog = false
+//                        }) {
+//                            Text(stringResource(R.string.settings))
+//                        }
+//                    }
+//                }
+//            )
+//        }
 
         LazyColumn(
             state = lazylistState,

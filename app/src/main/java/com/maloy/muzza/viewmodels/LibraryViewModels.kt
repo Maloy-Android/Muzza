@@ -3,6 +3,8 @@
 package com.maloy.muzza.viewmodels
 
 import android.content.Context
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -199,9 +201,22 @@ class LibraryAlbumsViewModel @Inject constructor(
 @HiltViewModel
 class LibraryPlaylistsViewModel @Inject constructor(
     @ApplicationContext context: Context,
+    downloadUtil: DownloadUtil,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val downloadSongs =
+        downloadUtil.downloads.flatMapLatest { downloads ->
+            database.allSongs()
+                .flowOn(Dispatchers.IO)
+                .map { songs ->
+                    songs.filter {
+                        downloads[it.id]?.state == Download.STATE_COMPLETED
+                    }
+                }
+        }
     val allPlaylists = context.dataStore.data
         .map {
             it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey] ?: true)

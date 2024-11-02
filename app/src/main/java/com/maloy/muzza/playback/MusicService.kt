@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.database.SQLException
 import android.media.audiofx.AudioEffect
-import android.media.audiofx.LoudnessEnhancer
 import android.net.ConnectivityManager
 import android.os.Binder
 import androidx.core.content.getSystemService
@@ -65,7 +64,6 @@ import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
 import com.maloy.muzza.constants.HideExplicitKey
-import com.maloy.muzza.constants.HistoryDuration
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLibrary
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLike
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -137,6 +135,8 @@ import java.net.SocketTimeoutException
 import java.net.UnknownHostException
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.math.min
+import kotlin.math.pow
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -173,10 +173,8 @@ class MusicService : MediaLibraryService(),
         database.format(mediaMetadata?.id)
     }
 
-
+    private val normalizeFactor = MutableStateFlow(1f)
     val playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
-
-    private var loudnessEnhancer: LoudnessEnhancer? = null
 
     lateinit var sleepTimer: SleepTimer
 
@@ -247,7 +245,9 @@ class MusicService : MediaLibraryService(),
 
         connectivityManager = getSystemService()!!
 
-        playerVolume.collectLatest(scope) {
+        combine(playerVolume, normalizeFactor) { playerVolume, normalizeFactor ->
+            playerVolume * normalizeFactor
+        }.collectLatest(scope) {
             player.volume = it
         }
 
@@ -300,25 +300,10 @@ class MusicService : MediaLibraryService(),
         ) { format, normalizeAudio ->
             format to normalizeAudio
         }.collectLatest(scope) { (format, normalizeAudio) ->
-            runCatching {
-                if (!normalizeAudio) {
-                    loudnessEnhancer?.enabled = false
-                    loudnessEnhancer?.release()
-                    loudnessEnhancer = null
-                } else {
-                    if (loudnessEnhancer == null) {
-                        loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
-                    }
-                    fun Float?.toMb() = ((this ?: 0f) * 100).toInt()
-
-                    var loudnessMb = format?.loudnessDb?.toFloat().toMb()
-                    if (loudnessMb !in -2000..2000) {
-                        // Extreme loudness value detected, turning off normalization for this song
-                        loudnessMb = 0
-                    }
-                    loudnessEnhancer?.setTargetGain(5f.toMb() - loudnessMb)
-                    loudnessEnhancer?.enabled = true
-                }
+            normalizeFactor.value = if (normalizeAudio && format?.loudnessDb != null) {
+                min(10f.pow(-format.loudnessDb.toFloat() / 20), 1f)
+            } else {
+                1f
             }
         }
 
@@ -796,7 +781,6 @@ class MusicService : MediaLibraryService(),
         player.removeListener(this)
         player.removeListener(sleepTimer)
         player.release()
-        loudnessEnhancer?.release()
         super.onDestroy()
     }
 

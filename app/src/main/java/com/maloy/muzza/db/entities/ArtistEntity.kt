@@ -12,6 +12,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
+@Suppress("DEPRECATION")
 @Immutable
 @Entity(tableName = "artist")
 data class ArtistEntity(

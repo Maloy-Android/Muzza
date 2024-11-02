@@ -217,6 +217,7 @@ fun SettingsScreen(
         R.drawable.cardbg2,
         R.drawable.cardbg3,
         R.drawable.cardbg4,
+        R.drawable.cardbg5,
         R.drawable.cardbg6,
         R.drawable.cardbg7,
         R.drawable.cardbg8,

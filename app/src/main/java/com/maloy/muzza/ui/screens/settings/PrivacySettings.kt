@@ -25,12 +25,14 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PauseSearchHistoryKey
+import com.maloy.muzza.constants.UseLoginOnArtistPage
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.PreferenceEntry
@@ -49,6 +51,7 @@ fun PrivacySettings(
     val (pauseListenHistory, onPauseListenHistoryChange) = rememberPreference(key = PauseListenHistoryKey, defaultValue = false)
     val (pauseSearchHistory, onPauseSearchHistoryChange) = rememberPreference(key = PauseSearchHistoryKey, defaultValue = false)
     val (disableScreenshot, onDisableScreenshotChange) = rememberPreference(key = DisableScreenshotKey, defaultValue = false)
+    val (useLoginOnArtistPage, onUseLoginOnArtistPageChange) = rememberPreference(key = UseLoginOnArtistPage, defaultValue = false)
 
     var showClearListenHistoryDialog by remember { mutableStateOf(false) }
 
@@ -151,6 +154,20 @@ fun PrivacySettings(
             title = { Text(stringResource(R.string.clear_search_history)) },
             icon = { Icon(painterResource(R.drawable.clear_all), null) },
             onClick = { showClearSearchHistoryDialog = true }
+        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.account)
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.use_login_on_artist_page)) },
+            description = stringResource(R.string.use_login_on_artist_page_desc),
+            icon = { Icon(painterResource(R.drawable.person), null) },
+            checked = useLoginOnArtistPage,
+            onCheckedChange = {
+                YouTube.useLoginOnArtistPage = it
+                onUseLoginOnArtistPageChange(it)
+            }
         )
 
         PreferenceGroupTitle(

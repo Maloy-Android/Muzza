@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import org.apache.commons.lang3.RandomStringUtils
 import java.time.LocalDateTime
 
+@Suppress("DEPRECATION")
 @Immutable
 @Entity(tableName = "playlist")
 data class PlaylistEntity(

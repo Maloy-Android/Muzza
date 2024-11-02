@@ -20,6 +20,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -264,13 +267,13 @@ fun PlayerMenu(
     ) {
         if (playerVolume.value == 0f) {
             Icon(
-                painter = painterResource(R.drawable.volume_off),
+                imageVector = Icons.AutoMirrored.Rounded.VolumeOff,
                 contentDescription = null,
                 modifier = Modifier.size(26.dp)
             )
         } else {
             Icon(
-                painter = painterResource(R.drawable.volume_up),
+                imageVector = Icons.AutoMirrored.Rounded.VolumeUp,
                 contentDescription = null,
                 modifier = Modifier.size(28.dp)
             )

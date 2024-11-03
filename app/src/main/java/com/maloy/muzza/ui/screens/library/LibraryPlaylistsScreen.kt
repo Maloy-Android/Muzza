@@ -111,8 +111,6 @@ fun LibraryPlaylistsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(PlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSortDescendingKey, true)
 
-    LaunchedEffect(Unit) { viewModel.sync() }
-
     val playlists by viewModel.allPlaylists.collectAsState()
 
     val lazyListState = rememberLazyListState()

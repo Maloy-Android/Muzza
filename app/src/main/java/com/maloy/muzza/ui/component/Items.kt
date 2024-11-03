@@ -541,13 +541,17 @@ fun PlaylistListItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     thumbnailContent = {
-        val auto = if (playlist.playlist.name == "Liked") 1 else if (playlist.playlist.name == "Downloaded") 2 else 0
+        val painter = when (playlist.playlist.name) {
+            "Liked" -> R.drawable.favorite
+            "Offline" -> R.drawable.offline
+            else -> R.drawable.queue_music
+        }
         PlaylistThumbnail(
             thumbnails = playlist.thumbnails,
             size = ListThumbnailSize,
             placeHolder = {
                 Icon(
-                    painter = painterResource( if (auto == 0) R.drawable.queue_music else if (auto == 1) R.drawable.favorite else R.drawable.offline),
+                    painter = painterResource(painter),
                     contentDescription = null,
                     modifier = Modifier.size(ListThumbnailSize)
                 )
@@ -570,14 +574,18 @@ fun PlaylistGridItem(
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     badges = badges,
     thumbnailContent = {
-        val auto = if (playlist.playlist.name == "Liked") 1 else if (playlist.playlist.name == "Downloaded") 2 else 0
+        val painter = when (playlist.playlist.name) {
+            "Liked" -> R.drawable.favorite
+            "Offline" -> R.drawable.offline
+            else -> R.drawable.queue_music
+        }
         val width = maxWidth
         PlaylistThumbnail(
             thumbnails = playlist.thumbnails,
             size = width,
             placeHolder = {
                 Icon(
-                    painter = painterResource( if (auto == 0) R.drawable.queue_music else if (auto == 1) R.drawable.favorite else R.drawable.offline),
+                    painter = painterResource(painter),
                     contentDescription = null,
                     tint = LocalContentColor.current.copy(alpha = 0.8f),
                     modifier = Modifier

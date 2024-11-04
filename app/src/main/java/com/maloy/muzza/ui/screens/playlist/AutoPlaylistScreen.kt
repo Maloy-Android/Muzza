@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -194,15 +196,29 @@ fun AutoPlaylistScreen(
                                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                AsyncImage(
-                                    model = if (viewModel.playlist == "liked") R.drawable.favorite else R.drawable.offline,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(AlbumThumbnailSize)
-                                        .clip(RoundedCornerShape(ThumbnailCornerRadius)),
-                                    colorFilter = ColorFilter.tint(if (viewModel.playlist == "liked") Color.LightGray else Color.LightGray)
-                                )
+                                val Libcarditem = 25.dp
+                                        Box(
+                                        modifier = Modifier
+                                            .size(AlbumThumbnailSize)
+                                            .clip(RoundedCornerShape(Libcarditem))
+                                            .background(
+                                                MaterialTheme.colorScheme.secondaryContainer,
+                                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                            )
+                            ) {val iconColor = when (MaterialTheme.colorScheme.onBackground) {
+                                            Color.White -> Color.Black // Белая тема
+                                            Color.Black -> Color.White // Черная тема
+                                            else -> Color.Gray // Цвет по умолчанию
+                                        }
+                                            AsyncImage(
+                                                model = if (viewModel.playlist == "liked") R.drawable.favorite else R.drawable.offline,
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .size(AlbumThumbnailSize)
+                                                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                                            )
+                                        }
                                 Column(
                                     verticalArrangement = Arrangement.Center,
                                 ) {

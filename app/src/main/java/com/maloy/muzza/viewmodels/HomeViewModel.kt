@@ -15,6 +15,7 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
+import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.SimilarRecommendation
 import com.maloy.muzza.utils.SyncUtils
@@ -26,6 +27,8 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -45,6 +48,8 @@ class HomeViewModel @Inject constructor(
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
+    val recentActivity = MutableStateFlow<List<YTItem>?>(null)
+    val recentPlaylistsDb = MutableStateFlow<List<Playlist>?>(null)
 
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -56,6 +61,18 @@ class HomeViewModel @Inject constructor(
 
         quickPicks.value = database.quickPicks()
             .first().shuffled().take(20)
+
+        YouTube.libraryRecentActivity().onSuccess { page ->
+            recentActivity.value = page.items.take(9).drop(1)
+            recentActivity.value!!.filterIsInstance<PlaylistItem>().forEach { item ->
+                val playlist = database.playlistByBrowseId(item.id).firstOrNull()
+                if (playlist != null) {
+                    recentPlaylistsDb.update { list ->
+                        list?.plusElement(playlist) ?: listOf(playlist)
+                    }
+                }
+            }
+        }
 
         forgottenFavorites.value = database.forgottenFavorites()
             .first().shuffled().take(20)

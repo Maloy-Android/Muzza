@@ -104,6 +104,14 @@ class SyncUtils @Inject constructor(
             }
         }
     }
+    suspend fun getRecentActivity() {
+        println("running get recent activity")
+        YouTube.libraryRecentActivity().onSuccess { page ->
+            page.items.forEach {
+                println(it.title)
+            }
+        }
+    }
     suspend fun syncPlaylist(browseId: String, playlistId: String) {
         val playlistPage = YouTube.playlist(browseId).completed().getOrNull() ?: return
         database.transaction {

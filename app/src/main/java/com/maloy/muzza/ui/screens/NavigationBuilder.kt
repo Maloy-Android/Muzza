@@ -37,6 +37,7 @@ import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.BuildConfig
+import com.maloy.muzza.ui.screens.library.LibraryScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 
 @SuppressLint("UnrememberedMutableState")
@@ -49,17 +50,8 @@ fun NavGraphBuilder.navigationBuilder(
     composable(Screens.Home.route) {
         HomeScreen(navController)
     }
-    composable(Screens.Songs.route) {
-        LibrarySongsScreen(navController)
-    }
-    composable(Screens.Artists.route) {
-        LibraryArtistsScreen(navController)
-    }
-    composable(Screens.Albums.route) {
-        LibraryAlbumsScreen(navController)
-    }
-    composable(Screens.Playlists.route) {
-        LibraryPlaylistsScreen(navController)
+    composable(Screens.Library.route) {
+        LibraryScreen(navController)
     }
     composable("history") {
         HistoryScreen(navController)

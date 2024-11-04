@@ -23,6 +23,7 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
@@ -248,4 +249,13 @@ class ArtistSongsViewModel @Inject constructor(
             database.artistSongs(artistId, sortType, descending)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+}
+
+@HiltViewModel
+class LibraryViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    database: MusicDatabase,
+) : ViewModel() {
+    private val curScreen = mutableStateOf(LibraryFilter.PLAYLISTS) // TODO change it to playlist (and other things accordingly
+    val filter: MutableState<LibraryFilter> = curScreen
 }

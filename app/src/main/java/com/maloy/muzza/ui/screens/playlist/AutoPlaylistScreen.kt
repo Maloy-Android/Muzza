@@ -39,6 +39,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -193,12 +195,13 @@ fun AutoPlaylistScreen(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 AsyncImage(
-                                    model = songs!![0].song.thumbnailUrl,
+                                    model = if (viewModel.playlist == "liked") R.drawable.favorite else R.drawable.offline,
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .size(AlbumThumbnailSize)
-                                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                        .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                                    colorFilter = ColorFilter.tint(if (viewModel.playlist == "liked") Color.LightGray else Color.LightGray)
                                 )
                                 Column(
                                     verticalArrangement = Arrangement.Center,

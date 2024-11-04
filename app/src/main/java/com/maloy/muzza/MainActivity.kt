@@ -316,18 +316,13 @@ class MainActivity : ComponentActivity() {
                     }
                     val tabOpenedFromShortcut = remember {
                         when (intent?.action) {
-                            ACTION_SONGS -> NavigationTab.SONG
-                            ACTION_ALBUMS -> NavigationTab.ALBUM
-                            ACTION_PLAYLISTS -> NavigationTab.PLAYLIST
+                            ACTION_LIBRARY -> NavigationTab.LIBRARY
                             else -> null
                         }
                     }
                     val topLevelScreens = listOf(
                         Screens.Home.route,
-                        Screens.Songs.route,
-                        Screens.Artists.route,
-                        Screens.Albums.route,
-                        Screens.Playlists.route,
+                        Screens.Library.route,
                         "settings"
                     )
 
@@ -520,10 +515,7 @@ class MainActivity : ComponentActivity() {
                             navController = navController,
                             startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
                                 NavigationTab.HOME -> Screens.Home
-                                NavigationTab.SONG -> Screens.Songs
-                                NavigationTab.ARTIST -> Screens.Artists
-                                NavigationTab.ALBUM -> Screens.Albums
-                                NavigationTab.PLAYLIST -> Screens.Playlists
+                                NavigationTab.LIBRARY-> Screens.Library
                             }.route,
                             enterTransition = {
                                 if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
@@ -738,10 +730,18 @@ class MainActivity : ComponentActivity() {
                                 .align(Alignment.BottomCenter)
                                 .offset {
                                     if (navigationBarHeight == 0.dp) {
-                                        IntOffset(x = 0, y = (bottomInset + NavigationBarHeight).roundToPx())
+                                        IntOffset(
+                                            x = 0,
+                                            y = (bottomInset + NavigationBarHeight).roundToPx()
+                                        )
                                     } else {
-                                        val slideOffset = (bottomInset + NavigationBarHeight) * playerBottomSheetState.progress.coerceIn(0f, 1f)
-                                        val hideOffset = (bottomInset + NavigationBarHeight) * (1 - navigationBarHeight / NavigationBarHeight)
+                                        val slideOffset =
+                                            (bottomInset + NavigationBarHeight) * playerBottomSheetState.progress.coerceIn(
+                                                0f,
+                                                1f
+                                            )
+                                        val hideOffset =
+                                            (bottomInset + NavigationBarHeight) * (1 - navigationBarHeight / NavigationBarHeight)
                                         IntOffset(
                                             x = 0,
                                             y = (slideOffset + hideOffset).roundToPx()
@@ -838,9 +838,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val ACTION_SEARCH = "com.maloy.muzza.action.SEARCH"
-        const val ACTION_SONGS = "com.maloy.muzza.action.SONGS"
-        const val ACTION_ALBUMS = "com.maloy.muzza.action.ALBUMS"
-        const val ACTION_PLAYLISTS = "com.maloy.muzza.action.PLAYLISTS"
+        const val ACTION_LIBRARY = "com.zionhuang.music.action.LIBRARY"
     }
 }
 

@@ -5,8 +5,8 @@
     <string name="artists">Исполнители</string>
     <string name="albums">Альбомы</string>
     <string name="playlists">Плейлисты</string>
-    <string name="liked">Любимые</string>
-    <string name="offline">Офлайн</string>
+    <string name="liked">Любимая музыка</string>
+    <string name="offline">Загруженная музыка</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">

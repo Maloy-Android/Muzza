@@ -69,6 +69,7 @@ import com.maloy.muzza.viewmodels.LibraryAlbumsViewModel
 @Composable
 fun LibraryAlbumsScreen(
     navController: NavController,
+    filterContent: @Composable () -> Unit,
     viewModel: LibraryAlbumsViewModel = hiltViewModel(),
 ) {
     val menuState = LocalMenuState.current
@@ -78,7 +79,6 @@ fun LibraryAlbumsScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
-    var filter by rememberEnumPreference(AlbumFilterKey, AlbumFilter.LIKED)
     var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(AlbumSortTypeKey, AlbumSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
@@ -101,37 +101,6 @@ fun LibraryAlbumsScreen(
                 LibraryViewType.GRID -> lazyGridState.animateScrollToItem(0)
             }
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
-        }
-    }
-
-    val filterContent = @Composable {
-        Row {
-            ChipsRow(
-                chips = listOf(
-                    AlbumFilter.LIKED to stringResource(R.string.filter_liked),
-                    AlbumFilter.LIBRARY to stringResource(R.string.filter_library)
-                ),
-                currentValue = filter,
-                onValueUpdate = { filter = it },
-                modifier = Modifier.weight(1f)
-            )
-
-            IconButton(
-                onClick = {
-                    viewType = viewType.toggle()
-                },
-                modifier = Modifier.padding(end = 6.dp)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
-                        }
-                    ),
-                    contentDescription = null
-                )
-            }
         }
     }
 

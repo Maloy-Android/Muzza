@@ -280,6 +280,8 @@
     <string name="Hi">Hello Again</string>
     <string name="Donate">Donate</string>
     <string name="Telegramchanel">Official Channel</string>
+    <string name="web_site">Website</string>
+    <string name="web_site_info">Official website</string>
     <string name="code">Source code</string>
     <string name="code_text">Access the source code of the app ❯</string>
     <string name="bugs">Issues</string>

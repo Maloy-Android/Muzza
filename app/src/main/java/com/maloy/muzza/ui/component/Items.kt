@@ -47,6 +47,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -544,8 +545,8 @@ fun PlaylistListItem(
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     thumbnailContent = {
         val painter = when (playlist.playlist.name) {
-            "Liked" -> R.drawable.favorite
-            "Offline" -> R.drawable.offline
+            stringResource(R.string.liked) -> R.drawable.favorite
+            stringResource(R.string.offline) -> R.drawable.offline
             else -> R.drawable.queue_music
         }
         PlaylistThumbnail(
@@ -577,8 +578,8 @@ fun PlaylistGridItem(
     badges = badges,
     thumbnailContent = {
         val painter = when (playlist.playlist.name) {
-            "Liked" -> R.drawable.favorite
-            "Offline" -> R.drawable.offline
+            stringResource(R.string.liked) -> R.drawable.favorite
+            stringResource(R.string.offline) -> R.drawable.offline
             else -> R.drawable.queue_music
         }
         val width = maxWidth

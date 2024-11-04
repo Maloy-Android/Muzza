@@ -95,7 +95,7 @@ fun AutoPlaylistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val playlist = if (viewModel.playlist == "liked") "Liked " else "Offline "
+    val playlist = if (viewModel.playlist == "liked") stringResource(R.string.liked) else stringResource(R.string.offline)
     val songs by viewModel.likedSongs.collectAsState(null)
     val mutableSongs = remember {
         mutableStateListOf<Song>()

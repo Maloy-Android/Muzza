@@ -297,6 +297,15 @@ fun AboutScreen(
         Spacer(Modifier.height(20.dp))
 
         CardItem(
+            icon = R.drawable.language,
+            title = stringResource(R.string.web_site),
+            subtitle = stringResource(R.string.web_site_info),
+            onClick = { uriHandler.openUri("https://maloy-android.github.io/Muzza-Website/") }
+        )
+
+        Spacer(Modifier.height(20.dp))
+
+        CardItem(
             icon = R.drawable.telegram,
             title = stringResource(R.string.Telegramchanel),
             subtitle = stringResource(R.string.telegram_info),

@@ -7,37 +7,28 @@
         android:shortcutShortLabel="@string/search">
         <intent
             android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza.debug"
+            android:targetPackage="com.maloy.muzza"
             android:action="com.maloy.muzza.action.SEARCH" />
     </shortcut>
     <shortcut
-        android:shortcutId="songs"
+        android:shortcutId="home"
         android:enabled="true"
-        android:icon="@drawable/shortcut_songs"
-        android:shortcutShortLabel="@string/songs">
+        android:icon="@drawable/shortcut_home"
+        android:shortcutShortLabel="@string/home">
         <intent
             android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza.debug"
-            android:action="com.maloy.muzza.action.SONGS" />
+            android:targetPackage="com.maloy.muzza"
+            android:action="com.maloy.muzza.action.HOME" />
     </shortcut>
+
     <shortcut
-        android:shortcutId="albums"
+        android:shortcutId="library"
         android:enabled="true"
-        android:icon="@drawable/shortcut_albums"
-        android:shortcutShortLabel="@string/albums">
+        android:icon="@drawable/shortcut_library"
+        android:shortcutShortLabel="@string/filter_library">
         <intent
             android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza.debug"
-            android:action="com.maloy.muzza.action.ALBUMS" />
-    </shortcut>
-    <shortcut
-        android:shortcutId="playlists"
-        android:enabled="true"
-        android:icon="@drawable/shortcut_playlists"
-        android:shortcutShortLabel="@string/playlists">
-        <intent
-            android:targetClass="com.maloy.muzza.MainActivity"
-            android:targetPackage="com.maloy.muzza.debug"
-            android:action="com.maloy.muzza.action.PLAYLISTS" />
+            android:targetPackage="com.maloy.muzza"
+            android:action="com.maloy.muzza.action.LIBRARY" />
     </shortcut>
 </shortcuts>

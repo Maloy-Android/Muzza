@@ -838,7 +838,7 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val ACTION_SEARCH = "com.maloy.muzza.action.SEARCH"
-        const val ACTION_LIBRARY = "com.zionhuang.music.action.LIBRARY"
+        const val ACTION_LIBRARY = "com.maloy.muzza.action.LIBRARY"
     }
 }
 

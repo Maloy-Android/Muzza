@@ -39,6 +39,7 @@ import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.pages.BrowseResult
 import com.maloy.innertube.pages.ExplorePage
 import com.maloy.innertube.pages.HomePage
+import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
 import com.maloy.innertube.pages.NewReleaseAlbumPage
 import com.maloy.innertube.pages.NextPage
@@ -185,6 +186,24 @@ object YouTube {
                     SearchPage.toYTItem(it.musicResponsiveListItemRenderer)
                 }!!,
             continuation = response.continuationContents.musicShelfContinuation.continuations?.getContinuation()
+        )
+    }
+
+    suspend fun libraryRecentActivity(): Result<LibraryPage> = runCatching {
+        val continuation = LibraryFilter.FILTER_RECENT_ACTIVITY.value
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            browseContinuation = continuation,
+            setLogin = true
+        ).body<BrowseResponse>()
+        LibraryPage(
+            items = response.continuationContents?.sectionListContinuation?.contents?.firstOrNull()
+                ?.gridRenderer?.items!!.mapNotNull {
+                    it.musicTwoRowItemRenderer?.let { renderer ->
+                        LibraryPage.fromMusicTwoRowItemRenderer(renderer)
+                    }
+                },
+            continuation = null
         )
     }
 
@@ -663,6 +682,16 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String?): Result<Any> = runCatching {
         if (setVideoId != null) {
             innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
+        }
+    }
+
+    @JvmInline
+    value class LibraryFilter(val value: String) {
+        companion object {
+            val FILTER_RECENT_ACTIVITY = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCaEFCb0FZQg%3D%3D")
+            val FILTER_RECENTLY_PLAYED = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCUkFCb0FZQg%3D%3D")
+            val FILTER_PLAYLISTS_ALPHABETICAL = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBUkFBb0FZQg%3D%3D")
+            val FILTER_PLAYLISTS_RECENTLY_SAVED = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBQkFCb0FZQg%3D%3D")
         }
     }
 

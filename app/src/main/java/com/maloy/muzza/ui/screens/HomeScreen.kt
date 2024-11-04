@@ -97,6 +97,7 @@ import com.maloy.muzza.ui.component.NavigationTile
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
+import com.maloy.muzza.ui.component.YouTubeCardItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
@@ -139,6 +140,11 @@ fun HomeScreen(
 
     val allLocalItems by viewModel.allLocalItems.collectAsState()
     val allYtItems by viewModel.allYtItems.collectAsState()
+
+    val mostPlayedLazyGridState = rememberLazyGridState()
+    val recentActivity by viewModel.recentActivity.collectAsState()
+    val recentPlaylistsDb by viewModel.recentPlaylistsDb.collectAsState()
+    val recentActivityGridState = rememberLazyGridState()
 
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -328,6 +334,11 @@ fun HomeScreen(
                 }
             )
         }
+        val snapLayoutInfoProvider = remember(mostPlayedLazyGridState) {
+            SnapLayoutInfoProvider(
+                lazyGridState = mostPlayedLazyGridState,
+            )
+        }
         val forgottenFavoritesSnapLayoutInfoProvider = remember(forgottenFavoritesLazyGridState) {
             SnapLayoutInfoProvider(
                 lazyGridState = forgottenFavoritesLazyGridState,
@@ -426,6 +437,49 @@ fun HomeScreen(
                             },
                             modifier = Modifier.weight(1f)
                         )
+                    }
+                }
+
+                if (isLoggedIn && !recentActivity.isNullOrEmpty()) {
+                    NavigationTitle(
+                        title = stringResource(R.string.recent_activity)
+                    )
+                    LazyHorizontalGrid(
+                        state = recentActivityGridState,
+                        rows = GridCells.Fixed(4),
+                        flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp * 4)
+                    ) {
+                        items(
+                            items = recentActivity!!,
+                            key = { it.id }
+                        ) { item ->
+                            YouTubeCardItem(
+                                item,
+                                onClick = {
+                                    when (item) {
+                                        is PlaylistItem -> {
+                                            val playlistDb = recentPlaylistsDb
+                                                ?.firstOrNull { it.playlist.browseId == item.id }
+                                            println(recentPlaylistsDb)
+                                            if (playlistDb != null && playlistDb.songCount != 0)
+                                                navController.navigate("local_playlist/${playlistDb.id}")
+                                            else
+                                                navController.navigate("online_playlist/${item.id}")
+                                        }
+
+                                        is AlbumItem -> navController.navigate("album/${item.id}")
+                                        is ArtistItem -> navController.navigate("artist/${item.id}")
+                                        else -> {}
+                                    }
+                                }
+                            )
+                        }
                     }
                 }
             }

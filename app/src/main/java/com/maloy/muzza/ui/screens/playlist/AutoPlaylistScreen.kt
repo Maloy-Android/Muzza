@@ -205,11 +205,7 @@ fun AutoPlaylistScreen(
                                                 MaterialTheme.colorScheme.secondaryContainer,
                                                 shape = RoundedCornerShape(ThumbnailCornerRadius)
                                             )
-                            ) {val iconColor = when (MaterialTheme.colorScheme.onBackground) {
-                                            Color.White -> Color.Black // Белая тема
-                                            Color.Black -> Color.White // Черная тема
-                                            else -> Color.Gray // Цвет по умолчанию
-                                        }
+                                        ) {
                                             AsyncImage(
                                                 model = if (viewModel.playlist == "liked") R.drawable.favorite else R.drawable.offline,
                                                 contentDescription = null,

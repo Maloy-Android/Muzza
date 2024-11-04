@@ -5,6 +5,8 @@
     <string name="artists">Исполнители</string>
     <string name="albums">Альбомы</string>
     <string name="playlists">Плейлисты</string>
+    <string name="liked">Любимые</string>
+    <string name="offline">Офлайн</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">
@@ -26,6 +28,7 @@
     <string name="your_youtube_playlists">Ваши плейлисты YouTube</string>
     <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
+    <string name="recent_activity">Недавняя активность</string>
     <string name="not_internet">Нет подключения к интернету</string>
     <string name="internet_required">Похоже, у вас нет подключения к интернету. Пожалуйста, проверьте свою сеть.</string>
 
@@ -296,6 +299,8 @@
     <string name="Hi">Привет снова</string>
     <string name="Donate">Пожертвовать</string>
     <string name="Telegramchanel">Официальный канал</string>
+    <string name="web_site">Наш сайт</string>
+    <string name="web_site_info">Официальный сайт</string>
     <string name="code">Исходный код</string>
     <string name="code_text">Получите доступ к исходному коду приложения ❯</string>
     <string name="bugs">Проблемы</string>
@@ -369,6 +374,8 @@
     <string name="pause_search_history">Приостановить историю поиска</string>
     <string name="clear_search_history">Очистить историю поиска</string>
     <string name="clear_search_history_confirm">Вы уверены, что хотите очистить всю историю поиска?</string>
+    <string name="use_login_for_browse">Использовать логин для просмотра контента</string>
+    <string name="use_login_for_browse_desc">Это может повлиять на то, какой контент вы видите, и, например, показывать альбомы только премиум-класса, если вы вошли в систему с премиум-аккаунтом</string>
     <string name="disable_screenshot">Отключить снимок экрана</string>
     <string name="disable_screenshot_desc">При включении этой опции скриншоты и отображение приложения в списке последних отключаются.</string>
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>

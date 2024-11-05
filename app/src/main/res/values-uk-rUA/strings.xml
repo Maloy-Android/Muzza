@@ -5,6 +5,8 @@
     <string name="artists">Виконавці</string>
     <string name="albums">Альбоми</string>
     <string name="playlists">Плейлисти</string>
+    <string name="liked">Улюблена музика</string>
+    <string name="offline">Завантажена музика</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">
@@ -26,6 +28,7 @@
     <string name="your_youtube_playlists">Ваші плейлисти YouTube</string>
     <string name="similar_to">Схожі на</string>
     <string name="new_release_albums">Нові релізи альбомів</string>
+    <string name="recent_activity">Недавня активність</string>
     <string name="not_internet">Немає підключення до Інтернету</string>
     <string name="internet_required">Здається, у вас немає підключення до Інтернету. Будь ласка, перевірте свою мережу.</string>
 
@@ -293,6 +296,8 @@
     <string name="Hi">Привіт знову</string>
     <string name="Donate">Пожертвувати</string>
     <string name="Telegramchanel">Офіційний канал</string>
+    <string name="web_site">Наш сайт</string>
+    <string name="web_site_info">Офіційний сайт</string>
     <string name="code">Вихідний код</string>
     <string name="code_text">Отримайте доступ до вихідного коду програми ❯</string>
     <string name="bugs">Проблеми</string>
@@ -368,6 +373,8 @@
     <string name="clear_search_history_confirm">Ви впевнені, що хочете очистити всю історію пошуку?</string>
     <string name="disable_screenshot">Вимкнути знімок екрана</string>
     <string name="disable_screenshot_desc">Якщо ця опція увімкнена, знімки екрана та відображення програми в списку останніх відключаються.</string>
+    <string name="use_login_for_browse">Використовувати логін для перегляду контента</string>
+    <string name="use_login_for_browse_desc">Це може вплинути на те, який контент ви бачете, і, наприклад, показувати альбоми тільки преміум-класа, якщо ви війшли в систему з преміум-акаунтом</string>
     <string name="enable_lrclib">Увімкнути провайдера текстів LrcLib</string>
     <string name="enable_kugou">Увімкнути провайдера текстів KuGou</string>
     <string name="default_lyrics_provider">Поставшик текстів за замовчуванням</string>

@@ -10,11 +10,14 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -75,7 +78,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun LibrarySongsScreen(
     navController: NavController,
-    filterContent: @Composable () -> Unit,
+    onDeselect: () -> Unit,
     viewModel: LibrarySongsViewModel = hiltViewModel(),
 ) {
     val haptic = LocalHapticFeedback.current
@@ -86,6 +89,8 @@ fun LibrarySongsScreen(
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    var filter by rememberEnumPreference(SongFilterKey, SongFilter.LIBRARY)
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
@@ -147,7 +152,31 @@ fun LibrarySongsScreen(
                 key = "filter",
                 contentType = CONTENT_TYPE_HEADER
             ) {
-                filterContent()
+                Row {
+                    Spacer(Modifier.width(12.dp))
+                    FilterChip(
+                        label = { Text(stringResource(R.string.songs)) },
+                        selected = true,
+                        colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.background),
+                        onClick = onDeselect,
+                        leadingIcon = {
+                            Icon(painter = painterResource(R.drawable.close), contentDescription = "")
+                        },
+                    )
+                    ChipsRow(
+                        chips =
+                        listOf(
+                            SongFilter.LIBRARY to stringResource(R.string.filter_library),
+                            SongFilter.LIKED to stringResource(R.string.filter_liked),
+                            SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                        ),
+                        currentValue = filter,
+                        onValueUpdate = {
+                            filter = it
+                        },
+                        modifier = Modifier.weight(1f),
+                    )
+                }
             }
 
             item(

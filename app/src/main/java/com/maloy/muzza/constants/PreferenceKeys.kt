@@ -61,6 +61,7 @@ val DiscordUsernameKey = stringPreferencesKey("discordUsername")
 val DiscordNameKey = stringPreferencesKey("discordName")
 val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
 
+val ChipSortTypeKey = stringPreferencesKey("chipSortType")
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
 val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
@@ -136,7 +137,7 @@ enum class AlbumFilter {
 }
 
 enum class LibraryFilter {
-    SONGS, ARTISTS, ALBUMS, PLAYLISTS
+    SONGS, ARTISTS, ALBUMS, PLAYLISTS , LIBRARY
 }
 
 enum class PlayerBackgroundStyle {

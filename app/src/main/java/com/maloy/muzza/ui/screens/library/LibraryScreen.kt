@@ -11,37 +11,46 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.LibraryFilter
-import com.maloy.muzza.constants.LibraryFilterKey
 import com.maloy.muzza.utils.rememberEnumPreference
 @Composable
-fun LibraryScreen(
-    navController: NavController,
-){
-    var filter by rememberEnumPreference(LibraryFilterKey, LibraryFilter.PLAYLISTS)
+fun LibraryScreen(navController: NavController) {
+    var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
+
     val filterContent = @Composable {
         Row {
             ChipsRow(
-                chips = listOf(
+                chips =
+                listOf(
                     LibraryFilter.PLAYLISTS to stringResource(R.string.filter_playlists),
                     LibraryFilter.SONGS to stringResource(R.string.filter_songs),
                     LibraryFilter.ALBUMS to stringResource(R.string.filter_albums),
-                    LibraryFilter.ARTISTS to stringResource(R.string.filter_artists)
+                    LibraryFilter.ARTISTS to stringResource(R.string.filter_artists),
                 ),
-                currentValue = filter,
-                onValueUpdate = { filter = it },
-                modifier = Modifier.weight(1f)
+                currentValue = filterType,
+                onValueUpdate = {
+                    filterType =
+                        if (filterType == it) {
+                            LibraryFilter.LIBRARY
+                        } else {
+                            it
+                        }
+                },
+                modifier = Modifier.weight(1f),
             )
         }
     }
+
     Box(
-        modifier = Modifier.fillMaxSize()
+        modifier = Modifier.fillMaxSize(),
     ) {
-        when (filter) {
+        when (filterType) {
+            LibraryFilter.LIBRARY -> LibraryMixScreen(navController, filterContent)
             LibraryFilter.PLAYLISTS -> LibraryPlaylistsScreen(navController, filterContent)
-            LibraryFilter.SONGS -> LibrarySongsScreen(navController, filterContent)
-            LibraryFilter.ALBUMS -> LibraryAlbumsScreen(navController, filterContent)
-            LibraryFilter.ARTISTS -> LibraryArtistsScreen(navController, filterContent)
+            LibraryFilter.SONGS -> LibrarySongsScreen(navController, { filterType = LibraryFilter.LIBRARY })
+            LibraryFilter.ALBUMS -> LibraryAlbumsScreen(navController, { filterType = LibraryFilter.LIBRARY })
+            LibraryFilter.ARTISTS -> LibraryArtistsScreen(navController, { filterType = LibraryFilter.LIBRARY })
         }
     }
 }

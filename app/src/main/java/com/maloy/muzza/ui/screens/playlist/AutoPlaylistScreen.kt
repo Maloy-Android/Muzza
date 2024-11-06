@@ -59,6 +59,7 @@ import coil.compose.AsyncImage
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
+import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.AutoPlaylistSongSortType
@@ -85,6 +86,13 @@ import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
+enum class PlaylistType {
+    LIKE, DOWNLOAD, OTHER
+}
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AutoPlaylistScreen(
@@ -92,6 +100,7 @@ fun AutoPlaylistScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
 ) {
+    val syncUtils = LocalSyncUtils.current
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -105,12 +114,25 @@ fun AutoPlaylistScreen(
     val likeLength = remember(songs) {
         songs?.fastSumBy { it.song.duration } ?: 0
     }
+    val playlistId = viewModel.playlist
+    val playlistType = when (playlistId) {
+        "liked" -> PlaylistType.LIKE
+        "downloaded" -> PlaylistType.DOWNLOAD
+        else -> PlaylistType.OTHER
+    }
     val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSongSortDescendingKey, true)
     val (sortType, onSortTypeChange) = rememberEnumPreference(AutoPlaylistSongSortTypeKey, AutoPlaylistSongSortType.CREATE_DATE)
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
         mutableStateOf(Download.STATE_STOPPED)
     }
+
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            if (playlistId == "liked") syncUtils.syncLikedSongs()
+        }
+    }
+
     LaunchedEffect(songs) {
         mutableSongs.apply {
             clear()

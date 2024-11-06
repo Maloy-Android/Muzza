@@ -61,6 +61,8 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
+import com.maloy.muzza.constants.AutoPlaylistSongSortType
+import com.maloy.muzza.constants.AutoPlaylistSongSortTypeKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
 import com.maloy.muzza.constants.PlaylistSongSortTypeKey
@@ -103,8 +105,8 @@ fun AutoPlaylistScreen(
     val likeLength = remember(songs) {
         songs?.fastSumBy { it.song.duration } ?: 0
     }
-    val (sortType, onSortTypeChange) = rememberEnumPreference(PlaylistSongSortTypeKey, PlaylistSongSortType.CUSTOM)
     val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSongSortDescendingKey, true)
+    val (sortType, onSortTypeChange) = rememberEnumPreference(AutoPlaylistSongSortTypeKey, AutoPlaylistSongSortType.CREATE_DATE)
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
         mutableStateOf(Download.STATE_STOPPED)
@@ -356,14 +358,13 @@ fun AutoPlaylistScreen(
                                 onSortDescendingChange = onSortDescendingChange,
                                 sortTypeText = { sortType ->
                                     when (sortType) {
-                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
-                                        PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        PlaylistSongSortType.NAME -> R.string.sort_by_name
-                                        PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
-                                        PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        AutoPlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                        AutoPlaylistSongSortType.NAME -> R.string.sort_by_name
+                                        AutoPlaylistSongSortType.ARTIST -> R.string.sort_by_artist
+                                        AutoPlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
                                     }
                                 },
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
                             )
                         }
                     }

@@ -66,6 +66,8 @@ val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
 val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
 val PlaylistSongSortDescendingKey = booleanPreferencesKey("playlistSongSortDescending")
+val AutoPlaylistSongSortTypeKey = stringPreferencesKey("autoPlaylistSongSortType")
+val AutoPlaylistSongSortDescendingKey = booleanPreferencesKey("autoPlaylistSongSortDescending")
 val ArtistSortTypeKey = stringPreferencesKey("artistSortType")
 val ArtistSortDescendingKey = booleanPreferencesKey("artistSortDescending")
 val AlbumSortTypeKey = stringPreferencesKey("albumSortType")
@@ -145,6 +147,13 @@ enum class PlayerBackgroundStyle {
     GRADIENT,
     BLUR,
     BLURMOV,
+}
+
+enum class AutoPlaylistSongSortType {
+    CREATE_DATE,
+    NAME,
+    ARTIST,
+    PLAY_TIME,
 }
 
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")

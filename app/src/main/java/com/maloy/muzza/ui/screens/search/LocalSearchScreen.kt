@@ -1,6 +1,8 @@
 package com.maloy.muzza.ui.screens.search
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -56,6 +58,7 @@ import com.maloy.muzza.viewmodels.LocalFilter
 import com.maloy.muzza.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LocalSearchScreen(
     query: String,
@@ -175,21 +178,34 @@ fun LocalSearchScreen(
                                 }
                             },
                             modifier = Modifier
-                                .clickable {
-                                    if (item.id == mediaMetadata?.id) {
-                                        playerConnection.player.togglePlayPause()
-                                    } else {
-                                        val songs = result.map
-                                            .getOrDefault(LocalFilter.SONG, emptyList())
-                                            .filterIsInstance<Song>()
-                                            .map { it.toMediaItem() }
-                                        playerConnection.playQueue(ListQueue(
-                                            title = context.getString(R.string.queue_searched_songs),
-                                            items = songs,
-                                            startIndex = songs.indexOfFirst { it.mediaId == item.id }
-                                        ))
+                                .combinedClickable(
+                                    onClick = {
+                                        if (item.id == mediaMetadata?.id) {
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            val songs = result.map
+                                                .getOrDefault(LocalFilter.SONG, emptyList())
+                                                .filterIsInstance<Song>()
+                                                .map { it.toMediaItem() }
+                                            playerConnection.playQueue(ListQueue(
+                                                title = context.getString(R.string.queue_searched_songs),
+                                                items = songs,
+                                                startIndex = songs.indexOfFirst { it.mediaId == item.id }
+                                            ))
+                                        }
+                                    },
+                                    onLongClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = item,
+                                                navController = navController
+                                            ) {
+                                                onDismiss()
+                                                menuState.dismiss()
+                                            }
+                                        }
                                     }
-                                }
+                                )
                                 .animateItem()
                         )
 

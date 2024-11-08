@@ -40,7 +40,7 @@ class SyncUtils @Inject constructor(
     }
     suspend fun syncLikedAlbums() {
         YouTube.libraryAlbums().onSuccess { ytAlbums ->
-            database.albumsByNameAsc().first()
+            database.albumsLikedByNameAsc().first()
                 .filterNot { it.id in ytAlbums.map(AlbumItem::id) }
                 .forEach { database.update(it.album.localToggleLike()) }
             ytAlbums.forEach { album ->

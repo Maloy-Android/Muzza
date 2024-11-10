@@ -701,7 +701,17 @@ interface DatabaseDao {
         ) return
         albumPage.songs.map(SongItem::toMediaMetadata)
             .onEach(::insert)
-            .mapIndexed { index, song ->
+            .onEach {
+                update(
+                    it.toSongEntity().copy(
+                        title = it.title,
+                        duration = it.duration,
+                        thumbnailUrl = it.thumbnailUrl,
+                        albumId = it.album?.id,
+                        albumName = it.album?.title,
+                    ),
+                )
+            }.mapIndexed { index, song ->
                 SongAlbumMap(
                     songId = song.id,
                     albumId = albumPage.album.browseId,
@@ -797,7 +807,17 @@ interface DatabaseDao {
         )
         albumPage.songs.map(SongItem::toMediaMetadata)
             .onEach(::insert)
-            .mapIndexed { index, song ->
+            .onEach {
+                update(
+                    it.toSongEntity().copy(
+                        title = it.title,
+                        duration = it.duration,
+                        thumbnailUrl = it.thumbnailUrl,
+                        albumId = it.album?.id,
+                        albumName = it.album?.title,
+                    ),
+                )
+            }.mapIndexed { index, song ->
                 SongAlbumMap(
                     songId = song.id,
                     albumId = albumPage.album.browseId,

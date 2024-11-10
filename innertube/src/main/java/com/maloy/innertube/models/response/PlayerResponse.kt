@@ -2,6 +2,7 @@ package com.maloy.innertube.models.response
 
 import com.maloy.innertube.models.ResponseContext
 import com.maloy.innertube.models.Thumbnails
+import com.maloy.innertube.utils.createUrl
 import kotlinx.serialization.Serializable
 
 /**
@@ -57,9 +58,11 @@ data class PlayerResponse(
             val audioChannels: Int?,
             val loudnessDb: Double?,
             val lastModified: Long?,
+            val signatureCipher: String?,
         ) {
             val isAudio: Boolean
                 get() = width == null
+            fun findUrl() = url?.let { createUrl(url = it) } ?: signatureCipher?.let { createUrl(cipher = it) }!!
         }
     }
 

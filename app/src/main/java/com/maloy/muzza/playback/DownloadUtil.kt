@@ -90,7 +90,7 @@ class DownloadUtil @Inject constructor(
                     }
             }!!.let {
                 // Specify range to avoid YouTube's throttling
-                it.copy(url = "${it.url}&range=0-${it.contentLength ?: 10000000}")
+                it.copy(url = "${it.findUrl()}&range=0-${it.contentLength ?: 10000000}")
             }
 
         database.query {

@@ -497,29 +497,18 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             innerTube.unlikePlaylist(WEB_REMIX, playlistId)
     }
 
-    private val PlayerResponse.isValid
-        get() =
-            playabilityStatus.status == "OK" &&
-                    streamingData?.adaptiveFormats?.any { it.url != null || it.signatureCipher != null } == true
-
     suspend fun player(
         videoId: String,
         playlistId: String? = null,
     ): Result<PlayerResponse> =
         runCatching {
-            val safePlayerResponse = innerTube.player(WEB_REMIX, videoId, playlistId).body<PlayerResponse>()
-            if (safePlayerResponse.isValid) {
-                return@runCatching safePlayerResponse
-            }
-            val playerResponse =
-                innerTube.player(IOS, videoId, playlistId).body<PlayerResponse>()
-            if (playerResponse.isValid) {
+            val playerResponse = innerTube.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
+            if (playerResponse.playabilityStatus.status == "OK") {
                 return@runCatching playerResponse
             }
-            val androidPlayerResponse =
-                innerTube.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
-            if (androidPlayerResponse.playabilityStatus.status == "OK") {
-                return@runCatching androidPlayerResponse
+            val safePlayerResponse = innerTube.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
+            if (safePlayerResponse.playabilityStatus.status != "OK") {
+                return@runCatching playerResponse
             }
             val audioStreams = innerTube.pipedStreams(videoId).body<PipedResponse>().audioStreams
             safePlayerResponse.copy(

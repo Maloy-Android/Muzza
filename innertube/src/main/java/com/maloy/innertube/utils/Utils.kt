@@ -106,27 +106,3 @@ fun sigDecode(input: String): String {
         }
     return result
 }
-
-fun createUrl(
-    url: String? = null,
-    cipher: String? = null,
-): String? {
-    val resUrl: URLBuilder
-    var signature = ""
-    var signatureParam = "sig"
-    if (cipher != null) {
-        val params = parseQueryString(cipher)
-        signature = params["s"] ?: return null
-        signatureParam = params["sp"] ?: return null
-        resUrl = params["url"]?.let { URLBuilder(it) } ?: return null
-    } else {
-        resUrl = url?.let { URLBuilder(it) } ?: return null
-    }
-    val n = resUrl.parameters["n"]
-    resUrl.parameters["n"] = nSigDecode(n.toString())
-    if (cipher != null) {
-        resUrl.parameters[signatureParam] = sigDecode(signature)
-    }
-    resUrl.parameters["c"] = "ANDROID_MUSIC"
-    return resUrl.toString()
-}

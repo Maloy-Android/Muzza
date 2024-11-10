@@ -219,15 +219,18 @@ class InnerTube {
                 context = client.toContext(locale, visitorData).let {
                     if (client == YouTubeClient.TVHTML5) {
                         it.copy(
-                            thirdParty = Context.ThirdParty(
-                                embedUrl = "https://www.youtube.com/watch?v=${videoId}"
-                            )
+                            thirdParty =
+                            Context.ThirdParty(
+                                embedUrl = "https://www.youtube.com/watch?v=$videoId",
+                            ),
                         )
-                    } else it
+                    } else {
+                        it
+                    }
                 },
                 videoId = videoId,
-                playlistId = playlistId
-            )
+                playlistId = playlistId,
+            ),
         )
     }
 

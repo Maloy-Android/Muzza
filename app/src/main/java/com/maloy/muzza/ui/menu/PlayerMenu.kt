@@ -339,7 +339,7 @@ fun PlayerMenu(
                 title = R.string.remove_from_library,
             ) {
                 database.query {
-                    inLibrary(mediaMetadata.id, null)
+                    toggleInLibrary(mediaMetadata.id, null)
                 }
             }
         } else {
@@ -349,7 +349,7 @@ fun PlayerMenu(
             ) {
                 database.transaction {
                     insert(mediaMetadata)
-                    inLibrary(mediaMetadata.id, LocalDateTime.now())
+                    toggleInLibrary(mediaMetadata.id, LocalDateTime.now())
                 }
             }
         }

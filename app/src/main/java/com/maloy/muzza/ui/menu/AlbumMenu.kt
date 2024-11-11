@@ -250,7 +250,7 @@ fun AlbumMenu(
             ) {
                 database.transaction {
                     songs.forEach {
-                        inLibrary(it.id, null)
+                        toggleInLibrary(it.id, null)
                     }
                 }
             }
@@ -261,7 +261,7 @@ fun AlbumMenu(
             ) {
                 database.transaction {
                     songs.forEach {
-                        inLibrary(it.id, LocalDateTime.now())
+                        toggleInLibrary(it.id, LocalDateTime.now())
                     }
                 }
             }

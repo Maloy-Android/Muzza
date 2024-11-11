@@ -588,9 +588,20 @@ interface DatabaseDao {
     @Query("UPDATE song SET totalPlayTime = totalPlayTime + :playTime WHERE id = :songId")
     fun incrementTotalPlayTime(songId: String, playTime: Long)
 
+    @Transaction
+    fun toggleInLibrary(songId: String, inLibrary: LocalDateTime?) {
+        inLibrary(songId, inLibrary)
+        if (inLibrary == null) {
+            removeLike(songId)
+        }
+    }
+
     // If the song is already in the library, the time won't be updated
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId AND (inLibrary IS NULL OR :inLibrary IS NULL)")
     fun inLibrary(songId: String, inLibrary: LocalDateTime?)
+
+    @Query("UPDATE song SET liked = 0 - null WHERE id = :songId")
+    fun removeLike(songId: String)
 
     @Query("SELECT COUNT(1) FROM related_song_map WHERE songId = :songId LIMIT 1")
     fun hasRelatedSongs(songId: String): Boolean

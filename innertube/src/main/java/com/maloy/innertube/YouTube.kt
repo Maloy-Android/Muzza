@@ -683,6 +683,9 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
         }
     }
+    suspend fun addPlaylistToPlaylist(playlistId: String, addPlaylistId: String) = runCatching {
+        innerTube.addPlaylistToPlaylist(WEB_REMIX, playlistId, addPlaylistId)
+    }
 
     @JvmInline
     value class LibraryFilter(val value: String) {

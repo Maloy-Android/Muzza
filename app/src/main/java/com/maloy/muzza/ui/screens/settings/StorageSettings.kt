@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -52,6 +53,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
+@SuppressLint("PrivateResource")
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun StorageSettings(
@@ -66,6 +68,24 @@ fun StorageSettings(
     val coroutineScope = rememberCoroutineScope()
     val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(key = MaxImageCacheSizeKey, defaultValue = 512)
     val (maxSongCacheSize, onMaxSongCacheSizeChange) = rememberPreference(key = MaxSongCacheSizeKey, defaultValue = 1024)
+
+    // clear caches when turning off
+    LaunchedEffect(maxImageCacheSize) {
+        if (maxImageCacheSize == 0) {
+            coroutineScope.launch(Dispatchers.IO) {
+                imageDiskCache.clear()
+            }
+        }
+    }
+    LaunchedEffect(maxSongCacheSize) {
+        if (maxSongCacheSize == 0) {
+            coroutineScope.launch(Dispatchers.IO) {
+                playerCache.keys.forEach { key ->
+                    playerCache.removeResource(key)
+                }
+            }
+        }
+    }
 
     var imageCacheSize by remember {
         mutableLongStateOf(imageDiskCache.size)
@@ -136,33 +156,39 @@ fun StorageSettings(
             title = stringResource(R.string.song_cache)
         )
 
-        if (maxSongCacheSize == -1) {
-            Text(
-                text = stringResource(R.string.size_used, formatFileSize(playerCacheSize)),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-            )
-        } else {
-            LinearProgressIndicator(
-                progress = { playerCacheProgress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 6.dp),
-            )
+        if (maxSongCacheSize != 0) {
+            if (maxSongCacheSize == -1) {
+                Text(
+                    text = stringResource(R.string.size_used, formatFileSize(playerCacheSize)),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
+            } else {
+                LinearProgressIndicator(
+                    progress = { (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 6.dp)
+                )
 
-            Text(
-                text = stringResource(R.string.size_used, "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"),
-                style = MaterialTheme.typography.bodyMedium,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-            )
+                Text(
+                    text = stringResource(R.string.size_used, "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"),
+                    style = MaterialTheme.typography.bodyMedium,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
+            }
         }
 
         ListPreference(
             title = { Text(stringResource(R.string.max_cache_size)) },
             selectedValue = maxSongCacheSize,
-            values = listOf(128, 256, 512, 1024, 2048, 4096, 8192, -1),
+            values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1),
             valueText = {
-                if (it == -1) stringResource(R.string.unlimited) else formatFileSize(it * 1024 * 1024L)
+                when (it) {
+                    0 -> stringResource(R.string.off)
+                    -1 -> stringResource(R.string.unlimited)
+                    else -> formatFileSize(it * 1024 * 1024L)
+                }
             },
             onValueSelected = onMaxSongCacheSizeChange
         )
@@ -182,24 +208,31 @@ fun StorageSettings(
             title = stringResource(R.string.image_cache)
         )
 
-        LinearProgressIndicator(
-            progress = { imageCacheProgress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 6.dp),
-        )
+        if (maxImageCacheSize > 0) {
+            LinearProgressIndicator(
+                progress = { (imageCacheSize.toFloat() / imageDiskCache.maxSize).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 6.dp)
+            )
 
-        Text(
-            text = stringResource(R.string.size_used, "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"),
-            style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-        )
+            Text(
+                text = stringResource(R.string.size_used, "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"),
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+            )
+        }
 
         ListPreference(
             title = { Text(stringResource(R.string.max_cache_size)) },
             selectedValue = maxImageCacheSize,
-            values = listOf(128, 256, 512, 1024, 2048, 4096, 8192),
-            valueText = { formatFileSize(it * 1024 * 1024L) },
+            values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192),
+            valueText = {
+                when (it) {
+                    0 -> stringResource(R.string.off)
+                    else -> formatFileSize(it * 1024 * 1024L)
+                }
+            },
             onValueSelected = onMaxImageCacheSizeChange
         )
 

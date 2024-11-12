@@ -407,9 +407,24 @@ class MainActivity : ComponentActivity() {
 
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
-                            val searchQuery = withContext(Dispatchers.IO) {
-                                navBackStackEntry?.arguments?.getString("query")!!
-                            }
+                            val searchQuery =
+                                withContext(Dispatchers.IO) {
+                                    if (navBackStackEntry
+                                            ?.arguments
+                                            ?.getString(
+                                                "query",
+                                            )!!
+                                            .contains(
+                                                "%",
+                                            )
+                                    ) {
+                                        navBackStackEntry?.arguments?.getString(
+                                            "query",
+                                        )!!
+                                    } else {
+                                        URLDecoder.decode(navBackStackEntry?.arguments?.getString("query")!!, "UTF-8")
+                                    }
+                                }
                             onQueryChange(TextFieldValue(searchQuery, TextRange(searchQuery.length)))
                         } else if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route }) {
                             onQueryChange(TextFieldValue())

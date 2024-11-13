@@ -98,10 +98,13 @@ fun LibrarySongsScreen(
     val songs by viewModel.allSongs.collectAsState()
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            syncUtils.syncLikedSongs()
-        }
+            when (filter) {
+                SongFilter.LIKED -> viewModel.syncLikedSongs()
+                SongFilter.LIBRARY -> viewModel.syncLibrarySongs()
+                else -> return@LaunchedEffect
+            }
     }
+
 
     val lazyListState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()

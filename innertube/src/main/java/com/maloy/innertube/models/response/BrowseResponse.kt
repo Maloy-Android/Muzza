@@ -50,6 +50,7 @@ data class BrowseResponse(
     data class ContinuationContents(
         val sectionListContinuation: SectionListContinuation?,
         val musicPlaylistShelfContinuation: MusicPlaylistShelfContinuation?,
+        val musicShelfContinuation: MusicShelfRenderer?,
     ) {
         @Serializable
         data class SectionListContinuation(

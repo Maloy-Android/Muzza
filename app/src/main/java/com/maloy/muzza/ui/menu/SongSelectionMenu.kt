@@ -170,7 +170,7 @@ fun SongSelectionMenu(
                 icon = R.drawable.library_add_check,
                 title = R.string.remove_from_library,
             ) {
-                database.query {
+                database.transaction {
                     selection.forEach { song ->
                         toggleInLibrary(song.id, null)
                     }

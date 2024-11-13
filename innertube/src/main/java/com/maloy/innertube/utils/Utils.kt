@@ -1,9 +1,10 @@
 package com.maloy.innertube.utils
 
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.pages.LibraryContinuationPage
+import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.PlaylistPage
-import io.ktor.http.URLBuilder
-import io.ktor.http.parseQueryString
 import java.security.MessageDigest
 
 suspend fun Result<PlaylistPage>.completed() = runCatching {
@@ -48,6 +49,26 @@ fun String.parseTime(): Int? {
         return null
     }
     return null
+}
+
+suspend fun Result<LibraryPage>.completedLibraryPage(): Result<LibraryPage>? = runCatching {
+    val page = getOrThrow()
+    val items = page.items.toMutableList()
+    var continuation = page.continuation
+    while (continuation != null) {
+        val continuationPage: LibraryContinuationPage = when (items.first()) {
+            is SongItem -> {
+                YouTube.librarySongsContinuation(continuation).getOrNull() ?: break
+            }
+            else -> return null
+        }
+        items += continuationPage.items
+        continuation = continuationPage.continuation
+    }
+    LibraryPage(
+        items = items,
+        continuation = page.continuation
+    )
 }
 
 fun nSigDecode(n: String): String {

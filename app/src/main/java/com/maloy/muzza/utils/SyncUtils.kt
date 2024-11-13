@@ -6,6 +6,7 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
+import com.maloy.innertube.utils.completedLibraryPage
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.PlaylistEntity
@@ -27,6 +28,7 @@ class SyncUtils @Inject constructor(
             val songs = page.songs.reversed()
             database.likedSongsByNameAsc().first()
                 .filterNot { it.id in songs.map(SongItem::id) }
+                .filterNot { it.song.isLocal }
                 .forEach { database.update(it.song.localToggleLike()) }
             songs.forEach { song ->
                 val dbSong = database.song(song.id).firstOrNull()
@@ -34,6 +36,23 @@ class SyncUtils @Inject constructor(
                     when (dbSong) {
                         null -> insert(song.toMediaMetadata(), SongEntity::localToggleLike)
                         else -> if (!dbSong.song.liked) update(dbSong.song.localToggleLike())
+                    }
+                }
+            }
+        }
+    }
+    suspend fun syncLibrarySongs() {
+        YouTube.librarySongs().completedLibraryPage()?.onSuccess { page ->
+            val songs = page.items.filterIsInstance<SongItem>().reversed()
+            database.songsByNameAsc().first()
+                .filterNot { it.id in songs.map(SongItem::id) }
+                .forEach { database.update(it.song.toggleLibrary()) }
+            songs.forEach { song ->
+                val dbSong = database.song(song.id).firstOrNull()
+                database.transaction {
+                    when (dbSong) {
+                        null -> insert(song.toMediaMetadata(), SongEntity::toggleLibrary)
+                        else -> if (dbSong.song.inLibrary == null) update(dbSong.song.toggleLibrary())
                     }
                 }
             }

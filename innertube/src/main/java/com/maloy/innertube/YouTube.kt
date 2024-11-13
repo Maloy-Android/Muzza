@@ -14,7 +14,6 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
-import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
@@ -39,6 +38,7 @@ import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.pages.BrowseResult
 import com.maloy.innertube.pages.ExplorePage
 import com.maloy.innertube.pages.HomePage
+import com.maloy.innertube.pages.LibraryContinuationPage
 import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
 import com.maloy.innertube.pages.NewReleaseAlbumPage
@@ -255,6 +255,38 @@ object YouTube {
             continuation = response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
         }
         songs
+    }
+
+    suspend fun librarySongs(): Result<LibraryPage> = runCatching {
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            browseId = "FEmusic_liked_videos",
+            setLogin = true
+        ).body<BrowseResponse>()
+        LibraryPage(
+            items = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+                ?.musicShelfRenderer?.contents!!.mapNotNull {
+                    LibraryPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
+                },
+            continuation = response.contents.singleColumnBrowseResultsRenderer.tabs.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
+                ?.musicShelfRenderer?.continuations?.firstOrNull()?.nextContinuationData?.continuation
+        )
+    }
+    suspend fun librarySongsContinuation(continuation: String): Result<LibraryContinuationPage> = runCatching {
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            continuation = continuation,
+            setLogin = true
+        ).body<BrowseResponse>()
+        LibraryContinuationPage(
+            items = response.continuationContents?.musicShelfContinuation?.contents!!.mapNotNull {
+                LibraryPage.fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
+            },
+            continuation = response.continuationContents.musicShelfContinuation.continuations?.firstOrNull()?.
+            nextContinuationData?.continuation
+        )
     }
 
     suspend fun artist(browseId: String): Result<ArtistPage> = runCatching {

@@ -46,6 +46,7 @@ class SyncUtils @Inject constructor(
             val songs = page.items.filterIsInstance<SongItem>().reversed()
             database.songsByNameAsc().first()
                 .filterNot { it.id in songs.map(SongItem::id) }
+                .filterNot { it.song.isLocal }
                 .forEach { database.update(it.song.toggleLibrary()) }
             songs.forEach { song ->
                 val dbSong = database.song(song.id).firstOrNull()

@@ -29,7 +29,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -41,8 +40,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -63,7 +60,6 @@ import coil.compose.AsyncImage
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.AutoPlaylistSongSortDescendingKey
@@ -102,7 +98,6 @@ fun AutoPlaylistScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
 ) {
-    val syncUtils = LocalSyncUtils.current
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -131,7 +126,7 @@ fun AutoPlaylistScreen(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            if (playlistId == "liked") syncUtils.syncLikedSongs()
+            if (playlistId == "liked") viewModel.syncLikedSongs()
         }
     }
 

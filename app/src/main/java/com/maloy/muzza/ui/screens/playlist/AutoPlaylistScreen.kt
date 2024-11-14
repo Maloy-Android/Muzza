@@ -59,7 +59,6 @@ import coil.compose.AsyncImage
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.AutoPlaylistSongSortDescendingKey
@@ -98,7 +97,6 @@ fun AutoPlaylistScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: AutoPlaylistViewModel = hiltViewModel(),
 ) {
-    val syncUtils = LocalSyncUtils.current
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -127,7 +125,7 @@ fun AutoPlaylistScreen(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            if (playlistId == "liked") syncUtils.syncLikedSongs()
+            if (playlistId == "liked") viewModel.syncLikedSongs()
         }
     }
 

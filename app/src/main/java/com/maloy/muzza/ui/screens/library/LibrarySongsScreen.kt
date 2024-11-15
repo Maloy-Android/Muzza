@@ -101,7 +101,7 @@ fun LibrarySongsScreen(
             when (filter) {
                 SongFilter.LIKED -> viewModel.syncLikedSongs()
                 SongFilter.LIBRARY -> viewModel.syncLibrarySongs()
-                else -> return@LaunchedEffect
+                else -> {}
             }
     }
 

@@ -50,12 +50,8 @@ data class SongEntity(
         likedDate = if (!liked) LocalDateTime.now() else null,
     )
 
-    fun toggleLike() = copy(
-        liked = !liked,
-        likedDate = if (!liked) LocalDateTime.now() else null,
-        inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
-    ).also {
-        CoroutineScope(Dispatchers.IO).launch {
+    fun toggleLike() = localToggleLike().also {
+        CoroutineScope(Dispatchers.IO).launch() {
             YouTube.likeVideo(id, !liked)
             this.cancel()
         }

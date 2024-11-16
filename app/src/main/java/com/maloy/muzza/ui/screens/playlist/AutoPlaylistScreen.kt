@@ -551,5 +551,23 @@ fun AutoPlaylistScreen(
                 }
             }
         )
+    } else {
+        TopAppBar(
+            title = {
+                Text(playlist)
+            },
+            navigationIcon = {
+                com.maloy.muzza.ui.component.IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.arrow_back),
+                        contentDescription = null
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior
+        )
     }
 }

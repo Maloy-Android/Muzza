@@ -99,7 +99,7 @@ fun LibrarySongsScreen(
 
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
-            syncUtils.syncLikedSongs()
+            viewModel.syncLikedSongs()
         }
     }
 

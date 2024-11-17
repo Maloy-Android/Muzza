@@ -5,10 +5,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
-import com.maloy.muzza.constants.AutoPlaylistSongSortDescendingKey
-import com.maloy.muzza.constants.AutoPlaylistSongSortType
-import com.maloy.muzza.constants.AutoPlaylistSongSortTypeKey
+import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
+import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
@@ -19,17 +18,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import java.text.Collator
-import java.util.Locale
 import javax.inject.Inject
+
+@OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
 class AutoPlaylistViewModel  @Inject constructor(
     @ApplicationContext context: Context,
@@ -39,43 +38,46 @@ class AutoPlaylistViewModel  @Inject constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val playlist = savedStateHandle.get<String>("playlist")!!
+
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
-        if (playlist == "liked") {
-            combine(
-                database.likedSongs(SongSortType.CREATE_DATE, true),
-                context.dataStore.data
-                    .map {
-                        it[AutoPlaylistSongSortTypeKey].toEnum(AutoPlaylistSongSortType.CREATE_DATE) to
-                                (it[AutoPlaylistSongSortDescendingKey] ?: true)
-                    }.distinctUntilChanged(),
-            ) { songs, (sortType, sortDescending) ->
-                when (sortType) {
-                    AutoPlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.song.inLibrary }
-                    AutoPlaylistSongSortType.NAME -> songs.sortedBy { it.song.title }
-                    AutoPlaylistSongSortType.ARTIST -> {
-                        val collator = Collator.getInstance(Locale.getDefault())
-                        collator.strength = Collator.PRIMARY
-                        songs
-                            .sortedWith(compareBy(collator) { song -> song.artists.joinToString("") { it.name } })
-                            .groupBy { it.album?.title }
-                            .flatMap { (_, songsByAlbum) -> songsByAlbum.sortedBy { it.artists.joinToString("") { it.name } } }
-                    }
-                    AutoPlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                }.reversed(sortDescending)
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-                .stateIn(viewModelScope, SharingStarted.Lazily, null)
-        } else {
-            downloadUtil.downloads.flatMapLatest { downloads ->
-                database.allSongs()
-                    .flowOn(Dispatchers.IO)
-                    .map { songs ->
-                        songs.filter {
-                            downloads[it.id]?.state == Download.STATE_COMPLETED
-                        }
-                    }
+        context.dataStore.data
+            .map {
+                it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
+                    ?: true)
             }
-        }
+            .distinctUntilChanged()
+            .flatMapLatest { (sortType, descending) ->
+                when (playlist) {
+                    "liked" -> database.likedSongs(sortType, descending)
+                    "downloaded" -> downloadUtil.downloads.flatMapLatest { downloads ->
+                        database.allSongs()
+                            .flowOn(Dispatchers.IO)
+                            .map { songs ->
+                                songs.filter {
+                                    downloads[it.id]?.state == Download.STATE_COMPLETED
+                                }
+                            }
+                            .map { songs ->
+                                when (sortType) {
+                                    SongSortType.CREATE_DATE -> songs.sortedBy {
+                                        downloads[it.id]?.updateTimeMs ?: 0L
+                                    }
+
+                                    SongSortType.NAME -> songs.sortedBy { it.song.title }
+                                    SongSortType.ARTIST -> songs.sortedBy { song ->
+                                        song.artists.joinToString(separator = "") { it.name }
+                                    }
+
+                                    SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
+                                }.reversed(descending)
+                            }
+                    }
+
+                    else -> MutableStateFlow(emptyList())
+                }
+            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }

@@ -197,8 +197,7 @@ fun NavGraphBuilder.navigationBuilder(
         AutoPlaylistScreen(navController, scrollBehavior)
     }
     composable("settings") {
-        val latestVersion by mutableLongStateOf(BuildConfig.VERSION_CODE.toLong())
-        SettingsScreen(latestVersion, navController, scrollBehavior)
+        SettingsScreen( navController, scrollBehavior)
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)

@@ -284,6 +284,7 @@
     <string name="misc">Разное</string>
     <string name="main">Основное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
+    <string name="default_lib_chips">Вкладка библиотеки по умолчанию</string>
     <string name="enable_swipe_thumbnail">Включить свайп по обложке для переключения композиции</string>
     <string name="player_background_style">Стиль фона плеера</string>
     <string name="follow_theme">Зависит от темы</string>

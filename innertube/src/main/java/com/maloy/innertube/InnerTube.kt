@@ -4,10 +4,8 @@ import com.maloy.innertube.models.Context
 import com.maloy.innertube.models.YouTubeClient
 import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.body.*
-import com.maloy.innertube.utils.nSigDecode
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.innertube.utils.sha1
-import com.maloy.innertube.utils.sigDecode
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*

@@ -44,11 +44,13 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
@@ -59,6 +61,7 @@ import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.ListPreference
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
@@ -80,6 +83,7 @@ fun AppearanceSettings(
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
+    val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -328,6 +332,29 @@ fun AppearanceSettings(
                     GridCellSize.BIG -> stringResource(R.string.big)
                 }
             },
+        )
+        ListPreference(
+            title = { Text(stringResource(R.string.default_lib_chips)) },
+            icon = { Icon(painterResource(R.drawable.list), null) },
+            selectedValue = defaultChip,
+            values =
+            listOf(
+                LibraryFilter.LIBRARY,
+                LibraryFilter.PLAYLISTS,
+                LibraryFilter.SONGS,
+                LibraryFilter.ALBUMS,
+                LibraryFilter.ARTISTS,
+            ),
+            valueText = {
+                when (it) {
+                    LibraryFilter.SONGS -> stringResource(R.string.songs)
+                    LibraryFilter.ARTISTS -> stringResource(R.string.artists)
+                    LibraryFilter.ALBUMS -> stringResource(R.string.albums)
+                    LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
+                    LibraryFilter.LIBRARY -> stringResource(R.string.filter_library)
+                }
+            },
+            onValueSelected = onDefaultChipChange,
         )
     }
 

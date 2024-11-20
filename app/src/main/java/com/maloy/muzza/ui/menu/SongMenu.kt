@@ -259,6 +259,7 @@ fun SongMenu(
                     update(song.song.toggleLibrary())
                 }
             }
+        }
         if (playlistSong != null) {
             GridMenuItem(
                 icon = R.drawable.playlist_remove,

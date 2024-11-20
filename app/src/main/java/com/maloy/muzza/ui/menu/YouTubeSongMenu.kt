@@ -243,6 +243,12 @@ fun YouTubeSongMenu(
                 }
             }
         }
+        GridMenuItem(
+            icon = R.drawable.playlist_add,
+            title = R.string.add_to_playlist
+        ) {
+            showChoosePlaylistDialog = true
+        }
         DownloadGridMenu(
             state = download?.state,
             onDownload = {
@@ -269,40 +275,27 @@ fun YouTubeSongMenu(
                 )
             }
         )
-        GridMenuItem(
-            icon = R.drawable.playlist_add,
-            title = R.string.add_to_playlist
-        ) {
-            showChoosePlaylistDialog = true
-        }
-        GridMenuItem(
-            icon = R.drawable.artist,
-            title = R.string.view_artist,
-            enabled = artists.isNotEmpty()
-        ) {
-            if (artists.size == 1) {
-                navController.navigate("artist/${artists[0].id}")
-                onDismiss()
-            } else {
-                showSelectArtistDialog = true
-            }
-        }
-        if(song.album != null) {
-            song.album?.let { album ->
-                GridMenuItem(
-                    icon = R.drawable.album,
-                    title = R.string.view_album
-                ) {
-                    navController.navigate("album/${album.id}")
+        if (artists.isNotEmpty()) {
+            GridMenuItem(
+                icon = R.drawable.artist,
+                title = R.string.view_artist
+            ) {
+                if (artists.size == 1) {
+                    navController.navigate("artist/${artists[0].id}")
                     onDismiss()
+                } else {
+                    showSelectArtistDialog = true
                 }
             }
-        }else{
+        }
+        song.album?.let { album ->
             GridMenuItem(
                 icon = R.drawable.album,
-                title = R.string.view_album,
-                enabled = false
-            ) {}
+                title = R.string.view_album
+            ) {
+                navController.navigate("album/${album.id}")
+                onDismiss()
+            }
         }
         GridMenuItem(
             icon = R.drawable.share,

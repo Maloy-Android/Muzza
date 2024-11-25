@@ -427,17 +427,6 @@ fun HomeScreen(
                         onClick = { navController.navigate("auto_playlist/downloads") },
                         modifier = Modifier.weight(1f)
                     )
-
-                    if (isLoggedIn) {
-                        NavigationTile(
-                            title = stringResource(R.string.account),
-                            icon = R.drawable.person,
-                            onClick = {
-                                navController.navigate("account")
-                            },
-                            modifier = Modifier.weight(1f)
-                        )
-                    }
                 }
 
                 if (isLoggedIn && !recentActivity.isNullOrEmpty()) {

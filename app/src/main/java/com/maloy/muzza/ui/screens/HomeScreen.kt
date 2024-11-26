@@ -646,7 +646,7 @@ fun HomeScreen(
                     NavigationTitle(
                         title = stringResource(R.string.your_youtube_playlists),
                         onClick = {
-                            navController.navigate("account")
+                            navController.navigate("YouTubePlaylists")
                         },
                         modifier = Modifier.animateItem()
                     )

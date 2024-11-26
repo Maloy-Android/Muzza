@@ -34,6 +34,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
@@ -110,7 +112,6 @@ import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
-import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
 import kotlin.math.min
@@ -506,6 +507,24 @@ fun HomeScreen(
                                 showInLibraryIcon = true,
                                 isActive = song!!.id == mediaMetadata?.id,
                                 isPlaying = isPlaying,
+                                trailingContent = {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                SongMenu(
+                                                    originalSong = song!!,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null
+                                        )
+                                    }
+                                },
                                 modifier = Modifier
                                     .width(horizontalLazyGridItemWidth)
                                     .combinedClickable(

@@ -236,6 +236,14 @@
     <!-- Notification name -->
     <string name="music_player">Music Player</string>
 
+    <!-- Notifications settings -->
+    <string name="notifications">Notifications</string>
+    <string name="keep_alive_title">Prevent system killing app</string>
+    <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
+    <string name="notifications_settings">Notifications settings</string>
+
+    <string name="keep_alive">Keep alive</string>
+
     <!-- Settings -->
     <string name="settings">Settings</string>
     <string name="appearance">Appearance</string>
@@ -336,7 +344,6 @@
     <string name="stop_music_on_task_clear">Stop music on task clear</string>
     <string name="equalizer">Equalizer</string>
     <string name="lyrics_settings_title">Lyrics</string>
-
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
     <string name="image_cache">Image Cache</string>

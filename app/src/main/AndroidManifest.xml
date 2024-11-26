@@ -151,6 +151,13 @@
             </intent-filter>
         </service>
         <service
+            android:name=".playback.KeepAlive"
+            android:value="Experimental keep-alive service"
+            android:exported="false"
+            android:foregroundServiceType="specialUse"
+            tools:ignore="ExportedService">
+        </service>
+        <service
             android:name=".playback.ExoDownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync">

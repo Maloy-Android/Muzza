@@ -64,6 +64,7 @@ import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
 import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.constants.KeepAliveKey
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLibrary
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLike
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -201,6 +202,20 @@ class MusicService : MediaLibraryService(),
                     setSmallIcon(R.drawable.small_icon)
                 }
         )
+        // FG notification
+        if (dataStore.get(KeepAliveKey, false)) {
+            try {
+                startService(Intent(this, KeepAlive::class.java))
+            } catch (e: Exception) {
+                reportException(e)
+            }
+        } else {
+            try {
+                stopService(Intent(this, KeepAlive::class.java))
+            } catch (e: Exception) {
+                reportException(e)
+            }
+        }
         player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(createMediaSourceFactory())
             .setRenderersFactory(createRenderersFactory())

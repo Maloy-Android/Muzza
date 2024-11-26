@@ -39,6 +39,7 @@ import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.ui.screens.library.LibraryScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
+import com.maloy.muzza.ui.screens.settings.NotificationSettings
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -207,6 +208,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/player/lyrics") {
         LyricsSettings(navController, scrollBehavior)
+    }
+    composable("settings/content/notification") {
+        NotificationSettings(navController, scrollBehavior)
     }
     composable("settings/storage") {
         StorageSettings(navController, scrollBehavior)

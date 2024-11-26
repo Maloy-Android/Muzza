@@ -47,6 +47,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -195,7 +196,12 @@ fun ContentSettings(
             onCheckedChange = onHideExplicitChange
         )
 
-        NotificationPermissionPreference()
+        // Notification settings
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.notifications_settings)) },
+            icon = { Icon(painterResource(R.drawable.notification_on), null) },
+            onClick = { navController.navigate("settings/content/notification") }
+        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.app_language),

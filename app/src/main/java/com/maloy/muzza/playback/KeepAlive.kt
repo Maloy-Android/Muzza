@@ -49,7 +49,7 @@ class KeepAlive : Service() {
             PendingIntent.FLAG_IMMUTABLE
         )
         val builder = NotificationCompat.Builder(this, KEEP_ALIVE_CHANNEL_ID)
-            .setContentTitle(R.string.keep_alive.toString())
+            .setContentTitle("Keep alive")
             .setSmallIcon(R.drawable.small_icon)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_MIN)

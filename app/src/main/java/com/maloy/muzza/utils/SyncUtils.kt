@@ -92,23 +92,21 @@ class SyncUtils @Inject constructor(
             val dbPlaylists = database.playlistsByNameAsc().first()
 
             dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
+                .filterNot { it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
-            playlistList.drop(1).forEach { playlist ->
+            playlistList.onEach { playlist ->
                 var playlistEntity = dbPlaylists.find { playlist.id == it.playlist.browseId }?.playlist
                 if (playlistEntity == null) {
                     playlistEntity = PlaylistEntity(name = playlist.title, browseId = playlist.id)
                     database.insert(playlistEntity)
-                }
-                syncPlaylist(playlist.id, playlistEntity.id)
-            }
-        }
-    }
-    suspend fun getRecentActivity() {
-        println("running get recent activity")
-        YouTube.libraryRecentActivity().onSuccess { page ->
-            page.items.forEach {
-                println(it.title)
+                } else database.update(playlistEntity, playlist)
+            }.forEach { playlist ->
+                val dbPlaylist = database.playlistByBrowseId(playlist.id).first()!!
+                val playlistSongMaps = database.playlistSongMaps(dbPlaylist.id)
+
+                if (dbPlaylist.playlist.isEditable || playlistSongMaps.isNotEmpty())
+                    syncPlaylist(playlist.id, dbPlaylist.id)
             }
         }
     }

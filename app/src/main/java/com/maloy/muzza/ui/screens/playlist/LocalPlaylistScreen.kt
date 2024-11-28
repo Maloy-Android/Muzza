@@ -132,9 +132,12 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LocalPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import sh.calvin.reorderable.ReorderableItem
-import sh.calvin.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.ReorderableItem
+import org.burnoutcrew.reorderable.detectReorder
+import org.burnoutcrew.reorderable.rememberReorderableLazyListState
+import org.burnoutcrew.reorderable.reorderable
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -216,35 +219,58 @@ fun LocalPlaylistScreen(
 
     val headerItems = 2
     val lazyListState = rememberLazyListState()
-    var dragInfo by remember {
-        mutableStateOf<Pair<Int, Int>?>(null)
-    }
     val reorderableState = rememberReorderableLazyListState(
-        lazyListState = lazyListState,
-        scrollThresholdPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
-    ) { from, to ->
-        if (to.index >= headerItems && from.index >= headerItems) {
-            val currentDragInfo = dragInfo
-            dragInfo = if (currentDragInfo == null) {
-                (from.index - headerItems) to (to.index - headerItems)
-            } else {
-                currentDragInfo.first to (to.index - headerItems)
+        onMove = { from, to ->
+            if (to.index >= headerItems && from.index >= headerItems) {
+                mutableSongs.move(from.index - headerItems, to.index - headerItems)
             }
+        },
+        onDragEnd = { initialFromIndex, initialToIndex ->
+            if (initialFromIndex < 0 || initialToIndex < 0) {
+                return@rememberReorderableLazyListState
+            }
+            viewModel.viewModelScope.launch(Dispatchers.IO) {
+                val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
 
-            mutableSongs.move(from.index - headerItems, to.index - headerItems)
-        }
-    }
+                var fromIndex = initialFromIndex - headerItems
+                val toIndex = initialToIndex - headerItems
 
-    LaunchedEffect(reorderableState.isAnyItemDragging) {
-        if (!reorderableState.isAnyItemDragging) {
-            dragInfo?.let { (from, to) ->
-                database.transaction {
-                    move(viewModel.playlistId, from, to)
+                var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
+
+                /*
+                * Because of how YouTube Music handles playlist changes, you necessarily need to
+                * have the SetVideoId of the successor when trying to move a song inside of a
+                * playlist.
+                * For this reason, if we are trying to move a song to the last element of a playlist,
+                * we need to first move it as penultimate and then move the last element before it.
+                */
+                if (successorIndex >= playlistSongMap.size) {
+                    playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                        playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                            viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                                YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
+                            }
+                        }
+                    }
+
+                    successorIndex = fromIndex
+                    fromIndex = toIndex
                 }
-                dragInfo = null
+
+                playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                    playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
+                        viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                            YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
+                        }
+                    }
+                }
+
+                database.transaction {
+                    move(viewModel.playlistId, initialFromIndex - headerItems, initialToIndex - headerItems)
+                }
             }
         }
-    }
+    )
 
     val showTopBarTitle by remember {
         derivedStateOf {
@@ -359,8 +385,9 @@ fun LocalPlaylistScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
-            state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
+            state = reorderableState.listState,
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            modifier = Modifier.reorderable(reorderableState)
         ) {
             playlist?.let { playlist ->
                 if (playlist.songCount == 0) {
@@ -522,7 +549,7 @@ fun LocalPlaylistScreen(
                                     if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching) {
                                         IconButton(
                                             onClick = { },
-                                            modifier = Modifier.draggableHandle()
+                                            modifier = Modifier.detectReorder(reorderableState)
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.drag_handle),

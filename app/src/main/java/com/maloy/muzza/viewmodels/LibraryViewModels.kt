@@ -204,7 +204,6 @@ class LibraryPlaylistsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     downloadUtil: DownloadUtil,
     database: MusicDatabase,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -227,7 +226,6 @@ class LibraryPlaylistsViewModel @Inject constructor(
             database.playlists(sortType, descending)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
-    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
 }
 
 @HiltViewModel

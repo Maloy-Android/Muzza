@@ -8,14 +8,12 @@ import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
 import com.maloy.muzza.constants.PlaylistSongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -33,7 +31,7 @@ class LocalPlaylistViewModel @Inject constructor(
     val playlistId = savedStateHandle.get<String>("playlistId")!!
     val playlist = database.playlist(playlistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
-    val playlistSongs: StateFlow<List<PlaylistSong>> = combine(
+    val playlistSongs = combine(
         database.playlistSongs(playlistId),
         context.dataStore.data
             .map {
@@ -44,9 +42,9 @@ class LocalPlaylistViewModel @Inject constructor(
         when (sortType) {
             PlaylistSongSortType.CUSTOM -> songs
             PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { it.map.id }
-            PlaylistSongSortType.NAME -> songs.sortedBy { it.song.song.title }
+            PlaylistSongSortType.NAME -> songs.sortedBy { it.song.song.title.lowercase() }
             PlaylistSongSortType.ARTIST -> songs.sortedBy { song ->
-                song.song.artists.joinToString { it.name }
+                song.song.artists.joinToString { it.name }.lowercase()
             }
 
             PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }

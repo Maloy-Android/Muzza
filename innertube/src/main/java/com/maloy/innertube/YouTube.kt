@@ -607,6 +607,10 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             }
     }
 
+    suspend fun moveSongPlaylist(playlistId: String, setVideoId: String, successorSetVideoId: String) = runCatching {
+        innerTube.moveSongPlaylist(WEB_REMIX, playlistId, setVideoId, successorSetVideoId)
+    }
+
     suspend fun renamePlaylist(playlistId: String, name: String) = runCatching {
         innerTube.renamePlaylist(WEB_REMIX, playlistId, name)
     }

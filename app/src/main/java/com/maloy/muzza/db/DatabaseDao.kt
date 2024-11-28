@@ -10,6 +10,7 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.pages.AlbumPage
 import com.maloy.innertube.pages.ArtistPage
@@ -554,6 +555,15 @@ interface DatabaseDao {
                 )
             )
         }
+    }
+
+    @Update
+    fun update(playlistEntity: PlaylistEntity, playlistItem: PlaylistItem) {
+        update(playlistEntity.copy(
+            name = playlistItem.title,
+            browseId = playlistItem.id,
+            isEditable = playlistItem.isEditable,
+        ))
     }
 
     @Transaction

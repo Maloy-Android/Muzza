@@ -30,7 +30,8 @@ compose-foundation = { group = "androidx.compose.foundation", name = "foundation
 compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "compose" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
-compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version = "2.4.0" }
+compose-reorderable1 = { module = "sh.calvin.reorderable:reorderable", version = "2.4.0" }
+compose-reorderable2 = { group = "org.burnoutcrew.composereorderable", name = "reorderable", version = "0.9.6" }
 compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.5" }
 
 viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }

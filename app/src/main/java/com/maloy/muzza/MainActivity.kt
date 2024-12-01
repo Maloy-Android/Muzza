@@ -746,6 +746,7 @@ class MainActivity : ComponentActivity() {
 
                         NavigationBar(
                             modifier = Modifier
+                                .clip(RoundedCornerShape(20.dp))
                                 .align(Alignment.BottomCenter)
                                 .offset {
                                     if (navigationBarHeight == 0.dp) {

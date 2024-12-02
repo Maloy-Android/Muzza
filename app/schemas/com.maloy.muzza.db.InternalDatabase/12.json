@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 12,
-    "identityHash": "d775014791c293f565bf549e0928925b",
+    "identityHash": "8db3d5731dbcc716a90427d4dde63c66",
     "entities": [
       {
         "tableName": "song",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `liked` INTEGER NOT NULL, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, `localPath` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `liked` INTEGER NOT NULL, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -61,19 +61,6 @@
             "columnName": "inLibrary",
             "affinity": "INTEGER",
             "notNull": false
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
-          },
-          {
-            "fieldPath": "localPath",
-            "columnName": "localPath",
-            "affinity": "TEXT",
-            "notNull": false
           }
         ],
         "primaryKey": {
@@ -97,7 +84,7 @@
       },
       {
         "tableName": "artist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `channelId` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -118,12 +105,6 @@
             "notNull": false
           },
           {
-            "fieldPath": "channelId",
-            "columnName": "channelId",
-            "affinity": "TEXT",
-            "notNull": false
-          },
-          {
             "fieldPath": "lastUpdateTime",
             "columnName": "lastUpdateTime",
             "affinity": "INTEGER",
@@ -134,13 +115,6 @@
             "columnName": "bookmarkedAt",
             "affinity": "INTEGER",
             "notNull": false
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
           }
         ],
         "primaryKey": {
@@ -154,19 +128,13 @@
       },
       {
         "tableName": "album",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `playlistId` TEXT, `title` TEXT NOT NULL, `year` INTEGER, `thumbnailUrl` TEXT, `themeColor` INTEGER, `songCount` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `year` INTEGER, `thumbnailUrl` TEXT, `themeColor` INTEGER, `songCount` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "playlistId",
-            "columnName": "playlistId",
-            "affinity": "TEXT",
-            "notNull": false
           },
           {
             "fieldPath": "title",
@@ -215,13 +183,6 @@
             "columnName": "bookmarkedAt",
             "affinity": "INTEGER",
             "notNull": false
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
           }
         ],
         "primaryKey": {
@@ -235,7 +196,7 @@
       },
       {
         "tableName": "playlist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, `isEditable` INTEGER NOT NULL DEFAULT true, `isLocal` INTEGER NOT NULL DEFAULT false, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -253,26 +214,6 @@
             "fieldPath": "browseId",
             "columnName": "browseId",
             "affinity": "TEXT",
-            "notNull": false
-          },
-          {
-            "fieldPath": "isEditable",
-            "columnName": "isEditable",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "true"
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
-          },
-          {
-            "fieldPath": "bookmarkedAt",
-            "columnName": "bookmarkedAt",
-            "affinity": "INTEGER",
             "notNull": false
           }
         ],
@@ -865,7 +806,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'd775014791c293f565bf549e0928925b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '8db3d5731dbcc716a90427d4dde63c66')"
     ]
   }
 }

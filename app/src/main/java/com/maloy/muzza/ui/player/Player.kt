@@ -182,8 +182,8 @@ fun BottomSheetPlayer(
         if (playerBackground != PlayerBackgroundStyle.GRADIENT) return@LaunchedEffect
 
         withContext(Dispatchers.IO) {
-            if (mediaMetadata?.isLocal == true) {
-                getLocalThumbnail(mediaMetadata?.localPath)?.extractGradientColors()?.let {
+            if (mediaMetadata?.blurSync == true) {
+                getLocalThumbnail(mediaMetadata?.blurThumbnail)?.extractGradientColors()?.let {
                     gradientColors = it
                 }
             } else {
@@ -572,10 +572,10 @@ fun BottomSheetPlayer(
             exit = fadeOut()
         ) {
             if (playerBackground == PlayerBackgroundStyle.BLUR) {
-                if (mediaMetadata?.isLocal == true) {
+                if (mediaMetadata?.blurSync == true) {
                     mediaMetadata?.let {
                         AsyncLocalImage(
-                            image = { getLocalThumbnail(it.localPath) },
+                            image = { getLocalThumbnail(it.blurThumbnail) },
                             contentDescription = null,
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier

@@ -16,8 +16,8 @@ data class MediaMetadata(
     val album: Album? = null,
     val setVideoId: String? = null,
     val explicit: Boolean = false,
-    val isLocal: Boolean = false,
-    val localPath: String? = null,
+    val blurSync: Boolean = false,
+    val blurThumbnail: String? = null,
 ) : Serializable {
     data class Artist(
         val id: String?,
@@ -38,8 +38,6 @@ data class MediaMetadata(
         thumbnailUrl = thumbnailUrl,
         albumId = album?.id,
         albumName = album?.title,
-        isLocal = isLocal,
-        localPath = localPath
     )
 }
 
@@ -50,7 +48,6 @@ fun Song.toMediaMetadata() = MediaMetadata(
         MediaMetadata.Artist(
             id = it.id,
             name = it.name,
-            isLocal = it.isLocal
         )
     },
     duration = song.duration,
@@ -59,7 +56,6 @@ fun Song.toMediaMetadata() = MediaMetadata(
         MediaMetadata.Album(
             id = it.id,
             title = it.title,
-            isLocal = it.isLocal
         )
     } ?: song.albumId?.let { albumId ->
         MediaMetadata.Album(

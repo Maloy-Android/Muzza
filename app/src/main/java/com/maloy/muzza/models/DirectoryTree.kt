@@ -105,47 +105,6 @@ class DirectoryTree(path: String) {
         return path.substringAfterLast('/').substringBefore('.')
     }
 
-    /**
-     * Retrieves song object at path
-     *
-     * @return song at path, or null if it does not exist
-     */
-    fun getSong(path: String): Song? {
-        Timber.tag(TAG).d("Searching for song, at path: $path")
-
-        // search for song in current dir
-        if (path.indexOf('/') == -1) {
-            val foundSong: Song = files.first { getFileName(it.song.localPath) == getFileName(path) }
-            Timber.tag(TAG).d("Searching for song, found?: ${foundSong.id} Name: ${foundSong.song.title}")
-            return foundSong
-        }
-
-        // there is still subdirs to process
-        var tmpPath = path
-        if (path[path.length - 1] == '/') {
-            tmpPath = path.substring(0, path.length - 1)
-        }
-
-        // the first directory before the .
-        val subdirPath = tmpPath.substringBefore('/')
-
-        // scan for matching subdirectory
-        var existingSubdir: DirectoryTree? = null
-        subdirs.forEach { subdir ->
-            if (subdir.currentDir == subdirPath) {
-                existingSubdir = subdir
-                return@forEach
-            }
-        }
-
-        // explore the subdirectory if it exists in
-        if (existingSubdir == null) {
-            return null
-        } else {
-            return existingSubdir!!.getSong(tmpPath.substringAfter('/'))
-        }
-    }
-
 
     /**
      * Retrieve a list of all the songs
@@ -235,23 +194,6 @@ class DirectoryTree(path: String) {
             subdirs = ArrayList(subdirs.filterNot { it.currentDir == "emulated"})
             subdirs.add(newInternalStorage)
         }
-
-        return this
-    }
-
-    /**
-     * Remove any single empty branches of the tree, aka. DirectoryTrees with no files,
-     * but only one subdirectory.
-     */
-    fun trimRoot(): DirectoryTree {
-        var pointer = this
-        while (pointer.subdirs.size == 1 && pointer.files.isEmpty()) {
-            pointer = pointer.subdirs[0]
-        }
-
-        this.currentDir = pointer.currentDir
-        this.files = pointer.files
-        this.subdirs = pointer.subdirs
 
         return this
     }

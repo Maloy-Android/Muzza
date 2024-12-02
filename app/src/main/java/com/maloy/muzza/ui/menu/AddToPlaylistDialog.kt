@@ -159,7 +159,6 @@ fun AddToPlaylistDialog(
                                 browseId = browseId,
                                 bookmarkedAt = LocalDateTime.now(),
                                 isEditable = !syncedPlaylist,
-                                isLocal = !syncedPlaylist // && check that all songs are non-local
                             )
                         )
                     }

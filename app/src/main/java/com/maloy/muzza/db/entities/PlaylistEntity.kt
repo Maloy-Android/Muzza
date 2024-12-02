@@ -21,8 +21,6 @@ data class PlaylistEntity(
     val browseId: String? = null,
     @ColumnInfo(name = "isEditable", defaultValue = true.toString())
     val isEditable: Boolean = true,
-    @ColumnInfo(name = "isLocal", defaultValue = false.toString())
-    val isLocal: Boolean = false,
     val bookmarkedAt: LocalDateTime? = null,
 ) {
     companion object {

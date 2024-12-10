@@ -37,7 +37,7 @@ val ProxyTypeKey = stringPreferencesKey("proxyType")
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 
 enum class AudioQuality {
-    AUTO, HIGH, LOW
+    AUTO, MAX, HIGH, LOW
 }
 
 val PersistentQueueKey = booleanPreferencesKey("persistentQueue")

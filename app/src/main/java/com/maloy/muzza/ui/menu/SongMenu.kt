@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
@@ -317,6 +318,13 @@ fun SongMenu(
                 onDismiss()
                 navController.navigate("album/${song.song.albumId}")
             }
+        }
+        GridMenuItem(
+            icon = R.drawable.music_note,
+            title = R.string.listen_youtube_music
+        ) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${song?.id}"))
+            context.startActivity(intent)
         }
         GridMenuItem(
             icon = R.drawable.share,

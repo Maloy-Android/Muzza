@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.menu
 
 import android.content.Intent
 import android.media.audiofx.AudioEffect
+import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -74,6 +75,7 @@ import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.BigSeekBar
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.DownloadGridMenu
+import com.maloy.muzza.ui.component.GridItem
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.ListDialog
@@ -388,6 +390,13 @@ fun PlayerMenu(
                 bottomSheetState.collapseSoft()
                 onDismiss()
             }
+        }
+        GridMenuItem(
+            icon = R.drawable.music_note,
+            title = R.string.listen_youtube_music
+        ) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${mediaMetadata.id}"))
+            context.startActivity(intent)
         }
         GridMenuItem(
             icon = R.drawable.share,

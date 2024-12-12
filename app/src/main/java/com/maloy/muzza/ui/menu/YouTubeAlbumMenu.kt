@@ -269,7 +269,7 @@ fun YouTubeAlbumMenu(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${album}"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(albumItem.shareLink))
             context.startActivity(intent)
         }
         GridMenuItem(

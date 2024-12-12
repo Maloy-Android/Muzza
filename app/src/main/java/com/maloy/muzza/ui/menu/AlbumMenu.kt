@@ -329,7 +329,7 @@ fun AlbumMenu(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${album.id}"))
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/browse/${album.album.id}"))
             context.startActivity(intent)
         }
         GridMenuItem(

@@ -493,7 +493,7 @@ fun ArtistScreen(
 
             IconButton(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${artistPage?.artist}"))
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(viewModel.artistPage?.artist?.shareLink))
                     context.startActivity(intent)
                 }
             ) {

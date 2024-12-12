@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -188,6 +189,13 @@ fun YouTubePlaylistMenu(
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
+        }
+        GridMenuItem(
+            icon = R.drawable.music_note,
+            title = R.string.listen_youtube_music
+        ) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${playlist.id}"))
+            context.startActivity(intent)
         }
         GridMenuItem(
             icon = R.drawable.share,

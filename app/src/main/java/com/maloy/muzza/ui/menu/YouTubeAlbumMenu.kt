@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -263,6 +264,13 @@ fun YouTubeAlbumMenu(
                     showSelectArtistDialog = true
                 }
             }
+        }
+        GridMenuItem(
+            icon = R.drawable.music_note,
+            title = R.string.listen_youtube_music
+        ) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${album}"))
+            context.startActivity(intent)
         }
         GridMenuItem(
             icon = R.drawable.share,

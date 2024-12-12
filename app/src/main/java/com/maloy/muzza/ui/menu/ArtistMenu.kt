@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -111,6 +112,13 @@ fun ArtistMenu(
                 }
                 onDismiss()
             }
+        }
+        GridMenuItem(
+            icon = R.drawable.music_note,
+            title = R.string.listen_youtube_music
+        ) {
+            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${artist.id}"))
+            context.startActivity(intent)
         }
         if (artist.artist.isYouTubeArtist) {
             GridMenuItem(

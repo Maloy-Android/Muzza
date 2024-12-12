@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.artist
 
 import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -486,6 +487,18 @@ fun ArtistScreen(
                 Icon(
                     painter = painterResource(if (libraryArtist?.artist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
                     tint = if (libraryArtist?.artist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                    contentDescription = null
+                )
+            }
+
+            IconButton(
+                onClick = {
+                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${artistPage?.artist}"))
+                    context.startActivity(intent)
+                }
+            ) {
+                Icon(
+                    painterResource(R.drawable.music_note),
                     contentDescription = null
                 )
             }

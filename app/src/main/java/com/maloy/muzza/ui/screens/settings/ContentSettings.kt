@@ -46,6 +46,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material3.*
@@ -100,7 +101,7 @@ fun ContentSettings(
     val accountName by rememberPreference(AccountNameKey, "")
     val accountEmail by rememberPreference(AccountEmailKey, "")
     val accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
@@ -140,6 +141,15 @@ fun ContentSettings(
             icon = { Icon(painterResource(R.drawable.person), null) },
             onClick = { navController.navigate("login") }
         )
+        if (isLoggedIn) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.logout)) },
+                icon = { Icon(Icons.AutoMirrored.Rounded.Logout, null) },
+                onClick = {
+                    onInnerTubeCookieChange("")
+                }
+            )
+        }
         ListPreference(
             title = { Text(stringResource(R.string.content_language)) },
             icon = { Icon(painterResource(R.drawable.language), null) },

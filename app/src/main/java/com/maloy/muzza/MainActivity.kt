@@ -14,7 +14,6 @@ import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.compose.animation.AnimatedVisibility
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
@@ -58,6 +57,7 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
@@ -76,8 +76,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -136,7 +134,7 @@ import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.BottomSheetMenu
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.SearchBar
+import com.maloy.muzza.ui.component.TopSearch
 import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.component.shimmer.ShimmerTheme
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
@@ -175,7 +173,7 @@ import org.json.JSONObject
 import java.net.URL
 import kotlin.time.Duration.Companion.days
 
-@Suppress("DEPRECATION")
+@Suppress("NAME_SHADOWING")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
@@ -577,12 +575,57 @@ class MainActivity : ComponentActivity() {
                             navigationBuilder(navController, topAppBarScrollBehavior, latestVersionName)
                         }
 
-                        AnimatedVisibility(
-                            visible = shouldShowSearchBar,
-                            enter = fadeIn(),
-                            exit = fadeOut()
-                        ) {
-                            SearchBar(
+                        val currentTitle = remember(navBackStackEntry) {
+                            when (navBackStackEntry?.destination?.route) {
+                                Screens.Home.route -> R.string.home
+                                Screens.Library.route -> R.string.filter_library
+                                else -> null
+                            }
+                        }
+
+                        if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings") {
+                            TopAppBar(
+                                title = {
+                                    Text(
+                                        text = currentTitle?.let { stringResource(it) } ?: "",
+                                        style = MaterialTheme.typography.titleLarge,
+                                    )
+                                },
+                                actions = {
+                                    IconButton(
+                                        onClick = {
+                                            onActiveChange(true)
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.search),
+                                            contentDescription = stringResource(R.string.search)
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = {
+                                            navController.navigate("settings")
+                                        }
+                                    ) {
+                                        BadgedBox(
+                                            badge = {
+                                                if (latestVersionName != BuildConfig.VERSION_NAME) {
+                                                    Badge()
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.settings),
+                                                contentDescription = stringResource(R.string.settings),
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
+                                    }
+                                },
+                                scrollBehavior = searchBarScrollBehavior
+                            )
+                        } else if (active || navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
+                            TopSearch(
                                 query = query,
                                 onQueryChange = onQueryChange,
                                 onSearch = onSearch,
@@ -592,8 +635,7 @@ class MainActivity : ComponentActivity() {
                                 placeholder = {
                                     Text(
                                         text = stringResource(
-                                            if (!active) R.string.search
-                                            else when (searchSource) {
+                                            when (searchSource) {
                                                 SearchSource.LOCAL -> R.string.search_library
                                                 SearchSource.ONLINE -> R.string.search_yt_music
                                             }
@@ -634,16 +676,6 @@ class MainActivity : ComponentActivity() {
                                             contentDescription = null
                                         )
                                     }
-                                    Icon(
-                                        painter = painterResource(R.drawable.casa),
-                                        contentDescription = "home",
-                                        modifier = Modifier
-                                            .size(15.dp)
-                                            .clickable {
-                                                navController.navigate("home") //
-                                            }
-                                    )
-                                    Spacer(modifier = Modifier.width(20.dp))
                                 },
                                 trailingIcon = {
                                     if (active) {
@@ -746,13 +778,12 @@ class MainActivity : ComponentActivity() {
 
                         NavigationBar(
                             modifier = Modifier
-                                .clip(RoundedCornerShape(20.dp))
                                 .align(Alignment.BottomCenter)
                                 .offset {
                                     if (navigationBarHeight == 0.dp) {
                                         IntOffset(
                                             x = 0,
-                                            y = (bottomInset + NavigationBarHeight).roundToPx()
+                                            y = (bottomInset + NavigationBarHeight).roundToPx(),
                                         )
                                     } else {
                                         val slideOffset =
@@ -764,18 +795,22 @@ class MainActivity : ComponentActivity() {
                                             (bottomInset + NavigationBarHeight) * (1 - navigationBarHeight / NavigationBarHeight)
                                         IntOffset(
                                             x = 0,
-                                            y = (slideOffset + hideOffset).roundToPx()
+                                            y = (slideOffset + hideOffset).roundToPx(),
                                         )
                                     }
                                 }
                         ) {
                             navigationItems.fastForEach { screen ->
+                                val isSelected = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
+
                                 NavigationBarItem(
-                                    selected = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true,
+                                    selected = isSelected,
                                     icon = {
                                         Icon(
-                                            painter = painterResource(screen.iconId),
-                                            contentDescription = null
+                                            painter = painterResource(
+                                                id = if (isSelected) screen.iconIdActive else screen.iconIdInactive
+                                            ),
+                                            contentDescription = null,
                                         )
                                     },
                                     label = {
@@ -786,8 +821,8 @@ class MainActivity : ComponentActivity() {
                                         )
                                     },
                                     onClick = {
-                                        if (navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true) {
-                                            navBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
+                                        if (isSelected) {
+                                            navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                             coroutineScope.launch {
                                                 searchBarScrollBehavior.state.resetHeightOffset()
                                             }

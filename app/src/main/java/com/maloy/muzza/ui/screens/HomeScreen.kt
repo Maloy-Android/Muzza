@@ -3,11 +3,9 @@ package com.maloy.muzza.ui.screens
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -31,8 +29,6 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Casino
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -40,23 +36,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -93,9 +82,9 @@ import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.ArtistGridItem
+import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.NavigationTile
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
@@ -138,9 +127,6 @@ fun HomeScreen(
     val accountPlaylists by viewModel.accountPlaylists.collectAsState()
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
-
-    val allLocalItems by viewModel.allLocalItems.collectAsState()
-    val allYtItems by viewModel.allYtItems.collectAsState()
 
     val mostPlayedLazyGridState = rememberLazyGridState()
     val recentActivity by viewModel.recentActivity.collectAsState()
@@ -402,31 +388,26 @@ fun HomeScreen(
                         .fillMaxWidth()
                         .animateItem()
                 ) {
-                    NavigationTile(
-                        title = stringResource(R.string.history),
-                        icon = R.drawable.history,
-                        onClick = { navController.navigate("history") },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    NavigationTile(
-                        title = stringResource(R.string.stats),
-                        icon = R.drawable.trending_up,
-                        onClick = { navController.navigate("stats") },
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    NavigationTile(
-                        title = stringResource(R.string.liked_songs),
-                        icon = R.drawable.favorite,
-                        onClick = { navController.navigate("auto_playlist/liked") },
-                        modifier = Modifier.weight(1f)
-                    )
-                    NavigationTile(
-                        title = stringResource(R.string.downloaded_songs),
-                        icon = R.drawable.download,
-                        onClick = { navController.navigate("auto_playlist/downloads") },
-                        modifier = Modifier.weight(1f)
+                    ChipsRow(
+                        chips = listOfNotNull(
+                            Pair("history", stringResource(R.string.history)),
+                            Pair("stats", stringResource(R.string.stats)),
+                            Pair("liked", stringResource(R.string.liked)),
+                            Pair("downloads", stringResource(R.string.offline)),
+                        ),
+                        currentValue = "",
+                        onValueUpdate = { value ->
+                            when (value) {
+                                "history" -> navController.navigate("history")
+                                "stats" -> navController.navigate("stats")
+                                "liked" -> navController.navigate("auto_playlist/liked")
+                                "downloads" -> navController.navigate("auto_playlist/downloaded")
+                            }
+                        },
+                        modifier = Modifier
+                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                            .fillMaxWidth(),
+                        containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
 

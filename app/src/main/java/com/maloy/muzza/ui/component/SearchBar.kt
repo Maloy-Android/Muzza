@@ -5,11 +5,13 @@ package com.maloy.muzza.ui.component
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -35,6 +37,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SearchBarColors
 import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.SearchBarDefaults.TonalElevation
@@ -85,7 +88,7 @@ import kotlin.math.roundToInt
 
 @ExperimentalMaterial3Api
 @Composable
-fun SearchBar(
+fun TopSearch(
     query: TextFieldValue,
     onQueryChange: (TextFieldValue) -> Unit,
     onSearch: (String) -> Unit,
@@ -98,16 +101,20 @@ fun SearchBar(
     leadingIcon: @Composable (() -> Unit)? = null,
     trailingIcon: @Composable (() -> Unit)? = null,
     shape: Shape = SearchBarDefaults.inputFieldShape,
-    colors: SearchBarColors = SearchBarDefaults.colors(),
+    colors: SearchBarColors =
+        SearchBarDefaults.colors(
+            containerColor =
+            MaterialTheme.colorScheme.surfaceContainer),
     tonalElevation: Dp = TonalElevation,
     windowInsets: WindowInsets = WindowInsets.systemBars,
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     focusRequester: FocusRequester = remember { FocusRequester() },
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    val heightOffsetLimit = with(LocalDensity.current) {
-        -(AppBarHeight.toPx() + WindowInsets.systemBars.getTop(this))
-    }
+    val heightOffsetLimit =
+        with(LocalDensity.current) {
+            -(AppBarHeight.toPx() + WindowInsets.systemBars.getTop(this))
+        }
     SideEffect {
         if (scrollBehavior.state.heightOffsetLimit != heightOffsetLimit) {
             scrollBehavior.state.heightOffsetLimit = heightOffsetLimit
@@ -116,11 +123,12 @@ fun SearchBar(
 
     val animationProgress: Float by animateFloatAsState(
         targetValue = if (active) 1f else 0f,
-        animationSpec = tween(
+        animationSpec =
+        tween(
             durationMillis = AnimationDurationMillis,
             easing = MotionTokens.EasingLegacyCubicBezier,
         ),
-        label = ""
+        label = "",
     )
 
     val defaultInputFieldShape = SearchBarDefaults.inputFieldShape
@@ -158,11 +166,12 @@ fun SearchBar(
     }
 
     BoxWithConstraints(
-        modifier = modifier
+        modifier =
+        modifier
             .offset {
                 IntOffset(x = 0, y = scrollBehavior.state.heightOffset.roundToInt())
             },
-        propagateMinConstraints = true
+        propagateMinConstraints = true,
     ) {
         val height: Dp
         val width: Dp
@@ -182,18 +191,27 @@ fun SearchBar(
             endPadding = lerp((SearchBarHorizontalPadding + endInset).roundToPx().toFloat(), 0f, animationProgress).toDp()
         }
 
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp)
+                .background(
+                    color = MaterialTheme.colorScheme.surface
+                )
+        )
+
         Surface(
             shape = animatedShape,
             color = colors.containerColor,
             contentColor = contentColorFor(colors.containerColor),
             tonalElevation = tonalElevation,
-            modifier = Modifier
+            modifier =
+            Modifier
                 .padding(
                     top = animatedSurfaceTopPadding,
                     start = startPadding,
-                    end = endPadding
-                )
-                .size(width = width, height = height)
+                    end = endPadding,
+                ).size(width = width, height = height),
         ) {
             Column {
                 SearchBarInputField(

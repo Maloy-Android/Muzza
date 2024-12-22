@@ -101,7 +101,7 @@ fun LocalSearchScreen(
             ),
             currentValue = searchFilter,
             onValueUpdate = { viewModel.filter.value = it },
-            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+            containerColor = MaterialTheme.colorScheme.surface
         )
 
         LazyColumn(

@@ -145,6 +145,7 @@ import com.maloy.muzza.ui.screens.search.LocalSearchScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
 import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.screens.settings.NavigationTab
+import com.maloy.muzza.ui.screens.settings.updateLanguage
 import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.theme.MuzzaTheme
@@ -171,6 +172,7 @@ import java.net.URLDecoder
 import javax.inject.Inject
 import org.json.JSONObject
 import java.net.URL
+import java.util.Locale
 import kotlin.time.Duration.Companion.days
 
 @Suppress("NAME_SHADOWING")
@@ -246,6 +248,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
         }
+
+        val sharedPreferences = getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+        val savedLanguage = sharedPreferences.getString("app_language", Locale.getDefault().language) ?: "en"
+        updateLanguage(this, savedLanguage)
 
         setContent {
             LaunchedEffect(Unit) {

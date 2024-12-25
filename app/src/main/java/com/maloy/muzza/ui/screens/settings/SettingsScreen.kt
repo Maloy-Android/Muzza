@@ -239,19 +239,27 @@ fun SettingsScreen(
         currentImageIndex = (currentImageIndex + 1) % backgroundImages.size
     }
 
+
+    val accountName by rememberPreference(AccountNameKey, "")
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
+
     Column(
-        modifier = Modifier
+        Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
-        Spacer(Modifier.height(20.dp))
-        Box(
-            modifier = Modifier
-                .height(220.dp)
-                .clip(RoundedCornerShape(25.dp))
-                .background(color = Color.Transparent)
-                .clickable { changeBackgroundImage() } // change background image on click
+        if (isLoggedIn) {
+            Box(
+                modifier = Modifier
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(25.dp))
+                    .background(color = Color.Transparent)
+                    .clickable { changeBackgroundImage() } // change background image on click
 
 
         ) {
@@ -263,21 +271,12 @@ fun SettingsScreen(
                     .fillMaxSize()
                     .blur(0.5.dp)
 
-            )
-
-            val accountName by rememberPreference(AccountNameKey, "")
-
-            val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-            val isLoggedIn =
-                remember(innerTubeCookie) {
-                    "SAPISID" in parseCookieString(innerTubeCookie)
-                }
-            PreferenceEntry(
-                title = {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                    ) {
-                        if (isLoggedIn) {
+                )
+                PreferenceEntry(
+                    title = {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                        ) {
                             Text(
                                 stringResource(R.string.Hi),
                                 color = Color.White,
@@ -294,15 +293,14 @@ fun SettingsScreen(
                                 fontFamily = FontFamily.Monospace
                             )
                         }
-                    }
-                },
-                description = null,
-                onClick = { changeBackgroundImage() },
-            )
+                    },
+                    description = null,
+                    onClick = { changeBackgroundImage() },
+                )
+            }
         }
 
         Spacer(Modifier.height(25.dp))
-
         PreferenceEntry(
             title = { Text(stringResource(R.string.appearance)) },
             icon = { Icon(painterResource(R.drawable.palette), null) },

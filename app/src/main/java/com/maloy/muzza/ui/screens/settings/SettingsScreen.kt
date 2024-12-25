@@ -293,21 +293,6 @@ fun SettingsScreen(
                                 style = MaterialTheme.typography.titleSmall,
                                 fontFamily = FontFamily.Monospace
                             )
-                        } else {
-                            Icon(
-                                painter = painterResource(R.drawable.music_note),
-                                contentDescription = null,
-                                tint = Color.White,
-                                )
-                            Text(
-                                text = "Muzza",
-                                color = Color.White,
-                                fontSize = 26.sp,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontFamily = FontFamily.Monospace
-
-                            )
-
                         }
                     }
                 },

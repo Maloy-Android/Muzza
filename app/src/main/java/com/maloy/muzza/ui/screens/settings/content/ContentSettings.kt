@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package com.maloy.muzza.ui.screens.settings
+package com.maloy.muzza.ui.screens.settings.content
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
@@ -18,7 +18,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -129,6 +128,14 @@ fun ContentSettings(
                 }
             )
         }
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.import_from_spotify)) },
+            description = null,
+            icon = { Icon(painterResource(R.drawable.download), null) },
+            onClick = {
+                navController.navigate("settings/content/import_from_spotify")
+            }
+        )
         ListPreference(
             title = { Text(stringResource(R.string.content_language)) },
             icon = { Icon(painterResource(R.drawable.language), null) },

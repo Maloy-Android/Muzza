@@ -40,6 +40,8 @@ import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.ui.screens.library.LibraryScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
+import com.maloy.muzza.ui.screens.settings.content.ContentSettings
+import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.ImportFromSpotifyScreen
 
 @SuppressLint("UnrememberedMutableState")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -202,6 +204,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/content") {
         ContentSettings(navController, scrollBehavior)
+    }
+    composable("settings/content/import_from_spotify") {
+        ImportFromSpotifyScreen(navController, scrollBehavior)
     }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)

@@ -145,7 +145,7 @@ import com.maloy.muzza.ui.screens.search.LocalSearchScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
 import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.screens.settings.NavigationTab
-import com.maloy.muzza.ui.screens.settings.updateLanguage
+import com.maloy.muzza.ui.screens.settings.content.updateLanguage
 import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.theme.MuzzaTheme

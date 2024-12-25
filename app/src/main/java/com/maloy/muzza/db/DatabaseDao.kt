@@ -684,6 +684,9 @@ interface DatabaseDao {
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId AND (inLibrary IS NULL OR :inLibrary IS NULL)")
     fun inLibrary(songId: String, inLibrary: LocalDateTime?)
 
+    @Query("UPDATE song SET liked = 1 WHERE id = :songId")
+    suspend fun toggleLikedToTrue(songId: String)
+
     @Query("SELECT COUNT(1) FROM related_song_map WHERE songId = :songId LIMIT 1")
     fun hasRelatedSongs(songId: String): Boolean
 
@@ -958,6 +961,9 @@ interface DatabaseDao {
 
     @Delete
     fun delete(event: Event)
+
+    @Query("SELECT EXISTS(SELECT 1 FROM artist WHERE id = :artistId LIMIT 1)")
+    suspend fun artistIdExists(artistId: String):Boolean
 
     @Query("SELECT * FROM playlist_song_map WHERE songId = :songId")
     fun playlistSongMaps(songId: String): List<PlaylistSongMap>

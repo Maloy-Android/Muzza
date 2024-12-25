@@ -270,24 +270,6 @@ fun LibraryPlaylistsScreen(
                         ) {
                             PlaylistListItem(
                                 playlist = likedPlaylist,
-                                trailingContent = {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                PlaylistMenu(
-                                                    playlist = likedPlaylist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
@@ -302,24 +284,6 @@ fun LibraryPlaylistsScreen(
                         ) {
                             PlaylistListItem(
                                 playlist = downloadPlaylist,
-                                trailingContent = {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                PlaylistMenu(
-                                                    playlist = downloadPlaylist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable {
@@ -425,15 +389,6 @@ fun LibraryPlaylistsScreen(
                                         onClick = {
                                             navController.navigate("auto_playlist/liked")
                                         },
-                                        onLongClick = {
-                                            menuState.show {
-                                                PlaylistMenu(
-                                                    playlist = likedPlaylist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
                                     )
                                     .animateItem()
                             )
@@ -451,15 +406,6 @@ fun LibraryPlaylistsScreen(
                                         onClick = {
                                             navController.navigate("auto_playlist/downloaded")
                                         },
-                                        onLongClick = {
-                                            menuState.show {
-                                                PlaylistMenu(
-                                                    playlist = downloadPlaylist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
                                     )
                                     .animateItem()
                             )

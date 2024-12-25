@@ -30,9 +30,18 @@ class LocalSearchViewModel @Inject constructor(
                     database.searchArtists(query, PREVIEW_SIZE),
                     database.searchPlaylists(query, PREVIEW_SIZE),
                 ) { songs, albums, artists, playlists ->
-                    songs + albums + artists + playlists
+                    val list = songs + albums + artists  + playlists
+                    list.distinctBy { it.id }
                 }
-                LocalFilter.SONG -> database.searchSongs(query)
+                LocalFilter.SONG -> combine(
+                    database.searchSongs(query),
+                    database.searchArtists(query),
+                    database.searchAlbums(query),
+                    database.searchPlaylists(query)
+                ) { songs, albums, artists, playlists  ->
+                    val list = songs +  artists + albums + playlists
+                    list.distinctBy { it.id }
+                }
                 LocalFilter.ALBUM -> database.searchAlbums(query)
                 LocalFilter.ARTIST -> database.searchArtists(query)
                 LocalFilter.PLAYLIST -> database.searchPlaylists(query)

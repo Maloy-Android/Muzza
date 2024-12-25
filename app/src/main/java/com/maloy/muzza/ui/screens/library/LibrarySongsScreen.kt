@@ -85,7 +85,6 @@ fun LibrarySongsScreen(
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val menuState = LocalMenuState.current
-    val syncUtils = LocalSyncUtils.current
     val playerConnection = LocalPlayerConnection.current ?: return
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -98,9 +97,11 @@ fun LibrarySongsScreen(
 
     val songs by viewModel.allSongs.collectAsState()
 
-    LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            viewModel.syncLikedSongs()
+    LaunchedEffect(filter) {
+        if (filter == SongFilter.SONGS) {
+            withContext(Dispatchers.IO) {
+                viewModel.syncLikedSongs()
+            }
         }
     }
 

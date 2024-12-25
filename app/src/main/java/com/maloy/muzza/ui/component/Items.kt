@@ -26,6 +26,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -49,6 +53,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -545,19 +550,31 @@ fun PlaylistListItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     thumbnailContent = {
-        val auto = if (playlist.playlist.name == "Liked") 1 else if (playlist.playlist.name == "Downloaded") 2 else 0
-        PlaylistThumbnail(
-            thumbnails = playlist.thumbnails,
-            size = ListThumbnailSize,
-            placeHolder = {
-                Icon(
-                    painter = painterResource( if (auto == 0) R.drawable.queue_music else if (auto == 1) R.drawable.favorite else R.drawable.offline),
-                    contentDescription = null,
-                    modifier = Modifier.size(ListThumbnailSize)
-                )
-            },
-            shape = RoundedCornerShape(ThumbnailCornerRadius)
-        )
+        val painter = when (playlist.playlist.name) {
+            stringResource(R.string.liked) -> Icons.Rounded.Favorite
+            stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
+            else -> Icons.AutoMirrored.Rounded.QueueMusic
+        }
+        Box(
+            modifier = Modifier
+                .size(ListThumbnailSize)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer),
+            contentAlignment = Alignment.Center
+        ) {
+            PlaylistThumbnail(
+                thumbnails = playlist.thumbnails,
+                size = ListThumbnailSize,
+                placeHolder = {
+                    Icon(
+                        imageVector = painter,
+                        contentDescription = null,
+                        modifier = Modifier.size(ListThumbnailSize)
+                    )
+                },
+                shape = RoundedCornerShape(ThumbnailCornerRadius)
+            )
+        }
     },
     trailingContent = trailingContent,
     modifier = modifier
@@ -574,23 +591,35 @@ fun PlaylistGridItem(
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     badges = badges,
     thumbnailContent = {
-        val auto = if (playlist.playlist.name == "Liked") 1 else if (playlist.playlist.name == "Downloaded") 2 else 0
+        val painter = when (playlist.playlist.name) {
+            stringResource(R.string.liked) -> Icons.Rounded.Favorite
+            stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
+            else -> Icons.AutoMirrored.Rounded.QueueMusic
+        }
         val width = maxWidth
-        PlaylistThumbnail(
-            thumbnails = playlist.thumbnails,
-            size = width,
-            placeHolder = {
-                Icon(
-                    painter = painterResource( if (auto == 0) R.drawable.queue_music else if (auto == 1) R.drawable.favorite else R.drawable.offline),
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.8f),
-                    modifier = Modifier
-                        .size(width / 2)
-                        .align(Alignment.Center)
-                )
-            },
-            shape = RoundedCornerShape(ThumbnailCornerRadius)
-        )
+        val Libcarditem = 25.dp
+        Box(
+            modifier = Modifier
+                .size(width)
+                .clip(RoundedCornerShape(Libcarditem))
+                .background(MaterialTheme.colorScheme.surfaceContainer)
+        ) {
+            PlaylistThumbnail(
+                thumbnails = playlist.thumbnails,
+                size = width,
+                placeHolder = {
+                    Icon(
+                        imageVector = painter,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.8f),
+                        modifier = Modifier
+                            .size(width / 2)
+                            .align(Alignment.Center)
+                    )
+                },
+                shape = RoundedCornerShape(ThumbnailCornerRadius)
+            )
+        }
     },
     fillMaxWidth = fillMaxWidth,
     modifier = modifier

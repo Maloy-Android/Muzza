@@ -28,7 +28,6 @@ import com.maloy.muzza.ui.screens.search.OnlineSearchResult
 import com.maloy.muzza.ui.screens.settings.AboutScreen
 import com.maloy.muzza.ui.screens.settings.AppearanceSettings
 import com.maloy.muzza.ui.screens.settings.BackupAndRestore
-import com.maloy.muzza.ui.screens.settings.ContentSettings
 import com.maloy.muzza.ui.screens.settings.DiscordLoginScreen
 import com.maloy.muzza.ui.screens.settings.DiscordSettings
 import com.maloy.muzza.ui.screens.settings.LyricsSettings
@@ -36,7 +35,6 @@ import com.maloy.muzza.ui.screens.settings.PlayerSettings
 import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
-import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.ui.screens.library.LibraryScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.NotificationSettings

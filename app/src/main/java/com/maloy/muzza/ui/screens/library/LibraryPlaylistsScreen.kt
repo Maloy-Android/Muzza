@@ -97,12 +97,12 @@ fun LibraryPlaylistsScreen(
     val likedSongs by viewModel.likedSongs.collectAsState()
     val downloadSongs by viewModel.downloadSongs.collectAsState(initial = null)
     val likedPlaylist = Playlist(
-        playlist = PlaylistEntity(id = UUID.randomUUID().toString(), name = "Liked"),
+        playlist = PlaylistEntity(id = UUID.randomUUID().toString(), name = stringResource(R.string.liked)),
         songCount = if (likedSongs != null) likedSongs!!.size else 0,
         thumbnails = emptyList()
     )
     val downloadPlaylist = Playlist(
-        playlist = PlaylistEntity(id = UUID.randomUUID().toString(), name = "Offline"),
+        playlist = PlaylistEntity(id = UUID.randomUUID().toString(), name = stringResource(R.string.offline)),
         songCount = if (downloadSongs!= null) downloadSongs!!.size else 0,
         thumbnails = emptyList()
     )
@@ -111,8 +111,6 @@ fun LibraryPlaylistsScreen(
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(PlaylistSortTypeKey, PlaylistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSortDescendingKey, true)
-
-    LaunchedEffect(Unit) { viewModel.sync() }
 
     val playlists by viewModel.allPlaylists.collectAsState()
 

@@ -129,14 +129,6 @@ fun AddToPlaylistDialog(
                     }
                 )
             }
-
-            item {
-                Text(
-                    text = stringResource(R.string.adding_local_songs_playlist),
-                    fontSize = TextUnit(12F, TextUnitType.Sp),
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-            }
         }
     }
 
@@ -163,38 +155,6 @@ fun AddToPlaylistDialog(
                         )
                     }
                 }
-            },
-            extraContent = {
-                // synced/unsynced toggle
-                Row(
-                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
-                ) {
-                    Column() {
-                        Text(
-                            text = stringResource(R.string.sync_playlist),
-                            style = MaterialTheme.typography.titleLarge,
-                        )
-
-                        Text(
-                            text = stringResource(R.string.allows_for_sync_witch_youtube),
-                            style = MaterialTheme.typography.bodySmall,
-                            modifier = Modifier.fillMaxWidth(0.7f)
-                        )
-                    }
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Switch(
-                            enabled = !noSyncing,
-                            checked = syncedPlaylist,
-                            onCheckedChange = {
-                                syncedPlaylist = !syncedPlaylist
-                            },
-                        )
-                    }
-                }
-
             }
         )
     }

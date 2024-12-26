@@ -1062,175 +1062,176 @@ fun YouTubeCardItem(
             )
         }
     }
-    @Composable
-    fun GridItem(
-        modifier: Modifier = Modifier,
-        title: String,
-        subtitle: String,
-        badges: @Composable RowScope.() -> Unit = {},
-        thumbnailContent: @Composable BoxWithConstraintsScope.() -> Unit,
-        thumbnailShape: Shape,
-        thumbnailRatio: Float = 1f,
-        fillMaxWidth: Boolean = false,
+}
+
+@Composable
+fun GridItem(
+    modifier: Modifier = Modifier,
+    title: String,
+    subtitle: String,
+    badges: @Composable RowScope.() -> Unit = {},
+    thumbnailContent: @Composable BoxWithConstraintsScope.() -> Unit,
+    thumbnailShape: Shape,
+    thumbnailRatio: Float = 1f,
+    fillMaxWidth: Boolean = false,
+) {
+    Column(
+        modifier =
+        if (fillMaxWidth) {
+            modifier
+                .padding(12.dp)
+                .fillMaxWidth()
+        } else {
+            modifier
+                .padding(12.dp)
+                .width(GridThumbnailHeight * thumbnailRatio)
+        },
     ) {
-        Column(
+        BoxWithConstraints(
             modifier =
             if (fillMaxWidth) {
-                modifier
-                    .padding(12.dp)
-                    .fillMaxWidth()
+                Modifier.fillMaxWidth()
             } else {
-                modifier
-                    .padding(12.dp)
-                    .width(GridThumbnailHeight * thumbnailRatio)
-            },
+                Modifier.height(GridThumbnailHeight)
+            }.aspectRatio(thumbnailRatio)
+                .clip(thumbnailShape),
         ) {
-            BoxWithConstraints(
-                modifier =
-                if (fillMaxWidth) {
-                    Modifier.fillMaxWidth()
-                } else {
-                    Modifier.height(GridThumbnailHeight)
-                }.aspectRatio(thumbnailRatio)
-                    .clip(thumbnailShape),
-            ) {
-                thumbnailContent()
-            }
-            Spacer(modifier = Modifier.height(6.dp))
+            thumbnailContent()
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Start,
+            modifier =
+            Modifier
+                .basicMarquee()
+                .fillMaxWidth(),
+        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            badges()
             Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Bold,
+                text = subtitle,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.secondary,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Start,
-                modifier =
-                Modifier
-                    .basicMarquee()
-                    .fillMaxWidth(),
             )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                badges()
-                Text(
-                    text = subtitle,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.secondary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
         }
     }
-    @Composable
-    fun LocalItemsGrid(
-        title: String,
-        subtitle: String,
-        badges:
-        @Composable()
-        (RowScope.() -> Unit) = {},
-        thumbnailUrl: String?,
-        isActive: Boolean = false,
-        isPlaying: Boolean = false,
-        fillMaxWidth: Boolean = false,
-        modifier: Modifier,
-    ) = GridItem(
-        title = title,
-        subtitle = subtitle,
-        badges = badges,
-        thumbnailContent = {
-            AsyncImage(
-                model = thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-            )
-            AnimatedVisibility(
-                visible = isActive,
-                enter = fadeIn(tween(500)),
-                exit = fadeOut(tween(500)),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            color = Color.Black.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
-                        ),
-                ) {
-                    if (isPlaying) {
-                        PlayingIndicator(
-                            color = Color.White,
-                            modifier = Modifier.height(24.dp),
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(R.drawable.play),
-                            contentDescription = null,
-                            tint = Color.White,
-                        )
-                    }
-                }
-            }
-        },
-        thumbnailShape = RoundedCornerShape(ThumbnailCornerRadius),
-        fillMaxWidth = fillMaxWidth,
-        modifier = modifier,
-    )
-    @Composable
-    fun CircularItemsGrid(
-        title: String,
-        subtitle: String,
-        badges:
-        @Composable()
-        (RowScope.() -> Unit) = {},
-        thumbnailUrl: String?,
-        isActive: Boolean = false,
-        isPlaying: Boolean = false,
-        fillMaxWidth: Boolean = false,
-        modifier: Modifier,
-    ) = GridItem(
-        title = title,
-        subtitle = subtitle,
-        badges = badges,
-        thumbnailContent = {
-            AsyncImage(
-                model = thumbnailUrl,
-                contentDescription = null,
-                modifier = Modifier.fillMaxSize(),
-            )
-            AnimatedVisibility(
-                visible = isActive,
-                enter = fadeIn(tween(500)),
-                exit = fadeOut(tween(500)),
-            ) {
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier =
-                    Modifier
-                        .fillMaxSize()
-                        .background(
-                            color = Color.Black.copy(alpha = 0.4f),
-                            shape = CircleShape,
-                        ),
-                ) {
-                    if (isPlaying) {
-                        PlayingIndicator(
-                            color = Color.White,
-                            modifier = Modifier.height(24.dp),
-                        )
-                    } else {
-                        Icon(
-                            painter = painterResource(R.drawable.play),
-                            contentDescription = null,
-                            tint = Color.White,
-                        )
-                    }
-                }
-            }
-        },
-        thumbnailShape = CircleShape,
-        fillMaxWidth = fillMaxWidth,
-        modifier = modifier,
-    )
 }
+@Composable
+fun LocalItemsGrid(
+    title: String,
+    subtitle: String,
+    badges:
+    @Composable()
+    (RowScope.() -> Unit) = {},
+    thumbnailUrl: String?,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    fillMaxWidth: Boolean = false,
+    modifier: Modifier,
+) = GridItem(
+    title = title,
+    subtitle = subtitle,
+    badges = badges,
+    thumbnailContent = {
+        AsyncImage(
+            model = thumbnailUrl,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+        )
+        AnimatedVisibility(
+            visible = isActive,
+            enter = fadeIn(tween(500)),
+            exit = fadeOut(tween(500)),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = Color.Black.copy(alpha = 0.4f),
+                        shape = RoundedCornerShape(ThumbnailCornerRadius),
+                    ),
+            ) {
+                if (isPlaying) {
+                    PlayingIndicator(
+                        color = Color.White,
+                        modifier = Modifier.height(24.dp),
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = null,
+                        tint = Color.White,
+                    )
+                }
+            }
+        }
+    },
+    thumbnailShape = RoundedCornerShape(ThumbnailCornerRadius),
+    fillMaxWidth = fillMaxWidth,
+    modifier = modifier,
+)
+@Composable
+fun CircularItemsGrid(
+    title: String,
+    subtitle: String,
+    badges:
+    @Composable()
+    (RowScope.() -> Unit) = {},
+    thumbnailUrl: String?,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
+    fillMaxWidth: Boolean = false,
+    modifier: Modifier,
+) = GridItem(
+    title = title,
+    subtitle = subtitle,
+    badges = badges,
+    thumbnailContent = {
+        AsyncImage(
+            model = thumbnailUrl,
+            contentDescription = null,
+            modifier = Modifier.fillMaxSize(),
+        )
+        AnimatedVisibility(
+            visible = isActive,
+            enter = fadeIn(tween(500)),
+            exit = fadeOut(tween(500)),
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier =
+                Modifier
+                    .fillMaxSize()
+                    .background(
+                        color = Color.Black.copy(alpha = 0.4f),
+                        shape = CircleShape,
+                    ),
+            ) {
+                if (isPlaying) {
+                    PlayingIndicator(
+                        color = Color.White,
+                        modifier = Modifier.height(24.dp),
+                    )
+                } else {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = null,
+                        tint = Color.White,
+                    )
+                }
+            }
+        }
+    },
+    thumbnailShape = CircleShape,
+    fillMaxWidth = fillMaxWidth,
+    modifier = modifier,
+)

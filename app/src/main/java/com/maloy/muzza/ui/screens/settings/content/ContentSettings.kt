@@ -276,20 +276,8 @@ fun saveLanguagePreference(context: Context, languageCode: String) {
 
 
 fun updateLanguage(context: Context, languageCode: String) {
-    val locale: Locale = if (languageCode.contains("-")) {
-        // Handle languages with regions like pt-BR
-        val parts = languageCode.split("-")
-        Locale(parts[0], parts[1])
-    } else {
-        Locale(languageCode)
-    }
-
+    val locale = Locale(languageCode)
     val config = Configuration(context.resources.configuration)
     config.setLocales(LocaleList(locale))
-
-    // Update the configuration
     context.resources.updateConfiguration(config, context.resources.displayMetrics)
-
-    // Optionally, recreate the activity to apply the language change throughout the app
-    (context as? androidx.activity.ComponentActivity)?.recreate()
 }

@@ -42,6 +42,10 @@
     <string name="most_played_songs">Самые популярные песни</string>
     <string name="most_played_artists">Самые популярные исполнители</string>
     <string name="most_played_albums">Самые популярные альбомы</string>
+    <string name="weeks">Недели</string>
+    <string name="months">Месяцы</string>
+    <string name="years">Годы</string>
+    <string name="continuous">Непрерывно</string>
 
     <!-- Search -->
     <string name="search">Поиск</string>
@@ -253,6 +257,12 @@
     <!-- Notification name -->
     <string name="music_player">Музыкальный плеер</string>
 
+    <!-- Notifications settings -->
+    <string name="notifications">Уведомления</string>
+    <string name="keep_alive_title">Предотвратить закрытие приложения системой</string>
+    <string name="keep_alive_description">Используйте уведомление в фоновом режиме, чтобы предотвратить случайное закрытие Muzza системой.</string>
+    <string name="notifications_settings">Настройки уведомлений</string>
+
     <!-- Settings -->
     <string name="settings">Настройки</string>
     <string name="appearance">Внешний вид</string>
@@ -301,7 +311,7 @@
     <string name="Donate">Пожертвовать</string>
     <string name="Telegramchanel">Официальный канал</string>
     <string name="web_site">Наш сайт</string>
-    <string name="web_site_info">Официальный сайт</string>
+    <string name="web_site_info">Официальный сайт ❯</string>
     <string name="code">Исходный код</string>
     <string name="code_text">Получите доступ к исходному коду приложения ❯</string>
     <string name="bugs">Проблемы</string>
@@ -313,12 +323,38 @@
     <string name="donate_help">Пожалуйста, поддержите меня пожертвованием для дальнейшей разработки Muzza ❯</string>
     <string name="telegram_info">Официальный канал с новыми новостями и процессом разработки Muzza ❯</string>
     <string name="my_channel">Мой Telegram канал</string>
-    <string name="my_channel_info">Канал о моей жизни</string>
+    <string name="my_channel_info">Канал о моей жизни ❯</string>
     <string name="Developer">Разработчик ❯</string>
+
+    <!-- Spotify import settings -->
+    <string name="select_all">Выбрать все</string>
+    <string name="fetching_all_playlists">Получение всех плейлистов…</string>
+    <string name="import_selected_items">Импортировать выбранные элементы</string>
+    <string name="something_went_wrong">Что-то пошло не так. Мы так же в недоумении, как и вы.</string>
+    <string name="well_thats_embarrassing">Ну, это неловко. Мы тоже не знаем, что произошло.</string>
+    <string name="instructions_to_get_required_credentials">Инструкции по получению необходимых учетных данных</string>
+    <string name="make_sure_to_click">3. Убедитесь, что вы нажали "Добавить", после того как ввели локальный путь выше.</string>
+    <string name="accept_the_terms_of_service">5. Примите условия обслуживания и нажмите "Сохранить".</string>
+    <string name="you_ll_be_redirected_to_a_new_page">Вас перенаправят на новую страницу. Нажмите на Настройки, затем скопируйте Client ID и Client Secret, и вставьте их в текстовые поля ниже в этом приложении.</string>
+    <string name="login_with_spotify">Войти с учетными данными Spotify API</string>
+    <string name="authorize_and_continue">Авторизоватьcя и продолжить</string>
+    <string name="authorization_code">Код авторизации</string>
+    <string name="authenticate">Аутентифицировать</string>
+    <string name="client_secret">Секрет клиента</string>
+    <string name="client_id">Айди клиента</string>
+    <string name="import_in_progress">Импорт в процессе…</string>
+    <string name="dont_close_app_message">Не закрывайте приложение и не возвращайтесь назад. Эта операция не работает в фоновом режиме, поэтому оставайтесь на месте, пока она не завершится!
+НЕ ПАНИКУЙТЕ, ЕСЛИ ПОКАЗЫВАЕТСЯ, ЧТО ОНА ЗАСТРЯЛА; иногда получение может занять некоторое время.</string>
+    <string name="choose_liked_songs">Выберите место назначения для "Понравившихся песен"</string>
+    <string name="where_should_the_liked_songs">Куда должны быть импортированы понравившиеся песни?</string>
+    <string name="new_playlist_named">Новый плейлист с названием "Понравившиеся песни"</string>
+    <string name="default_liked_songs">В стандартные "Понравившиеся песни"</string>
+
 
     <string name="content">Контент</string>
     <string name="login">Логин</string>
     <string name="not_logged_in">Не авторизовано</string>
+    <string name="import_from_spotify">Импорт из spotify</string>
     <string name="content_language">Язык контента</string>
     <string name="content_country">Страна контента</string>
     <string name="system_default">По умолчанию системы</string>
@@ -336,6 +372,7 @@
     <string name="player_and_audio">Плеер и аудио</string>
     <string name="audio_quality">Качество аудио</string>
     <string name="audio_quality_auto">Авто</string>
+    <string name="audio_quality_max">Максимальное (бета)</string>
     <string name="audio_quality_high">Высокое</string>
     <string name="audio_quality_low">Низкое</string>
     <string name="minimum_playback_duration">Минимальная длительность воспроизведения</string>
@@ -412,5 +449,9 @@
     <plurals name="seconds" tools:ignore="MissingQuantity">
         <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
         <item quantity="other">%d секунд</item>
+    </plurals>
+    <plurals name="n_time">
+        <item quantity="one">%d минута</item>
+        <item quantity="other">%d минут</item>
     </plurals>
 </resources>

@@ -13,7 +13,6 @@ import com.maloy.innertube.models.SearchSuggestions
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
-import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
 import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
@@ -58,6 +57,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import org.schabi.newpipe.extractor.NewPipe
 import java.net.Proxy
 
 /**
@@ -66,6 +66,10 @@ import java.net.Proxy
  */
 object YouTube {
     private val innerTube = InnerTube()
+
+    init {
+        NewPipe.init(NewPipeDownloaderImpl)
+    }
 
     var locale: YouTubeLocale
         get() = innerTube.locale
@@ -511,8 +515,8 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
 
     suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
         var playerResponse: PlayerResponse
-        if (this.cookie != null) { // if logged in: try ANDROID_MUSIC client first because IOS client does not play age restricted songs
-            playerResponse = innerTube.player(ANDROID_MUSIC, videoId, playlistId).body<PlayerResponse>()
+        if (this.cookie != null) { // if logged in: try WEB_REMIX client first because IOS client does not support login
+            playerResponse = innerTube.player(WEB_REMIX, videoId, playlistId).body<PlayerResponse>()
             if (playerResponse.playabilityStatus.status == "OK") {
                 return@runCatching playerResponse
             }
@@ -523,7 +527,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         }
         val safePlayerResponse = innerTube.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
         if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching playerResponse
+            return@runCatching safePlayerResponse
         }
         val audioStreams = innerTube.pipedStreams(videoId).body<PipedResponse>().audioStreams
         safePlayerResponse.copy(

@@ -2,7 +2,10 @@ package com.maloy.innertube.models.response
 
 import com.maloy.innertube.models.ResponseContext
 import com.maloy.innertube.models.Thumbnails
+import io.ktor.http.URLBuilder
+import io.ktor.http.parseQueryString
 import kotlinx.serialization.Serializable
+import org.schabi.newpipe.extractor.services.youtube.YoutubeJavaScriptPlayerManager
 
 /**
  * PlayerResponse with [com.maloy.innertube.models.YouTubeClient.ANDROID_MUSIC] client
@@ -57,9 +60,26 @@ data class PlayerResponse(
             val audioChannels: Int?,
             val loudnessDb: Double?,
             val lastModified: Long?,
+            val signatureCipher: String?,
         ) {
             val isAudio: Boolean
                 get() = width == null
+
+            fun findUrl(): String? {
+                this.url?.let {
+                    return it
+                }
+                this.signatureCipher?.let { signatureCipher ->
+                    val params = parseQueryString(signatureCipher)
+                    val obfuscatedSignature = params["s"] ?: return null
+                    val signatureParam = params["sp"] ?: return null
+                    val url = params["url"]?.let { URLBuilder(it) } ?: return null
+                    url.parameters[signatureParam] = YoutubeJavaScriptPlayerManager.deobfuscateSignature("", obfuscatedSignature)
+                    val streamUrl = YoutubeJavaScriptPlayerManager.getUrlWithThrottlingParameterDeobfuscated("", url.toString())
+                    return streamUrl
+                }
+                return null
+            }
         }
     }
 

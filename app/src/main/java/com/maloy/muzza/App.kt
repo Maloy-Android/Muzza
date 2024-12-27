@@ -95,7 +95,9 @@ class App : Application(), ImageLoaderFactory {
             dataStore.data
                 .map { it[InnerTubeCookieKey] }
                 .distinctUntilChanged()
-                .collect { cookie ->
+                .collect { rawCookie ->
+                    val isLoggedIn: Boolean = rawCookie?.contains("SAPISID") ?: false
+                    val cookie = if (isLoggedIn) rawCookie else null
                     YouTube.cookie = cookie
                 }
         }

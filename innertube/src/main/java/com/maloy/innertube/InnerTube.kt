@@ -86,7 +86,7 @@ class InnerTube {
             if (client.referer != null) {
                 append("Referer", client.referer)
             }
-            if (setLogin) {
+            if (setLogin && client.supportsLogin) {
                 cookie?.let { cookie ->
                     append("cookie", cookie)
                     if ("SAPISID" !in cookieMap) return@let

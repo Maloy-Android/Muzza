@@ -708,9 +708,10 @@ class MusicService : MediaLibraryService(),
                 )
             }
             scope.launch(Dispatchers.IO) { recoverSong(mediaId, playerResponse) }
+            val streamUrl = format.findUrl()
 
-            songUrlCache[mediaId] = format.url!! to playerResponse.streamingData!!.expiresInSeconds * 1000L
-            dataSpec.withUri(format.url!!.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+            songUrlCache[mediaId] = streamUrl!! to playerResponse.streamingData!!.expiresInSeconds * 1000L
+            dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
         }
     }
 

@@ -98,7 +98,7 @@ class App : Application(), ImageLoaderFactory {
                 .collect { rawCookie ->
                     val isLoggedIn: Boolean = rawCookie?.contains("SAPISID") ?: false
                     val cookie = if (isLoggedIn) rawCookie else null
-                    YouTube.cookie = cookie
+                    YouTube.cookie
                 }
         }
     }

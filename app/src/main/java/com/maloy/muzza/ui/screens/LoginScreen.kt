@@ -22,7 +22,6 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.datastore.preferences.core.edit
 import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountChannelHandleKey
@@ -32,7 +31,6 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -62,15 +60,8 @@ fun LoginScreen(
                 webViewClient = object : WebViewClient() {
                     override fun doUpdateVisitedHistory(view: WebView, url: String, isReload: Boolean) {
                         if (url.startsWith("https://music.youtube.com")) {
-                            val youtubeCookieString = CookieManager.getInstance().getCookie(url)
+                            innerTubeCookie = CookieManager.getInstance().getCookie(url)
                             GlobalScope.launch {
-                                if ("SAPISID" in youtubeCookieString) { // if logged in
-                                    innerTubeCookie = youtubeCookieString
-                                } else { // if logged out
-                                    context.dataStore.edit { settings ->
-                                        settings.remove(InnerTubeCookieKey)
-                                    }
-                                }
                                 YouTube.accountInfo().onSuccess {
                                     accountName = it.name
                                     accountEmail = it.email.orEmpty()
@@ -94,14 +85,6 @@ fun LoginScreen(
                 addJavascriptInterface(object {
                     @JavascriptInterface
                     fun onRetrieveVisitorData(newVisitorData: String?) {
-                        if (innerTubeCookie == "") { // clear visitorData after logout (this will be regenerated in App.kt)
-                            GlobalScope.launch {
-                                context.dataStore.edit { settings ->
-                                    settings.remove(VisitorDataKey)
-                                }
-                            }
-                            return
-                        }
                         if (newVisitorData != null) {
                             visitorData = newVisitorData
                         }

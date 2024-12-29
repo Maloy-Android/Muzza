@@ -569,6 +569,7 @@ fun PlaylistListItem(
                     Icon(
                         imageVector = painter,
                         contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.8f),
                         modifier = Modifier.size(ListThumbnailSize)
                     )
                 },

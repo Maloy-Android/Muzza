@@ -25,7 +25,7 @@
     <string name="quick_picks_empty">Послушайте несколько песен, чтобы создать ваш быстрый выбор</string>
     <string name="forgotten_favorites">Забытые избранные</string>
     <string name="keep_listening">Продолжайте слушать</string>
-    <string name="your_youtube_playlists">Ваши плейлисты YouTube</string>
+    <string name="your_youtube_playlists">Ваши плейлисты с YouTube</string>
     <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
     <string name="recent_activity">Недавняя активность</string>
@@ -349,6 +349,12 @@
     <string name="where_should_the_liked_songs">Куда должны быть импортированы понравившиеся песни?</string>
     <string name="new_playlist_named">Новый плейлист с названием "Понравившиеся песни"</string>
     <string name="default_liked_songs">В стандартные "Понравившиеся песни"</string>
+    <string name="enter_the_necessary_details">2. Введите необходимые данные и используйте http://localhost:45454 в качестве URI перенаправления.</string>
+    <string name="toggle_wep_api">4. Переключите Web API. Установите флажок, он должен быть отмечен.</string>
+    <string name="now_click_the_authorize_and_continue">Теперь нажмите кнопку "Авторизовать и продолжить" ниже и войдите в свою учетную запись, из которой вы хотите импортировать данные, затем авторизуйте и продолжите, что перенаправит вас на сайт, адрес которого начинается с http://localhost:45454/?code=
+
+Вставьте весь этот URL в текстовое поле ниже, которое называется "Код авторизации", и нажмите кнопку "Аутентифицировать".</string>
+    <string name="visit_spotify_for_developers">1. Посетите панель разработчиков Spotify и нажмите на "Создать приложение".</string>
 
 
     <string name="content">Контент</string>
@@ -452,6 +458,7 @@
     </plurals>
     <plurals name="n_time">
         <item quantity="one">%d минута</item>
-        <item quantity="other">%d минут</item>
+        <item quantity="other">%d минуты</item>
+        <item quantity="many">%d минут</item>
     </plurals>
 </resources>

@@ -25,7 +25,7 @@
     <string name="quick_picks_empty">Послухайте кілька пісень, щоб створити ваш швидкий вибір</string>
     <string name="forgotten_favorites">Забуті улюблені</string>
     <string name="keep_listening">Продовжуйте слухати</string>
-    <string name="your_youtube_playlists">Ваші плейлисти YouTube</string>
+    <string name="your_youtube_playlists">Ваші плейлисти з YouTube</string>
     <string name="similar_to">Схожі на</string>
     <string name="new_release_albums">Нові релізи альбомів</string>
     <string name="recent_activity">Недавня активність</string>
@@ -42,6 +42,10 @@
     <string name="most_played_songs">Найпопулярніші пісні</string>
     <string name="most_played_artists">Найпопулярніші виконавці</string>
     <string name="most_played_albums">Найпопулярніші альбоми</string>
+    <string name="weeks">Тижні</string>
+    <string name="months">Місяці</string>
+    <string name="years">Роки</string>
+    <string name="continuous">Безперервно</string>
 
     <!-- Search -->
     <string name="search">Пошук</string>
@@ -253,6 +257,12 @@
     <!-- Notification name -->
     <string name="music_player">Музичний плеєр</string>
 
+    <!-- Notifications settings -->
+    <string name="notifications">Сповіщення</string>
+    <string name="keep_alive_title">Запобігти закриттю додатку системою</string>
+    <string name="keep_alive_description">Використовуйте сповіщення у фоновому режимі, щоб запобігти випадковому закриттю Muzza системою.</string>
+    <string name="notifications_settings">Налаштування сповіщень</string>
+
     <!-- Settings -->
     <string name="settings">Параметри</string>
     <string name="appearance">Зовнішній вигляд</string>
@@ -298,7 +308,7 @@
     <string name="Donate">Пожертвувати</string>
     <string name="Telegramchanel">Офіційний канал</string>
     <string name="web_site">Наш сайт</string>
-    <string name="web_site_info">Офіційний сайт</string>
+    <string name="web_site_info">Офіційний сайт ❯</string>
     <string name="code">Вихідний код</string>
     <string name="code_text">Отримайте доступ до вихідного коду програми ❯</string>
     <string name="bugs">Проблеми</string>
@@ -310,12 +320,43 @@
     <string name="donate_help">Будь ласка, підтримайте мене пожертвуванням для подальшої розробки Muzza ❯</string>
     <string name="telegram_info">Офіційний канал з новими новинами та процесом розробки Muzza ❯</string>
     <string name="my_channel">Мій Telegram канал</string>
-    <string name="my_channel_info">Канал про моє життя</string>
+    <string name="my_channel_info">Канал про моє життя ❯</string>
     <string name="Developer">Розробник ❯</string>
+
+
+    <!-- Spotify import settings -->
+    <string name="select_all">Вибрати все</string>
+    <string name="fetching_all_playlists">Отримання всіх плейлистів…</string>
+    <string name="import_selected_items">Імпортувати вибрані елементи</string>
+    <string name="something_went_wrong">Щось пішло не так. Ми також в недоумінні, як і ви.</string>
+    <string name="well_thats_embarrassing">Ну, це незручно. Ми також не знаємо, що сталося.</string>
+    <string name="instructions_to_get_required_credentials">Інструкції щодо отримання необхідних облікових даних</string>
+    <string name="make_sure_to_click">3. Переконайтеся, що ви натиснули "Додати", після того як ввели локальний шлях вище.</string>
+    <string name="accept_the_terms_of_service">5. Прийміть умови обслуговування та натисніть "Зберегти".</string>
+    <string name="you_ll_be_redirected_to_a_new_page">Вас перенаправлять на нову сторінку. Натисніть на Налаштування, потім скопіюйте Client ID та Client Secret, і вставте їх у текстові поля нижче в цьому додатку.</string>
+    <string name="login_with_spotify">Увійти з обліковими даними Spotify API</string>
+    <string name="authorize_and_continue">Авторизуватися та продовжити</string>
+    <string name="authorization_code">Код авторизації</string>
+    <string name="authenticate">Аутентифікувати</string>
+    <string name="client_secret">Секрет клієнта</string>
+    <string name="client_id">ID клієнта</string>
+    <string name="import_in_progress">Імпорт в процесі…</string>
+    <string name="dont_close_app_message">Не закривайте додаток і не повертайтеся назад. Ця операція не працює у фоновому режимі, тому залишайтеся на місці, поки вона не завершиться!
+НЕ ПАНІКУЙТЕ, ЯКЩО ПОКАЗУЄТЬСЯ, ЩО ВОНА ЗАСТРЯЛА; іноді отримання може зайняти деякий час.</string>
+    <string name="choose_liked_songs">Виберіть місце призначення для "Улюбленых пісень"</string>
+    <string name="where_should_the_liked_songs">Куди повинні бути імпортовані сподобані пісні?</string>
+    <string name="new_playlist_named">Новий плейлист з назвою "Улюблена музика"</string>
+    <string name="default_liked_songs">В стандартні "Улюблена музика"</string>
+    <string name="enter_the_necessary_details">2. Введіть необхідні дані та використовуйте http://localhost:45454 в якості URI перенаправлення.</string>
+    <string name="toggle_wep_api">4. Переключіть Web API. Установіть прапорець, він має бути відмічений.</string>
+    <string name="now_click_the_authorize_and_continue">Тепер натисніть кнопку "Авторизувати та продовжити" нижче і увійдіть у свій обліковий запис, з якого ви хочете імпортувати дані, потім авторизуйте і продовжте, що перенаправить вас на сайт, адреса якого починається з http://localhost:45454/?code=
+Вставте весь цей URL у текстове поле нижче, яке називається "Код авторизації", і натисніть кнопку "Аутентифікувати".</string>
+    <string name="visit_spotify_for_developers">1. Відвідайте панель розробників Spotify і натисніть на "Створити додаток".</string>
 
     <string name="content">Контент</string>
     <string name="login">Логін</string>
     <string name="not_logged_in">Не авторизовано</string>
+    <string name="import_from_spotify">Імпорт з Spotify</string>
     <string name="content_language">Мова контенту</string>
     <string name="content_country">Країна контенту</string>
     <string name="system_default">Використовувати налаштування системи</string>
@@ -333,6 +374,7 @@
     <string name="player_and_audio">Плеєр та аудіо</string>
     <string name="audio_quality">Якість аудіо</string>
     <string name="audio_quality_auto">Авто</string>
+    <string name="audio_quality_max">Максимальна (бета)</string>
     <string name="audio_quality_high">Висока</string>
     <string name="audio_quality_low">Низька</string>
     <string name="minimum_playback_duration">Мінімальна тривалість відтворення</string>
@@ -409,5 +451,10 @@
     <plurals name="seconds" tools:ignore="MissingQuantity">
         <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
         <item quantity="other">%d секунд</item>
+    </plurals>
+    <plurals name="n_time">
+        <item quantity="one">%d хвилина</item>
+        <item quantity="few">%d хвилини</item>
+        <item quantity="many">%d хвилин</item>
     </plurals>
 </resources>

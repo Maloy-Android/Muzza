@@ -6,9 +6,8 @@
     <string name="albums">Albums</string>
     <string name="playlists">Playlists</string>
 
-    <string name="liked">Liked</string>
-    <string name="offline">Offline</string>
-    <string name="my_top">My top</string>
+    <string name="liked">Liked music</string>
+    <string name="offline">Offline music</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">
@@ -297,7 +296,7 @@
     <string name="Donate">Donate</string>
     <string name="Telegramchanel">Official Channel</string>
     <string name="web_site">Website</string>
-    <string name="web_site_info">Official website</string>
+    <string name="web_site_info">Official website ❯</string>
     <string name="code">Source code</string>
     <string name="code_text">Access the source code of the app ❯</string>
     <string name="bugs">Issues</string>
@@ -309,7 +308,7 @@
     <string name="donate_help">Please support me with a donation to further developing Muzza ❯</string>
     <string name="telegram_info">Official channel with new news and Muzza development process ❯</string>
     <string name="my_channel">My Telegram channel</string>
-    <string name="my_channel_info">A channel about my life</string>
+    <string name="my_channel_info">A channel about my life ❯</string>
     <string name="Developer">Developer ❯</string>
 
     <string name="content">Content</string>

@@ -835,7 +835,7 @@ fun HomeScreen(
 
         HideOnScrollFAB(
             visible = !quickPicks.isNullOrEmpty() || explorePage?.newReleaseAlbums?.isNotEmpty() == true,
-            scrollState = scrollState,
+            lazyListState = lazylistState,
             icon = (R.drawable.casino),
             onClick = {
                 if (Random.nextBoolean() && !quickPicks.isNullOrEmpty()) {

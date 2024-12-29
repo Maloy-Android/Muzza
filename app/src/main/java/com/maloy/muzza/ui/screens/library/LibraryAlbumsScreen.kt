@@ -58,6 +58,7 @@ import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
+import com.maloy.muzza.constants.SongFilter
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.ChipsRow
@@ -68,6 +69,8 @@ import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryAlbumsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -116,7 +119,13 @@ fun LibraryAlbumsScreen(
         }
     }
 
-    LaunchedEffect(Unit) { viewModel.sync() }
+    LaunchedEffect(filter) {
+        if (filter == AlbumFilter.LIKED) {
+            withContext(Dispatchers.IO) {
+                viewModel.sync()
+            }
+        }
+    }
 
     val albums by viewModel.allAlbums.collectAsState()
 

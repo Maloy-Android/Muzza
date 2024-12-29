@@ -427,6 +427,12 @@
     <string name="make_sure_to_click">3. Make sure to click "Add" once you\'ve entered the local path above.</string>
     <string name="accept_the_terms_of_service">5. Accept the terms of service and click "Save".</string>
     <string name="you_ll_be_redirected_to_a_new_page">You’ll be redirected to a new page. Click on Settings, then copy the Client ID and Client Secret, and paste them into the text fields below in this app.</string>
+    <string name="enter_the_necessary_details">2. Enter the necessary details and use http://localhost:45454 as the Redirect URIs.</string>
+    <string name="toggle_wep_api">4. Toggle Web API. The checkbox should now have a tick mark.</string>
+    <string name="now_click_the_authorize_and_continue">Now, click the Authorize and Continue button below and login with your account from which you want to import from, and Authorize and Continue, which will redirect you to a site which should start from http://localhost:45454/?code=
+
+Paste that entire URL in the below text field which says Authorization Code and click the Authenticate button</string>
+    <string name="visit_spotify_for_developers">1. Visit spotify for developers Spotify for developers dashboard and click on "Create app". </string>
     <string name="login_with_spotify">Login with Spotify API Credentials</string>
     <string name="authorize_and_continue">Authorize and Continue</string>
     <string name="authorization_code">Authorization Code</string>

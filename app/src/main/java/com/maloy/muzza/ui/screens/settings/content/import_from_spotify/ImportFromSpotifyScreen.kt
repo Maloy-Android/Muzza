@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.maloy.muzza.ui.screens.settings.content.import_from_spotify
 
 import android.widget.Toast
@@ -17,7 +19,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
@@ -54,6 +55,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -67,13 +69,12 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -81,12 +82,13 @@ import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.muzza.R
 import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model.Playlist
+import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.ImportFromSpotifyViewModel
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ImportFromSpotifyScreen(
-    navController: NavController, isMiniPlayerVisible: TopAppBarScrollBehavior
+    navController: NavController, scrollBehavior: TopAppBarScrollBehavior
 ) {
     val importFromSpotifyViewModel: ImportFromSpotifyViewModel = hiltViewModel()
     val importFromSpotifyScreenState = importFromSpotifyViewModel.importFromSpotifyScreenState
@@ -381,24 +383,22 @@ fun ImportFromSpotifyScreen(
             }
             if (isInstructionExpanded.value) {
                 Column(modifier = Modifier.fillMaxWidth()) {
-                    val colorScheme = MaterialTheme.colorScheme
                     val instructionPadding = remember {
                         PaddingValues(start = 15.dp, bottom = 7.5.dp, end = 7.5.dp)
                     }
                     val firstInstruction = remember {
                         buildAnnotatedString {
-                            append("1. Visit ")
                             pushStringAnnotation(
                                 tag = "spotify for developers",
                                 annotation = "https://developer.spotify.com/dashboard/"
                             )
-                            withStyle(SpanStyle(color = colorScheme.primary)) {
-                                append("Spotify for developers dashboard")
-                            }
-                            pop()
-                            append(" and click on \"Create app\".")
                         }
                     }
+                    Text(
+                        fontSize = 16.sp,
+                        text = stringResource(R.string.visit_spotify_for_developers),
+                        modifier = Modifier.padding(instructionPadding)
+                    )
                     ClickableText(
                         text = firstInstruction,
                         onClick = { offset ->
@@ -412,30 +412,22 @@ fun ImportFromSpotifyScreen(
                         modifier = Modifier.padding(instructionPadding)
                     )
                     SelectionContainer {
-                        Text(fontSize = 16.sp, text = buildAnnotatedString {
-                            append("2. Enter the necessary details and use ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append("http://localhost:45454")
-                            }
-                            append(" as the ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append("Redirect URIs")
-                            }
-                            append(".")
-                        }, modifier = Modifier.padding(instructionPadding))
+                        Text(
+                            fontSize = 16.sp,
+                            text = stringResource(R.string.enter_the_necessary_details),
+                            modifier = Modifier.padding(instructionPadding)
+                        )
                     }
                     Text(
                         fontSize = 16.sp,
                         text = stringResource(R.string.make_sure_to_click),
                         modifier = Modifier.padding(instructionPadding)
                     )
-                    Text(fontSize = 16.sp, text = buildAnnotatedString {
-                        append("4. Toggle ")
-                        withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                            append("Web API")
-                        }
-                        append(". The checkbox should now have a tick mark.")
-                    }, modifier = Modifier.padding(instructionPadding))
+                    Text(
+                        fontSize = 16.sp,
+                        text = stringResource(R.string.toggle_wep_api),
+                        modifier = Modifier.padding(instructionPadding)
+                    )
 
                     Text(
                         fontSize = 16.sp,
@@ -456,25 +448,8 @@ fun ImportFromSpotifyScreen(
                     Text(
                         fontSize = 16.sp,
                         modifier = Modifier.padding(instructionPadding),
-                        text = buildAnnotatedString {
-                            append("Now, click the ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append("Authorize and Continue")
-                            }
-                            append(" button below and login with your account from which you want to import from, and Authorize and Continue, which will redirect you to a site which should start from ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append("http://localhost:45454/?code=")
-                            }
-                            append("\n\nPaste that entire URL in the below text field which says ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append("Authorization Code")
-                            }
-                            append(" and click the ")
-                            withStyle(SpanStyle(fontWeight = FontWeight.SemiBold)) {
-                                append("Authenticate")
-                            }
-                            append(" button.")
-                        })
+                        text = stringResource(R.string.now_click_the_authorize_and_continue)
+                    )
                 }
             }
             HorizontalDivider(
@@ -698,6 +673,21 @@ fun ImportFromSpotifyScreen(
             }
         }
     }
+    TopAppBar(
+        title = { Text(stringResource(R.string.import_from_spotify)) },
+        navigationIcon = {
+            com.maloy.muzza.ui.component.IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
     LaunchedEffect(importFromSpotifyViewModel.isImportingCompleted.value) {
         if (importFromSpotifyViewModel.isImportingCompleted.value) {
             Toast.makeText(context, "Import Succeeded!", Toast.LENGTH_LONG).show()

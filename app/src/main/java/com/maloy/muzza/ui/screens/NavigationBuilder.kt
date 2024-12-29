@@ -8,8 +8,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -18,10 +16,6 @@ import androidx.navigation.navArgument
 import com.maloy.muzza.ui.screens.artist.ArtistItemsScreen
 import com.maloy.muzza.ui.screens.artist.ArtistScreen
 import com.maloy.muzza.ui.screens.artist.ArtistSongsScreen
-import com.maloy.muzza.ui.screens.library.LibraryAlbumsScreen
-import com.maloy.muzza.ui.screens.library.LibraryArtistsScreen
-import com.maloy.muzza.ui.screens.library.LibraryPlaylistsScreen
-import com.maloy.muzza.ui.screens.library.LibrarySongsScreen
 import com.maloy.muzza.ui.screens.playlist.LocalPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.OnlinePlaylistScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchResult

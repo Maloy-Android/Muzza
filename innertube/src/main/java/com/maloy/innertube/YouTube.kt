@@ -342,6 +342,8 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         ).body<BrowseResponse>()
         val base = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
         val header = base?.musicResponsiveHeaderRenderer ?: base?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
+        val editable =
+            response.header?.musicEditablePlaylistDetailHeaderRenderer != null
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
@@ -358,7 +360,8 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                 shuffleEndpoint = header.buttons?.lastOrNull()?.menuRenderer?.items?.firstOrNull()?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
                 radioEndpoint = header.buttons.lastOrNull()?.menuRenderer?.items!!.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!
+                }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
+                isEditable = editable
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents
                 ?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.mapNotNull {
@@ -384,6 +387,10 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             }!!,
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
+    }
+
+    suspend fun addPlaylistToPlaylist(playlistId: String, addPlaylistId: String) = runCatching {
+        innerTube.addPlaylistToPlaylist(WEB_REMIX, playlistId, addPlaylistId)
     }
 
     suspend fun home(): Result<HomePage> = runCatching {

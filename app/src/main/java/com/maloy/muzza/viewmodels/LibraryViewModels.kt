@@ -204,6 +204,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     downloadUtil: DownloadUtil,
     database: MusicDatabase,
+    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -217,6 +218,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
                     }
                 }
         }
+    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
     val allPlaylists = context.dataStore.data
         .map {
             it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey] ?: true)

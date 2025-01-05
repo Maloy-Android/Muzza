@@ -46,7 +46,6 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -236,9 +235,9 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = if (useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT) {
-            MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation)
+            MaterialTheme.colorScheme.surfaceContainer
         } else MaterialTheme.colorScheme.onSurfaceVariant,
-        collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation),
+        collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceContainer,
         onDismiss = {
             playerConnection.player.stop()
             playerConnection.player.clearMediaItems()

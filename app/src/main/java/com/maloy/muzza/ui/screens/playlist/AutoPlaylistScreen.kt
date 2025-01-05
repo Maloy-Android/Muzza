@@ -639,7 +639,7 @@ fun AutoPlaylistScreen(
                             .focusRequester(focusRequester)
                     )
                 } else {
-                    Text(playlist)
+                    if (showTopBarTitle) Text(playlist)
                 }
             },
             navigationIcon = {

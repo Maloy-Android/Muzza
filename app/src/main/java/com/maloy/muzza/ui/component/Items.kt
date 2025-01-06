@@ -570,7 +570,9 @@ fun PlaylistListItem(
                         imageVector = painter,
                         contentDescription = null,
                         tint = LocalContentColor.current.copy(alpha = 0.8f),
-                        modifier = Modifier.size(ListThumbnailSize)
+                        modifier = Modifier
+                            .size(ListThumbnailSize / 2)
+                            .align(Alignment.Center)
                     )
                 },
                 shape = RoundedCornerShape(ThumbnailCornerRadius)

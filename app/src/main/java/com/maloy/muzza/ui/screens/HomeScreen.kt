@@ -71,6 +71,7 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
@@ -151,6 +152,7 @@ fun HomeScreen(
     val lazylistState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -411,7 +413,7 @@ fun HomeScreen(
                     )
                 }
 
-                if (isLoggedIn && !recentActivity.isNullOrEmpty()) {
+                if (isLoggedIn && (ytmSync && !recentActivity.isNullOrEmpty())) {
                     NavigationTitle(
                         title = stringResource(R.string.recent_activity)
                     )
@@ -622,6 +624,7 @@ fun HomeScreen(
                 }
             }
 
+            if (ytmSync)
             accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                 item {
                     NavigationTitle(

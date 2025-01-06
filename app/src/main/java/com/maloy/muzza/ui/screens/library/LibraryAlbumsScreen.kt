@@ -59,6 +59,7 @@ import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.SongFilter
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.ChipsRow
@@ -90,6 +91,7 @@ fun LibraryAlbumsScreen(
     var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(AlbumSortTypeKey, AlbumSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     val filterContent = @Composable {
         Row {
@@ -120,6 +122,7 @@ fun LibraryAlbumsScreen(
     }
 
     LaunchedEffect(filter) {
+        if (ytmSync)
         if (filter == AlbumFilter.LIKED) {
             withContext(Dispatchers.IO) {
                 viewModel.sync()

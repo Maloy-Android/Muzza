@@ -59,6 +59,7 @@ import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ArtistListItem
 import com.maloy.muzza.ui.component.ChipsRow
@@ -87,6 +88,7 @@ fun LibraryArtistsScreen(
     var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     val filterContent = @Composable {
         Row {
@@ -117,6 +119,7 @@ fun LibraryArtistsScreen(
     }
 
     LaunchedEffect(filter) {
+        if (ytmSync)
         if (filter == ArtistFilter.LIKED) {
             withContext(Dispatchers.IO) {
                 viewModel.sync()

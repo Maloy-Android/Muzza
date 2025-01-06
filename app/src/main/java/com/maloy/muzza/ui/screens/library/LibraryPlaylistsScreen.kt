@@ -63,6 +63,7 @@ import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
 import com.maloy.muzza.constants.PlaylistViewTypeKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -118,8 +119,9 @@ fun LibraryPlaylistsScreen(
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
-    LaunchedEffect(Unit) { viewModel.sync() }
+    LaunchedEffect(Unit){ if (ytmSync){ viewModel.sync() }}
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {

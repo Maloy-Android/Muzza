@@ -56,6 +56,7 @@ import com.maloy.muzza.constants.ProxyEnabledKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
 import com.maloy.muzza.constants.SYSTEM_DEFAULT
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.EditTextPreference
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ListPreference
@@ -93,6 +94,7 @@ fun ContentSettings(
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
     val (historyDuration, onHistoryDurationChange) = rememberPreference(key = HistoryDuration, defaultValue = 30f)
+    val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
 
     val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val savedLanguage = sharedPreferences.getString("app_language", "en") ?: "en"
@@ -132,6 +134,15 @@ fun ContentSettings(
                 onClick = {
                     onInnerTubeCookieChange("")
                 }
+            )
+        }
+        if (isLoggedIn) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.ytm_sync)) },
+                icon = { Icon(painterResource(R.drawable.cached), null) },
+                checked = ytmSync,
+                onCheckedChange = onYtmSyncChange,
+                isEnabled = isLoggedIn
             )
         }
         PreferenceEntry(

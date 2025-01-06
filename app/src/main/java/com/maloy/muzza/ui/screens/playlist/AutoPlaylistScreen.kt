@@ -96,6 +96,7 @@ import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
@@ -136,7 +137,7 @@ fun AutoPlaylistScreen(
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
-    val focusManager = LocalFocusManager.current
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -204,8 +205,10 @@ fun AutoPlaylistScreen(
     }
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
-            if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
+        if (ytmSync) {
+            withContext(Dispatchers.IO) {
+                if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
+            }
         }
     }
 

@@ -2,6 +2,7 @@
 
 package com.maloy.muzza.ui.screens.settings.content
 
+import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -34,6 +35,7 @@ import android.content.res.Configuration
 import android.os.LocaleList
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.Logout
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.runtime.*
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -48,6 +50,8 @@ import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.HistoryDuration
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LanguageCodeToName
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ProxyEnabledKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
@@ -65,6 +69,7 @@ import com.maloy.muzza.utils.rememberPreference
 import java.net.Proxy
 import java.util.Locale
 
+@SuppressLint("PrivateResource")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ContentSettings(
@@ -79,6 +84,7 @@ fun ContentSettings(
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
+    val (likedAutoDownload, onLikedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
@@ -159,6 +165,19 @@ fun ContentSettings(
                 }
             },
             onValueSelected = onContentCountryChange
+        )
+
+        ListPreference(
+            title = { Text(stringResource(R.string.like_autodownload)) },
+            icon = { Icon(Icons.Rounded.Favorite, null) },
+            values = listOf(LikedAutodownloadMode.OFF, LikedAutodownloadMode.ON, LikedAutodownloadMode.WIFI_ONLY),
+            selectedValue = likedAutoDownload,
+            valueText = { when (it){
+                LikedAutodownloadMode.OFF -> stringResource(R.string.state_off)
+                LikedAutodownloadMode.ON -> stringResource(R.string.state_on)
+                LikedAutodownloadMode.WIFI_ONLY -> stringResource(R.string.wifi_only)
+            } },
+            onValueSelected = onLikedAutoDownload
         )
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

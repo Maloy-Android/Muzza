@@ -2,6 +2,7 @@ package com.maloy.muzza.playback
 
 import android.content.Context
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.common.PlaybackException
@@ -13,13 +14,19 @@ import androidx.media3.datasource.okhttp.OkHttpDataSource
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadManager
 import androidx.media3.exoplayer.offline.DownloadNotificationHelper
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.FormatEntity
+import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.di.DownloadCache
 import com.maloy.muzza.di.PlayerCache
+import com.maloy.muzza.extensions.getLikeAutoDownload
+import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.utils.enumPreference
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -36,7 +43,7 @@ import javax.inject.Singleton
 
 @Singleton
 class DownloadUtil @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     val database: MusicDatabase,
     val databaseProvider: DatabaseProvider,
     @DownloadCache val downloadCache: SimpleCache,
@@ -128,6 +135,46 @@ class DownloadUtil @Inject constructor(
     val downloads = MutableStateFlow<Map<String, Download>>(emptyMap())
 
     fun getDownload(songId: String?): Flow<Download?> = downloads.map { it[songId] }
+
+    fun download(songs: List<MediaMetadata>) {
+        songs.forEach { song -> downloadSong(song.id, song.title) }
+    }
+    fun download(song: MediaMetadata){
+        downloadSong(song.id, song.title)
+    }
+    fun download(song: SongEntity){
+        downloadSong(song.id, song.title)
+    }
+    private fun downloadSong(id: String, title: String){
+        val downloadRequest = DownloadRequest.Builder(id, id.toUri())
+            .setCustomCacheKey(id)
+            .setData(title.toByteArray())
+            .build()
+        DownloadService.sendAddDownload(
+            context,
+            ExoDownloadService::class.java,
+            downloadRequest,
+            false)
+    }
+
+    fun autoDownloadIfLiked(songs: List<SongEntity>){
+        songs.forEach { song -> autoDownloadIfLiked(song) }
+    }
+
+    fun autoDownloadIfLiked(song: SongEntity){
+        if (!song.liked || song.dateDownload != null){
+            return
+        }
+        val isWifiConnected = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+            ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+        if (
+            context.getLikeAutoDownload() == LikedAutodownloadMode.ON
+            || (context.getLikeAutoDownload() == LikedAutodownloadMode.WIFI_ONLY && isWifiConnected)
+        )
+        {
+            download(song)
+        }
+    }
 
     init {
         val result = mutableMapOf<String, Download>()

@@ -314,6 +314,8 @@
     <string name="content">Content</string>
     <string name="login">Login</string>
     <string name="import_from_spotify">Import from spotify</string>
+    <string name="like_autodownload">Automatically download your liked songs</string>
+    <string name="wifi_only">Wifi only</string>
     <string name="not_logged_in">Not logged in</string>
     <string name="content_language">Default content language</string>
     <string name="content_country">Default content country</string>

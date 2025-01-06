@@ -367,6 +367,9 @@ interface DatabaseDao {
     @Query("SELECT * FROM song_artist_map WHERE songId = :songId")
     fun songArtistMap(songId: String): List<SongArtistMap>
 
+    @Query("SELECT * FROM song WHERE liked AND dateDownload IS NULL")
+    fun likedSongsNotDownloaded(): Flow<List<Song>>
+
     @Transaction
     @Query("SELECT * FROM song")
     fun allSongs(): Flow<List<Song>>

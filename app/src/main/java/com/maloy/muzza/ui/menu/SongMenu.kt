@@ -25,6 +25,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -83,6 +84,7 @@ fun SongMenu(
     playlistBrowseId: String? = null,
     onDismiss: () -> Unit,
 ) {
+    val downloadUtil = LocalDownloadUtil.current
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -125,6 +127,10 @@ fun SongMenu(
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(song.song.liked) {
+        downloadUtil.autoDownloadIfLiked(song.song)
     }
 
     AddToPlaylistDialog(

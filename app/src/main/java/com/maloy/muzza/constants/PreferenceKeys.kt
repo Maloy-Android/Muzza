@@ -25,6 +25,7 @@ enum class GridCellSize {
 }
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
+val LikedAutoDownloadKey = stringPreferencesKey("likedAutoDownloadKey")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
@@ -174,6 +175,10 @@ enum class SearchSource {
         LOCAL -> ONLINE
         ONLINE -> LOCAL
     }
+}
+
+enum class LikedAutodownloadMode {
+    OFF, ON, WIFI_ONLY
 }
 
 val VisitorDataKey = stringPreferencesKey("visitorData")

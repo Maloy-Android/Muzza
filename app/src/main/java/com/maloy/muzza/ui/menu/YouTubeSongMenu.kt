@@ -21,6 +21,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -74,6 +75,7 @@ fun YouTubeSongMenu(
     navController: NavController,
     onDismiss: () -> Unit,
 ) {
+    val downloadUtil = LocalDownloadUtil.current
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -90,6 +92,12 @@ fun YouTubeSongMenu(
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(librarySong?.song?.liked) {
+        librarySong?.let {
+            downloadUtil.autoDownloadIfLiked(it.song)
+        }
     }
 
     AddToPlaylistDialog(

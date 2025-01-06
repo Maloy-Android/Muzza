@@ -1,5 +1,10 @@
 package com.maloy.muzza.extensions
 
+import android.content.Context
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
+import com.maloy.muzza.utils.dataStore
+import com.maloy.muzza.utils.get
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.Flow
@@ -16,6 +21,10 @@ fun <T> Flow<T>.collectLatest(scope: CoroutineScope, action: suspend (value: T) 
     scope.launch {
         collectLatest(action)
     }
+}
+
+fun Context.getLikeAutoDownload(): LikedAutodownloadMode {
+    return dataStore[LikedAutoDownloadKey].toEnum(LikedAutodownloadMode.OFF)
 }
 
 val SilentHandler = CoroutineExceptionHandler { _, _ -> }

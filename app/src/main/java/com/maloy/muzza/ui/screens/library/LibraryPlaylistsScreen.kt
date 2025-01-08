@@ -119,9 +119,6 @@ fun LibraryPlaylistsScreen(
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
-
-    LaunchedEffect(Unit){ if (ytmSync){ viewModel.sync() }}
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {

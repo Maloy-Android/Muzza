@@ -208,6 +208,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
 ) : ViewModel() {
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
     val downloadSongs =
         downloadUtil.downloads.flatMapLatest { downloads ->
             database.allSongs()

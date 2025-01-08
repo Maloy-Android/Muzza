@@ -15,10 +15,12 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -65,10 +67,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -119,7 +123,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.saket.squiggles.SquigglySlider
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -132,6 +136,7 @@ fun BottomSheetPlayer(
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
+    val haptic = LocalHapticFeedback.current
     val useBlackBackground = remember(isSystemInDarkTheme, darkTheme, pureBlack) {
         val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         useDarkTheme && pureBlack
@@ -493,17 +498,25 @@ fun BottomSheetPlayer(
                         onClick = playerConnection.player::toggleShuffleMode
                     )
                 }
-                    Box(modifier = Modifier.weight(1f)) {
-                        ResizableIconButton(
-                            icon = R.drawable.skip_previous,
-                            enabled = canSkipPrevious,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .align(Alignment.Center),
-                            color = onBackgroundColor,
-                            onClick = playerConnection.player::seekToPrevious
-                        )
-                    }
+                Box(modifier = Modifier.weight(1f)) {
+                    ResizableIconButton(
+                        icon = R.drawable.skip_previous,
+                        enabled = canSkipPrevious,
+                        color = onBackgroundColor,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .align(Alignment.Center)
+                            .combinedClickable(
+                                onClick = {
+                                    (playerConnection.player::seekToPrevious)()
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                },
+                                onLongClick = {
+                                    playerConnection.player.seekTo(playerConnection.player.currentPosition - 5000)
+                                }
+                            )
+                    )
+                }
 
 
                 Spacer(Modifier.width(8.dp))
@@ -534,17 +547,25 @@ fun BottomSheetPlayer(
 
                 Spacer(Modifier.width(8.dp))
 
-                    Box(modifier = Modifier.weight(1f)) {
-                        ResizableIconButton(
-                            icon = R.drawable.skip_next,
-                            enabled = canSkipNext,
-                            modifier = Modifier
-                                .size(32.dp)
-                                .align(Alignment.Center),
-                            color = onBackgroundColor,
-                            onClick = playerConnection.player::seekToNext
-                        )
-                    }
+                Box(modifier = Modifier.weight(1f)) {
+                    ResizableIconButton(
+                        icon = R.drawable.skip_next,
+                        enabled = canSkipNext,
+                        color = onBackgroundColor,
+                        modifier = Modifier
+                            .size(32.dp)
+                            .align(Alignment.Center)
+                            .combinedClickable(
+                                onClick = {
+                                    (playerConnection.player::seekToNext)()
+                                },
+                                onLongClick = {
+                                    playerConnection.player.seekTo(playerConnection.player.currentPosition + 5000)
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                }
+                            )
+                    )
+                }
 
                 Box(modifier = Modifier.weight(1f)) {
                     ResizableIconButton(

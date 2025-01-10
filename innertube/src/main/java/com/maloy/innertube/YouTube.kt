@@ -39,7 +39,6 @@ import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.pages.BrowseResult
 import com.maloy.innertube.pages.ExplorePage
 import com.maloy.innertube.pages.HomePage
-import com.maloy.innertube.pages.LibraryContinuationPage
 import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
 import com.maloy.innertube.pages.NewReleaseAlbumPage
@@ -332,71 +331,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                 }!!,
                 continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
             )
-        }
-    }
-
-    suspend fun library(browseId: String) = runCatching {
-        val response = innerTube.browse(
-            client = WEB_REMIX,
-            browseId = browseId,
-            setLogin = true
-        ).body<BrowseResponse>()
-
-        val contents = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.
-        tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
-
-        when {
-            contents?.gridRenderer != null -> {
-                LibraryPage(
-                    items = contents.gridRenderer.items
-                        .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
-                    continuation = contents.gridRenderer.continuations?.firstOrNull()?.
-                    nextContinuationData?.continuation
-                )
-            }
-
-            else -> { // contents?.musicShelfRenderer != null
-                LibraryPage(
-                    items = contents?.musicShelfRenderer?.contents!!
-                        .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfRenderer.continuations?.firstOrNull()?.
-                    nextContinuationData?.continuation
-                )
-            }
-        }
-    }
-
-    suspend fun libraryContinuation(continuation: String) = runCatching {
-        val response = innerTube.browse(
-            client = WEB_REMIX,
-            continuation = continuation,
-            setLogin = true
-        ).body<BrowseResponse>()
-
-        val contents = response.continuationContents
-
-        when {
-            contents?.gridContinuation != null -> {
-                LibraryContinuationPage(
-                    items = contents.gridContinuation.items
-                        .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
-                    continuation = contents.gridContinuation.continuations?.firstOrNull()?.
-                    nextContinuationData?.continuation
-                )
-            }
-
-            else -> { // contents?.musicShelfContinuation != null
-                LibraryContinuationPage(
-                    items = contents?.musicShelfContinuation?.contents!!
-                        .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
-                        .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfContinuation.continuations?.firstOrNull()?.
-                    nextContinuationData?.continuation
-                )
-            }
         }
     }
 

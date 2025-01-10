@@ -33,7 +33,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewModelScope
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListThumbnailSize
@@ -62,7 +61,7 @@ fun AddToPlaylistDialog(
     var playlists by remember {
         mutableStateOf(emptyList<Playlist>())
     }
-    var showAddPlaylistDialog by rememberSaveable {
+    var showCreatePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -105,7 +104,7 @@ fun AddToPlaylistDialog(
                         )
                     },
                     modifier = Modifier.clickable {
-                        showAddPlaylistDialog = true
+                        showCreatePlaylistDialog = true
                     }
                 )
             }
@@ -133,12 +132,12 @@ fun AddToPlaylistDialog(
         }
     }
 
-    if (showAddPlaylistDialog) {
+    if (showCreatePlaylistDialog) {
         TextFieldDialog(
             icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
             title = { Text(text = stringResource(R.string.create_playlist)) },
             initialTextFieldValue = TextFieldValue(initialTextFieldValue?: ""),
-            onDismiss = { showAddPlaylistDialog = false },
+            onDismiss = { showCreatePlaylistDialog = false },
             onDone = { playlistName ->
                 coroutineScope.launch(Dispatchers.IO) {
                     val browseId = if (syncedPlaylist)
@@ -149,8 +148,9 @@ fun AddToPlaylistDialog(
                         insert(
                             PlaylistEntity(
                                 name = playlistName,
-                                browseId = browseId,
-                                bookmarkedAt = LocalDateTime.now()
+                                browseId = if (syncedPlaylist) browseId else null,
+                                bookmarkedAt = LocalDateTime.now(),
+                                isEditable = !syncedPlaylist,
                             )
                         )
                     }
@@ -163,11 +163,11 @@ fun AddToPlaylistDialog(
                 ) {
                     Column() {
                         Text(
-                            text = stringResource(R.string.sync_playlist),
+                            text = "Sync Playlist",
                             style = MaterialTheme.typography.titleLarge,
                         )
                         Text(
-                            text = stringResource(R.string.allows_for_sync_witch_youtube),
+                            text = "Note: This allows for syncing with YouTube Music. This is NOT changeable later.",
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.fillMaxWidth(0.7f)
                         )
@@ -177,6 +177,7 @@ fun AddToPlaylistDialog(
                         horizontalArrangement = Arrangement.End
                     ) {
                         Switch(
+                            enabled = !noSyncing,
                             checked = syncedPlaylist,
                             onCheckedChange = {
                                 syncedPlaylist = !syncedPlaylist

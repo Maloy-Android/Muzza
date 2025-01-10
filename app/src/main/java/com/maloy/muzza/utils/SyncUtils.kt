@@ -6,7 +6,6 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
-import com.maloy.innertube.utils.completedLibraryPage
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.PlaylistEntity
@@ -93,30 +92,16 @@ class SyncUtils @Inject constructor(
         }
     }
     suspend fun syncSavedPlaylists() {
-        YouTube.library("FEmusic_liked_playlists").completedLibraryPage().onSuccess { page ->
-            val playlistList = page.items.filterIsInstance<PlaylistItem>().drop(1).reversed()
-                .filterNot { it.id == "SE" }
+        YouTube.likedPlaylists().onSuccess { playlistList ->
             val dbPlaylists = database.playlistsByNameAsc().first()
 
             dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
-                .filterNot { it.playlist.browseId == null }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
             playlistList.onEach { playlist ->
                 var playlistEntity = dbPlaylists.find { playlist.id == it.playlist.browseId }?.playlist
                 if (playlistEntity == null) {
-                    playlistEntity = PlaylistEntity(
-                        name = playlist.title,
-                        browseId = playlist.id,
-                        isEditable = playlist.isEditable,
-                        bookmarkedAt = LocalDateTime.now(),
-                        thumbnailUrl = playlist.thumbnail,
-                        remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
-                        playEndpointParams = playlist.playEndpoint?.params,
-                        shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                        radioEndpointParams = playlist.radioEndpoint?.params
-                    )
-
+                    playlistEntity = PlaylistEntity(name = playlist.title, browseId = playlist.id)
                     database.insert(playlistEntity)
                 } else database.update(playlistEntity, playlist)
             }.forEach { playlist ->

@@ -1,7 +1,6 @@
 package com.maloy.innertube.utils
 
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.PlaylistPage
 import java.security.MessageDigest
 
@@ -18,21 +17,6 @@ suspend fun Result<PlaylistPage>.completed() = runCatching {
         playlist = page.playlist,
         songs = songs,
         songsContinuation = null,
-        continuation = page.continuation
-    )
-}
-
-suspend fun Result<LibraryPage>.completedLibraryPage(): Result<LibraryPage> = runCatching {
-    val page = getOrThrow()
-    val items = page.items.toMutableList()
-    var continuation = page.continuation
-    while (continuation != null) {
-        val continuationPage = YouTube.libraryContinuation(continuation).getOrNull() ?: break
-        items += continuationPage.items
-        continuation = continuationPage.continuation
-    }
-    LibraryPage(
-        items = items,
         continuation = page.continuation
     )
 }

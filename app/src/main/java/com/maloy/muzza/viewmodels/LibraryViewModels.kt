@@ -218,6 +218,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
                     }
                 }
         }
+    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
     val allPlaylists = context.dataStore.data
         .map {
             it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey] ?: true)
@@ -226,7 +227,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
         .flatMapLatest { (sortType, descending) ->
             database.playlists(sortType, descending)
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
 }
 
 @HiltViewModel

@@ -120,8 +120,6 @@ fun LibraryPlaylistsScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
 
-    LaunchedEffect(Unit) {viewModel.sync() }
-
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
             when (viewType) {

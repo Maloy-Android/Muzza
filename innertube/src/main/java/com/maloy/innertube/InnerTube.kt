@@ -81,20 +81,23 @@ class InnerTube {
         headers {
             append("X-Goog-Api-Format-Version", "1")
             append("X-YouTube-Client-Name", client.clientName)
-            append("X-YouTube-Client-Version", client.clientId)
-            append("X-Origin", YouTubeClient.ORIGIN_YOUTUBE_MUSIC)
-            append("Referer", YouTubeClient.REFERER_YOUTUBE_MUSIC)
-            if (setLogin && client.loginSupported) {
+            append("X-YouTube-Client-Version", client.clientVersion)
+            append("x-origin", "https://music.youtube.com")
+            if (client.referer != null) {
+                append("Referer", client.referer)
+            }
+            if (setLogin && client.supportsLogin) {
                 cookie?.let { cookie ->
                     append("cookie", cookie)
                     if ("SAPISID" !in cookieMap) return@let
                     val currentTime = System.currentTimeMillis() / 1000
-                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}\")")
+                    val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} https://music.youtube.com")
                     append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
                 }
             }
         }
         userAgent(client.userAgent)
+        parameter("key", client.api_key)
         parameter("prettyPrint", false)
     }
 

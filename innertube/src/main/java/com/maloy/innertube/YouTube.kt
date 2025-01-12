@@ -13,9 +13,10 @@ import com.maloy.innertube.models.SearchSuggestions
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
+import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
+import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.getContinuation
@@ -539,7 +540,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     }
 
     suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
-        val playerResponse: PlayerResponse = innerTube.player(WEB_CREATOR, videoId, playlistId).body<PlayerResponse>()
+        val playerResponse: PlayerResponse = innerTube.player(IOS, videoId, playlistId).body<PlayerResponse>()
         if (playerResponse.playabilityStatus.status == "OK") {
             return@runCatching playerResponse
         }

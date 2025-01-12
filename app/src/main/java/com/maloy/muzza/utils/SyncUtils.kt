@@ -94,22 +94,13 @@ class SyncUtils @Inject constructor(
     suspend fun syncSavedPlaylists() {
         YouTube.likedPlaylists().onSuccess { playlistList ->
             val dbPlaylists = database.playlistsByNameAsc().first()
-
-            dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
-                .forEach { database.update(it.playlist.localToggleLike()) }
-
-            playlistList.onEach { playlist ->
+            playlistList.drop(1).forEach { playlist ->
                 var playlistEntity = dbPlaylists.find { playlist.id == it.playlist.browseId }?.playlist
                 if (playlistEntity == null) {
                     playlistEntity = PlaylistEntity(name = playlist.title, browseId = playlist.id)
                     database.insert(playlistEntity)
-                } else database.update(playlistEntity, playlist)
-            }.forEach { playlist ->
-                val dbPlaylist = database.playlistByBrowseId(playlist.id).first()!!
-                val playlistSongMaps = database.playlistSongMaps(dbPlaylist.id)
-
-                if (dbPlaylist.playlist.isEditable || playlistSongMaps.isNotEmpty())
-                    syncPlaylist(playlist.id, dbPlaylist.id)
+                }
+                syncPlaylist(playlist.id, playlistEntity.id)
             }
         }
     }

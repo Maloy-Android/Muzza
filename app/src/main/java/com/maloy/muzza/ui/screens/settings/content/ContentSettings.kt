@@ -29,6 +29,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import android.content.Context
 import android.content.res.Configuration
@@ -64,6 +68,8 @@ import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SliderPreference
 import com.maloy.muzza.ui.component.SwitchPreference
+import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.ui.component.InfoLabel
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -101,6 +107,14 @@ fun ContentSettings(
     var selectedLanguage by remember { mutableStateOf(savedLanguage) }
 
 
+    // temp vars
+    var showToken: Boolean by remember {
+        mutableStateOf(false)
+    }
+    var showTokenEditor by remember {
+        mutableStateOf(false)
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
@@ -136,6 +150,51 @@ fun ContentSettings(
                 }
             )
         }
+        if (showTokenEditor) {
+            TextFieldDialog(
+                modifier = Modifier,
+                initialTextFieldValue = TextFieldValue(innerTubeCookie),
+                onDone = { onInnerTubeCookieChange(it) },
+                onDismiss = { showTokenEditor = false },
+                singleLine = false,
+                maxLines = 20,
+                isInputValid = {
+                    it.isNotEmpty() &&
+                            try {
+                                "SAPISID" in parseCookieString(it)
+                                true
+                            } catch (e: Exception) {
+                                false
+                            }
+                },
+                extraContent = {
+                    InfoLabel(text = stringResource(R.string.token_adv_login_description))
+                }
+            )
+        }
+        PreferenceEntry(
+            title = {
+                if (showToken) {
+                    Text(stringResource(R.string.token_shown))
+                    Text(
+                        text = if (isLoggedIn) innerTubeCookie else stringResource(R.string.not_logged_in),
+                        fontSize = 10.sp,
+                        fontWeight = FontWeight.Light,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1 // just give a preview so user knows it's at least there
+                    )
+                } else {
+                    Text(stringResource(R.string.token_hidden))
+                }
+            },
+            onClick = {
+                if (showToken == false) {
+                    showToken = true
+                } else {
+                    showTokenEditor = true
+                }
+            },
+        )
         if (isLoggedIn) {
             SwitchPreference(
                 title = { Text(stringResource(R.string.ytm_sync)) },

@@ -98,7 +98,15 @@ class App : Application(), ImageLoaderFactory {
                 .collect { rawCookie ->
                     val isLoggedIn: Boolean = rawCookie?.contains("SAPISID") ?: false
                     val cookie = if (isLoggedIn) rawCookie else null
-                    YouTube.cookie = cookie
+                    try {
+                        YouTube.cookie = cookie
+                    } catch (e: Exception) {
+                        // we now allow user input now, here be the demons. This serves as a last ditch effort to avoid a crash loop
+                        Timber.e("Could not parse cookie. Clearing existing cookie. %s", e.message)
+                        dataStore.edit { settings ->
+                            settings[InnerTubeCookieKey] = ""
+                        }
+                    }
                 }
         }
     }

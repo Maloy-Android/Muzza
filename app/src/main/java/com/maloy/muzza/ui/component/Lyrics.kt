@@ -53,7 +53,9 @@ import androidx.compose.ui.unit.sp
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkModeKey
+import com.maloy.muzza.constants.LyricTrimKey
 import com.maloy.muzza.constants.LyricsTextPositionKey
+import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
@@ -90,6 +92,8 @@ fun Lyrics(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.trim() }
+    val multilineLrc = rememberPreference(MultilineLrcKey, defaultValue = true)
+    val lyricTrim = rememberPreference(LyricTrimKey, defaultValue = false)
 
     val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
 
@@ -101,7 +105,8 @@ fun Lyrics(
 
     val lines = remember(lyrics) {
         if (lyrics == null || lyrics == LYRICS_NOT_FOUND) emptyList()
-        else if (lyrics.startsWith("[")) listOf(HEAD_LYRICS_ENTRY) + parseLyrics(lyrics)
+        else if (lyrics.startsWith("[")) listOf(HEAD_LYRICS_ENTRY) +
+                parseLyrics(lyrics, lyricTrim.value, multilineLrc.value)
         else lyrics.lines().mapIndexed { index, line -> LyricsEntry(index * 100L, line) }
     }
     val isSynced = remember(lyrics) {

@@ -6,6 +6,8 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material.icons.automirrored.rounded.Sort
+import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -22,7 +24,9 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.EnableKugouKey
 import com.maloy.muzza.constants.EnableLrcLibKey
+import com.maloy.muzza.constants.LyricTrimKey
 import com.maloy.muzza.constants.LyricsTextPositionKey
+import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PreferredLyricsProvider
 import com.maloy.muzza.constants.PreferredLyricsProviderKey
 import com.maloy.muzza.ui.component.EnumListPreference
@@ -44,6 +48,8 @@ fun LyricsSettings(
     val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(LyricsTextPositionKey, defaultValue = LyricsPosition.CENTER)
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(key = PreferredLyricsProviderKey, defaultValue = PreferredLyricsProvider.LRCLIB)
+    val (multilineLrc, onMultilineLrcChange) = rememberPreference(MultilineLrcKey, defaultValue = true)
+    val (lyricTrim, onLyricTrimChange) = rememberPreference(LyricTrimKey, defaultValue = false)
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -65,6 +71,21 @@ fun LyricsSettings(
             icon = { Icon(Icons.Rounded.Lyrics, null) },
             checked = enableLrcLib,
             onCheckedChange = onEnableLrcLibChange
+        )
+        // multiline lyrics
+        SwitchPreference(
+            title = { Text(stringResource(R.string.lyrics_multiline_title)) },
+            description = stringResource(R.string.lyrics_multiline_description),
+            icon = { Icon(Icons.AutoMirrored.Rounded.Sort, null) },
+            checked = multilineLrc,
+            onCheckedChange = onMultilineLrcChange
+        )
+        // trim (remove spaces around) lyrics
+        SwitchPreference(
+            title = { Text(stringResource(R.string.lyrics_trim_title)) },
+            icon = { Icon(Icons.Rounded.ContentCut, null) },
+            checked = lyricTrim,
+            onCheckedChange = onLyricTrimChange
         )
 
         // lyrics position

@@ -383,6 +383,9 @@
     <string name="enable_lrclib">Enable LrcLib lyrics provider</string>
     <string name="enable_kugou">Enable KuGou lyrics provider</string>
     <string name="default_lyrics_provider">Default lyrics provider</string>
+    <string name="lyrics_multiline_title">Read multiline lyrics</string>
+    <string name="lyrics_multiline_description">Treat all the lines between sync points as one lyric text</string>
+    <string name="lyrics_trim_title">Remove spaces around lyrics</string>
     <string name="hide_explicit">Hide explicit content</string>
     <string name="enable_notifications">Enable notifications</string>
 

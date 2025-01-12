@@ -238,7 +238,13 @@ class InnerTube {
                     } else it
                 },
                 videoId = videoId,
-                playlistId = playlistId
+                playlistId = playlistId,
+                playbackContext =
+                if (client.useSignatureTimestamp) {
+                    PlayerBody.PlaybackContext(PlayerBody.PlaybackContext.ContentPlaybackContext(
+                        signatureTimestamp = NewPipeUtils.getSignatureTimestamp(videoId).getOrThrow()
+                    ))
+                } else null
             )
         )
     }

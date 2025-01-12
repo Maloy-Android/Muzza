@@ -57,6 +57,7 @@ import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.muzza.MainActivity
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AudioNormalizationKey
+import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
@@ -90,6 +91,7 @@ import com.maloy.muzza.extensions.currentMetadata
 import com.maloy.muzza.extensions.findNextMediaItemById
 import com.maloy.muzza.extensions.mediaItems
 import com.maloy.muzza.extensions.metadata
+import com.maloy.muzza.extensions.setOffloadEnabled
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.lyrics.LyricsHelper
 import com.maloy.muzza.models.PersistQueue
@@ -235,6 +237,7 @@ class MusicService : MediaLibraryService(),
             .build()
             .apply {
                 addListener(this@MusicService)
+                setOffloadEnabled(dataStore.get(AudioOffload, false))
                 sleepTimer = SleepTimer(scope, this)
                 addListener(sleepTimer)
                 addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))

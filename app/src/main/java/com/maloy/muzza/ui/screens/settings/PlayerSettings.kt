@@ -13,6 +13,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -39,6 +40,7 @@ import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AudioNormalizationKey
+import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
@@ -72,6 +74,7 @@ fun PlayerSettings(
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
+    val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
 
     var showMinPlaybackDur by remember {
         mutableStateOf(false)
@@ -206,6 +209,14 @@ fun PlayerSettings(
 
         PreferenceGroupTitle(
             title = stringResource(R.string.misc)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.audio_offload)) },
+            description = stringResource(R.string.audio_offload_description),
+            icon = { Icon(Icons.Rounded.Bolt, null) },
+            checked = audioOffload,
+            onCheckedChange = onAudioOffloadChange
         )
 
         SwitchPreference(

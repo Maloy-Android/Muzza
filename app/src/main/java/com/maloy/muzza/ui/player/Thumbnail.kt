@@ -5,7 +5,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,8 +33,8 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.constants.PlayerHorizontalPadding
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
-import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.ui.component.Lyrics
+import com.maloy.muzza.ui.screens.settings.AppConfig
 import com.maloy.muzza.utils.rememberPreference
 import kotlin.math.roundToInt
 
@@ -111,7 +110,7 @@ fun Thumbnail(
                         .offset { IntOffset(offsetX.roundToInt(), 0) }
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius * 2))
+                        .clip(RoundedCornerShape(AppConfig.ThumbnailCornerRadiusV2 * 2))
                         .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
                 )
             }

@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,6 +20,8 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,13 +55,14 @@ import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.LibraryFilter
-import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
+import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
+import com.maloy.muzza.ui.component.ActionPromptDialog
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
@@ -71,6 +76,7 @@ import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import me.saket.squiggles.SquigglySlider
 
+@SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppearanceSettings(
@@ -85,6 +91,7 @@ fun AppearanceSettings(
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
+    val (cornerRadius, onCornerRadius) = rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 6)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -96,6 +103,73 @@ fun AppearanceSettings(
             PlayerBackgroundStyleKey,
             defaultValue = PlayerBackgroundStyle.DEFAULT,
         )
+
+
+    var showCornerRadiusDialog by remember { mutableStateOf(false) }
+    var thumbnailCornerRadius by remember { mutableStateOf(AppConfig.ThumbnailCornerRadiusV2) }
+
+    if (showCornerRadiusDialog) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            ActionPromptDialog(
+                title = stringResource(R.string.thumbnail_corner_radius),
+                onDismiss = { showCornerRadiusDialog = false },
+                onConfirm = {
+                    showCornerRadiusDialog = false
+                    onCornerRadius(cornerRadius)
+                },
+                onCancel = {
+                    showCornerRadiusDialog = false
+                    onCornerRadius(cornerRadius)
+                }
+            ) {
+                if (showCornerRadiusDialog) {
+                    ActionPromptDialog(
+                        title = stringResource(R.string.thumbnail_corner_radius),
+                        onDismiss = { showCornerRadiusDialog = false },
+                        onConfirm = {
+                            showCornerRadiusDialog = false
+                            AppConfig.ThumbnailCornerRadiusV2 = thumbnailCornerRadius
+                        },
+                        onCancel = {
+                            showCornerRadiusDialog = false
+                            thumbnailCornerRadius =
+                                AppConfig.ThumbnailCornerRadiusV2
+                        }
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = "${String.format("%.1f", thumbnailCornerRadius)}",
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(horizontal = 8.dp)
+                            )
+                            Slider(
+                                value = thumbnailCornerRadius,
+                                onValueChange = {
+                                    thumbnailCornerRadius = it.coerceIn(0f, 50f)
+                                },
+                                valueRange = 0f..50f,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     var showSliderOptionDialog by rememberSaveable {
         mutableStateOf(false)
@@ -292,6 +366,12 @@ fun AppearanceSettings(
         )
 
         PreferenceEntry(
+            title = { Text(stringResource(R.string.thumbnail_corner_radius)) },
+            icon = { Icon(Icons.Rounded.Image, null) },
+            onClick = { showCornerRadiusDialog = true }
+        )
+
+        PreferenceEntry(
             title = { Text(stringResource(R.string.player_slider_style)) },
             description = when (sliderStyle) {
                 SliderStyle.DEFAULT -> stringResource(R.string.default_)
@@ -385,4 +465,8 @@ enum class NavigationTab {
 
 enum class LyricsPosition {
     LEFT, CENTER, RIGHT
+}
+
+object AppConfig {
+    var ThumbnailCornerRadiusV2: Float = 16f
 }

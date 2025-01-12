@@ -1,5 +1,6 @@
 package com.maloy.muzza.constants
 
+import androidx.compose.ui.unit.dp
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
@@ -12,6 +13,7 @@ val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
+val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 
 enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE

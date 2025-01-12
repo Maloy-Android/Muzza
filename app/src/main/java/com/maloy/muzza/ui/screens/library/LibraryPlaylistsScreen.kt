@@ -172,10 +172,10 @@ fun LibraryPlaylistsScreen(
             },
             extraContent = {
                 // synced/unsynced toggle
+                if (isLoggedIn) {
                 Row(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
                 ) {
-                    if (isLoggedIn) {
                         Column() {
                             Text(
                                 text = stringResource(R.string.sync_playlist),
@@ -187,20 +187,19 @@ fun LibraryPlaylistsScreen(
                                 modifier = Modifier.fillMaxWidth(0.7f)
                             )
                         }
-                    }
-                    Row(
-                        modifier = Modifier.weight(1f),
-                        horizontalArrangement = Arrangement.End
-                    ) {
-                        Switch(
-                            checked = syncedPlaylist,
-                            onCheckedChange = {
-                                syncedPlaylist = !syncedPlaylist
-                            },
-                        )
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Switch(
+                                checked = syncedPlaylist,
+                                onCheckedChange = {
+                                    syncedPlaylist = !syncedPlaylist
+                                },
+                            )
+                        }
                     }
                 }
-
             }
         )
     }

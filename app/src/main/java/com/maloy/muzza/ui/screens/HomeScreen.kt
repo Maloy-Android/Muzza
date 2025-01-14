@@ -414,48 +414,53 @@ fun HomeScreen(
                 }
 
                 if (isLoggedIn && (ytmSync && !recentActivity.isNullOrEmpty())) {
-                    NavigationTitle(
-                        title = stringResource(R.string.recent_activity)
-                    )
-                    LazyHorizontalGrid(
-                        state = recentActivityGridState,
-                        rows = GridCells.Fixed(4),
-                        flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp * 4)
-                    ) {
-                        items(
-                            items = recentActivity!!,
-                            key = { it.id }
-                        ) { item ->
-                            YouTubeCardItem(
-                                item,
-                                onClick = {
-                                    when (item) {
-                                        is PlaylistItem -> {
-                                            val playlistDb = recentPlaylistsDb
-                                                ?.firstOrNull { it.playlist.browseId == item.id }
-                                            println(recentPlaylistsDb)
-                                            if (playlistDb != null && playlistDb.songCount != 0)
-                                                navController.navigate("local_playlist/${playlistDb.id}")
-                                            else
-                                                navController.navigate("online_playlist/${item.id}")
-                                        }
+                        NavigationTitle(
+                            title = stringResource(R.string.recent_activity)
+                        )
+                        LazyHorizontalGrid(
+                            state = recentActivityGridState,
+                            rows = GridCells.Fixed(4),
+                            flingBehavior = rememberSnapFlingBehavior(
+                                forgottenFavoritesLazyGridState
+                            ),
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(60.dp * 4)
+                                .padding(6.dp)
+                        ) {
+                            items(
+                                items = recentActivity!!,
+                                key = { it.id }
+                            ) { item ->
+                                YouTubeCardItem(
+                                    item,
+                                    onClick = {
+                                        when (item) {
+                                            is PlaylistItem -> {
+                                                val playlistDb = recentPlaylistsDb
+                                                    ?.firstOrNull { it.playlist.browseId == item.id }
 
-                                        is AlbumItem -> navController.navigate("album/${item.id}")
-                                        is ArtistItem -> navController.navigate("artist/${item.id}")
-                                        else -> {}
+                                                if (playlistDb != null && playlistDb.songCount != 0)
+                                                    navController.navigate("local_playlist/${playlistDb.id}")
+                                                else
+                                                    navController.navigate("online_playlist/${item.id}")
+                                            }
+
+                                            is AlbumItem -> navController.navigate("album/${item.id}")
+
+                                            is ArtistItem -> navController.navigate("artist/${item.id}")
+
+                                            else -> {}
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
-            }
 
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
                 item {

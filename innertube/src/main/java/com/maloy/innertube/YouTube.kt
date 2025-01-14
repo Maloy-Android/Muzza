@@ -201,13 +201,29 @@ object YouTube {
             browseContinuation = continuation,
             setLogin = true
         ).body<BrowseResponse>()
+
+        val items = response.continuationContents?.sectionListContinuation?.contents?.firstOrNull()
+            ?.gridRenderer?.items!!.mapNotNull {
+                it.musicTwoRowItemRenderer?.let { renderer ->
+                    LibraryPage.fromMusicTwoRowItemRenderer(renderer)
+                }
+            }.toMutableList()
+
+        /*
+         * We need to fetch the artist page when accessing the library because it allows to have
+         * a proper playEndpoint, which is needed to correctly report the playing indicator in
+         * the home page.
+         *
+         * Despite this, we need to use the old thumbnail because it's the proper format for a
+         * square picture, which is what we need.
+         */
+        items.forEachIndexed { index, item ->
+            if (item is ArtistItem)
+                items[index] = artist(item.id).getOrNull()?.artist!!.copy(thumbnail = item.thumbnail)
+        }
+
         LibraryPage(
-            items = response.continuationContents?.sectionListContinuation?.contents?.firstOrNull()
-                ?.gridRenderer?.items!!.mapNotNull {
-                    it.musicTwoRowItemRenderer?.let { renderer ->
-                        LibraryPage.fromMusicTwoRowItemRenderer(renderer)
-                    }
-                },
+            items = items,
             continuation = null
         )
     }

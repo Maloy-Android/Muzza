@@ -42,10 +42,6 @@
     <string name="most_played_songs">Самые популярные песни</string>
     <string name="most_played_artists">Самые популярные исполнители</string>
     <string name="most_played_albums">Самые популярные альбомы</string>
-    <string name="weeks">Недели</string>
-    <string name="months">Месяцы</string>
-    <string name="years">Годы</string>
-    <string name="continuous">Непрерывно</string>
 
     <!-- Search -->
     <string name="search">Поиск</string>
@@ -455,10 +451,5 @@
     <plurals name="seconds" tools:ignore="MissingQuantity">
         <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
         <item quantity="other">%d секунд</item>
-    </plurals>
-    <plurals name="n_time">
-        <item quantity="one">%d минута</item>
-        <item quantity="other">%d минуты</item>
-        <item quantity="many">%d минут</item>
     </plurals>
 </resources>

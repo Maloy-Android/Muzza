@@ -154,14 +154,6 @@
         <item quantity="many">%d عام</item>
         <item quantity="other">%d عام</item>
     </plurals>
-    <plurals name="n_time">
-        <item quantity="zero">لا مرات</item>
-        <item quantity="one">%d مرة</item>
-        <item quantity="two">%d مرتان</item>
-        <item quantity="few">%d مرات</item>
-        <item quantity="many">%d مرة</item>
-        <item quantity="other">%d مرة</item>
-    </plurals>
     <string name="removed_song_from_playlist">تم مسح \"%s\" من قائمة الأغاني</string>
     <string name="undo">تراجع</string>
     <string name="lyrics_not_found">لم يتم العثور على كلمات</string>

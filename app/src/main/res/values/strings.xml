@@ -38,10 +38,6 @@
     <string name="most_played_songs">Most played songs</string>
     <string name="most_played_artists">Most played artists</string>
     <string name="most_played_albums">Most played albums</string>
-    <string name="weeks">Weeks</string>
-    <string name="months">Months</string>
-    <string name="years">Years</string>
-    <string name="continuous">Continuous</string>
 
     <!-- Search -->
     <string name="search">Search</string>
@@ -198,10 +194,6 @@
     <plurals name="n_year">
         <item quantity="one">%d year</item>
         <item quantity="other">%d years</item>
-    </plurals>
-    <plurals name="n_time">
-        <item quantity="one">%d time</item>
-        <item quantity="other">%d times</item>
     </plurals>
 
     <!-- Snackbar -->

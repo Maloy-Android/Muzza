@@ -351,8 +351,6 @@ class MainActivity : ComponentActivity() {
                     }
                     var searchSource by rememberEnumPreference(SearchSourceKey, SearchSource.ONLINE)
 
-                    val searchBarFocusRequester = remember { FocusRequester() }
-
                     val onSearch: (String) -> Unit = {
                         if (it.isNotEmpty()) {
                             onActiveChange(false)
@@ -740,7 +738,6 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 },
-                                focusRequester = searchBarFocusRequester,
                                 modifier = Modifier.align(Alignment.TopCenter),
                             ) {
                                 Crossfade(
@@ -881,7 +878,6 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(shouldShowSearchBar, openSearchImmediately) {
                         if (shouldShowSearchBar && openSearchImmediately) {
                             onActiveChange(true)
-                            searchBarFocusRequester.requestFocus()
                             openSearchImmediately = false
                         }
                     }

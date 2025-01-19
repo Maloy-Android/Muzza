@@ -122,6 +122,7 @@ import com.maloy.muzza.constants.PauseSearchHistoryKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SearchSource
 import com.maloy.muzza.constants.SearchSourceKey
+import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.SearchHistory
@@ -320,6 +321,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
+                    val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
                     val navigationItems = remember { Screens.MainScreens }
                     val defaultOpenTab = remember {
                         dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
@@ -825,11 +827,13 @@ class MainActivity : ComponentActivity() {
                                         )
                                     },
                                     label = {
-                                        Text(
-                                            text = stringResource(screen.titleId),
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
-                                        )
+                                        if (slimNav) {
+                                            Text(
+                                                text = stringResource(screen.titleId),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
                                     },
                                     onClick = {
                                         if (isSelected) {

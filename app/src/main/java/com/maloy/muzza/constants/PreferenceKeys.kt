@@ -55,6 +55,7 @@ val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
 val AutoLoadMoreKey = booleanPreferencesKey("autoLoadMore")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val KeepAliveKey = booleanPreferencesKey("keepAlive")
+val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

@@ -60,6 +60,7 @@ import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.ui.component.ActionPromptDialog
@@ -92,6 +93,7 @@ fun AppearanceSettings(
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (cornerRadius, onCornerRadius) = rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 6)
+    val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = false)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -399,6 +401,13 @@ fun AppearanceSettings(
                     NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
                 }
             }
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.slim_navbar)) },
+            icon = { Icon(painterResource(R.drawable.nav_bar), null) },
+            checked = slimNav,
+            onCheckedChange = onSlimNavChange
         )
 
         EnumListPreference(

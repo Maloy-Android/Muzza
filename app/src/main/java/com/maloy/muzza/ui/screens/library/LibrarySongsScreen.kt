@@ -98,7 +98,7 @@ fun LibrarySongsScreen(
 
     val songs by viewModel.allSongs.collectAsState()
 
-    LaunchedEffect(filter) {
+    LaunchedEffect(Unit) {
         if (ytmSync) {
                 withContext(Dispatchers.IO) {
                     viewModel.syncLikedSongs()

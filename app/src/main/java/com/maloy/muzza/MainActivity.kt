@@ -76,6 +76,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -163,6 +164,7 @@ import com.maloy.muzza.utils.reportException
 import com.maloy.muzza.utils.urlEncode
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -350,6 +352,8 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     var searchSource by rememberEnumPreference(SearchSourceKey, SearchSource.ONLINE)
+
+                    val searchBarFocusRequester = remember { FocusRequester() }
 
                     val onSearch: (String) -> Unit = {
                         if (it.isNotEmpty()) {
@@ -738,7 +742,11 @@ class MainActivity : ComponentActivity() {
                                         )
                                     }
                                 },
-                                modifier = Modifier.align(Alignment.TopCenter),
+                                modifier =
+                                Modifier
+                                    .focusRequester(searchBarFocusRequester)
+                                    .align(Alignment.TopCenter),
+                                focusRequester = searchBarFocusRequester
                             ) {
                                 Crossfade(
                                     targetState = searchSource,
@@ -878,6 +886,11 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(shouldShowSearchBar, openSearchImmediately) {
                         if (shouldShowSearchBar && openSearchImmediately) {
                             onActiveChange(true)
+                            try {
+                                delay(100)
+                                searchBarFocusRequester.requestFocus()
+                            } catch (e: Exception) {
+                            }
                             openSearchImmediately = false
                         }
                     }

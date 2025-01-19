@@ -321,7 +321,7 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
-                    val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = false)
+                    val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = true)
                     val navigationItems = remember { Screens.MainScreens }
                     val defaultOpenTab = remember {
                         dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)

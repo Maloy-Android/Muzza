@@ -93,7 +93,7 @@ fun AppearanceSettings(
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (cornerRadius, onCornerRadius) = rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 6)
-    val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = false)
+    val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {

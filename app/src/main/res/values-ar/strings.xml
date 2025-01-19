@@ -196,7 +196,7 @@
     </plurals>
     <string name="misc">متنوعات</string>
     <string name="default_open_tab">النافذة الافتراضية عند الفتح</string>
-    <string name="slim_navbar">إخفاء أسماء علامات شريط التنقل السفلي</string>
+    <string name="slim_navbar">إظهار أسماء علامات شريط التنقل السفلي</string>
     <string name="small">صغير</string>
     <string name="grid_cell_size">حجم خلايا الشبكة</string>
     <string name="not_logged_in">غير مسجل الدخول</string>

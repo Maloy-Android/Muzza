@@ -1,13 +1,11 @@
 package com.maloy.muzza.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -1009,60 +1007,5 @@ private object Icon {
                 .size(18.dp)
                 .padding(end = 2.dp)
         )
-    }
-}
-
-@Composable
-fun YouTubeCardItem(
-    item: YTItem,
-    modifier: Modifier = Modifier,
-    onClick: () -> Unit,
-) {
-    val configuration = LocalConfiguration.current
-    val screenWidthDp = configuration.screenWidthDp
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-            .height(60.dp)
-            .width(screenWidthDp.dp / 2)
-            .padding(6.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp))
-            .clickable(onClick = onClick)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center
-        ) {
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.size(ListThumbnailSize)
-            ) {
-                val thumbnailShape = RoundedCornerShape(ThumbnailCornerRadius)
-                val thumbnailRatio = 1f
-                AsyncImage(
-                    model = item.thumbnail,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .aspectRatio(thumbnailRatio)
-                        .clip(thumbnailShape)
-                )
-            }
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 8.dp)
-        ) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Start,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
     }
 }

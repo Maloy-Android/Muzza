@@ -89,7 +89,6 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
-import com.maloy.muzza.ui.component.YouTubeCardItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
@@ -129,24 +128,14 @@ fun HomeScreen(
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
 
-    val mostPlayedLazyGridState = rememberLazyGridState()
-    val recentActivity by viewModel.recentActivity.collectAsState()
-    val recentPlaylistsDb by viewModel.recentPlaylistsDb.collectAsState()
-    val recentActivityGridState = rememberLazyGridState()
-
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
-
-    val scrollState = rememberScrollState()
 
     val quickPicksLazyGridState = rememberLazyGridState()
     val forgottenFavoritesLazyGridState = rememberLazyGridState()
 
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
-    }
 
     val scope = rememberCoroutineScope()
     val lazylistState = rememberLazyListState()
@@ -323,11 +312,6 @@ fun HomeScreen(
                 }
             )
         }
-        val snapLayoutInfoProvider = remember(mostPlayedLazyGridState) {
-            SnapLayoutInfoProvider(
-                lazyGridState = mostPlayedLazyGridState,
-            )
-        }
         val forgottenFavoritesSnapLayoutInfoProvider = remember(forgottenFavoritesLazyGridState) {
             SnapLayoutInfoProvider(
                 lazyGridState = forgottenFavoritesLazyGridState,
@@ -412,55 +396,7 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
-
-                if (isLoggedIn && (ytmSync && !recentActivity.isNullOrEmpty())) {
-                        NavigationTitle(
-                            title = stringResource(R.string.recent_activity)
-                        )
-                        LazyHorizontalGrid(
-                            state = recentActivityGridState,
-                            rows = GridCells.Fixed(4),
-                            flingBehavior = rememberSnapFlingBehavior(
-                                forgottenFavoritesLazyGridState
-                            ),
-                            contentPadding = WindowInsets.systemBars
-                                .only(WindowInsetsSides.Horizontal)
-                                .asPaddingValues(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(60.dp * 4)
-                                .padding(6.dp)
-                        ) {
-                            items(
-                                items = recentActivity!!,
-                                key = { it.id }
-                            ) { item ->
-                                YouTubeCardItem(
-                                    item,
-                                    onClick = {
-                                        when (item) {
-                                            is PlaylistItem -> {
-                                                val playlistDb = recentPlaylistsDb
-                                                    ?.firstOrNull { it.playlist.browseId == item.id }
-
-                                                if (playlistDb != null && playlistDb.songCount != 0)
-                                                    navController.navigate("local_playlist/${playlistDb.id}")
-                                                else
-                                                    navController.navigate("online_playlist/${item.id}")
-                                            }
-
-                                            is AlbumItem -> navController.navigate("album/${item.id}")
-
-                                            is ArtistItem -> navController.navigate("artist/${item.id}")
-
-                                            else -> {}
-                                        }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
+            }
 
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
                 item {

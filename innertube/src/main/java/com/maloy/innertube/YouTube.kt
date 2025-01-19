@@ -13,7 +13,6 @@ import com.maloy.innertube.models.SearchSuggestions
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
-import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_MUSIC
 import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
@@ -39,7 +38,6 @@ import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.pages.BrowseResult
 import com.maloy.innertube.pages.ExplorePage
 import com.maloy.innertube.pages.HomePage
-import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
 import com.maloy.innertube.pages.NewReleaseAlbumPage
 import com.maloy.innertube.pages.NextPage
@@ -191,40 +189,6 @@ object YouTube {
                     SearchPage.toYTItem(it.musicResponsiveListItemRenderer)
                 }!!,
             continuation = response.continuationContents.musicShelfContinuation.continuations?.getContinuation()
-        )
-    }
-
-    suspend fun libraryRecentActivity(): Result<LibraryPage> = runCatching {
-        val continuation = LibraryFilter.FILTER_RECENT_ACTIVITY.value
-        val response = innerTube.browse(
-            client = WEB_REMIX,
-            browseContinuation = continuation,
-            setLogin = true
-        ).body<BrowseResponse>()
-
-        val items = response.continuationContents?.sectionListContinuation?.contents?.firstOrNull()
-            ?.gridRenderer?.items!!.mapNotNull {
-                it.musicTwoRowItemRenderer?.let { renderer ->
-                    LibraryPage.fromMusicTwoRowItemRenderer(renderer)
-                }
-            }.toMutableList()
-
-        /*
-         * We need to fetch the artist page when accessing the library because it allows to have
-         * a proper playEndpoint, which is needed to correctly report the playing indicator in
-         * the home page.
-         *
-         * Despite this, we need to use the old thumbnail because it's the proper format for a
-         * square picture, which is what we need.
-         */
-        items.forEachIndexed { index, item ->
-            if (item is ArtistItem)
-                items[index] = artist(item.id).getOrNull()?.artist!!.copy(thumbnail = item.thumbnail)
-        }
-
-        LibraryPage(
-            items = items,
-            continuation = null
         )
     }
 
@@ -703,16 +667,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String?): Result<Any> = runCatching {
         if (setVideoId != null) {
             innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
-        }
-    }
-
-    @JvmInline
-    value class LibraryFilter(val value: String) {
-        companion object {
-            val FILTER_RECENT_ACTIVITY = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCaEFCb0FZQg%3D%3D")
-            val FILTER_RECENTLY_PLAYED = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCUkFCb0FZQg%3D%3D")
-            val FILTER_PLAYLISTS_ALPHABETICAL = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBUkFBb0FZQg%3D%3D")
-            val FILTER_PLAYLISTS_RECENTLY_SAVED = LibraryFilter("4qmFsgIrEhdGRW11c2ljX2xpa2VkX3BsYXlsaXN0cxoQZ2dNR0tnUUlBQkFCb0FZQg%3D%3D")
         }
     }
 

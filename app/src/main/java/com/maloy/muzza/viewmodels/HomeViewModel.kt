@@ -48,8 +48,6 @@ class HomeViewModel @Inject constructor(
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
-    val recentActivity = MutableStateFlow<List<YTItem>?>(null)
-    val recentPlaylistsDb = MutableStateFlow<List<Playlist>?>(null)
 
     val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
@@ -61,18 +59,6 @@ class HomeViewModel @Inject constructor(
 
         quickPicks.value = database.quickPicks()
             .first().shuffled().take(20)
-
-        YouTube.libraryRecentActivity().onSuccess { page ->
-            recentActivity.value = page.items.take(9).drop(1)
-            recentActivity.value!!.filterIsInstance<PlaylistItem>().forEach { item ->
-                val playlist = database.playlistByBrowseId(item.id).firstOrNull()
-                if (playlist != null) {
-                    recentPlaylistsDb.update { list ->
-                        list?.plusElement(playlist) ?: listOf(playlist)
-                    }
-                }
-            }
-        }
 
         forgottenFavorites.value = database.forgottenFavorites()
             .first().shuffled().take(20)

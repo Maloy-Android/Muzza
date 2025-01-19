@@ -49,7 +49,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
@@ -101,10 +100,8 @@ fun LibrarySongsScreen(
 
     LaunchedEffect(filter) {
         if (ytmSync) {
-            if (filter == SongFilter.LIKED) {
                 withContext(Dispatchers.IO) {
                     viewModel.syncLikedSongs()
-                }
             }
         }
     }

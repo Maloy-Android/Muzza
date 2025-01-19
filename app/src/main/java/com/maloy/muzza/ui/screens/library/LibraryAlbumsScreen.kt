@@ -58,7 +58,6 @@ import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
-import com.maloy.muzza.constants.SongFilter
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
@@ -121,12 +120,10 @@ fun LibraryAlbumsScreen(
         }
     }
 
-    LaunchedEffect(filter) {
+    LaunchedEffect(Unit) {
         if (ytmSync)
-        if (filter == AlbumFilter.LIKED) {
             withContext(Dispatchers.IO) {
                 viewModel.sync()
-            }
         }
     }
 

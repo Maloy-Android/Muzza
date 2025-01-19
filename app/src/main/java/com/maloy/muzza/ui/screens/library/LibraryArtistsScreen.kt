@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.screens.library
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -45,7 +44,6 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AlbumFilter
 import com.maloy.muzza.constants.ArtistFilter
 import com.maloy.muzza.constants.ArtistFilterKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
@@ -118,12 +116,10 @@ fun LibraryArtistsScreen(
         }
     }
 
-    LaunchedEffect(filter) {
+    LaunchedEffect(Unit) {
         if (ytmSync)
-        if (filter == ArtistFilter.LIKED) {
             withContext(Dispatchers.IO) {
                 viewModel.sync()
-            }
         }
     }
 

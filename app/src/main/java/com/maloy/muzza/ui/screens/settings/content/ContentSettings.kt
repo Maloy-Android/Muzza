@@ -84,13 +84,6 @@ fun ContentSettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val context = LocalContext.current
-    val accountName by rememberPreference(AccountNameKey, "")
-    val accountEmail by rememberPreference(AccountEmailKey, "")
-    val accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
-    val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
-    }
     val (likedAutoDownload, onLikedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
@@ -100,20 +93,10 @@ fun ContentSettings(
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
     val (historyDuration, onHistoryDurationChange) = rememberPreference(key = HistoryDuration, defaultValue = 30f)
-    val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
 
     val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     val savedLanguage = sharedPreferences.getString("app_language", "en") ?: "en"
     var selectedLanguage by remember { mutableStateOf(savedLanguage) }
-
-
-    // temp vars
-    var showToken: Boolean by remember {
-        mutableStateOf(false)
-    }
-    var showTokenEditor by remember {
-        mutableStateOf(false)
-    }
 
     Column(
         Modifier
@@ -132,86 +115,6 @@ fun ContentSettings(
             title = stringResource(R.string.home)
         )
 
-        PreferenceEntry(
-            title = { Text(if (isLoggedIn) accountName else stringResource(R.string.login)) },
-            description = if (isLoggedIn) {
-                accountEmail.takeIf { it.isNotEmpty() }
-                    ?: accountChannelHandle.takeIf { it.isNotEmpty() }
-            } else null,
-            icon = { Icon(painterResource(R.drawable.person), null) },
-            onClick = { navController.navigate("login") }
-        )
-        if (isLoggedIn) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.logout)) },
-                icon = { Icon(Icons.AutoMirrored.Rounded.Logout, null) },
-                onClick = {
-                    onInnerTubeCookieChange("")
-                }
-            )
-        }
-        if (showTokenEditor) {
-            TextFieldDialog(
-                modifier = Modifier,
-                initialTextFieldValue = TextFieldValue(innerTubeCookie),
-                onDone = { onInnerTubeCookieChange(it) },
-                onDismiss = { showTokenEditor = false },
-                singleLine = false,
-                maxLines = 20,
-                isInputValid = {
-                    it.isNotEmpty() &&
-                            try {
-                                "SAPISID" in parseCookieString(it)
-                                true
-                            } catch (e: Exception) {
-                                false
-                            }
-                },
-                extraContent = {
-                    InfoLabel(text = stringResource(R.string.token_adv_login_description))
-                }
-            )
-        }
-        PreferenceEntry(
-            title = {
-                if (showToken) {
-                    Text(stringResource(R.string.token_shown))
-                    Text(
-                        text = if (isLoggedIn) innerTubeCookie else stringResource(R.string.not_logged_in),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Light,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1 // just give a preview so user knows it's at least there
-                    )
-                } else {
-                    Text(stringResource(R.string.token_hidden))
-                }
-            },
-            onClick = {
-                if (showToken == false) {
-                    showToken = true
-                } else {
-                    showTokenEditor = true
-                }
-            },
-        )
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.ytm_sync)) },
-                icon = { Icon(painterResource(R.drawable.cached), null) },
-                checked = ytmSync,
-                onCheckedChange = onYtmSyncChange,
-                isEnabled = isLoggedIn
-            )
-        }
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.import_from_spotify)) },
-            description = null,
-            icon = { Icon(painterResource(R.drawable.download), null) },
-            onClick = {
-                navController.navigate("settings/content/import_from_spotify")
-            }
-        )
         ListPreference(
             title = { Text(stringResource(R.string.content_language)) },
             icon = { Icon(painterResource(R.drawable.language), null) },

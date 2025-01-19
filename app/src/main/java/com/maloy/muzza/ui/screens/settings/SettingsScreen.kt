@@ -307,6 +307,11 @@ fun SettingsScreen(
             onClick = { navController.navigate("settings/appearance") }
         )
         PreferenceEntry(
+            title = { Text(stringResource(R.string.account)) },
+            icon = { Icon(painterResource(R.drawable.person), null) },
+            onClick = { navController.navigate("settings/account") }
+        )
+        PreferenceEntry(
             title = { Text(stringResource(R.string.content)) },
             icon = { Icon(painterResource(R.drawable.language), null) },
             onClick = { navController.navigate("settings/content") }
@@ -325,11 +330,6 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.privacy)) },
             icon = { Icon(painterResource(R.drawable.security), null) },
             onClick = { navController.navigate("settings/privacy") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.discord_integration)) },
-            icon = { Icon(painterResource(R.drawable.discord), null) },
-            onClick = { navController.navigate("settings/discord") }
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.backup_restore)) },

@@ -31,6 +31,7 @@ import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.ui.screens.library.LibraryScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
+import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
 import com.maloy.muzza.ui.screens.settings.content.ContentSettings
 import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.ImportFromSpotifyScreen
@@ -193,6 +194,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)
+    }
+    composable("settings/account") {
+        AccountSettings(navController, scrollBehavior)
     }
     composable("settings/content") {
         ContentSettings(navController, scrollBehavior)

@@ -532,7 +532,8 @@ fun ImportFromSpotifyScreen(
             )
             Button(
                 onClick = {
-                    localUriHandler.openUri("https://accounts.spotify.com/Authorize and Continue?client_id=${spotifyClientId.value}&response_type=code&redirect_uri=http://localhost:45454&scope=user-library-read playlist-read-private")
+                    val encodedUrl = "https://accounts.spotify.com/authorize?client_id=${spotifyClientId.value}&response_type=code&redirect_uri=http://localhost:45454&scope=user-library-read%20playlist-read-private"
+                    localUriHandler.openUri(encodedUrl)
                 }, modifier = Modifier
                     .fillMaxWidth()
                     .padding(start = 15.dp, end = 15.dp)

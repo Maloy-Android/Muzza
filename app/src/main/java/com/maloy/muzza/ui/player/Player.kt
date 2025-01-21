@@ -44,7 +44,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
@@ -141,13 +140,13 @@ fun BottomSheetPlayer(
         val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         useDarkTheme && pureBlack
     }
-    val backgroundColor = if (useBlackBackground && state.value > state.collapsedBound) {
+    if (useBlackBackground && state.value > state.collapsedBound) {
         lerp(MaterialTheme.colorScheme.surfaceContainer, Color.Black, state.progress)
     } else {
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-    var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+    val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
@@ -156,8 +155,6 @@ fun BottomSheetPlayer(
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
-
-    val changeBound = state.expandedBound / 3
 
     val context = LocalContext.current
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
@@ -725,14 +722,13 @@ fun BottomSheetPlayer(
 
         Queue(
             state = queueSheetState,
-            playerBottomSheetState = state,
-            navController = navController,
             backgroundColor =
             if (useBlackBackground) {
                 Color.Black
             } else {
                 MaterialTheme.colorScheme.surfaceContainer
             },
+            navController = navController,
             onBackgroundColor = onBackgroundColor,
         )
     }

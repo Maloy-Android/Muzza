@@ -30,10 +30,7 @@ import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.TextUnitType
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewModelScope
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListThumbnailSize
@@ -55,7 +52,6 @@ import java.time.LocalDateTime
 @Composable
 fun AddToPlaylistDialog(
     isVisible: Boolean,
-    noSyncing: Boolean = false,
     initialTextFieldValue: String? = null,
     onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
@@ -67,7 +63,7 @@ fun AddToPlaylistDialog(
     }
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
+        "SAPIENS" in parseCookieString(innerTubeCookie)
     }
     var showAddPlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -164,12 +160,11 @@ fun AddToPlaylistDialog(
                 }
             },
             extraContent = {
-                // synced/unsynced toggle
                 if (isLoggedIn) {
                 Row(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
                 ) {
-                        Column() {
+                        Column {
                             Text(
                                 text = stringResource(R.string.sync_playlist),
                                 style = MaterialTheme.typography.titleLarge,

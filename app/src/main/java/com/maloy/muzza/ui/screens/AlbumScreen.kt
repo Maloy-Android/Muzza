@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.screens
 
 import androidx.activity.compose.BackHandler

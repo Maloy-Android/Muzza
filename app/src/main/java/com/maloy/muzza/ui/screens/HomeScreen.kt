@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -61,13 +60,11 @@ import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
-import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
-import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
@@ -134,8 +131,6 @@ fun HomeScreen(
 
     val quickPicksLazyGridState = rememberLazyGridState()
     val forgottenFavoritesLazyGridState = rememberLazyGridState()
-
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
 
     val scope = rememberCoroutineScope()
     val lazylistState = rememberLazyListState()
@@ -321,46 +316,48 @@ fun HomeScreen(
             )
         }
 
-//        val context = LocalContext.current
-//        var showNoInternetDialog by remember { mutableStateOf(false) }
-//
-//        if (!isInternetAvailable(context)) {
-//            showNoInternetDialog = true
-//        }
-//
-//        // No Internet Dialog
-//        if (showNoInternetDialog) {
-//            AlertDialog(
-//                onDismissRequest = { showNoInternetDialog = false },
-//                title = {
-//                    Row(verticalAlignment = Alignment.CenterVertically) {
-//                        Icon(
-//                            painter = painterResource(id = R.drawable.signal_cellular_nodata),
-//                            contentDescription = null,
-//                            modifier = Modifier.size(24.dp)
-//                        )
-//                        Spacer(modifier = Modifier.width(8.dp))
-//                        Text(stringResource(R.string.not_internet))
-//                    }
-//                },
-//                text = { Text(stringResource(R.string.internet_required)) },
-//                confirmButton = {},
-//                dismissButton = {
-//                    Box(
-//                        modifier = Modifier.fillMaxWidth(),
-//                        contentAlignment = Alignment.Center
-//                    ) {
-//                        Button(onClick = {
-//
-//                            navController.navigate("settings")
-//                            showNoInternetDialog = false
-//                        }) {
-//                            Text(stringResource(R.string.settings))
-//                        }
-//                    }
-//                }
-//            )
-//        }
+        /*
+        val context = LocalContext.current
+        var showNoInternetDialog by remember { mutableStateOf(false) }
+
+        if (!isInternetAvailable(context)) {
+        showNoInternetDialog = true
+        }
+
+        // No Internet Dialog
+        if (showNoInternetDialog) {
+        AlertDialog(
+        onDismissRequest = { showNoInternetDialog = false },
+        title = {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+        Icon(
+        painter = painterResource(id = R.drawable.signal_cellular_nodata),
+        contentDescription = null,
+        modifier = Modifier.size(24.dp)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(stringResource(R.string.not_internet))
+        }
+        },
+        text = { Text(stringResource(R.string.internet_required)) },
+        confirmButton = {},
+        dismissButton = {
+        Box(
+        modifier = Modifier.fillMaxWidth(),
+        contentAlignment = Alignment.Center
+        ) {
+        Button(onClick = {
+
+        navController.navigate("settings")
+        showNoInternetDialog = false
+        }) {
+        Text(stringResource(R.string.settings))
+        }
+        }
+        }
+        )
+        }
+        */
 
         LazyColumn(
             state = lazylistState,

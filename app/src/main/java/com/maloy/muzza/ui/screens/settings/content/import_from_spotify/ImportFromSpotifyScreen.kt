@@ -10,7 +10,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -85,7 +84,7 @@ import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model.Pla
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.ImportFromSpotifyViewModel
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ImportFromSpotifyScreen(
     navController: NavController, scrollBehavior: TopAppBarScrollBehavior
@@ -613,7 +612,7 @@ fun ImportFromSpotifyScreen(
                 Spacer(Modifier.height(5.dp))
                 HorizontalDivider(modifier = Modifier.fillMaxWidth())
             }
-        }) {
+        }) { it ->
             Box(modifier = Modifier
                 .padding(it)
                 .clickable { }

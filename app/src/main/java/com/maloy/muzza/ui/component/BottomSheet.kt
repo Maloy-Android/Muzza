@@ -34,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
@@ -140,20 +139,20 @@ fun BottomSheet(
 class BottomSheetState(
     draggableState: DraggableState,
     private val coroutineScope: CoroutineScope,
-    private val animatable: Animatable<Dp, AnimationVector1D>,
+    private val animation: Animatable<Dp, AnimationVector1D>,
     private val onAnchorChanged: (Int) -> Unit,
     val collapsedBound: Dp,
 ) : DraggableState by draggableState {
-    val dismissedBound: Dp
-        get() = animatable.lowerBound!!
+    private val dismissedBound: Dp
+        get() = animation.lowerBound!!
 
     val expandedBound: Dp
-        get() = animatable.upperBound!!
+        get() = animation.upperBound!!
 
-    val value by animatable.asState()
+    val value by animation.asState()
 
     val isDismissed by derivedStateOf {
-        value == animatable.lowerBound!!
+        value == animation.lowerBound!!
     }
 
     val isCollapsed by derivedStateOf {
@@ -161,24 +160,24 @@ class BottomSheetState(
     }
 
     val isExpanded by derivedStateOf {
-        value == animatable.upperBound
+        value == animation.upperBound
     }
 
     val progress by derivedStateOf {
-        1f - (animatable.upperBound!! - animatable.value) / (animatable.upperBound!! - collapsedBound)
+        1f - (animation.upperBound!! - animation.value) / (animation.upperBound!! - collapsedBound)
     }
 
-    fun collapse(animationSpec: AnimationSpec<Dp>) {
+    private fun collapse(animationSpec: AnimationSpec<Dp>) {
         onAnchorChanged(collapsedAnchor)
         coroutineScope.launch {
-            animatable.animateTo(collapsedBound, animationSpec)
+            animation.animateTo(collapsedBound, animationSpec)
         }
     }
 
-    fun expand(animationSpec: AnimationSpec<Dp>) {
+    private fun expand(animationSpec: AnimationSpec<Dp>) {
         onAnchorChanged(expandedAnchor)
         coroutineScope.launch {
-            animatable.animateTo(animatable.upperBound!!, animationSpec)
+            animation.animateTo(animation.upperBound!!, animationSpec)
         }
     }
 
@@ -201,13 +200,13 @@ class BottomSheetState(
     fun dismiss() {
         onAnchorChanged(dismissedAnchor)
         coroutineScope.launch {
-            animatable.animateTo(animatable.lowerBound!!)
+            animation.animateTo(animation.lowerBound!!)
         }
     }
 
     fun snapTo(value: Dp) {
         coroutineScope.launch {
-            animatable.snapTo(value)
+            animation.snapTo(value)
         }
     }
 
@@ -313,7 +312,7 @@ fun rememberBottomSheetState(
     var previousAnchor by rememberSaveable {
         mutableIntStateOf(initialAnchor)
     }
-    val animatable = remember {
+    val animation = remember {
         Animatable(0.dp, Dp.VectorConverter)
     }
 
@@ -325,20 +324,20 @@ fun rememberBottomSheetState(
             else -> error("Unknown BottomSheet anchor")
         }
 
-        animatable.updateBounds(dismissedBound.coerceAtMost(expandedBound), expandedBound)
+        animation.updateBounds(dismissedBound.coerceAtMost(expandedBound), expandedBound)
         coroutineScope.launch {
-            animatable.animateTo(initialValue, NavigationBarAnimationSpec)
+            animation.animateTo(initialValue, NavigationBarAnimationSpec)
         }
 
         BottomSheetState(
             draggableState = DraggableState { delta ->
                 coroutineScope.launch {
-                    animatable.snapTo(animatable.value - with(density) { delta.toDp() })
+                    animation.snapTo(animation.value - with(density) { delta.toDp() })
                 }
             },
             onAnchorChanged = { previousAnchor = it },
             coroutineScope = coroutineScope,
-            animatable = animatable,
+            animation = animation,
             collapsedBound = collapsedBound
         )
     }

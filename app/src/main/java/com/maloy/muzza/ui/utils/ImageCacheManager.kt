@@ -47,10 +47,3 @@ fun cache(path: String, image: Bitmap?, resize: Boolean) {
         }
     }
 }
-
-/**
- * Removes all cached images
- */
-fun purgeCache() {
-    bitmapCache = ArrayDeque()
-}

@@ -3,8 +3,6 @@
 package com.maloy.muzza.viewmodels
 
 import android.content.Context
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,7 +21,6 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
-import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
@@ -253,7 +250,6 @@ class ArtistSongsViewModel @Inject constructor(
 
 @HiltViewModel
 class LibraryMixViewModel @Inject constructor(
-    @ApplicationContext context: Context,
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
 ) : ViewModel() {
@@ -269,45 +265,4 @@ class LibraryMixViewModel @Inject constructor(
                     }
                 }
         }
-    val allSongs = context.dataStore.data
-        .map {
-            Triple(
-                it[SongFilterKey].toEnum(SongFilter.LIBRARY),
-                it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
-                (it[SongSortDescendingKey] ?: true)
-            )
-        }
-        .distinctUntilChanged()
-        .flatMapLatest { (filter, sortType, descending) ->
-            when (filter) {
-                SongFilter.LIBRARY -> database.songs(sortType, descending)
-                SongFilter.LIKED -> database.likedSongs(sortType, descending)
-                SongFilter.DOWNLOADED -> downloadUtil.downloads.flatMapLatest { downloads ->
-                    database.allSongs()
-                        .flowOn(Dispatchers.IO)
-                        .map { songs ->
-                            songs.filter {
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
-                            }
-                        }
-                        .map { songs ->
-                            when (sortType) {
-                                SongSortType.CREATE_DATE -> songs.sortedBy { downloads[it.id]?.updateTimeMs ?: 0L }
-                                SongSortType.NAME -> songs.sortedBy { it.song.title }
-                                SongSortType.ARTIST -> songs.sortedBy { song ->
-                                    song.artists.joinToString(separator = "") { it.name }
-                                }
-                                SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                            }.reversed(descending)
-                        }
-                }
-            }
-        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-}
-
-@HiltViewModel
-class LibraryViewModel @Inject constructor(
-) : ViewModel() {
-    private val curScreen = mutableStateOf(LibraryFilter.LIBRARY)
-    val filter: MutableState<LibraryFilter> = curScreen
 }

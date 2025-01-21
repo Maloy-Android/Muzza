@@ -582,7 +582,7 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                         ) {
-                            navigationBuilder(navController, topAppBarScrollBehavior, latestVersionName)
+                            navigationBuilder(navController, topAppBarScrollBehavior)
                         }
 
                         val currentTitle = remember(navBackStackEntry) {
@@ -861,7 +861,7 @@ class MainActivity : ComponentActivity() {
                         )
 
                         sharedSong?.let { song ->
-                            playerConnection?.let { playerConnection ->
+                            playerConnection?.let { _ ->
                                 Dialog(
                                     onDismissRequest = { sharedSong = null },
                                     properties = DialogProperties(usePlatformDefaultWidth = false)
@@ -893,7 +893,7 @@ class MainActivity : ComponentActivity() {
                             try {
                                 delay(100)
                                 searchBarFocusRequester.requestFocus()
-                            } catch (e: Exception) {
+                            } catch (_: Exception) {
                             }
                             openSearchImmediately = false
                         }

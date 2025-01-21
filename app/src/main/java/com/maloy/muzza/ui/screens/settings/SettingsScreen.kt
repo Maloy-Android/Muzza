@@ -244,7 +244,7 @@ fun SettingsScreen(
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
+            "SAPIENS" in parseCookieString(innerTubeCookie)
         }
 
     Column(

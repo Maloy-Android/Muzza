@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.player
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -31,7 +30,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -54,7 +52,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -64,8 +61,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -89,7 +84,6 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.LockQueueKey
-import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.togglePlayPause
@@ -99,14 +93,11 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.menu.MediaMetadataMenu
-import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.menu.QueueSelectionMenu
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -119,7 +110,6 @@ import kotlin.math.roundToInt
 @Composable
 fun Queue(
     state: BottomSheetState,
-    playerBottomSheetState: BottomSheetState,
     backgroundColor: Color,
     navController: NavController,
     modifier: Modifier = Modifier,
@@ -132,11 +122,6 @@ fun Queue(
     val isPlaying by playerConnection.isPlaying.collectAsState()
 
     val currentWindowIndex by playerConnection.currentWindowIndex.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-
-    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
-
-    var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
     var lockQueue by rememberPreference(LockQueueKey, defaultValue = false)
 
     var inSelectMode by remember {
@@ -640,7 +625,7 @@ fun DetailsDialog(
                     stringResource(R.string.song_title) to mediaMetadata?.title,
                     stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
                     stringResource(R.string.media_id) to mediaMetadata?.id,
-                    "Itag" to currentFormat?.itag?.toString(),
+                    "I tag" to currentFormat?.itag?.toString(),
                     stringResource(R.string.mime_type) to currentFormat?.mimeType,
                     stringResource(R.string.codecs) to currentFormat?.codecs,
                     stringResource(R.string.bitrate) to currentFormat?.bitrate?.let { "${it / 1000} Kbps" },

@@ -456,7 +456,7 @@ fun LocalPlaylistScreen(
             itemsIndexed(
                 items = if (isSearching) filteredSongs else mutableSongs, // mutableSongs has higher response when reordering
                 key = { _, song -> song.map.id }
-            ) { index, song ->
+            ) { _, song ->
                 ReorderableItem(
                     state = reorderableState,
                     key = song.map.id
@@ -467,10 +467,10 @@ fun LocalPlaylistScreen(
                         database.transaction {
                             coroutineScope.launch {
                                 playlist?.playlist?.browseId?.let { it1 ->
-                                    var setVideoId = getSetVideoId(currentItem.map.songId)
+                                    val setVideoId = getSetVideoId(currentItem.map.songId)
                                     if (setVideoId?.setVideoId != null) {
                                         YouTube.removeFromPlaylist(
-                                            it1, currentItem.map.songId, setVideoId.setVideoId!!
+                                            it1, currentItem.map.songId, setVideoId.setVideoId
                                         )
                                     }
                                 }
@@ -763,7 +763,7 @@ fun LocalPlaylistHeader(
         mutableIntStateOf(Download.STATE_STOPPED)
     }
 
-    val editable: Boolean = playlist?.playlist?.isEditable == true
+    val editable: Boolean = playlist.playlist.isEditable
 
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
@@ -864,7 +864,7 @@ fun LocalPlaylistHeader(
                                 }
                             }
                         ) {
-                            val liked = playlist?.playlist?.bookmarkedAt != null
+                            val liked = playlist.playlist.bookmarkedAt != null
                             Icon(
                                 painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
                                 contentDescription = null,

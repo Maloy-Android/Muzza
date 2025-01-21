@@ -41,7 +41,6 @@ import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.ImportFro
 fun NavGraphBuilder.navigationBuilder(
     navController: NavHostController,
     scrollBehavior: TopAppBarScrollBehavior,
-    latestVersionName: String,
 ) {
     composable(Screens.Home.route) {
         HomeScreen(navController)

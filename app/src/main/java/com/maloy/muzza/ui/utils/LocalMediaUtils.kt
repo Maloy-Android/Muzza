@@ -3,28 +3,8 @@ package com.maloy.muzza.ui.utils
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
-import com.maloy.muzza.models.DirectoryTree
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 
-const val TAG = "LocalMediaUtils"
-
-/**
- * For easier debugging, set SCANNER_CRASH_AT_FIRST_ERROR to stop at first error
- */
-const val SCANNER_CRASH_AT_FIRST_ERROR = false // crash at first FFmpeg scanner error. Currently not implemented
-const val SYNC_SCANNER = false // true will not use multithreading for scanner
-const val MAX_CONCURRENT_JOBS = 8
 const val SCANNER_DEBUG = false
-
-@OptIn(ExperimentalCoroutinesApi::class)
-val scannerSession = Dispatchers.IO.limitedParallelism(MAX_CONCURRENT_JOBS)
-
-// stuff to make this work
-const val STORAGE_ROOT = "/storage/"
-const val DEFAULT_SCAN_PATH = "/tree/primary:Music\n"
-val ARTIST_SEPARATORS = Regex("\\s*;\\s*|\\s*ft\\.\\s*|\\s*feat\\.\\s*|\\s*&\\s*", RegexOption.IGNORE_CASE)
-private var cachedDirectoryTree: DirectoryTree? = null
 
 
 /**
@@ -82,22 +62,4 @@ fun getLocalThumbnail(path: String?, resize: Boolean): Bitmap? {
 
     cache(path, image, resize)
     return image
-}
-
-
-/**
- * Get cached DirectoryTree
- */
-fun getDirectoryTree(): DirectoryTree? {
-    if (cachedDirectoryTree == null) {
-        return null
-    }
-    return cachedDirectoryTree
-}
-
-/**
- * Cache a DirectoryTree
- */
-fun cacheDirectoryTree(new: DirectoryTree?) {
-    cachedDirectoryTree = new
 }

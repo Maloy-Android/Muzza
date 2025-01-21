@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class YouTubeClient(
     val clientName: String,
     val clientVersion: String,
-    val api_key: String,
+    val apikey: String,
     val userAgent: String,
     val osVersion: String? = null,
     val referer: String? = null,
@@ -32,28 +32,21 @@ data class YouTubeClient(
         val ANDROID_MUSIC = YouTubeClient(
             clientName = "ANDROID_MUSIC",
             clientVersion = "5.01",
-            api_key = "AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI",
-            userAgent = USER_AGENT_ANDROID,
-        )
-
-        val ANDROID = YouTubeClient(
-            clientName = "ANDROID",
-            clientVersion = "17.13.3",
-            api_key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w",
+            apikey = "AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI",
             userAgent = USER_AGENT_ANDROID,
         )
 
         val WEB = YouTubeClient(
             clientName = "WEB",
             clientVersion = "2.2021111",
-            api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
+            apikey = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
             userAgent = USER_AGENT_WEB,
         )
 
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
             clientVersion = "1.20241127.01.00",
-            api_key = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30", // TODO: remove
+            apikey = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30", // TODO: remove
             userAgent = USER_AGENT_WEB,
             referer = REFERER_YOUTUBE_MUSIC,
             supportsLogin = true,
@@ -62,14 +55,14 @@ data class YouTubeClient(
         val TVHTML5 = YouTubeClient(
             clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
             clientVersion = "2.0",
-            api_key = "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8",
+            apikey = "AIzaSyDCU8hByM-4DrUqRUYnGn-3llEO78bcxq8",
             userAgent = "Mozilla/5.0 (PlayStation 4 5.55) AppleWebKit/601.2 (KHTML, like Gecko)"
         )
 
         val IOS = YouTubeClient(
             clientName = "IOS",
             clientVersion = "19.45.4",
-            api_key = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc", // TODO: remove
+            apikey = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc", // TODO: remove
             userAgent = "com.google.ios.youtube/19.45.4 (iPhone16,2; U; CPU iOS 18_1_0 like Mac OS X;)",
             osVersion = "18.1.0.22B83",
         )

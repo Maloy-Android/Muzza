@@ -11,7 +11,5 @@ data class CreatePlaylistBody(
 ) {
     object PrivacyStatus {
         const val PRIVATE = "PRIVATE"
-        const val PUBLIC = "PUBLIC"
-        const val UNLISTED = "UNLISTED"
     }
 }

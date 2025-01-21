@@ -68,7 +68,6 @@ import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
-import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistGridItem
@@ -125,7 +124,7 @@ fun LibraryPlaylistsScreen(
 
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
+        "SAPIENS" in parseCookieString(innerTubeCookie)
     }
 
     LaunchedEffect(Unit){ if (ytmSync){ viewModel.sync() }}
@@ -171,12 +170,11 @@ fun LibraryPlaylistsScreen(
                 }
             },
             extraContent = {
-                // synced/unsynced toggle
                 if (isLoggedIn) {
                 Row(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
                 ) {
-                        Column() {
+                        Column {
                             Text(
                                 text = stringResource(R.string.sync_playlist),
                                 style = MaterialTheme.typography.titleLarge,

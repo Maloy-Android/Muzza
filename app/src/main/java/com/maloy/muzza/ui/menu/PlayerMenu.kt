@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
@@ -75,7 +77,6 @@ import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.BigSeekBar
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridItem
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.ListDialog
@@ -147,7 +148,7 @@ fun PlayerMenu(
     }
 
     var sleepTimerValue by remember {
-        mutableStateOf(30f)
+        mutableFloatStateOf(30f)
     }
 
     if (showSleepTimerDialog) {

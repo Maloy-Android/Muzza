@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
@@ -26,7 +28,6 @@ import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
-import java.time.LocalDateTime
 
 @Composable
 fun YouTubeArtistMenu(

@@ -51,7 +51,7 @@ class PlayerConnection(
     val currentSong = mediaMetadata.flatMapLatest {
         database.song(it?.id)
     }
-    val translating = MutableStateFlow(false)
+    private val translating = MutableStateFlow(false)
     val currentLyrics = combine(
         context.dataStore.data.map {
             it[TranslateLyricsKey] ?: false
@@ -77,7 +77,7 @@ class PlayerConnection(
 
     val queueTitle = MutableStateFlow<String?>(null)
     val queueWindows = MutableStateFlow<List<Timeline.Window>>(emptyList())
-    val currentMediaItemIndex = MutableStateFlow(-1)
+    private val currentMediaItemIndex = MutableStateFlow(-1)
     val currentWindowIndex = MutableStateFlow(-1)
 
     val shuffleModeEnabled = MutableStateFlow(false)
@@ -118,10 +118,6 @@ class PlayerConnection(
 
     fun toggleLike() {
         service.toggleLike()
-    }
-
-    fun toggleLibrary() {
-        service.toggleLibrary()
     }
 
     fun seekToNext() {
@@ -183,9 +179,9 @@ class PlayerConnection(
         if (!player.currentTimeline.isEmpty) {
             val window = player.currentTimeline.getWindow(player.currentMediaItemIndex, Timeline.Window())
             canSkipPrevious.value = player.isCommandAvailable(COMMAND_SEEK_IN_CURRENT_MEDIA_ITEM)
-                    || !window.isLive()
+                    || !window.isLive
                     || player.isCommandAvailable(COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM)
-            canSkipNext.value = window.isLive() && window.isDynamic
+            canSkipNext.value = window.isLive && window.isDynamic
                     || player.isCommandAvailable(COMMAND_SEEK_TO_NEXT_MEDIA_ITEM)
         } else {
             canSkipPrevious.value = false

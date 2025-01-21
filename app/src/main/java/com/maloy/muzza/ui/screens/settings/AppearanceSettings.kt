@@ -155,7 +155,7 @@ fun AppearanceSettings(
                             Slider(
                                 value = thumbnailCornerRadius,
                                 onValueChange = {
-                                    thumbnailCornerRadius = it.coerceIn(0f, 50f)
+                                    thumbnailCornerRadius = it.toInt().toFloat()
                                 },
                                 valueRange = 0f..50f,
                                 thumb = { Spacer(modifier = Modifier.size(0.dp)) },

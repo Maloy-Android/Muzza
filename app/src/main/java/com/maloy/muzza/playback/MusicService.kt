@@ -40,7 +40,6 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
-import androidx.media3.extractor.ExtractorsFactory
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.CommandButton
@@ -725,11 +724,10 @@ class MusicService : MediaLibraryService(),
 
     private fun createMediaSourceFactory() =
         DefaultMediaSourceFactory(
-            createDataSourceFactory(),
-            ExtractorsFactory {
-                arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
-            }
-        )
+            createDataSourceFactory()
+        ) {
+            arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
+        }
 
     private fun createRenderersFactory() =
         object : DefaultRenderersFactory(this) {
@@ -752,7 +750,7 @@ class MusicService : MediaLibraryService(),
 
     override fun onPlaybackStatsReady(eventTime: AnalyticsListener.EventTime, playbackStats: PlaybackStats) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        var minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100)
+        val minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100)
         // ensure within bounds. Ehhh 99 is good enough to avoid any rounding errors
         if (playbackStats.totalPlayTimeMs.toFloat() / ((mediaItem.metadata?.duration?.times(1000)) ?: -1) >= minPlaybackDur
             && !dataStore.get(PauseListenHistoryKey, false)) {

@@ -12,14 +12,14 @@ sealed class Screens(
     @DrawableRes val iconIdActive: Int,
     val route: String,
 ) {
-    object Home : Screens(
+    data object Home : Screens(
         titleId = R.string.home,
         iconIdInactive = R.drawable.home_outlined,
         iconIdActive = R.drawable.home_filled,
         route = "home"
     )
 
-    object Library : Screens(
+    data object Library : Screens(
         titleId = R.string.filter_library,
         iconIdInactive = R.drawable.library_music_outlined,
         iconIdActive = R.drawable.library_music_filled,

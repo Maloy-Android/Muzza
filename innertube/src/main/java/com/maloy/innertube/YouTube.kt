@@ -469,7 +469,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             .mapNotNull {
                 ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
             }.toMutableList()
-        var continuation = gridRenderer?.continuations?.getContinuation()
+        var continuation = gridRenderer.continuations?.getContinuation()
         while (continuation != null) {
             response = innerTube.browse(
                 client = WEB_REMIX,
@@ -495,7 +495,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             innerTube.unsubscribeChannel(WEB_REMIX, channelId)
     }
     suspend fun getChannelId(browseId: String): String {
-        YouTube.artist(browseId).onSuccess {
+        artist(browseId).onSuccess {
             return it.artist.channelId!!
         }
         return ""
@@ -614,7 +614,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         if (videoIds != null) {
             assert(videoIds.size <= MAX_GET_QUEUE_SIZE) // Max video limit
         }
-        innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
+        innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueData
             .mapNotNull {
                 it.content.playlistPanelVideoRenderer?.let { renderer ->
                     NextPage.fromPlaylistPanelVideoRenderer(renderer)
@@ -682,7 +682,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         }
     }
 
-    const val MAX_GET_QUEUE_SIZE = 1000
+    private const val MAX_GET_QUEUE_SIZE = 1000
 
     private const val VISITOR_DATA_PREFIX = "Cgt"
 

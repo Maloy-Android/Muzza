@@ -4,7 +4,6 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -74,7 +73,6 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppBarHeight
-import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
@@ -99,7 +97,6 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.viewmodels.ArtistViewModel
-import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -473,19 +470,8 @@ fun ArtistScreen(
                 onClick = {
                     database.transaction {
                         val artist = libraryArtist?.artist
-                        if (artist != null) {
-                            update(artist.toggleLike())
-                        } else {
-                            artistPage?.artist?.let {
-                                insert(
-                                    ArtistEntity(
-                                        id = it.id,
-                                        name = it.title,
-                                        channelId = it.channelId,
-                                        thumbnailUrl = it.thumbnail,
-                                    ).toggleLike()
-                                )
-                            }
+                        database.transaction {
+                            artist?.let { update(it.toggleLike()) }
                         }
                     }
                 }

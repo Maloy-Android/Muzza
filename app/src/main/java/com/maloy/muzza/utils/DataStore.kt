@@ -28,12 +28,6 @@ fun <T> DataStore<Preferences>.get(key: Preferences.Key<T>, defaultValue: T): T 
         data.first()[key] ?: defaultValue
     }
 
-fun <T> preference(
-    context: Context,
-    key: Preferences.Key<T>,
-    defaultValue: T,
-) = ReadOnlyProperty<Any?, T> { _, _ -> context.dataStore[key] ?: defaultValue }
-
 inline fun <reified T : Enum<T>> enumPreference(
     context: Context,
     key: Preferences.Key<String>,

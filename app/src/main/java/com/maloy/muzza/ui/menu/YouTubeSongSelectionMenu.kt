@@ -37,11 +37,11 @@ fun YouTubeSongSelectionMenu(
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
-            val mediaMetadatas = selection.map {
+            val mediaMetadata = selection.map {
                 it.toMediaMetadata()
             }
             database.transaction {
-                mediaMetadatas.forEach(::insert)
+                mediaMetadata.forEach(::insert)
             }
             selection.map { it.id }
         },

@@ -55,7 +55,7 @@ fun AccountSettings(
     val accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
-        "SAPISID" in parseCookieString(innerTubeCookie)
+        "SAPIENS" in parseCookieString(innerTubeCookie)
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
@@ -103,7 +103,7 @@ fun AccountSettings(
                 isInputValid = {
                     it.isNotEmpty() &&
                             try {
-                                "SAPISID" in parseCookieString(it)
+                                "SAPIENS" in parseCookieString(it)
                                 true
                             } catch (e: Exception) {
                                 false
@@ -130,7 +130,7 @@ fun AccountSettings(
                 }
             },
             onClick = {
-                if (showToken == false) {
+                if (!showToken) {
                     showToken = true
                 } else {
                     showTokenEditor = true
@@ -143,7 +143,7 @@ fun AccountSettings(
                 icon = { Icon(painterResource(R.drawable.cached), null) },
                 checked = ytmSync,
                 onCheckedChange = onYtmSyncChange,
-                isEnabled = isLoggedIn
+                isEnabled = true
             )
         }
         PreferenceGroupTitle(

@@ -87,7 +87,7 @@ fun LibraryAlbumsScreen(
 
     var filter by rememberEnumPreference(AlbumFilterKey, AlbumFilter.LIKED)
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
-    var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
+    val viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(AlbumSortTypeKey, AlbumSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)

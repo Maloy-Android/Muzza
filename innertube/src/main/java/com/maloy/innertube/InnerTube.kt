@@ -15,7 +15,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.encodeBase64
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import java.net.Proxy
 import java.util.*
@@ -48,7 +47,6 @@ class InnerTube {
 
     var useLoginForBrowse: Boolean = false
 
-    @OptIn(ExperimentalSerializationApi::class)
     private fun createClient() = HttpClient(OkHttp) {
         expectSuccess = true
 
@@ -97,7 +95,7 @@ class InnerTube {
             }
         }
         userAgent(client.userAgent)
-        parameter("key", client.api_key)
+        parameter("key", client.apikey)
         parameter("prettyPrint", false)
     }
 

@@ -83,7 +83,7 @@ fun LibraryArtistsScreen(
 
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIKED)
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
-    var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
+    val viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)

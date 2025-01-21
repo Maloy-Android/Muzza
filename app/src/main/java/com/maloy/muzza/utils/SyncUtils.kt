@@ -3,7 +3,6 @@ package com.maloy.muzza.utils
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
-import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
 import com.maloy.muzza.db.MusicDatabase
@@ -19,6 +18,7 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
+@Suppress("NAME_SHADOWING")
 @Singleton
 class SyncUtils @Inject constructor(
     val database: MusicDatabase,

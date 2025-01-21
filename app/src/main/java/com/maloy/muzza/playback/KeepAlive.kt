@@ -15,7 +15,7 @@ import com.maloy.muzza.R
  * Dummy service that does nothing but post a notification
  */
 class KeepAlive : Service() {
-    private lateinit var notif: Notification
+    private lateinit var notification: Notification
     private val binder = DummyBinder()
     inner class DummyBinder : Binder() {
         val service: KeepAlive
@@ -23,11 +23,11 @@ class KeepAlive : Service() {
     }
     override fun onCreate() {
         super.onCreate()
-        notif = getNotification()
+        notification = getNotification()
         createNotificationChannel()
     }
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        startForeground(1, notif)
+        startForeground(1, notification)
         return START_STICKY
     }
     override fun onBind(intent: Intent?) = binder

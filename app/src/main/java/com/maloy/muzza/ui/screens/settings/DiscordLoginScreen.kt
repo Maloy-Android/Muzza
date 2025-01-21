@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.screens.settings
 import android.annotation.SuppressLint
 import android.view.ViewGroup
 import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
 import android.webkit.WebResourceRequest
 import android.webkit.WebStorage
 import android.webkit.WebView
@@ -16,9 +15,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -26,21 +22,15 @@ import androidx.compose.ui.viewinterop.AndroidView
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberPreference
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 
-@SuppressLint("SetJavaScriptEnabled")
+@SuppressLint("SetJavaScriptEnabled", "JavascriptInterface")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DiscordLoginScreen(
     navController: NavController,
 ) {
-    val scope = rememberCoroutineScope()
-    var discordToken by rememberPreference(DiscordTokenKey, "")
 
     var webView: WebView? = null
 
@@ -79,13 +69,6 @@ fun DiscordLoginScreen(
 
                 WebStorage.getInstance().deleteAllData()
                 addJavascriptInterface(object {
-                    @JavascriptInterface
-                    fun onRetrieveToken(token: String) {
-                        discordToken = token
-                        scope.launch(Dispatchers.Main) {
-                            navController.navigateUp()
-                        }
-                    }
                 }, "Android")
 
                 webView = this

@@ -87,7 +87,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
                     clientSecret = clientSecret,
                     authorizationCode = authorizationCode,
                     context = context
-                ).onSuccess {
+                ).onSuccess { it ->
                     it.let { response ->
                         if (response.status.isSuccess()) {
                             importFromSpotifyScreenState.value =
@@ -258,7 +258,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
         }
     }
 
-    fun logTheString(string: String) {
+    private fun logTheString(string: String) {
         Timber.tag("Muzza Log").d(string)
     }
 
@@ -288,7 +288,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            _playlistsImportProgress.collectLatest {
+            _playlistsImportProgress.collectLatest { it ->
                 "Importing playlist \"${it.playlistName}\" – ${it.progressedTrackCount}/${it.totalTracksCount} tracks completed".let {
                     importLogs.add(it)
                     logTheString(it)
@@ -296,7 +296,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
             }
         }
         viewModelScope.launch {
-            _likedSongsImportProgress.collectLatest {
+            _likedSongsImportProgress.collectLatest { it ->
                 "Importing Liked Songs – ${it.currentCount} of ${it.totalTracksCount} completed".let {
                     importLogs.add(it)
                     logTheString(it)
@@ -430,7 +430,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
             try {
                 httpClient.get(url) {
                     bearerAuth(authToken)
-                }.body<SpotifyResultPaginatedResponse>().let {
+                }.body<SpotifyResultPaginatedResponse>().let { it ->
                     tracks.addAll(it.tracks.map { it.trackItem })
                     url = it.nextPaginatedUrl
                 }
@@ -454,7 +454,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
                 authToken = importFromSpotifyScreenState.value.accessToken, url = url, context
             ).let { spotifyLikedSongsPaginatedResponse ->
                 totalSongsCount = spotifyLikedSongsPaginatedResponse.totalCountOfLikedSongs
-                spotifyLikedSongsPaginatedResponse.tracks.forEachIndexed { index, likedSong ->
+                spotifyLikedSongsPaginatedResponse.tracks.forEachIndexed { _, likedSong ->
                     launch {
                         val youtubeSearchResult = YouTube.search(
                             query = likedSong.trackItem.trackName + " " + likedSong.trackItem.artists.first().name,

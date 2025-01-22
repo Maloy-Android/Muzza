@@ -124,7 +124,7 @@ fun LibraryPlaylistsScreen(
 
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
-        "SAPIENS" in parseCookieString(innerTubeCookie)
+        "SAPISID" in parseCookieString(innerTubeCookie)
     }
 
     LaunchedEffect(Unit){ if (ytmSync){ viewModel.sync() }}

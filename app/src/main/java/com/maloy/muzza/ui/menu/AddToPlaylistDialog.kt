@@ -63,7 +63,7 @@ fun AddToPlaylistDialog(
     }
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
-        "SAPIENS" in parseCookieString(innerTubeCookie)
+        "SAPISID" in parseCookieString(innerTubeCookie)
     }
     var showAddPlaylistDialog by rememberSaveable {
         mutableStateOf(false)

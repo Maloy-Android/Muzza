@@ -31,7 +31,7 @@ data class YouTubeClient(
 
         val ANDROID_MUSIC = YouTubeClient(
             clientName = "ANDROID_MUSIC",
-            clientVersion = "5.01",
+            clientVersion = "17.13.3",
             apikey = "AIzaSyAOghZGza2MQSZkY_zfZ370N-PUdXEo8AI",
             userAgent = USER_AGENT_ANDROID,
         )

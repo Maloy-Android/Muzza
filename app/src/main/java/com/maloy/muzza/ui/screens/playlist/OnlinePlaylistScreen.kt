@@ -647,10 +647,22 @@ fun OnlinePlaylistScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester)
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (query.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { query = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
                     )
-                } else if (showTopBarTitle) {
-                    Text(playlist?.title.orEmpty())
+                } else {
+                    if (showTopBarTitle) Text(playlist?.title.orEmpty())
                 }
             },
             navigationIcon = {

@@ -638,7 +638,19 @@ fun AutoPlaylistScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester)
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (searchQuery.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = TextFieldValue("") } // Очищаем текст
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
                     )
                 } else {
                     if (showTopBarTitle) Text(playlist)
@@ -662,7 +674,7 @@ fun AutoPlaylistScreen(
                 ) {
                     Icon(
                         painter = painterResource(
-                            if (isSearching) R.drawable.close else R.drawable.arrow_back
+                            R.drawable.arrow_back
                         ),
                         contentDescription = null
                     )

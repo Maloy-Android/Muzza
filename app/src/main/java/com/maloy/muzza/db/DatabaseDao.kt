@@ -268,6 +268,7 @@ interface DatabaseDao {
     @Query("SELECT * FROM song_artist_map WHERE songId = :songId")
     fun songArtistMap(songId: String): List<SongArtistMap>
 
+    @Transaction
     @Query("SELECT * FROM song WHERE liked AND dateDownload IS NULL")
     fun likedSongsNotDownloaded(): Flow<List<Song>>
 
@@ -275,8 +276,6 @@ interface DatabaseDao {
     @Query("SELECT * FROM song")
     fun allSongs(): Flow<List<Song>>
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertSetVideoId(setVideoIdEntity: SetVideoIdEntity)
     @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
     suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 

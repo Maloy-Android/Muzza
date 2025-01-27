@@ -5,6 +5,7 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
+import com.maloy.innertube.utils.completedLibraryPage
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.PlaylistEntity
@@ -44,17 +45,22 @@ class SyncUtils @Inject constructor(
         }
     }
     suspend fun syncLikedAlbums() {
-        YouTube.libraryAlbums().onSuccess { ytAlbums ->
+        YouTube.library("FEmusic_liked_albums").completedLibraryPage().onSuccess { page ->
+            val albums = page.items.filterIsInstance<AlbumItem>().reversed()
+
             database.albumsLikedByNameAsc().first()
-                .filterNot { it.id in ytAlbums.map(AlbumItem::id) }
+                .filterNot { it.id in albums.map(AlbumItem::id) }
                 .forEach { database.update(it.album.localToggleLike()) }
-            ytAlbums.forEach { album ->
+
+            albums.forEach { album ->
                 val dbAlbum = database.album(album.id).firstOrNull()
                 YouTube.album(album.browseId).onSuccess { albumPage ->
                     when (dbAlbum) {
                         null -> {
                             database.insert(albumPage)
-                            database.album(album.id).firstOrNull()?.let { database.update(it.album) }
+                            database.album(album.id).firstOrNull()?.let {
+                                database.update(it.album.localToggleLike())
+                            }
                         }
                         else -> if (dbAlbum.album.bookmarkedAt == null)
                             database.update(dbAlbum.album.localToggleLike())
@@ -64,8 +70,9 @@ class SyncUtils @Inject constructor(
         }
     }
     suspend fun syncArtistsSubscriptions() {
-        YouTube.libraryArtistsSubscriptions().onSuccess { ytArtists ->
-            val artists: List<ArtistItem> = ytArtists
+        YouTube.library("FEmusic_library_corpus_artists").completedLibraryPage().onSuccess { page ->
+            val artists = page.items.filterIsInstance<ArtistItem>()
+
             database.artistsBookmarkedByNameAsc().first()
                 .filterNot { it.id in artists.map(ArtistItem::id) }
                 .forEach { database.update(it.artist.localToggleLike()) }

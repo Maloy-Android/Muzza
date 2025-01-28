@@ -33,8 +33,8 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.constants.PlayerHorizontalPadding
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
+import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.ui.component.Lyrics
-import com.maloy.muzza.ui.screens.settings.AppConfig
 import com.maloy.muzza.utils.rememberPreference
 import kotlin.math.roundToInt
 
@@ -52,6 +52,7 @@ fun Thumbnail(
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
+    val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 16)
 
     DisposableEffect(showLyrics) {
         currentView.keepScreenOn = showLyrics
@@ -110,7 +111,7 @@ fun Thumbnail(
                         .offset { IntOffset(offsetX.roundToInt(), 0) }
                         .fillMaxWidth()
                         .aspectRatio(1f)
-                        .clip(RoundedCornerShape(AppConfig.ThumbnailCornerRadiusV2 * 2))
+                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
                         .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
                 )
             }

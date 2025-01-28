@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -92,8 +93,8 @@ fun AppearanceSettings(
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
-    val (cornerRadius, onCornerRadius) = rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 6)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
+    val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -107,67 +108,53 @@ fun AppearanceSettings(
         )
 
 
-    var showCornerRadiusDialog by remember { mutableStateOf(false) }
-    var thumbnailCornerRadius by remember { mutableStateOf(AppConfig.ThumbnailCornerRadiusV2) }
+    var showCornerRadiusDialog by remember {
+        mutableStateOf(false)
+    }
+    var thumbnailCornerRadiusDialog by remember {
+        mutableIntStateOf(thumbnailCornerRadius)
+    }
 
-    if (showCornerRadiusDialog) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (showCornerRadiusDialog) {
             ActionPromptDialog(
                 title = stringResource(R.string.thumbnail_corner_radius),
                 onDismiss = { showCornerRadiusDialog = false },
                 onConfirm = {
                     showCornerRadiusDialog = false
-                    onCornerRadius(cornerRadius)
+                    onThumbnailCornerRadius(thumbnailCornerRadiusDialog)
                 },
                 onCancel = {
                     showCornerRadiusDialog = false
-                    onCornerRadius(cornerRadius)
+                    thumbnailCornerRadiusDialog = thumbnailCornerRadius
                 }
             ) {
-                if (showCornerRadiusDialog) {
-                    ActionPromptDialog(
-                        title = stringResource(R.string.thumbnail_corner_radius),
-                        onDismiss = { showCornerRadiusDialog = false },
-                        onConfirm = {
-                            showCornerRadiusDialog = false
-                            AppConfig.ThumbnailCornerRadiusV2 = thumbnailCornerRadius
-                        },
-                        onCancel = {
-                            showCornerRadiusDialog = false
-                            thumbnailCornerRadius =
-                                AppConfig.ThumbnailCornerRadiusV2
-                        }
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Text(
-                                text = "${String.format("%.1f", thumbnailCornerRadius)}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                modifier = Modifier.padding(horizontal = 8.dp)
-                            )
-                            Slider(
-                                value = thumbnailCornerRadius,
-                                onValueChange = {
-                                    thumbnailCornerRadius = it.toInt().toFloat()
-                                },
-                                valueRange = 0f..50f,
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = thumbnailCornerRadiusDialog.toString(),
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Slider(
+                        value = thumbnailCornerRadiusDialog.toFloat(),
+                        onValueChange = { thumbnailCornerRadiusDialog = it.toInt() },
+                        valueRange = 0f..10f,
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
                             )
                         }
-                    }
+                    )
                 }
             }
         }
@@ -474,8 +461,4 @@ enum class NavigationTab {
 
 enum class LyricsPosition {
     LEFT, CENTER, RIGHT
-}
-
-object AppConfig {
-    var ThumbnailCornerRadiusV2: Float = 16f
 }

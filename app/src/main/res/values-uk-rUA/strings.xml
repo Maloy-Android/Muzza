@@ -28,9 +28,6 @@
     <string name="your_youtube_playlists">Ваші плейлисти з YouTube</string>
     <string name="similar_to">Схожі на</string>
     <string name="new_release_albums">Нові релізи альбомів</string>
-    <string name="recent_activity">Недавня активність</string>
-    <string name="not_internet">Немає підключення до Інтернету</string>
-    <string name="internet_required">Здається, у вас немає підключення до Інтернету. Будь ласка, перевірте свою мережу.</string>
 
     <!-- History -->
     <string name="today">Сьогодні</string>
@@ -284,6 +281,7 @@
     <string name="right">Праворуч</string>
     <string name="player_slider_style">Стиль повзунка плеєра</string>
     <string name="default_">Стандартний</string>
+    <string name="thumbnail_corner_radius">Радіус заокруглення обкладинки</string>
     <string name="squiggly">Хвилястий</string>
     <string name="misc">Різне</string>
     <string name="main">Основні</string>
@@ -295,6 +293,8 @@
     <string name="gradient">Градієнт</string>
     <string name="blur">Розмиття</string>
     <string name="blurmv">Розмиття (рух)</string>
+    <string name="grid_cell_size">Розмір осередків</string>
+    <string name="slim_navbar">Показувати назви кнопок навігаційної панелі</string>
     <string name="Changelog">Історія змін</string>
     <string name="no_changes">Останні зміни не знайдено</string>
     <string name="changelogs">Останні зміни:</string>
@@ -352,7 +352,13 @@
     <string name="content">Контент</string>
     <string name="login">Логін</string>
     <string name="not_logged_in">Не авторизовано</string>
+    <string name="token_hidden">Показати токен</string>
+    <string name="token_shown">Натисніть ще раз, щоб скопіювати або відредагувати</string>
+    <string name="token_adv_login_description">Це розширений спосіб входу в систему. Як альтернативу веб-порталу, Ви можете безпосередньо ввести або оновити свій логін тут. Наприклад, це може прискорити вхід на декількох пристроях. Будь ласка, зверніть увагу, що будь-які неприпустимі формати токенів, які програма не зможе проаналізувати, не будуть прийняті</string>
     <string name="import_from_spotify">Імпорт з Spotify</string>
+    <string name="like_autodownload">Автоматично завантажувати вподобане композиції</string>
+    <string name="ytm_sync">Автоматична синхронізація з вашим аккаунтом</string>
+    <string name="wifi_only">Тільки при використанні Wi-Fi</string>
     <string name="content_language">Мова контенту</string>
     <string name="content_country">Країна контенту</string>
     <string name="system_default">Використовувати налаштування системи</string>
@@ -370,7 +376,7 @@
     <string name="player_and_audio">Плеєр та аудіо</string>
     <string name="audio_quality">Якість аудіо</string>
     <string name="audio_quality_auto">Авто</string>
-    <string name="audio_quality_max">Максимальна (бета)</string>
+    <string name="audio_quality_max">Максимальна</string>
     <string name="audio_quality_high">Висока</string>
     <string name="audio_quality_low">Низька</string>
     <string name="minimum_playback_duration">Мінімальна тривалість відтворення</string>
@@ -393,6 +399,8 @@
     <string name="image_cache">Кеш зображень</string>
     <string name="song_cache">Кеш аудіо</string>
     <string name="max_cache_size">Максимальний розмір кешу</string>
+    <string name="audio_offload">Розвантажити аудіопотік</string>
+    <string name="audio_offload_description">Для відтворення звуку використовуйте параметр "розвантажити аудіопотік". Вимкнення цього параметра може призвести до збільшення споживання енергії, але може бути корисним, якщо у вас виникнуть проблеми з відтворенням звуку або подальшою обробкою</string>
     <string name="unlimited">Необмежено</string>
     <string name="clear_all_downloads">Очистити всі завантаження</string>
     <string name="max_image_cache_size">Макс. розмір кешу зображень</string>
@@ -417,6 +425,9 @@
     <string name="enable_lrclib">Увімкнути провайдера текстів LrcLib</string>
     <string name="enable_kugou">Увімкнути провайдера текстів KuGou</string>
     <string name="default_lyrics_provider">Поставшик текстів за замовчуванням</string>
+    <string name="lyrics_multiline_title">Багаторядкові тексти пісень</string>
+    <string name="lyrics_multiline_description">Розглядати всі рядки між точками синхронізації як один ліричний текст</string>
+    <string name="lyrics_trim_title">Прибрати прогалини навколо тексту пісні</string>
     <string name="hide_explicit">Приховувати контент із нецензурною лексикою</string>
     <string name="enable_notifications">Включити повідомлення</string>
 

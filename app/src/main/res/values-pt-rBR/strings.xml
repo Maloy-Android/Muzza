@@ -306,4 +306,31 @@
     <string name="library_playlist_empty">Suas playlists aparecerão aqui</string>
     <string name="theme">Tema</string>
     <string name="remove_all_from_library">Remover tudo da biblioteca</string>
+
+    <!--  Spotify import settings  -->
+    <string name="select_all">Selecionar tudo</string>
+    <string name="fetching_all_playlists">Buscando todas as playlists…</string>
+    <string name="import_selected_items">Importar itens selecionados</string>
+    <string name="something_went_wrong">Algo deu errado. Estamos tão surpresos quanto você.</string>
+    <string name="well_thats_embarrassing">Bem, isso é estranho. Não temos ideia do que aconteceu.</string>
+    <string name="instructions_to_get_required_credentials">Instruções para obter as credenciais necessárias</string>
+    <string name="make_sure_to_click">3. Certifique-se de clicar em "Adicionar" depois de inserir o caminho local acima.</string>
+    <string name="accept_the_terms_of_service">5. Aceite os termos de serviço e clique em "Salvar".</string>
+    <string name="you_ll_be_redirected_to_a_new_page">Você será redirecionado para uma nova página. Clique em Configurações, copie o Client ID e o Client secret e cole-os nos campos de texto abaixo neste aplicativo.</string>
+    <string name="enter_the_necessary_details">2. Insira os detalhes necessários e use http://localhost:45454 como URIs de redirecionamento.</string>
+    <string name="toggle_wep_api">4. Marque a caixa de seleção onde esta escrito Web API.</string>
+    <string name="now_click_the_authorize_and_continue">Agora, clique no botão Autorizar e Continuar abaixo e faça login com sua conta da qual deseja importar, ao Autorizar e Continuar, você será redirecionado para um site que deve começar com http:// localhost:45454/?code= Cole a URL inteira no campo de texto abaixo que diz Código de Autorização e clique no botão Autenticar</string>
+    <string name="visit_spotify_for_developers">1. Visite o site do Spotify para desenvolvedores, depois acesse o Painel do Spotify para desenvolvedores e clique em "Criar aplicativo". </string>
+    <string name="login_with_spotify">Faça login com credenciais da API do Spotify</string>
+    <string name="authorize_and_continue">Autorizar e continuar</string>
+    <string name="authorization_code">Código de autorização</string>
+    <string name="authenticate">Autenticar</string>
+    <string name="client_secret">Client secret</string>
+    <string name="client_id">Client ID</string>
+    <string name="import_in_progress">Importação em andamento…</string>
+    <string name="dont_close_app_message">Não feche o aplicativo nem volte. Esta operação não é executada em segundo plano, então fique parado até que ela seja totalmente concluída! NÃO ENTRE EM PÂNICO SE PARECER PARADO; às vezes a recuperação pode levar algum tempo.</string>
+    <string name="choose_liked_songs">Escolha o destino \"Músicas curtidas\"</string>
+    <string name="where_should_the_liked_songs">Para onde as músicas curtidas devem ser importadas?</string>
+    <string name="new_playlist_named">Uma nova lista de reprodução chamada "Músicas curtidas"</string>
+    <string name="default_liked_songs">Nas "Músicas curtidas" padrão</string>
 </resources>

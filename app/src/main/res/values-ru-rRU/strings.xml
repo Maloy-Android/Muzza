@@ -28,9 +28,6 @@
     <string name="your_youtube_playlists">Ваши плейлисты с YouTube</string>
     <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
-    <string name="recent_activity">Недавняя активность</string>
-    <string name="not_internet">Нет подключения к интернету</string>
-    <string name="internet_required">Похоже, у вас нет подключения к интернету. Пожалуйста, проверьте свою сеть.</string>
 
     <!-- History -->
     <string name="today">Сегодня</string>
@@ -285,6 +282,7 @@
     <string name="player_slider_style">Стиль ползунка плеера</string>
     <string name="default_">По умолчанию</string>
     <string name="squiggly">Волнистый</string>
+    <string name="thumbnail_corner_radius">Радиус скругления обложки</string>
     <string name="misc">Разное</string>
     <string name="main">Основное</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
@@ -295,7 +293,8 @@
     <string name="gradient">Градиент</string>
     <string name="blur">Размытие</string>
     <string name="blurmv">Размытие (движение)</string>
-    <string name="grid_cell_size">Размер ячейки сетки</string>
+    <string name="grid_cell_size">Размер ячеек</string>
+    <string name="slim_navbar">Показывать названия кнопок навигационной панели</string>
     <string name="small">Маленький</string>
     <string name="big">Большой</string>
     <string name="Changelog">История изменений</string>
@@ -356,7 +355,13 @@
     <string name="content">Контент</string>
     <string name="login">Логин</string>
     <string name="not_logged_in">Не авторизовано</string>
+    <string name="token_hidden">Показать токен</string>
+    <string name="token_shown">Нажмите еще раз, чтобы скопировать или отредактировать</string>
+    <string name="token_adv_login_description">Это РАСШИРЕННЫЙ способ входа в систему. В качестве альтернативы веб-порталу вы можете напрямую ввести или обновить свой логин здесь. Например, это может ускорить вход в систему на нескольких устройствах. Пожалуйста, обратите внимание, что любые недопустимые форматы токенов, которые приложение не сможет проанализировать, не будут приняты</string>
     <string name="import_from_spotify">Импорт из spotify</string>
+    <string name="like_autodownload">Автоматически загружать понравившееся композиции</string>
+    <string name="ytm_sync">Автоматическая синхронизация с вашим аккаунтом</string>
+    <string name="wifi_only">Только при использовании Wi-Fi</string>
     <string name="content_language">Язык контента</string>
     <string name="content_country">Страна контента</string>
     <string name="system_default">По умолчанию системы</string>
@@ -374,7 +379,7 @@
     <string name="player_and_audio">Плеер и аудио</string>
     <string name="audio_quality">Качество аудио</string>
     <string name="audio_quality_auto">Авто</string>
-    <string name="audio_quality_max">Максимальное (бета)</string>
+    <string name="audio_quality_max">Максимальное</string>
     <string name="audio_quality_high">Высокое</string>
     <string name="audio_quality_low">Низкое</string>
     <string name="minimum_playback_duration">Минимальная длительность воспроизведения</string>
@@ -397,6 +402,8 @@
     <string name="image_cache">Кэш изображений</string>
     <string name="song_cache">Кэш аудио</string>
     <string name="max_cache_size">Максимальный размер кэша</string>
+    <string name="audio_offload">Разгрузить аудиопоток</string>
+    <string name="audio_offload_description">Для воспроизведения звука используйте параметр "Разгрузить аудиопоток". Отключение этого параметра может привести к увеличению энергопотребления, но может оказаться полезным, если у вас возникнут проблемы с воспроизведением звука или последующей обработкой</string>
     <string name="unlimited">Неограниченно</string>
     <string name="clear_all_downloads">Очистить все загрузки</string>
     <string name="max_image_cache_size">Макс. размер кэша изображений</string>
@@ -421,6 +428,9 @@
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>
     <string name="enable_kugou">Включить провайдера текстов KuGou</string>
     <string name="default_lyrics_provider">Поставшик текстов по умолчанию</string>
+    <string name="lyrics_multiline_title">Многострочные тексты песен</string>
+    <string name="lyrics_multiline_description">Рассматривать все строки между точками синхронизации как один лирический текст</string>
+    <string name="lyrics_trim_title">Убрать пробелы вокруг текста песни</string>
     <string name="hide_explicit">Скрывать контент с нецензурной лексикой</string>
     <string name="enable_notifications">Включить уведомления</string>
 

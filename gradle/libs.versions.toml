@@ -2,35 +2,35 @@
 androidGradlePlugin = "8.6.1"
 annotation = "1.9.1"
 json = "20240303"
-kotlin = "2.0.20"
+kotlin = "2.0.21"
 compose = "1.7.6"
 lifecycle = "2.8.7"
 material3 = "1.3.1"
 media3 = "1.5.1"
 room = "2.6.1"
-hilt = "2.52"
-ktor = "3.0.2"
-ksp = "2.0.20-1.0.24"
+hilt = "2.54"
+ktor = "3.0.3"
+ksp = "2.0.21-1.0.26"
 kotlinVersion = "2.0.20"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
-guava = { group = "com.google.guava", name = "guava", version = "33.3.1-android" }
-coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.9.0" }
+guava = { group = "com.google.guava", name = "guava", version = "33.4.0-android" }
+coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.1" }
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-activity = { group = "androidx.activity", name = "activity-compose", version = "1.9.3" }
+activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.0" }
 navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.5" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.1" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.2" }
 
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version = "1.7.6" }
 compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "compose" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
-compose-reorderable1 = { module = "sh.calvin.reorderable:reorderable", version = "2.4.0" }
+compose-reorderable1 = { module = "sh.calvin.reorderable:reorderable", version = "2.4.2" }
 compose-reorderable2 = { group = "org.burnoutcrew.composereorderable", name = "reorderable", version = "0.9.6" }
 compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.6" }
 
@@ -78,7 +78,7 @@ junit = { group = "junit", name = "junit", version = "4.13.2" }
 timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
 
 google-services = { module = "com.google.gms:google-services", version = "4.4.2" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.7.0" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.8.0" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 firebase-crashlytics-plugin = { module = "com.google.firebase:firebase-crashlytics-gradle", version = "3.0.2" }

@@ -293,8 +293,6 @@
     <string name="about">Acerca de</string>
     <string name="app_version">Versión de la app</string>
     <string name="new_version_available">Nueva versión disponible</string>
-    <string name="translation_models">Modelos de traducción</string>
-    <string name="clear_translation_models">Limpiar modelos de traducción</string>
     <string name="listen_history">Historial de escuchadas</string>
     <string name="your_youtube_playlists">Tus listas de reproducción de YouTube</string>
     <string name="remove_all_from_library">Eliminar todo de la biblioteca</string>

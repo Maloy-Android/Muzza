@@ -303,6 +303,4 @@
     <string name="app_version">アプリのバージョン</string>
 
     <string name="new_version_available">新しいバージョンがあります</string>
-    <string name="translation_models">翻訳モデル</string>
-    <string name="clear_translation_models">翻訳モデルを消去</string>
 </resources>

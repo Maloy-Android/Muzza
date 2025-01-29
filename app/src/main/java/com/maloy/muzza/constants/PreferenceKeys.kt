@@ -29,6 +29,7 @@ const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"
 val LikedAutoDownloadKey = stringPreferencesKey("likedAutoDownloadKey")
 val ContentLanguageKey = stringPreferencesKey("contentLanguage")
 val ContentCountryKey = stringPreferencesKey("contentCountry")
+val SelectedLanguageKey = stringPreferencesKey("selectedLanguage")
 val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val MultilineLrcKey = booleanPreferencesKey("multilineLrc")
 val LyricTrimKey = booleanPreferencesKey("lyricTrim")

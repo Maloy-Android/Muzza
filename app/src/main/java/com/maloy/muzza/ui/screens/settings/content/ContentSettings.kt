@@ -23,8 +23,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -35,7 +33,6 @@ import android.content.res.Configuration
 import android.os.LocaleList
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.runtime.*
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ContentCountryKey
@@ -50,6 +47,7 @@ import com.maloy.muzza.constants.ProxyEnabledKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
 import com.maloy.muzza.constants.SYSTEM_DEFAULT
+import com.maloy.muzza.constants.SelectedLanguageKey
 import com.maloy.muzza.ui.component.EditTextPreference
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ListPreference
@@ -74,16 +72,13 @@ fun ContentSettings(
     val (likedAutoDownload, onLikedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
+    val (selectedLanguage, onSelectedLanguage) = rememberPreference(key = SelectedLanguageKey, defaultValue = "system")
     val (hideExplicit, onHideExplicitChange) = rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
     val (historyDuration, onHistoryDurationChange) = rememberPreference(key = HistoryDuration, defaultValue = 30f)
-
-    val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    val savedLanguage = sharedPreferences.getString("app_language", "en") ?: "en"
-    var selectedLanguage by remember { mutableStateOf(savedLanguage) }
 
     Column(
         Modifier
@@ -186,9 +181,8 @@ fun ContentSettings(
             values = LanguageCodeToName.keys.toList(),
             valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
             onValueSelected = {
-                selectedLanguage = it
+                onSelectedLanguage(it)
                 updateLanguage(context, it)
-                saveLanguagePreference(context, it)
             }
         )
 
@@ -246,11 +240,6 @@ fun ContentSettings(
         },
         scrollBehavior = scrollBehavior
     )
-}
-
-fun saveLanguagePreference(context: Context, languageCode: String) {
-    val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    sharedPreferences.edit().putString("app_language", languageCode).apply()
 }
 
 

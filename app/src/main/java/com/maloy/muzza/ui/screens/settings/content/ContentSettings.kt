@@ -159,6 +159,7 @@ fun ContentSettings(
             )
         }
 
+        PreferenceGroupTitle(title = stringResource(R.string.content))
         SwitchPreference(
             title = { Text(stringResource(R.string.hide_explicit)) },
             icon = { Icon(painterResource(R.drawable.explicit), null) },
@@ -167,6 +168,7 @@ fun ContentSettings(
         )
 
         // Notification settings
+        PreferenceGroupTitle(title = stringResource(R.string.notifications))
         PreferenceEntry(
             title = { Text(stringResource(R.string.notifications_settings)) },
             icon = { Icon(painterResource(R.drawable.notification_on), null) },
@@ -183,6 +185,7 @@ fun ContentSettings(
             onValueSelected = {
                 onSelectedLanguage(it)
                 updateLanguage(context, it)
+                saveLanguagePreference(context, it)
             }
         )
 
@@ -240,6 +243,11 @@ fun ContentSettings(
         },
         scrollBehavior = scrollBehavior
     )
+}
+
+fun saveLanguagePreference(context: Context, languageCode: String) {
+    val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    sharedPreferences.edit().putString("app_language", languageCode).apply()
 }
 
 

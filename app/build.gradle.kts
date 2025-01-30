@@ -26,8 +26,8 @@ android {
         applicationId = "com.maloy.muzza"
         minSdk = 24
         targetSdk = 35
-        versionCode = 34
-        versionName = "0.6.4"
+        versionCode = 35
+        versionName = "0.6.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

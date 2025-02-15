@@ -180,7 +180,7 @@ fun ContentSettings(
             title = { Text(stringResource(R.string.app_language)) },
             icon = { Icon(painterResource(R.drawable.translate), null) },
             selectedValue = selectedLanguage,
-            values = LanguageCodeToName.keys.toList(),
+            values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
             valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
             onValueSelected = {
                 onSelectedLanguage(it)

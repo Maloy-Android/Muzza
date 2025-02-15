@@ -121,6 +121,10 @@ interface DatabaseDao {
     fun playlistSongs(playlistId: String): Flow<List<PlaylistSong>>
 
     @Transaction
+    @Query("DELETE FROM playlist WHERE browseId = :browseId")
+    fun deletePlaylistById(browseId: String)
+
+    @Transaction
     @Query("SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY inLibrary")
     fun artistSongsByCreateDateAsc(artistId: String): Flow<List<Song>>
 

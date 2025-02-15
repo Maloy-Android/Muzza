@@ -4,12 +4,13 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -43,11 +44,10 @@ fun AddToPlaylistDialog(
 ) {
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
-
-    var playlists by remember {
+    val playlists by remember {
         mutableStateOf(emptyList<Playlist>())
     }
-    var showCreatePlaylistDialog by rememberSaveable {
+    var showAddPlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
 
@@ -64,12 +64,6 @@ fun AddToPlaylistDialog(
         mutableStateOf(emptyList<String>())
     }
 
-    LaunchedEffect(Unit) {
-        database.playlistsByCreateDateAsc().collect {
-            playlists = it.asReversed()
-        }
-    }
-
     if (isVisible) {
         ListDialog(
             onDismiss = onDismiss
@@ -79,14 +73,14 @@ fun AddToPlaylistDialog(
                     title = stringResource(R.string.create_playlist),
                     thumbnailContent = {
                         Image(
-                            painter = painterResource(R.drawable.add),
+                            imageVector = Icons.Rounded.Add,
                             contentDescription = null,
                             colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
                             modifier = Modifier.size(ListThumbnailSize)
                         )
                     },
                     modifier = Modifier.clickable {
-                        showCreatePlaylistDialog = true
+                        showAddPlaylistDialog = true
                     }
                 )
             }
@@ -114,11 +108,11 @@ fun AddToPlaylistDialog(
         }
     }
 
-    if (showCreatePlaylistDialog) {
+    if (showAddPlaylistDialog) {
         TextFieldDialog(
             icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
             title = { Text(text = stringResource(R.string.create_playlist)) },
-            onDismiss = { showCreatePlaylistDialog = false },
+            onDismiss = { showAddPlaylistDialog = false },
             onDone = { playlistName ->
                 database.query {
                     insert(
@@ -131,6 +125,7 @@ fun AddToPlaylistDialog(
         )
     }
 
+    // duplicate songs warning
     if (showDuplicateDialog) {
         DefaultDialog(
             title = { Text(stringResource(R.string.duplicates)) },

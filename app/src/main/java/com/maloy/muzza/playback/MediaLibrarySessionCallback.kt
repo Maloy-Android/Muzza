@@ -19,6 +19,7 @@ import androidx.media3.session.SessionResult
 import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
+import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.MediaSessionConstants
 import com.maloy.muzza.constants.SongSortType
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.guava.future
 import kotlinx.coroutines.plus
+import timber.log.Timber
 import javax.inject.Inject
 
 class MediaLibrarySessionCallback @Inject constructor(
@@ -43,6 +45,7 @@ class MediaLibrarySessionCallback @Inject constructor(
     val database: MusicDatabase,
     val downloadUtil: DownloadUtil,
 ) : MediaLibrarySession.Callback {
+    private val TAG = MediaLibrarySessionCallback::class.simpleName.toString()
     private val scope = CoroutineScope(Dispatchers.Main) + Job()
     var toggleLike: () -> Unit = {}
     var toggleLibrary: () -> Unit = {}
@@ -264,6 +267,19 @@ class MediaLibrarySessionCallback @Inject constructor(
 
             else -> defaultResult
         }
+    }
+
+    override fun onSearch(
+        session: MediaLibrarySession,
+        browser: MediaSession.ControllerInfo,
+        query: String,
+        params: MediaLibraryService.LibraryParams?
+    ): ListenableFuture<LibraryResult<Void>> {
+        if (BuildConfig.DEBUG) {
+            Timber.tag(TAG).d("MediaLibrarySessionCallback.onSearch: $query")
+        }
+        session.notifySearchResultChanged(browser, query, 0, params)
+        return Futures.immediateFuture(LibraryResult.ofVoid(params))
     }
 
     private fun drawableUri(@DrawableRes id: Int) = Uri.Builder()

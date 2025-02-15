@@ -26,6 +26,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -42,6 +43,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
@@ -63,6 +65,8 @@ import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @Composable
@@ -77,6 +81,7 @@ fun YouTubeSongMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
+    val coroutineScope = rememberCoroutineScope()
     val artists = remember {
         song.artists.mapNotNull {
             it.id?.let { artistId ->
@@ -97,9 +102,15 @@ fun YouTubeSongMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { _ ->
+        onGetSong = { playlist ->
             database.transaction {
                 insert(song.toMediaMetadata())
+            }
+
+            coroutineScope.launch(Dispatchers.IO) {
+                playlist.playlist.browseId?.let { browseId ->
+                    YouTube.addToPlaylist(browseId, song.id)
+                }
             }
 
             listOf(song.id)

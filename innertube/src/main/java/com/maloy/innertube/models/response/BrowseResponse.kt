@@ -8,6 +8,7 @@ import com.maloy.innertube.models.MusicShelfRenderer
 import com.maloy.innertube.models.ResponseContext
 import com.maloy.innertube.models.Runs
 import com.maloy.innertube.models.SectionListRenderer
+import com.maloy.innertube.models.SubscriptionButton
 import com.maloy.innertube.models.Tabs
 import com.maloy.innertube.models.ThumbnailRenderer
 import com.maloy.innertube.models.Thumbnails
@@ -87,6 +88,7 @@ data class BrowseResponse(
             val thumbnail: ThumbnailRenderer?,
             val playButton: Button?,
             val startRadioButton: Button?,
+            val subscriptionButton: SubscriptionButton?,
             val menu: Menu,
         )
 

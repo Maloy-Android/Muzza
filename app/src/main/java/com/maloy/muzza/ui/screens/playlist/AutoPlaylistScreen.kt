@@ -91,6 +91,7 @@ import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
@@ -110,6 +111,8 @@ import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -128,6 +131,7 @@ fun AutoPlaylistScreen(
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -142,6 +146,12 @@ fun AutoPlaylistScreen(
     }
     val likeLength = remember(songs) {
         songs?.fastSumBy { it.song.duration } ?: 0
+    }
+    val playlistId = viewModel.playlist
+    val playlistType = when (playlistId) {
+        "liked" -> PlaylistType.LIKE
+        "downloaded" -> PlaylistType.DOWNLOAD
+        else -> PlaylistType.OTHER
     }
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
@@ -183,6 +193,14 @@ fun AutoPlaylistScreen(
         selection.fastForEachReversed { songId ->
             if (songs?.find { it.id == songId } == null) {
                 selection.remove(songId)
+            }
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (ytmSync) {
+            withContext(Dispatchers.IO) {
+                if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
             }
         }
     }
@@ -624,7 +642,7 @@ fun AutoPlaylistScreen(
                         trailingIcon = {
                             if (searchQuery.text.isNotEmpty()) {
                                 IconButton(
-                                    onClick = { searchQuery = TextFieldValue("") }
+                                    onClick = { searchQuery = TextFieldValue("") } // Очищаем текст
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),
@@ -687,5 +705,9 @@ fun AutoPlaylistScreen(
             )
         }
     }
+}
+
+enum class PlaylistType {
+    LIKE, DOWNLOAD, OTHER
 }
 

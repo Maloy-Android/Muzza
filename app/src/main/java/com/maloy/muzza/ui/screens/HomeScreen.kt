@@ -68,6 +68,7 @@ import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
@@ -97,6 +98,7 @@ import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
+import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
 import kotlin.math.min
 import kotlin.random.Random
@@ -134,6 +136,7 @@ fun HomeScreen(
     val lazylistState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -559,6 +562,7 @@ fun HomeScreen(
                 }
             }
 
+            if (ytmSync)
             accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                 item {
                     NavigationTitle(

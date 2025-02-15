@@ -2,15 +2,22 @@ package com.maloy.muzza.ui.menu
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -20,9 +27,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListThumbnailSize
@@ -33,21 +41,35 @@ import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @Composable
 fun AddToPlaylistDialog(
     isVisible: Boolean,
-    onGetSong: suspend (Playlist) -> List<String>,
+    initialTextFieldValue: String? = null,
+    onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
 ) {
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
-    val playlists by remember {
+    var playlists by remember {
         mutableStateOf(emptyList<Playlist>())
     }
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
     var showAddPlaylistDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var syncedPlaylist: Boolean by remember {
         mutableStateOf(false)
     }
 
@@ -62,6 +84,12 @@ fun AddToPlaylistDialog(
     }
     var duplicates by remember {
         mutableStateOf(emptyList<String>())
+    }
+
+    LaunchedEffect(Unit) {
+        database.editablePlaylistsByCreateDateAsc().collect {
+            playlists = it.asReversed()
+        }
     }
 
     if (isVisible) {
@@ -110,16 +138,55 @@ fun AddToPlaylistDialog(
 
     if (showAddPlaylistDialog) {
         TextFieldDialog(
-            icon = { Icon(painter = painterResource(R.drawable.add), contentDescription = null) },
+            icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
             title = { Text(text = stringResource(R.string.create_playlist)) },
+            initialTextFieldValue = TextFieldValue(initialTextFieldValue?: ""),
             onDismiss = { showAddPlaylistDialog = false },
             onDone = { playlistName ->
-                database.query {
-                    insert(
-                        PlaylistEntity(
-                            name = playlistName
+                coroutineScope.launch(Dispatchers.IO) {
+                    val browseId = if (syncedPlaylist)
+                        YouTube.createPlaylist(playlistName).getOrNull()
+                    else null
+
+                    database.query {
+                        insert(
+                            PlaylistEntity(
+                                name = playlistName,
+                                browseId = browseId,
+                                bookmarkedAt = LocalDateTime.now()
+                            )
                         )
-                    )
+                    }
+                }
+            },
+            extraContent = {
+                if (isLoggedIn) {
+                Row(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
+                ) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.sync_playlist),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(R.string.allows_for_sync_witch_youtube),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Switch(
+                                checked = syncedPlaylist,
+                                onCheckedChange = {
+                                    syncedPlaylist = !syncedPlaylist
+                                },
+                            )
+                        }
+                    }
                 }
             }
         )

@@ -149,6 +149,7 @@
     <string name="error_song_artist_empty">Укажите исполнителей композиции</string>
     <string name="save">Сохранить</string>
 
+    <string name="sync_playlist">Синхронизировать плейлист</string>
     <string name="choose_playlist">Выбрать плейлист</string>
     <string name="edit_playlist">Редактировать плейлист</string>
     <string name="create_playlist">Создать плейлист</string>
@@ -164,6 +165,7 @@
     <string name="add_anyway">Добавить в любом случае</string>
     <string name="duplicates_description_single">Эта песня уже в вашем плейлисте</string>
     <string name="duplicates_description_multiple">%d песен уже в вашем плейлисте</string>
+    <string name="allows_for_sync_witch_youtube">Примечание: Это позволяет синхронизироваться с YouTube Music</string>
 
     <!-- Noun -->
     <plurals name="n_song">
@@ -358,6 +360,7 @@
     <string name="token_adv_login_description">Это РАСШИРЕННЫЙ способ входа в систему. В качестве альтернативы веб-порталу вы можете напрямую ввести или обновить свой логин здесь. Например, это может ускорить вход в систему на нескольких устройствах. Пожалуйста, обратите внимание, что любые недопустимые форматы токенов, которые приложение не сможет проанализировать, не будут приняты</string>
     <string name="import_from_spotify">Импорт из spotify</string>
     <string name="like_autodownload">Автоматически загружать понравившееся композиции</string>
+    <string name="ytm_sync">Автоматическая синхронизация с вашим аккаунтом</string>
     <string name="wifi_only">Только при использовании Wi-Fi</string>
     <string name="content_language">Язык контента</string>
     <string name="content_country">Страна контента</string>

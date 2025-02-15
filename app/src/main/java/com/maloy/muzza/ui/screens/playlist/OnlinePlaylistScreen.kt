@@ -25,17 +25,23 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Download
+import androidx.compose.material.icons.rounded.OfflinePin
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
@@ -45,6 +51,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,7 +84,12 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.media3.exoplayer.offline.Download
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.models.SongItem
@@ -85,16 +97,20 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
+import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AutoResizeText
+import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -109,6 +125,7 @@ import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.OnlinePlaylistViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -118,8 +135,8 @@ fun OnlinePlaylistScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: OnlinePlaylistViewModel = hiltViewModel(),
 ) {
-    val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -128,12 +145,14 @@ fun OnlinePlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
+    val dbPlaylist by viewModel.dbPlaylist.collectAsState()
 
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
+    val syncUtils = LocalSyncUtils.current
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -165,6 +184,54 @@ fun OnlinePlaylistScreen(
         derivedStateOf {
             lazyListState.firstVisibleItemIndex > 0
         }
+    }
+
+    val downloadState by remember {
+        mutableIntStateOf(Download.STATE_STOPPED)
+    }
+
+    var showRemoveDownloadDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (showRemoveDownloadDialog) {
+        DefaultDialog(
+            onDismiss = { showRemoveDownloadDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_download_playlist_confirm, playlist?.title!!),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = { showRemoveDownloadDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                        database.transaction {
+                            dbPlaylist?.id?.let { clearPlaylist(it) }
+                        }
+
+                        songs.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.id,
+                                false
+                            )
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
     }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
@@ -253,32 +320,128 @@ fun OnlinePlaylistScreen(
                                         }
 
                                         Row {
-                                            IconButton(
-                                                onClick = {
-                                                    database.transaction {
-                                                        val playlistEntity = PlaylistEntity(
-                                                            name = playlist.title,
-                                                            browseId = playlist.id
-                                                        )
-                                                        insert(playlistEntity)
-                                                        songs.map(SongItem::toMediaMetadata)
-                                                            .onEach(::insert)
-                                                            .mapIndexed { index, song ->
-                                                                PlaylistSongMap(
-                                                                    songId = song.id,
-                                                                    playlistId = playlistEntity.id,
-                                                                    position = index
-                                                                )
+                                            if (playlist.id != "LM") {
+                                                IconButton(
+                                                    onClick = {
+                                                        if (dbPlaylist?.playlist == null) {
+                                                            database.transaction {
+                                                                val playlistEntity = PlaylistEntity(
+                                                                    name = playlist.title,
+                                                                    browseId = playlist.id,
+                                                                    isEditable = playlist.isEditable,
+                                                                ).toggleLike()
+                                                                insert(playlistEntity)
+                                                                songs.map(SongItem::toMediaMetadata)
+                                                                    .onEach(::insert)
+                                                                    .mapIndexed { index, song ->
+                                                                        PlaylistSongMap(
+                                                                            songId = song.id,
+                                                                            playlistId = playlistEntity.id,
+                                                                            position = index
+                                                                        )
+                                                                    }
+                                                                    .forEach(::insert)
                                                             }
-                                                            .forEach(::insert)
-                                                        coroutineScope.launch {
-                                                            snackbarHostState.showSnackbar(context.getString(R.string.playlist_imported))
+                                                            } else {
+                                                                database.transaction {
+                                                                    update(dbPlaylist!!.playlist.toggleLike())
+                                                                }
+                                                        }
+                                                    }
+                                                        ) {
+                                                        Icon(
+                                                            painter = painterResource(
+                                                                if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
+                                                            ),
+                                                            contentDescription = null,
+                                                            tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current
+                                                        )
+                                                }
+                                            }
+
+                                            if (dbPlaylist != null) {
+                                                when (downloadState) {
+                                                    Download.STATE_COMPLETED -> {
+                                                        IconButton(
+                                                            onClick = {
+                                                                showRemoveDownloadDialog = true
+                                                            }
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.OfflinePin,
+                                                                contentDescription = null
+                                                            )
+                                                        }
+                                                    }
+
+                                                    Download.STATE_DOWNLOADING -> {
+                                                        IconButton(
+                                                            onClick = {
+                                                                songs.forEach { song ->
+                                                                    DownloadService.sendRemoveDownload(
+                                                                        context,
+                                                                        ExoDownloadService::class.java,
+                                                                        song.id,
+                                                                        false
+                                                                    )
+                                                                }
+                                                            }
+                                                        ) {
+                                                            CircularProgressIndicator(
+                                                                strokeWidth = 2.dp,
+                                                                modifier = Modifier.size(24.dp)
+                                                            )
+                                                        }
+                                                    }
+
+                                                    else -> {
+                                                        IconButton(
+                                                            onClick = {
+                                                                viewModel.viewModelScope.launch(
+                                                                    Dispatchers.IO
+                                                                ) {
+                                                                    syncUtils.syncPlaylist(
+                                                                        playlist.id,
+                                                                        dbPlaylist!!.id
+                                                                    )
+                                                                }
+
+                                                                songs.forEach { song ->
+                                                                    val downloadRequest =
+                                                                        DownloadRequest.Builder(
+                                                                            song.id,
+                                                                            song.id.toUri()
+                                                                        )
+                                                                            .setCustomCacheKey(song.id)
+                                                                            .setData(song.title.toByteArray())
+                                                                            .build()
+                                                                    DownloadService.sendAddDownload(
+                                                                        context,
+                                                                        ExoDownloadService::class.java,
+                                                                        downloadRequest,
+                                                                        false
+                                                                    )
+                                                                }
+                                                            }
+                                                        ) {
+                                                            Icon(
+                                                                Icons.Rounded.Download,
+                                                                contentDescription = null
+                                                            )
                                                         }
                                                     }
                                                 }
+                                            }
+
+                                            IconButton(
+                                                onClick = {
+                                                    playerConnection.addToQueue(
+                                                        items = songs.map { it.toMediaItem() }
+                                                    )
+                                                }
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.input),
+                                                    painter = painterResource(R.drawable.queue_music),
                                                     contentDescription = null
                                                 )
                                             }
@@ -395,7 +558,12 @@ fun OnlinePlaylistScreen(
                                         } else if (song.id == mediaMetadata?.id) {
                                             playerConnection.player.togglePlayPause()
                                         } else {
-                                            playerConnection.playQueue(YouTubeQueue(song.endpoint ?: WatchEndpoint(videoId = song.id), song.toMediaMetadata()))
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                    song.toMediaMetadata()
+                                                )
+                                            )
                                         }
                                     },
                                     onLongClick = {
@@ -479,10 +647,22 @@ fun OnlinePlaylistScreen(
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester)
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (query.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { query = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
                     )
-                } else if (showTopBarTitle) {
-                    Text(playlist?.title.orEmpty())
+                } else {
+                    if (showTopBarTitle) Text(playlist?.title.orEmpty())
                 }
             },
             navigationIcon = {

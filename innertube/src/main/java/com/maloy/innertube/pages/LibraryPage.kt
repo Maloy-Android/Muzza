@@ -56,6 +56,9 @@ data class LibraryPage(
                     radioEndpoint = renderer.menu.menuRenderer.items.find {
                         it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                     }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
+                    isEditable = renderer.menu.menuRenderer.items.find {
+                        it.menuNavigationItemRenderer?.icon?.iconType == "EDIT"
+                    } != null
                 )
 
                 renderer.isArtist -> ArtistItem(

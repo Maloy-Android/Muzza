@@ -152,6 +152,7 @@ import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.theme.MuzzaTheme
 import com.maloy.muzza.ui.theme.extractThemeColor
+import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.ui.utils.appBarScrollBehavior
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.resetHeightOffset
@@ -185,6 +186,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var downloadUtil: DownloadUtil
+
+    @Inject
+    lateinit var syncUtils: SyncUtils
 
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
     private val serviceConnection = object : ServiceConnection {
@@ -531,7 +535,8 @@ class MainActivity : ComponentActivity() {
                         LocalPlayerConnection provides playerConnection,
                         LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
                         LocalDownloadUtil provides downloadUtil,
-                        LocalShimmerTheme provides ShimmerTheme
+                        LocalShimmerTheme provides ShimmerTheme,
+                        LocalSyncUtils provides syncUtils
                     ) {
                         NavHost(
                             navController = navController,
@@ -915,6 +920,7 @@ val LocalDatabase = staticCompositionLocalOf<MusicDatabase> { error("No database
 val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error("No PlayerConnection provided") }
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
+val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
 
 @Composable
 fun NotificationPermissionPreference() {

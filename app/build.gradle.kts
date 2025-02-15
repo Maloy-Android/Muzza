@@ -124,7 +124,8 @@ dependencies {
     implementation(libs.compose.ui)
     implementation(libs.compose.ui.util)
     implementation(libs.compose.ui.tooling)
-    implementation(libs.compose.reorderable)
+    implementation(libs.compose.reorderable1)
+    implementation(libs.compose.reorderable2)
 
     implementation(libs.viewmodel)
     implementation(libs.viewmodel.compose)

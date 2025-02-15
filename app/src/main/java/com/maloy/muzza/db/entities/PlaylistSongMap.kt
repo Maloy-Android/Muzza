@@ -26,5 +26,4 @@ data class PlaylistSongMap(
     @ColumnInfo(index = true) val playlistId: String,
     @ColumnInfo(index = true) val songId: String,
     val position: Int = 0,
-    val setVideoId: String? = null,
 )

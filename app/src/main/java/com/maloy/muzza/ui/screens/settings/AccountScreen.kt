@@ -34,7 +34,6 @@ import com.maloy.muzza.constants.AccountEmailKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.UseLoginForBrowse
-import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.InfoLabel
 import com.maloy.muzza.ui.component.PreferenceEntry
@@ -57,7 +56,6 @@ fun AccountSettings(
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
-    val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
     // temp vars
     var showToken: Boolean by remember {
@@ -137,15 +135,6 @@ fun AccountSettings(
                 }
             },
         )
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.ytm_sync)) },
-                icon = { Icon(painterResource(R.drawable.cached), null) },
-                checked = ytmSync,
-                onCheckedChange = onYtmSyncChange,
-                isEnabled = true
-            )
-        }
         PreferenceGroupTitle(
             title = stringResource(R.string.title_spotify)
         )

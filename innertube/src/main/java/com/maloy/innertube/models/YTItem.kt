@@ -24,8 +24,7 @@ data class SongItem(
     val artists: List<Artist>,
     val album: Album? = null,
     val duration: Int? = null,
-    val setVideoId: String? = null,
-    override val thumbnail: String,
+       override val thumbnail: String,
     override val explicit: Boolean = false,
     val endpoint: WatchEndpoint? = null,
 ) : YTItem() {
@@ -56,7 +55,6 @@ data class PlaylistItem(
     val playEndpoint: WatchEndpoint?,
     val shuffleEndpoint: WatchEndpoint,
     val radioEndpoint: WatchEndpoint?,
-    val isEditable: Boolean = false,
 ) : YTItem() {
     override val explicit: Boolean
         get() = false
@@ -68,7 +66,6 @@ data class ArtistItem(
     override val id: String,
     override val title: String,
     override val thumbnail: String,
-    val channelId: String? = null,
     val shuffleEndpoint: WatchEndpoint?,
     val radioEndpoint: WatchEndpoint?,
 ) : YTItem() {

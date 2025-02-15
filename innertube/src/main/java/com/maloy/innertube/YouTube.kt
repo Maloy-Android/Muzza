@@ -22,9 +22,7 @@ import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.getContinuation
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.models.response.AccountMenuResponse
-import com.maloy.innertube.models.response.AddItemYouTubePlaylistResponse
 import com.maloy.innertube.models.response.BrowseResponse
-import com.maloy.innertube.models.response.CreatePlaylistResponse
 import com.maloy.innertube.models.response.GetQueueResponse
 import com.maloy.innertube.models.response.GetSearchSuggestionsResponse
 import com.maloy.innertube.models.response.GetTranscriptResponse
@@ -224,7 +222,6 @@ val response = innerTube.browse(WEB_REMIX, browseId).body<BrowseResponse>()
         ArtistPage(
             artist = ArtistItem(
                 id = browseId,
-                channelId = response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.channelId,
                 title = response.header?.musicImmersiveHeaderRenderer?.title?.runs?.firstOrNull()?.text
                     ?: response.header?.musicVisualHeaderRenderer?.title?.runs?.firstOrNull()?.text!!,
                 thumbnail = response.header?.musicImmersiveHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
@@ -299,8 +296,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         ).body<BrowseResponse>()
         val base = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
         val header = base?.musicResponsiveHeaderRenderer ?: base?.musicEditablePlaylistDetailHeaderRenderer?.header?.musicResponsiveHeaderRenderer
-        val editable =
-            response.header?.musicEditablePlaylistDetailHeaderRenderer != null
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
@@ -317,8 +312,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                 shuffleEndpoint = header.buttons?.lastOrNull()?.menuRenderer?.items?.firstOrNull()?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
                 radioEndpoint = header.buttons.lastOrNull()?.menuRenderer?.items!!.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
-                }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
-                isEditable = editable
+                }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer?.contents
                 ?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.mapNotNull {
@@ -344,10 +338,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             }!!,
             continuation = response.continuationContents.musicPlaylistShelfContinuation.continuations?.getContinuation()
         )
-    }
-
-    suspend fun addPlaylistToPlaylist(playlistId: String, addPlaylistId: String) = runCatching {
-        innerTube.addPlaylistToPlaylist(WEB_REMIX, playlistId, addPlaylistId)
     }
 
     suspend fun home(): Result<HomePage> = runCatching {
@@ -525,37 +515,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         playlists
     }
 
-    suspend fun subscribeChannel(channelId: String, subscribe: Boolean) = runCatching {
-        if (subscribe)
-            innerTube.subscribeChannel(WEB_REMIX, channelId)
-        else
-            innerTube.unsubscribeChannel(WEB_REMIX, channelId)
-    }
-    suspend fun getChannelId(browseId: String): String {
-        artist(browseId).onSuccess {
-            return it.artist.channelId!!
-        }
-        return ""
-    }
-
-    suspend fun createPlaylist(title: String) = runCatching {
-        innerTube.createPlaylist(WEB_REMIX, title).body<CreatePlaylistResponse>().playlistId
-    }
-
-    suspend fun likeVideo(videoId: String, like: Boolean) = runCatching {
-        if (like)
-            innerTube.likeVideo(WEB_REMIX, videoId)
-        else
-            innerTube.unlikeVideo(WEB_REMIX, videoId)
-    }
-
-    suspend fun likePlaylist(playlistId: String, like: Boolean) = runCatching {
-        if (like)
-            innerTube.likePlaylist(WEB_REMIX, playlistId)
-        else
-            innerTube.unlikePlaylist(WEB_REMIX, playlistId)
-    }
-
     suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
         var playerResponse: PlayerResponse
         if (this.cookie != null) { // if logged in: try ANDROID_MUSIC client first because IOS client does not support login
@@ -666,18 +625,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             }
     }
 
-    suspend fun moveSongPlaylist(playlistId: String, setVideoId: String, successorSetVideoId: String) = runCatching {
-        innerTube.moveSongPlaylist(WEB_REMIX, playlistId, setVideoId, successorSetVideoId)
-    }
-
-    suspend fun renamePlaylist(playlistId: String, name: String) = runCatching {
-        innerTube.renamePlaylist(WEB_REMIX, playlistId, name)
-    }
-
-    suspend fun deletePlaylist(playlistId: String) = runCatching {
-        innerTube.deletePlaylist(WEB_REMIX, playlistId)
-    }
-
     suspend fun transcript(videoId: String): Result<String> = runCatching {
         val response = innerTube.getTranscript(WEB, videoId).body<GetTranscriptResponse>()
         response.actions?.firstOrNull()?.updateEngagementPanelAction?.content?.transcriptRenderer?.body?.transcriptBodyRenderer?.cueGroups?.joinToString(separator = "\n") { group ->
@@ -702,16 +649,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             .actions[0].openPopupAction.popup.multiPageMenuRenderer
             .header?.activeAccountHeaderRenderer
             ?.toAccountInfo()!!
-    }
-
-
-    suspend fun addToPlaylist(playlistId: String, videoId: String) = runCatching {
-        innerTube.addToPlaylist(WEB_REMIX, playlistId, videoId).body<AddItemYouTubePlaylistResponse>()
-    }
-    suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String?): Result<Any> = runCatching {
-        if (setVideoId != null) {
-            innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
-        }
     }
 
     @JvmInline

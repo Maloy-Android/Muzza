@@ -58,7 +58,6 @@ import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
-import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.ChipsRow
@@ -69,8 +68,6 @@ import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryAlbumsViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -90,7 +87,6 @@ fun LibraryAlbumsScreen(
     val viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(AlbumSortTypeKey, AlbumSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
     val filterContent = @Composable {
         Row {
@@ -117,13 +113,6 @@ fun LibraryAlbumsScreen(
                 },
                 modifier = Modifier.weight(1f),
             )
-        }
-    }
-
-    LaunchedEffect(Unit) {
-        if (ytmSync)
-            withContext(Dispatchers.IO) {
-                viewModel.sync()
         }
     }
 

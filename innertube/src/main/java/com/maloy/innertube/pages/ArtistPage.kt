@@ -14,6 +14,7 @@ import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
+import com.maloy.innertube.models.getItems
 import com.maloy.innertube.models.oddElements
 
 data class ArtistSection(
@@ -51,11 +52,11 @@ data class ArtistPage(
 
         private fun fromMusicShelfRenderer(renderer: MusicShelfRenderer): ArtistSection? {
             return ArtistSection(
-                title = renderer.title?.runs?.firstOrNull()?.text ?: return null,
-                items = renderer.contents?.mapNotNull {
-                    fromMusicResponsiveListItemRenderer(it.musicResponsiveListItemRenderer)
+                title = renderer.title?.runs?.firstOrNull()?.text ?: "",
+                items = renderer.contents?.getItems()?.mapNotNull {
+                    fromMusicResponsiveListItemRenderer(it)
                 }?.ifEmpty { null } ?: return null,
-                moreEndpoint = renderer.title.runs.firstOrNull()?.navigationEndpoint?.browseEndpoint
+                moreEndpoint = renderer.title?.runs?.firstOrNull()?.navigationEndpoint?.browseEndpoint
             )
         }
 

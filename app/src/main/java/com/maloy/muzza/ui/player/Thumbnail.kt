@@ -52,7 +52,7 @@ fun Thumbnail(
 
     var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
-    val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 16)
+    val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, defaultValue = 6)
 
     DisposableEffect(showLyrics) {
         currentView.keepScreenOn = showLyrics

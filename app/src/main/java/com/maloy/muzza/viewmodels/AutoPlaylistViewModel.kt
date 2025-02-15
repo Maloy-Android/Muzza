@@ -12,7 +12,6 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
-import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -25,7 +24,6 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -35,7 +33,6 @@ class AutoPlaylistViewModel  @Inject constructor(
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
     savedStateHandle: SavedStateHandle,
-    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val playlist = savedStateHandle.get<String>("playlist")!!
 
@@ -77,8 +74,4 @@ class AutoPlaylistViewModel  @Inject constructor(
                     else -> MutableStateFlow(emptyList())
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-
-    fun syncLikedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
-    }
 }

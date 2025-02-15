@@ -89,8 +89,6 @@ fun AlbumMenu(
         mutableStateOf(emptyList<Song>())
     }
 
-    val coroutineScope = rememberCoroutineScope()
-
     LaunchedEffect(Unit) {
         database.albumSongs(album.id).collect {
             songs = it
@@ -140,16 +138,7 @@ fun AlbumMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
-            coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { playlistId ->
-                    album.album.playlistId?.let { addPlaylistId ->
-                        YouTube.addPlaylistToPlaylist(playlistId, addPlaylistId)
-                    }
-                }
-            }
-            songs.map { it.id }
-        },
+        onGetSong = { songs.map { it.id } },
         onDismiss = {
             showChoosePlaylistDialog = false
         }

@@ -129,6 +129,7 @@ fun AccountSettings(
                     Text(stringResource(R.string.token_hidden))
                 }
             },
+            icon = { Icon(painterResource(R.drawable.token), null) },
             onClick = {
                 if (!showToken) {
                     showToken = true

@@ -396,6 +396,18 @@ fun AutoPlaylistScreen(
                                                     }
                                                 }
                                             }
+                                            if (playlistType == PlaylistType.LIKE) {
+                                                IconButton(
+                                                    onClick = {
+                                                        viewModel.syncLikedSongs()
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.sync),
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            }
                                             IconButton(
                                                 onClick = {
                                                     playerConnection.addToQueue(

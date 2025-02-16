@@ -219,9 +219,18 @@ fun LocalPlaylistScreen(
 
     val headerItems = 2
     val lazyListState = rememberLazyListState()
+    var dragInfo by remember {
+        mutableStateOf<Pair<Int, Int>?>(null)
+    }
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             if (to.index >= headerItems && from.index >= headerItems) {
+                val currentDragInfo = dragInfo
+                dragInfo = if (currentDragInfo == null) {
+                    (from.index - headerItems) to (to.index - headerItems)
+                } else {
+                    currentDragInfo.first to (to.index - headerItems)
+                }
                 mutableSongs.move(from.index - headerItems, to.index - headerItems)
             }
         },

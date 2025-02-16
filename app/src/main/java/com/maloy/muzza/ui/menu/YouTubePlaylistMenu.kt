@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_EXPRESSION")
+
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
@@ -257,11 +259,15 @@ fun YouTubePlaylistMenu(
             context.startActivity(Intent.createChooser(intent, null))
             onDismiss()
         }
-        GridMenuItem(
-            icon = R.drawable.delete,
-            title = R.string.delete
-        ) {
-            showDeletePlaylistDialog = true
+        if (playlist.id == "LM") {
+            false
+        } else {
+            GridMenuItem(
+                icon = R.drawable.delete,
+                title = R.string.delete
+            ) {
+                showDeletePlaylistDialog = true
+            }
         }
     }
 }

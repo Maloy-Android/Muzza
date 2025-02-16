@@ -155,17 +155,19 @@ fun LibraryPlaylistsScreen(
             onDone = { playlistName ->
                 viewModel.viewModelScope.launch(Dispatchers.IO) {
                     val browseId = if (syncedPlaylist)
-                        YouTube.createPlaylist(playlistName).getOrNull()
+                        YouTube.createPlaylist(playlistName)
                     else null
 
                     database.query {
-                        insert(
-                            PlaylistEntity(
-                                name = playlistName,
-                                browseId = browseId,
-                                bookmarkedAt = LocalDateTime.now()
+                        if (browseId != null) {
+                            insert(
+                                PlaylistEntity(
+                                    name = playlistName,
+                                    browseId = browseId.getOrNull(),
+                                    bookmarkedAt = LocalDateTime.now()
+                                )
                             )
-                        )
+                        }
                     }
                 }
             },

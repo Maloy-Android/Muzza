@@ -34,6 +34,9 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.DownloadGridMenu
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 @Composable
@@ -80,8 +83,16 @@ fun SongSelectionMenu(
 
     AddToPlaylistDialog(
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { selection.map { it.song.id } },
-        onDismiss = { showChoosePlaylistDialog = false },
+        onGetSong = {
+            selection.map {
+                runBlocking {
+                    withContext(Dispatchers.IO) {
+                        it.song.id
+                    }
+                }
+            }
+        },
+        onDismiss = { showChoosePlaylistDialog = false }
     )
 
     GridMenu(

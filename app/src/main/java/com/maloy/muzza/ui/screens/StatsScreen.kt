@@ -100,6 +100,7 @@ fun StatsScreen(
             SongListItem(
                 song = song,
                 isActive = song.id == mediaMetadata?.id,
+                showInLibraryIcon = true,
                 isPlaying = isPlaying,
                 trailingContent = {
                     IconButton(

@@ -183,6 +183,11 @@
     <string name="queue_searched_songs">Músicas pesquisadas</string>
     <!-- Notification name -->
     <string name="music_player">Reprodutor de Música</string>
+    <!-- Notifications settings -->
+    <string name="notifications">Notificações</string>
+    <string name="keep_alive_title">Impedir que o sistema mate o aplicativo</string>
+    <string name="keep_alive_description">Use uma notificação em primeiro plano para evitar que o Muzza seja fechado aleatoriamente pelo sistema.</string>
+    <string name="notifications_settings">Configurações de notificações</string>
     <!-- Settings -->
     <string name="settings">Configurações</string>
     <string name="appearance">Aparência</string>
@@ -236,6 +241,7 @@
     <string name="clear_search_history">Limpar histórico de pesquisa</string>
     <string name="clear_search_history_confirm">Tem certeza que deseja limpar todo o seu histórico de pesquisa?</string>
     <string name="enable_kugou">Ativar o fornecedor de letras KuGou</string>
+     <string name="app_language">Idioma do aplicativo</string>
     <string name="backup_restore">Backup e restauração</string>
     <string name="backup">Fazer backup</string>
     <string name="restore">Restaurar</string>
@@ -246,6 +252,8 @@
     <string name="about">Sobre</string>
     <string name="app_version">Versão do app</string>
     <string name="new_version_available">Nova versão disponível</string>
+    <string name="translation_models">Modelos de Tradução</string>
+    <string name="clear_translation_models">Limpar modelos de tradução</string>
     <string name="remove_download_playlist_confirm">Você deseja realmente remover as músicas da playlist \"%s\" do armazenamento de Músicas Baixadas?</string>
     <string name="delete_playlist_confirm">Você deseja realmente excluir a playlist \"%s\"?</string>
     <string name="remove_from_playlist">Remover da playlist</string>
@@ -269,13 +277,17 @@
     <string name="sided">Ao lado</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>
+    <string name="thumbnail_corner_radius">Configurar o tamanho da miniatura</string>
     <string name="player_slider_style">Estilo do slider do reprodutor</string>
+    <string name="player_background_style">Estilo de fundo</string>
     <string name="default_">Padrão</string>
     <string name="squiggly">Cobrinha</string>
     <string name="your_youtube_playlists">Suas playlists do YouTube</string>
+    <string name="default_lib_chips">Chips padrão da biblioteca</string>
     <string name="action_like_all">Curtir tudo</string>
     <string name="action_remove_like_all">Remover todos os likes</string>
     <string name="grid_cell_size">Tamanho da célula da grade</string>
+    <string name="slim_navbar">Mostrar rótulos na barra de navegação inferior</string>
     <string name="auto_load_more_desc">Adicionar mais músicas automaticamente quando o fim da fila é atingido, se possível</string>
     <string name="listen_history">Histórico de escuta</string>
     <string name="disable_screenshot">Desativar capturas de tela</string>
@@ -301,34 +313,20 @@
     <string name="search_history">Histórico de pesquisa</string>
     <string name="disable_screenshot_desc">Quando esta opção está ativada, as capturas de tela e a visualização do app nos recentes são desativadas.</string>
     <string name="forgotten_favorites">Favoritos esquecidos</string>
+    <string name="token_hidden">Toque para mostrar o token</string>
     <string name="library_playlist_empty">Suas playlists aparecerão aqui</string>
     <string name="theme">Tema</string>
+    <string name="import_from_spotify">Importar do Spotify</string>
     <string name="remove_all_from_library">Remover tudo da biblioteca</string>
-
-    <!--  Spotify import settings  -->
-    <string name="select_all">Selecionar tudo</string>
-    <string name="fetching_all_playlists">Buscando todas as playlists…</string>
-    <string name="import_selected_items">Importar itens selecionados</string>
-    <string name="something_went_wrong">Algo deu errado. Estamos tão surpresos quanto você.</string>
-    <string name="well_thats_embarrassing">Bem, isso é estranho. Não temos ideia do que aconteceu.</string>
-    <string name="instructions_to_get_required_credentials">Instruções para obter as credenciais necessárias</string>
-    <string name="make_sure_to_click">3. Certifique-se de clicar em "Adicionar" depois de inserir o caminho local acima.</string>
-    <string name="accept_the_terms_of_service">5. Aceite os termos de serviço e clique em "Salvar".</string>
-    <string name="you_ll_be_redirected_to_a_new_page">Você será redirecionado para uma nova página. Clique em Configurações, copie o Client ID e o Client secret e cole-os nos campos de texto abaixo neste aplicativo.</string>
-    <string name="enter_the_necessary_details">2. Insira os detalhes necessários e use http://localhost:45454 como URIs de redirecionamento.</string>
-    <string name="toggle_wep_api">4. Marque a caixa de seleção onde esta escrito Web API.</string>
-    <string name="now_click_the_authorize_and_continue">Agora, clique no botão Autorizar e Continuar abaixo e faça login com sua conta da qual deseja importar, ao Autorizar e Continuar, você será redirecionado para um site que deve começar com http:// localhost:45454/?code= Cole a URL inteira no campo de texto abaixo que diz Código de Autorização e clique no botão Autenticar</string>
-    <string name="visit_spotify_for_developers">1. Visite o site do Spotify para desenvolvedores, depois acesse o Painel do Spotify para desenvolvedores e clique em "Criar aplicativo". </string>
-    <string name="login_with_spotify">Faça login com credenciais da API do Spotify</string>
-    <string name="authorize_and_continue">Autorizar e continuar</string>
-    <string name="authorization_code">Código de autorização</string>
-    <string name="authenticate">Autenticar</string>
-    <string name="client_secret">Client secret</string>
-    <string name="client_id">Client ID</string>
-    <string name="import_in_progress">Importação em andamento…</string>
-    <string name="dont_close_app_message">Não feche o aplicativo nem volte. Esta operação não é executada em segundo plano, então fique parado até que ela seja totalmente concluída! NÃO ENTRE EM PÂNICO SE PARECER PARADO; às vezes a recuperação pode levar algum tempo.</string>
-    <string name="choose_liked_songs">Escolha o destino \"Músicas curtidas\"</string>
-    <string name="where_should_the_liked_songs">Para onde as músicas curtidas devem ser importadas?</string>
-    <string name="new_playlist_named">Uma nova lista de reprodução chamada "Músicas curtidas"</string>
-    <string name="default_liked_songs">Nas "Músicas curtidas" padrão</string>
+    <string name="ytm_sync">Sincronize automaticamente com sua conta do YouTube Music</string>
+    <string name="use_login_for_browse">Use o login para navegar pelo conteúdo</string>
+    <string name="use_login_for_browse_desc">Isso pode influenciar o conteúdo que você vê, por exemplo mostra álbuns somente premium se você estiver conectado com uma conta Premium.</string>
+    <string name="like_autodownload">Baixe automaticamente suas músicas preferidas</string>
+    <string name="open_supported_links">Abrir link suportado por padrão</string>
+     <string name="configure_supported_links">Configurar links suportados</string>
+     <string name="history_duration">Duração da história</string>
+      <plurals name="seconds">
+        <item quantity="one">1 segundo</item>
+        <item quantity="other">%d segundos</item>
+    </plurals>
 </resources>

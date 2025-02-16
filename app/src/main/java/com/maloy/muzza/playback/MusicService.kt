@@ -70,6 +70,7 @@ import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLibrary
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLike
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleRepeatMode
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleShuffle
+import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.PlayerVolumeKey
@@ -246,6 +247,7 @@ class MusicService : MediaLibraryService(),
             }
         mediaLibrarySessionCallback.apply {
             toggleLike = ::toggleLike
+            toggleStartRadio = ::toggleStartRadio
             toggleLibrary = ::toggleLibrary
         }
         mediaSession = MediaLibrarySession.Builder(this, player, mediaLibrarySessionCallback)
@@ -394,6 +396,12 @@ class MusicService : MediaLibraryService(),
                     .setEnabled(currentSong.value != null)
                     .build(),
                 CommandButton.Builder()
+                    .setDisplayName(getString(R.string.start_radio))
+                    .setIconResId(R.drawable.radio)
+                    .setSessionCommand(CommandToggleStartRadio)
+                    .setEnabled(currentSong.value != null)
+                    .build(),
+                CommandButton.Builder()
                     .setDisplayName(getString(if (player.shuffleModeEnabled) R.string.action_shuffle_off else R.string.action_shuffle_on))
                     .setIconResId(if (player.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle)
                     .setSessionCommand(CommandToggleShuffle)
@@ -529,6 +537,10 @@ class MusicService : MediaLibraryService(),
                 downloadUtil.autoDownloadIfLiked(song)
             }
         }
+    }
+
+    fun toggleStartRadio() {
+        startRadioSeamlessly()
     }
 
     private fun openAudioEffectSession() {

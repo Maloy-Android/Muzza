@@ -18,6 +18,7 @@ import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.Player.EVENT_POSITION_DISCONTINUITY
 import androidx.media3.common.Player.EVENT_TIMELINE_CHANGED
+import androidx.media3.common.Player.MEDIA_ITEM_TRANSITION_REASON_SEEK
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.REPEAT_MODE_ONE
@@ -169,6 +170,8 @@ class MusicService : MediaLibraryService(),
 
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
+
+    var consecutivePlaybackErr = 0
 
     val currentMediaMetadata = MutableStateFlow<com.maloy.muzza.models.MediaMetadata?>(null)
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
@@ -552,6 +555,16 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+        if (consecutivePlaybackErr > 0) {
+            consecutivePlaybackErr --
+        }
+
+        if (player.isPlaying && reason == MEDIA_ITEM_TRANSITION_REASON_SEEK) {
+            player.prepare()
+            player.play()
+        }
+
         // Auto load more songs
         if (dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&

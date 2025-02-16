@@ -73,6 +73,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppBarHeight
+import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
@@ -470,8 +471,19 @@ fun ArtistScreen(
                 onClick = {
                     database.transaction {
                         val artist = libraryArtist?.artist
-                        database.transaction {
-                            artist?.let { update(it.toggleLike()) }
+                        if (artist != null) {
+                            update(artist.toggleLike())
+                        } else {
+                            artistPage?.artist?.let {
+                                insert(
+                                    ArtistEntity(
+                                        id = it.id,
+                                        name = it.title,
+                                        channelId = it.channelId,
+                                        thumbnailUrl = it.thumbnail,
+                                    ).toggleLike()
+                                )
+                            }
                         }
                     }
                 }

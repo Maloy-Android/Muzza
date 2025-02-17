@@ -267,6 +267,7 @@
 \n
 \nO Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
     <string name="sided">Ao lado</string>
+    <string name="enable_swipe_thumbnail">Habilite o swipe  para mudar de música</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>
     <string name="player_slider_style">Estilo do slider do reprodutor</string>

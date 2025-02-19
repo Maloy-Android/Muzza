@@ -688,13 +688,13 @@ fun LocalPlaylistScreen(
             actions = {
                 if (inSelectMode) {
                     Checkbox(
-                        checked = selection.size == songs.size,
+                        checked = selection.size == filteredSongs.size,
                         onCheckedChange = {
-                            if (selection.size == songs.size) {
+                            if (selection.size == filteredSongs.size) {
                                 selection.clear()
                             } else {
                                 selection.clear()
-                                selection.addAll(songs.map { it.map.id })
+                                selection.addAll(filteredSongs.map { it.map.id })
                             }
                         }
                     )

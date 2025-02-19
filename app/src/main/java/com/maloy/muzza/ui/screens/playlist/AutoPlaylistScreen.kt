@@ -593,14 +593,24 @@ fun AutoPlaylistScreen(
                 }
             },
             actions = {
+                val searchQueryStr = searchQuery.text.trim()
+                val filteredSongs = if (searchQueryStr.isEmpty()) {
+                    songs
+                } else {
+                    songs?.filter { song ->
+                        song.song.title.contains(searchQueryStr, ignoreCase = true) ||
+                                song.artists.joinToString("")
+                                    .contains(searchQueryStr, ignoreCase = true)
+                    }
+                }
                 Checkbox(
-                    checked = selection.size == songs?.size && selection.isNotEmpty(),
+                    checked = selection.size == filteredSongs?.size && selection.isNotEmpty(),
                     onCheckedChange = {
-                        if (selection.size == songs?.size) {
+                        if (selection.size == filteredSongs?.size) {
                             selection.clear()
                         } else {
                             selection.clear()
-                            selection.addAll(songs?.map { it.id }.orEmpty())
+                            selection.addAll(filteredSongs?.map { it.id }.orEmpty())
                         }
                     }
                 )

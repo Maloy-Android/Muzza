@@ -535,10 +535,6 @@ fun LocalPlaylistScreen(
                                     )
                                 } else {
                                     IconButton(
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .padding(4.dp)
-                                            .clip(RoundedCornerShape(12.dp)),
                                         onClick = {
                                             menuState.show {
                                                 SongMenu(
@@ -876,72 +872,6 @@ fun LocalPlaylistHeader(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (editable) {
-                        Button(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            onClick = onShowDeletePlaylistDialog,
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.delete),
-                                contentDescription = null,
-                            )
-                        }
-                    } else {
-                        Button(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            onClick = {
-                                database.transaction {
-                                    update(playlist.playlist.toggleLike())
-                                }
-                            }
-                        ) {
-                            val liked = playlist.playlist.bookmarkedAt != null
-                            Icon(
-                                painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
-                                contentDescription = null,
-                                tint = if (liked) MaterialTheme.colorScheme.error else LocalContentColor.current
-                            )
-                        }
-                    }
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = onShowEditDialog
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.edit),
-                            contentDescription = null
-                        )
-                    }
-
-                    if (playlist.playlist.browseId != null) {
-                        Button(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            onClick = {
-                                scope.launch(Dispatchers.IO) {
-                                    syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
-                                    snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                                }
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null
-                            )
-                        }
-                    }
-
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
                             Button(
@@ -1008,6 +938,72 @@ fun LocalPlaylistHeader(
                                     contentDescription = null
                                 )
                             }
+                        }
+                    }
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = onShowEditDialog
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.edit),
+                            contentDescription = null
+                        )
+                    }
+
+                    if (editable) {
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = onShowDeletePlaylistDialog,
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.delete),
+                                contentDescription = null,
+                            )
+                        }
+                    } else {
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = {
+                                database.transaction {
+                                    update(playlist.playlist.toggleLike())
+                                }
+                            }
+                        ) {
+                            val liked = playlist.playlist.bookmarkedAt != null
+                            Icon(
+                                painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
+                                contentDescription = null,
+                                tint = if (liked) MaterialTheme.colorScheme.error else LocalContentColor.current
+                            )
+                        }
+                    }
+
+                    if (playlist.playlist.browseId != null) {
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = {
+                                scope.launch(Dispatchers.IO) {
+                                    syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
+                                    snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.sync),
+                                contentDescription = null
+                            )
                         }
                     }
                 }

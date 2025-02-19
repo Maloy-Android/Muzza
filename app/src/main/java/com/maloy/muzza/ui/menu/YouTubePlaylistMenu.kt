@@ -262,11 +262,13 @@ fun YouTubePlaylistMenu(
         if (playlist.id == "LM") {
             false
         } else {
-            GridMenuItem(
-                icon = R.drawable.delete,
-                title = R.string.delete
-            ) {
-                showDeletePlaylistDialog = true
+            if (playlist.isEditable) {
+                GridMenuItem(
+                    icon = R.drawable.delete,
+                    title = R.string.delete
+                ) {
+                    showDeletePlaylistDialog = true
+                }
             }
         }
     }

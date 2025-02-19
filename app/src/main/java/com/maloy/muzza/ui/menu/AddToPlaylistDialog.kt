@@ -145,19 +145,17 @@ fun AddToPlaylistDialog(
             onDone = { playlistName ->
                 coroutineScope.launch(Dispatchers.IO) {
                     val browseId = if (syncedPlaylist)
-                        YouTube.createPlaylist(playlistName)
+                        YouTube.createPlaylist(playlistName).getOrNull()
                     else null
 
                     database.query {
-                        if (browseId != null) {
-                            insert(
-                                PlaylistEntity(
-                                    name = playlistName,
-                                    browseId = browseId.getOrNull(),
-                                    bookmarkedAt = LocalDateTime.now()
-                                )
+                        insert(
+                            PlaylistEntity(
+                                name = playlistName,
+                                browseId = browseId,
+                                bookmarkedAt = LocalDateTime.now()
                             )
-                        }
+                        )
                     }
                 }
             },

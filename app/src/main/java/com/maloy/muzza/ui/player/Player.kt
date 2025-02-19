@@ -1,9 +1,10 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.player
 
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -582,12 +583,6 @@ fun BottomSheetPlayer(
                 }
             }
         }
-
-        AnimatedVisibility(
-            visible = state.isExpanded,
-            enter = fadeIn(tween(1000)),
-            exit = fadeOut()
-        ) {
             if (playerBackground == PlayerBackgroundStyle.BLUR) {
                 if (mediaMetadata?.blurSync == true) {
                     mediaMetadata?.let {
@@ -636,20 +631,47 @@ fun BottomSheetPlayer(
                     repeatMode = RepeatMode.Restart
                 ), label = ""
             )
-            AsyncImage(
-                model = mediaMetadata?.thumbnailUrl,
-                contentDescription = null,
-                contentScale = ContentScale.FillBounds,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(200.dp)
-                    .alpha(0.8f)
-                    .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
-                    .rotate(rotation)
-            )
+            if (mediaMetadata?.blurSync == true) {
+                mediaMetadata?.let {
+                    AsyncLocalImage(
+                        image = { getLocalThumbnail(it.blurThumbnail) },
+                        contentDescription = null,
+                        contentScale = ContentScale.FillBounds,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .blur(200.dp)
+                            .alpha(0.8f)
+                            .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
+                            .rotate(rotation)
+                    )
+                }
+            } else {
+                val infiniteTransition = rememberInfiniteTransition(label = "")
+                val rotation by infiniteTransition.animateFloat(
+                    initialValue = 0f,
+                    targetValue = 360f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(
+                            durationMillis = 100000,
+                            easing = FastOutSlowInEasing // Easing suave
+                        ),
+                        repeatMode = RepeatMode.Restart
+                    ), label = ""
+                )
+                AsyncImage(
+                    model = mediaMetadata?.thumbnailUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(200.dp)
+                        .alpha(0.8f)
+                        .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
+                        .rotate(rotation)
+                )
         }
 
-            if (playerBackground != PlayerBackgroundStyle.DEFAULT && showLyrics) {
+            if (showLyrics) {
                 Box(
                     modifier = Modifier
                         .fillMaxSize()

@@ -261,25 +261,23 @@ fun OnlinePlaylistScreen(
                     if (!isSearching) {
                         item {
                             Column(
-                                modifier = Modifier
-                                    .padding(12.dp)
-                                    .animateItem()
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                modifier = Modifier.padding(12.dp)
                             ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
                                     AsyncImage(
                                         model = playlist.thumbnail,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(AlbumThumbnailSize)
                                             .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                            .align(alignment = Alignment.CenterHorizontally)
                                     )
 
-                                    Spacer(Modifier.width(16.dp))
+                                    Spacer(Modifier.width(12.dp))
 
                                     Column(
                                         verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         AutoResizeText(
                                             text = playlist.title,
@@ -319,9 +317,11 @@ fun OnlinePlaylistScreen(
                                             )
                                         }
 
+                                        Spacer(Modifier.height(12.dp))
+
                                         Row {
                                             if (playlist.id != "LM") {
-                                                IconButton(
+                                                Button(
                                                     onClick = {
                                                         if (dbPlaylist?.playlist == null) {
                                                             database.transaction {
@@ -347,7 +347,11 @@ fun OnlinePlaylistScreen(
                                                                     update(dbPlaylist!!.playlist.toggleLike())
                                                                 }
                                                         }
-                                                    }
+                                                    },
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
                                                         ) {
                                                         Icon(
                                                             painter = painterResource(
@@ -362,10 +366,14 @@ fun OnlinePlaylistScreen(
                                             if (dbPlaylist != null) {
                                                 when (downloadState) {
                                                     Download.STATE_COMPLETED -> {
-                                                        IconButton(
+                                                        Button(
                                                             onClick = {
                                                                 showRemoveDownloadDialog = true
-                                                            }
+                                                            },
+                                                            modifier = Modifier
+                                                                .weight(1f)
+                                                                .padding(4.dp)
+                                                                .clip(RoundedCornerShape(12.dp))
                                                         ) {
                                                             Icon(
                                                                 Icons.Rounded.OfflinePin,
@@ -375,7 +383,7 @@ fun OnlinePlaylistScreen(
                                                     }
 
                                                     Download.STATE_DOWNLOADING -> {
-                                                        IconButton(
+                                                        Button(
                                                             onClick = {
                                                                 songs.forEach { song ->
                                                                     DownloadService.sendRemoveDownload(
@@ -385,7 +393,11 @@ fun OnlinePlaylistScreen(
                                                                         false
                                                                     )
                                                                 }
-                                                            }
+                                                            },
+                                                            modifier = Modifier
+                                                                .weight(1f)
+                                                                .padding(4.dp)
+                                                                .clip(RoundedCornerShape(12.dp))
                                                         ) {
                                                             CircularProgressIndicator(
                                                                 strokeWidth = 2.dp,
@@ -395,7 +407,7 @@ fun OnlinePlaylistScreen(
                                                     }
 
                                                     else -> {
-                                                        IconButton(
+                                                        Button(
                                                             onClick = {
                                                                 viewModel.viewModelScope.launch(
                                                                     Dispatchers.IO
@@ -422,7 +434,11 @@ fun OnlinePlaylistScreen(
                                                                         false
                                                                     )
                                                                 }
-                                                            }
+                                                            },
+                                                            modifier = Modifier
+                                                                .weight(1f)
+                                                                .padding(4.dp)
+                                                                .clip(RoundedCornerShape(12.dp))
                                                         ) {
                                                             Icon(
                                                                 Icons.Rounded.Download,
@@ -433,12 +449,16 @@ fun OnlinePlaylistScreen(
                                                 }
                                             }
 
-                                            IconButton(
+                                            Button(
                                                 onClick = {
                                                     playerConnection.addToQueue(
                                                         items = songs.map { it.toMediaItem() }
                                                     )
-                                                }
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.queue_music),
@@ -446,7 +466,7 @@ fun OnlinePlaylistScreen(
                                                 )
                                             }
 
-                                            IconButton(
+                                            Button(
                                                 onClick = {
                                                     menuState.show {
                                                         YouTubePlaylistMenu(
@@ -456,7 +476,11 @@ fun OnlinePlaylistScreen(
                                                             onDismiss = menuState::dismiss
                                                         )
                                                     }
-                                                }
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.more_vert),
@@ -465,7 +489,6 @@ fun OnlinePlaylistScreen(
                                             }
                                         }
                                     }
-                                }
 
                                 Spacer(Modifier.height(12.dp))
 

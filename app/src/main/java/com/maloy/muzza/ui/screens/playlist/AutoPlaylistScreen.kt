@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
@@ -285,15 +286,12 @@ fun AutoPlaylistScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.padding(12.dp)
                             ) {
-                                Row(
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
                                     val libcarditem = 25.dp
                                     Box(
                                         modifier = Modifier
                                             .size(AlbumThumbnailSize)
                                             .clip(RoundedCornerShape(libcarditem))
+                                            .align(alignment = Alignment.CenterHorizontally)
                                             .background(
                                                 MaterialTheme.colorScheme.surfaceContainer,
                                                 shape = RoundedCornerShape(ThumbnailCornerRadius)
@@ -309,8 +307,10 @@ fun AutoPlaylistScreen(
                                                 .align(Alignment.Center)
                                         )
                                     }
+                                    Spacer(Modifier.height(12.dp))
                                     Column(
                                         verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally
                                     ) {
                                         AutoResizeText(
                                             text = playlist,
@@ -333,13 +333,20 @@ fun AutoPlaylistScreen(
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Normal
                                         )
-                                        Row {
+                                        Spacer(Modifier.height(12.dp))
+                                        Row(
+                                            horizontalArrangement = Arrangement.SpaceEvenly,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )  {
                                             when (downloadState) {
                                                 Download.STATE_COMPLETED -> {
-                                                    IconButton(
+                                                    Button(
                                                         onClick = {
                                                             showRemoveDownloadDialog = true
-                                                        }
+                                                        },
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .padding(4.dp)
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.offline),
@@ -349,7 +356,7 @@ fun AutoPlaylistScreen(
                                                 }
 
                                                 Download.STATE_DOWNLOADING -> {
-                                                    IconButton(
+                                                    Button(
                                                         onClick = {
                                                             songs!!.forEach { song ->
                                                                 DownloadService.sendRemoveDownload(
@@ -369,7 +376,7 @@ fun AutoPlaylistScreen(
                                                 }
 
                                                 else -> {
-                                                    IconButton(
+                                                    Button(
                                                         onClick = {
                                                             songs!!.forEach { song ->
                                                                 val downloadRequest =
@@ -387,7 +394,10 @@ fun AutoPlaylistScreen(
                                                                     false
                                                                 )
                                                             }
-                                                        }
+                                                        },
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .padding(4.dp)
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.download),
@@ -397,10 +407,13 @@ fun AutoPlaylistScreen(
                                                 }
                                             }
                                             if (playlistType == PlaylistType.LIKE) {
-                                                IconButton(
+                                                Button(
                                                     onClick = {
                                                         viewModel.syncLikedSongs()
-                                                    }
+                                                    },
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.sync),
@@ -408,12 +421,15 @@ fun AutoPlaylistScreen(
                                                     )
                                                 }
                                             }
-                                            IconButton(
+                                            Button(
                                                 onClick = {
                                                     playerConnection.addToQueue(
                                                         items = songs!!.map { it.toMediaItem() },
                                                     )
-                                                }
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.queue_music),
@@ -422,8 +438,7 @@ fun AutoPlaylistScreen(
                                             }
                                         }
                                     }
-                                }
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
                                             playerConnection.playQueue(

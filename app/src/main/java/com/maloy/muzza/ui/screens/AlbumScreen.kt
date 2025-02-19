@@ -186,21 +186,20 @@ fun AlbumScreen(
                 Column(
                     modifier = Modifier.padding(12.dp)
                 ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
                         AsyncImage(
                             model = albumWithSongs.album.thumbnailUrl,
                             contentDescription = null,
                             modifier = Modifier
                                 .size(AlbumThumbnailSize)
                                 .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                .align(alignment = Alignment.CenterHorizontally)
                         )
 
-                        Spacer(Modifier.width(16.dp))
+                        Spacer(Modifier.height(12.dp))
 
                         Column(
                             verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
                         ) {
                             AutoResizeText(
                                 text = albumWithSongs.album.title,
@@ -239,13 +238,22 @@ fun AlbumScreen(
                                 )
                             }
 
-                            Row {
-                                IconButton(
+                            Spacer(Modifier.height(12.dp))
+
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Button(
                                     onClick = {
                                         database.query {
                                             update(albumWithSongs.album.toggleLike())
                                         }
-                                    }
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
                                 ) {
                                     Icon(
                                         painter = painterResource(if (albumWithSongs.album.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
@@ -256,7 +264,7 @@ fun AlbumScreen(
 
                                 when (downloadState) {
                                     Download.STATE_COMPLETED -> {
-                                        IconButton(
+                                        Button(
                                             onClick = {
                                                 albumWithSongs.songs.forEach { song ->
                                                     DownloadService.sendRemoveDownload(
@@ -266,7 +274,10 @@ fun AlbumScreen(
                                                         false
                                                     )
                                                 }
-                                            }
+                                            },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.offline),
@@ -299,7 +310,10 @@ fun AlbumScreen(
                                         IconButton(
                                             onClick = {
                                                 albumWithSongs.songs.forEach { song ->
-                                                    val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                                                    val downloadRequest = DownloadRequest.Builder(
+                                                        song.id,
+                                                        song.id.toUri()
+                                                    )
                                                         .setCustomCacheKey(song.id)
                                                         .setData(song.song.title.toByteArray())
                                                         .build()
@@ -310,7 +324,11 @@ fun AlbumScreen(
                                                         false
                                                     )
                                                 }
-                                            }
+                                            },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.download),
@@ -324,12 +342,19 @@ fun AlbumScreen(
                                     onClick = {
                                         menuState.show {
                                             AlbumMenu(
-                                                originalAlbum = Album(albumWithSongs.album, albumWithSongs.artists),
+                                                originalAlbum = Album(
+                                                    albumWithSongs.album,
+                                                    albumWithSongs.artists
+                                                ),
                                                 navController = navController,
                                                 onDismiss = menuState::dismiss
                                             )
                                         }
-                                    }
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.more_vert),
@@ -338,7 +363,6 @@ fun AlbumScreen(
                                 }
                             }
                         }
-                    }
 
                     Spacer(Modifier.height(12.dp))
 

@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,6 +13,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -22,8 +24,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -807,10 +807,6 @@ fun LocalPlaylistHeader(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier.padding(12.dp)
     ) {
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
             if (playlist.thumbnails.size == 1) {
                 AsyncImage(
                     model = playlist.thumbnails[0],
@@ -819,12 +815,14 @@ fun LocalPlaylistHeader(
                     modifier = Modifier
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        .align(alignment = Alignment.CenterHorizontally)
                 )
             } else if (playlist.thumbnails.size > 1) {
                 Box(
                     modifier = Modifier
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        .align(alignment = Alignment.CenterHorizontally)
                 ) {
                     listOf(
                         Alignment.TopStart,
@@ -843,9 +841,10 @@ fun LocalPlaylistHeader(
                     }
                 }
             }
-
+            Spacer(Modifier.height(12.dp))
             Column(
                 verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 AutoResizeText(
                     text = playlist.playlist.name,
@@ -866,24 +865,33 @@ fun LocalPlaylistHeader(
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Normal
                 )
-
-                Row {
+                Spacer(Modifier.height(12.dp))
+                Row (
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     if (editable) {
-                        IconButton(
-                                onClick = onShowDeletePlaylistDialog
+                        Button(
+                            onClick = onShowDeletePlaylistDialog,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
                         ) {
                             Icon(
-                                Icons.Rounded.Delete,
+                                painter = painterResource(R.drawable.delete),
                                 contentDescription = null,
                             )
                         }
                     } else {
-                        IconButton(
+                        Button(
                             onClick = {
                                 database.transaction {
                                     update(playlist.playlist.toggleLike())
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
                         ) {
                             val liked = playlist.playlist.bookmarkedAt != null
                             Icon(
@@ -893,8 +901,11 @@ fun LocalPlaylistHeader(
                             )
                         }
                     }
-                    IconButton(
-                        onClick = onShowEditDialog
+                    Button(
+                        onClick = onShowEditDialog,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.edit),
@@ -903,13 +914,16 @@ fun LocalPlaylistHeader(
                     }
 
                     if (playlist.playlist.browseId != null) {
-                        IconButton(
+                        Button(
                             onClick = {
                                 scope.launch(Dispatchers.IO) {
                                     syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
                                     snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.sync),
@@ -920,8 +934,11 @@ fun LocalPlaylistHeader(
 
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
-                            IconButton(
-                                onClick = onShowRemoveDownloadDialog
+                            Button(
+                                onClick = onShowRemoveDownloadDialog,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.offline),
@@ -931,7 +948,7 @@ fun LocalPlaylistHeader(
                         }
 
                         Download.STATE_DOWNLOADING -> {
-                            IconButton(
+                            Button(
                                 onClick = {
                                     songs.forEach { song ->
                                         DownloadService.sendRemoveDownload(
@@ -941,7 +958,10 @@ fun LocalPlaylistHeader(
                                             false
                                         )
                                     }
-                                }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
                             ) {
                                 CircularProgressIndicator(
                                     strokeWidth = 2.dp,
@@ -951,7 +971,7 @@ fun LocalPlaylistHeader(
                         }
 
                         else -> {
-                            IconButton(
+                            Button(
                                 onClick = {
                                     songs.forEach { song ->
                                         val downloadRequest = DownloadRequest.Builder(song.song.id, song.song.id.toUri())
@@ -965,7 +985,10 @@ fun LocalPlaylistHeader(
                                             false
                                         )
                                     }
-                                }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.download),
@@ -976,7 +999,6 @@ fun LocalPlaylistHeader(
                     }
                 }
             }
-        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(

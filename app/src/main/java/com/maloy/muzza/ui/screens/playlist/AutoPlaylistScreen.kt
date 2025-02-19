@@ -82,12 +82,14 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
@@ -133,6 +135,12 @@ fun AutoPlaylistScreen(
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
+
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
 
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -406,7 +414,7 @@ fun AutoPlaylistScreen(
                                                     }
                                                 }
                                             }
-                                            if (playlistType == PlaylistType.LIKE) {
+                                            if ( isLoggedIn && ytmSync && playlistType == PlaylistType.LIKE) {
                                                 Button(
                                                     onClick = {
                                                         viewModel.syncLikedSongs()

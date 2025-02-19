@@ -2,7 +2,6 @@ package com.maloy.muzza.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -33,7 +32,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -537,6 +535,10 @@ fun LocalPlaylistScreen(
                                     )
                                 } else {
                                     IconButton(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
                                         onClick = {
                                             menuState.show {
                                                 SongMenu(
@@ -699,6 +701,10 @@ fun LocalPlaylistScreen(
                         }
                     )
                     IconButton(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
@@ -872,10 +878,11 @@ fun LocalPlaylistHeader(
                 ) {
                     if (editable) {
                         Button(
-                            onClick = onShowDeletePlaylistDialog,
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = onShowDeletePlaylistDialog,
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.delete),
@@ -884,14 +891,15 @@ fun LocalPlaylistHeader(
                         }
                     } else {
                         Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
                             onClick = {
                                 database.transaction {
                                     update(playlist.playlist.toggleLike())
                                 }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
+                            }
                         ) {
                             val liked = playlist.playlist.bookmarkedAt != null
                             Icon(
@@ -902,10 +910,11 @@ fun LocalPlaylistHeader(
                         }
                     }
                     Button(
-                        onClick = onShowEditDialog,
                         modifier = Modifier
                             .weight(1f)
                             .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = onShowEditDialog
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.edit),
@@ -915,15 +924,16 @@ fun LocalPlaylistHeader(
 
                     if (playlist.playlist.browseId != null) {
                         Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
                             onClick = {
                                 scope.launch(Dispatchers.IO) {
                                     syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
                                     snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
                                 }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
+                            }
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.sync),
@@ -935,10 +945,11 @@ fun LocalPlaylistHeader(
                     when (downloadState) {
                         Download.STATE_COMPLETED -> {
                             Button(
-                                onClick = onShowRemoveDownloadDialog,
                                 modifier = Modifier
                                     .weight(1f)
                                     .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
+                                onClick = onShowRemoveDownloadDialog
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.offline),
@@ -949,6 +960,10 @@ fun LocalPlaylistHeader(
 
                         Download.STATE_DOWNLOADING -> {
                             Button(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
                                 onClick = {
                                     songs.forEach { song ->
                                         DownloadService.sendRemoveDownload(
@@ -958,10 +973,7 @@ fun LocalPlaylistHeader(
                                             false
                                         )
                                     }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(4.dp)
+                                }
                             ) {
                                 CircularProgressIndicator(
                                     strokeWidth = 2.dp,
@@ -972,6 +984,10 @@ fun LocalPlaylistHeader(
 
                         else -> {
                             Button(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
                                 onClick = {
                                     songs.forEach { song ->
                                         val downloadRequest = DownloadRequest.Builder(song.song.id, song.song.id.toUri())
@@ -985,10 +1001,7 @@ fun LocalPlaylistHeader(
                                             false
                                         )
                                     }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(4.dp)
+                                }
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.download),
@@ -1022,7 +1035,7 @@ fun LocalPlaylistHeader(
                 Text(stringResource(R.string.play))
             }
 
-            OutlinedButton(
+            Button(
                 onClick = {
                     playerConnection.playQueue(
                         ListQueue(

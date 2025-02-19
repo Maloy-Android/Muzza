@@ -34,7 +34,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -278,6 +277,7 @@ fun AlbumScreen(
                                             modifier = Modifier
                                                 .weight(1f)
                                                 .padding(4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.offline),
@@ -307,7 +307,7 @@ fun AlbumScreen(
                                     }
 
                                     else -> {
-                                        IconButton(
+                                        Button(
                                             onClick = {
                                                 albumWithSongs.songs.forEach { song ->
                                                     val downloadRequest = DownloadRequest.Builder(
@@ -338,7 +338,7 @@ fun AlbumScreen(
                                     }
                                 }
 
-                                IconButton(
+                                Button(
                                     onClick = {
                                         menuState.show {
                                             AlbumMenu(
@@ -387,14 +387,17 @@ fun AlbumScreen(
                             )
                         }
 
-                        OutlinedButton(
+                        Button(
                             onClick = {
                                 playerConnection.playQueue(
                                     LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled()))
                                 )
                             },
                             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.shuffle),
@@ -442,7 +445,11 @@ fun AlbumScreen(
                                             onDismiss = menuState::dismiss
                                         )
                                     }
-                                }
+                                },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(4.dp)
+                                    .clip(RoundedCornerShape(12.dp)),
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.more_vert),

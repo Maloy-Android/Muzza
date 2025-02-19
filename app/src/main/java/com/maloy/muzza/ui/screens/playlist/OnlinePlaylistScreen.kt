@@ -563,7 +563,11 @@ fun OnlinePlaylistScreen(
                                                     onDismiss = menuState::dismiss
                                                 )
                                             }
-                                        }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),

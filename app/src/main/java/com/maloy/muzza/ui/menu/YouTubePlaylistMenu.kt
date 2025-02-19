@@ -1,4 +1,3 @@
-@file:Suppress("UNUSED_EXPRESSION")
 
 package com.maloy.muzza.ui.menu
 
@@ -258,18 +257,6 @@ fun YouTubePlaylistMenu(
             }
             context.startActivity(Intent.createChooser(intent, null))
             onDismiss()
-        }
-        if (playlist.id == "LM") {
-            false
-        } else {
-            if (playlist.isEditable) {
-                GridMenuItem(
-                    icon = R.drawable.delete,
-                    title = R.string.delete
-                ) {
-                    showDeletePlaylistDialog = true
-                }
-            }
         }
     }
 }

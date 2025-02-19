@@ -355,6 +355,7 @@ fun AutoPlaylistScreen(
                                                         modifier = Modifier
                                                             .weight(1f)
                                                             .padding(4.dp)
+                                                            .clip(RoundedCornerShape(12.dp))
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.offline),
@@ -406,6 +407,7 @@ fun AutoPlaylistScreen(
                                                         modifier = Modifier
                                                             .weight(1f)
                                                             .padding(4.dp)
+                                                            .clip(RoundedCornerShape(12.dp))
                                                     ) {
                                                         Icon(
                                                             painter = painterResource(R.drawable.download),
@@ -422,6 +424,7 @@ fun AutoPlaylistScreen(
                                                     modifier = Modifier
                                                         .weight(1f)
                                                         .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.sync),
@@ -438,6 +441,7 @@ fun AutoPlaylistScreen(
                                                 modifier = Modifier
                                                     .weight(1f)
                                                     .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.queue_music),
@@ -467,7 +471,7 @@ fun AutoPlaylistScreen(
                                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                         Text(stringResource(R.string.play))
                                     }
-                                    OutlinedButton(
+                                    Button(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
@@ -559,7 +563,11 @@ fun AutoPlaylistScreen(
                                                     onDismiss = menuState::dismiss
                                                 )
                                             }
-                                        }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .padding(4.dp)
+                                            .clip(RoundedCornerShape(12.dp)),
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.more_vert),

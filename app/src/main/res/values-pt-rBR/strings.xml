@@ -290,7 +290,7 @@
     <string name="Donate">Doação</string>
     <string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o Muzza ❯</string>
     <string name="code">Source code</string>
-    string name="code_text">Acesse o código fonte do aplicativo ❯</string>
+    <string name="code_text">Acesse o código fonte do aplicativo ❯</string>
     <string name="bugs">Bugs</string>
     <string name="bugs_text">Bugs ou problemas? Relate-os aqui ❯</string>
     <string name="help">Ajuda</string>

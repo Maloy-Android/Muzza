@@ -155,7 +155,7 @@ fun AccountSettings(
             description = null,
             icon = { Icon(painterResource(R.drawable.download), null) },
             onClick = {
-                navController.navigate("settings/content/import_from_spotify")
+                navController.navigate("settings/import_from_spotify/ImportFromSpotify")
             }
         )
         PreferenceGroupTitle(

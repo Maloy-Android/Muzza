@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package com.maloy.muzza.ui.screens.settings.content.import_from_spotify
+package com.maloy.muzza.ui.screens.settings.import_from_spotify
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -80,7 +80,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.muzza.R
-import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model.Playlist
+import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.Playlist
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.ImportFromSpotifyViewModel
 

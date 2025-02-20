@@ -17,9 +17,9 @@ import com.maloy.muzza.models.SpotifyUserProfile
 import com.maloy.muzza.models.spotify.tracks.TrackItem
 import com.maloy.muzza.models.spotify.tracks.SpotifyResultPaginatedResponse
 import com.maloy.muzza.models.spotify.playlists.SpotifyPlaylistPaginatedResponse
-import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model.ImportFromSpotifyScreenState
-import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model.ImportProgressEvent
-import com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model.Playlist
+import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.ImportFromSpotifyScreenState
+import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.ImportProgressEvent
+import com.maloy.muzza.ui.screens.settings.import_from_spotify.model.Playlist
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import dagger.hilt.android.lifecycle.HiltViewModel

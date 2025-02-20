@@ -1,4 +1,4 @@
-package com.maloy.muzza.ui.screens.settings.content.import_from_spotify.model
+package com.maloy.muzza.ui.screens.settings.import_from_spotify.model
 
 import com.maloy.muzza.models.spotify.playlists.SpotifyPlaylistItem
 

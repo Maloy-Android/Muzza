@@ -1,6 +1,6 @@
 @file:Suppress("DEPRECATION")
 
-package com.maloy.muzza.ui.screens.settings.content
+package com.maloy.muzza.ui.screens.settings
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException

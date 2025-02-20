@@ -463,7 +463,26 @@ fun LocalPlaylistScreen(
             itemsIndexed(
                 items = if (isSearching) filteredSongs else mutableSongs, // mutableSongs has higher response when reordering
                 key = { _, song -> song.map.id }
-            ) { _, song ->
+            ) { index, song ->
+                if (index == 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                playlist!!.songCount,
+                                playlist!!.songCount
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
+                }
                 ReorderableItem(
                     state = reorderableState,
                     key = song.map.id
@@ -857,12 +876,6 @@ fun LocalPlaylistHeader(
                 )
 
                 Text(
-                    text = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Normal
-                )
-
-                Text(
                     text = makeTimeString(playlistLength * 1000L),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Normal
@@ -907,7 +920,8 @@ fun LocalPlaylistHeader(
                             ) {
                                 CircularProgressIndicator(
                                     strokeWidth = 2.dp,
-                                    modifier = Modifier.size(24.dp)
+                                    modifier = Modifier.size(24.dp),
+                                    color = MaterialTheme.colorScheme.surfaceContainer
                                 )
                             }
                         }

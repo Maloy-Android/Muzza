@@ -37,7 +37,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -309,14 +308,6 @@ fun OnlinePlaylistScreen(
                                             })
                                         }
 
-                                        playlist.songCountText?.let { songCountText ->
-                                            Text(
-                                                text = songCountText,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Normal
-                                            )
-                                        }
-
                                         Spacer(Modifier.height(12.dp))
 
                                         Row {
@@ -376,7 +367,7 @@ fun OnlinePlaylistScreen(
                                                                 .clip(RoundedCornerShape(12.dp))
                                                         ) {
                                                             Icon(
-                                                                Icons.Rounded.OfflinePin,
+                                                                painterResource(R.drawable.offline),
                                                                 contentDescription = null
                                                             )
                                                         }
@@ -401,7 +392,8 @@ fun OnlinePlaylistScreen(
                                                         ) {
                                                             CircularProgressIndicator(
                                                                 strokeWidth = 2.dp,
-                                                                modifier = Modifier.size(24.dp)
+                                                                modifier = Modifier.size(24.dp),
+                                                                color = MaterialTheme.colorScheme.surfaceContainer
                                                             )
                                                         }
                                                     }
@@ -441,7 +433,7 @@ fun OnlinePlaylistScreen(
                                                                 .clip(RoundedCornerShape(12.dp))
                                                         ) {
                                                             Icon(
-                                                                Icons.Rounded.Download,
+                                                                painterResource(R.drawable.download),
                                                                 contentDescription = null
                                                             )
                                                         }
@@ -510,7 +502,7 @@ fun OnlinePlaylistScreen(
                                     }
 
                                     playlist.radioEndpoint?.let { radioEndpoint ->
-                                        OutlinedButton(
+                                        Button(
                                             onClick = {
                                                 playerConnection.playQueue(YouTubeQueue(radioEndpoint))
                                             },
@@ -540,6 +532,23 @@ fun OnlinePlaylistScreen(
                                 selection.add(index)
                             } else {
                                 selection.remove(index)
+                            }
+                        }
+                        if (index == 0) {
+                            playlist.songCountText?.let { songCountText ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = songCountText,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Normal
+                                    )
+                                }
                             }
                         }
 

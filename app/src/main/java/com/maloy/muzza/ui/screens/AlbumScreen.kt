@@ -256,8 +256,7 @@ fun AlbumScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(if (albumWithSongs.album.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border),
-                                        contentDescription = null,
-                                        tint = if (albumWithSongs.album.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current
+                                        contentDescription = null
                                     )
                                 }
 
@@ -281,13 +280,13 @@ fun AlbumScreen(
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.offline),
-                                                contentDescription = null
+                                                contentDescription = null,
                                             )
                                         }
                                     }
 
                                     Download.STATE_DOWNLOADING -> {
-                                        IconButton(
+                                        Button(
                                             onClick = {
                                                 albumWithSongs.songs.forEach { song ->
                                                     DownloadService.sendRemoveDownload(
@@ -301,7 +300,8 @@ fun AlbumScreen(
                                         ) {
                                             CircularProgressIndicator(
                                                 strokeWidth = 2.dp,
-                                                modifier = Modifier.size(24.dp)
+                                                modifier = Modifier.size(24.dp),
+                                                color = MaterialTheme.colorScheme.surfaceContainer,
                                             )
                                         }
                                     }
@@ -329,6 +329,7 @@ fun AlbumScreen(
                                                 .weight(1f)
                                                 .padding(4.dp)
                                                 .clip(RoundedCornerShape(12.dp))
+                                                .background(MaterialTheme.colorScheme.background)
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.download),
@@ -394,10 +395,7 @@ fun AlbumScreen(
                                 )
                             },
                             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
+                            modifier = Modifier.weight(1f)
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.shuffle),
@@ -422,7 +420,25 @@ fun AlbumScreen(
                         selection.remove(index)
                     }
                 }
-
+                if (index == 0) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                albumWithSongs.songs.size,
+                                albumWithSongs.songs.size
+                            ),
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Normal
+                        )
+                    }
+                }
                 SongListItem(
                     song = song,
                     albumIndex = index + 1,

@@ -33,7 +33,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -328,15 +327,6 @@ fun AutoPlaylistScreen(
                                             fontSizeRange = FontSizeRange(16.sp, 22.sp)
                                         )
                                         Text(
-                                            text = pluralStringResource(
-                                                R.plurals.n_song,
-                                                songs!!.size,
-                                                songs!!.size
-                                            ),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Normal
-                                        )
-                                        Text(
                                             text = makeTimeString(likeLength * 1000L),
                                             style = MaterialTheme.typography.titleMedium,
                                             fontWeight = FontWeight.Normal
@@ -379,7 +369,8 @@ fun AutoPlaylistScreen(
                                                     ) {
                                                         CircularProgressIndicator(
                                                             strokeWidth = 2.dp,
-                                                            modifier = Modifier.size(24.dp)
+                                                            modifier = Modifier.size(24.dp),
+                                                            color = MaterialTheme.colorScheme.surfaceContainer
                                                         )
                                                     }
                                                 }
@@ -534,12 +525,31 @@ fun AutoPlaylistScreen(
                         items = filteredSongs,
                         key = { _, song -> song.id },
                         contentType = { _, _ -> CONTENT_TYPE_SONG }
-                    ) { _, songWrapper ->
+                    ) { index, songWrapper ->
                         val onCheckedChange: (Boolean) -> Unit = {
                             if (it) {
                                 selection.add(songWrapper.id)
                             } else {
                                 selection.remove(songWrapper.id)
+                            }
+                        }
+                        if (index == 0) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = pluralStringResource(
+                                        R.plurals.n_song,
+                                        songs!!.size,
+                                        songs!!.size
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Normal
+                                )
                             }
                         }
                         SongListItem(

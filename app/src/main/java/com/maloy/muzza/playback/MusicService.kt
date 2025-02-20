@@ -581,7 +581,7 @@ class MusicService : MediaLibraryService(),
         if (dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
-            currentQueue.hasNextPage()
+            currentQueue.hasNextPage() && player.currentMediaItemIndex < player.mediaItemCount - 1
         ) {
             scope.launch(SilentHandler) {
                 val mediaItems = currentQueue.nextPage().filterExplicit(dataStore.get(HideExplicitKey, false))

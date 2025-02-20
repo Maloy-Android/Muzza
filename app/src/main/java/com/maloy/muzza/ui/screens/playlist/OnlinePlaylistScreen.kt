@@ -160,7 +160,7 @@ fun OnlinePlaylistScreen(
             .mapIndexed { index, song -> index to song }
             .filter { (_, song) ->
                 song.title.contains(query.text, ignoreCase = true) ||
-                        song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) } || song.explicit
+                        song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
             }
     }
     val focusRequester = remember { FocusRequester() }
@@ -728,17 +728,17 @@ fun OnlinePlaylistScreen(
             actions = {
                 if (inSelectMode) {
                     Checkbox(
-                        checked = selection.size == filteredSongs.size,
+                        checked = selection.size == songs.size,
                         onCheckedChange = {
-                            if (selection.size == filteredSongs.size) {
+                            selection.clear()
+                            if (selection.size == songs.size) {
                                 selection.clear()
                             } else {
                                 selection.clear()
-                                filteredSongs.forEachIndexed { index, song ->
-                                    if (!(hideExplicit && song.second.explicit)) {
-                                        selection.add(index)
-                                    }
-                                }
+                                selection.addAll(songs.mapIndexedNotNull { index, song ->
+                                    if (hideExplicit && song.explicit) null
+                                    else index
+                                })
                             }
                         }
                     )

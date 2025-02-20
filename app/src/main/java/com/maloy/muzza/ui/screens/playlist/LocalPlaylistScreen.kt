@@ -464,7 +464,7 @@ fun LocalPlaylistScreen(
                 items = if (isSearching) filteredSongs else mutableSongs, // mutableSongs has higher response when reordering
                 key = { _, song -> song.map.id }
             ) { index, song ->
-                if (index == 0) {
+                if (index == 0 && !isSearching) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()

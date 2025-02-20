@@ -531,7 +531,7 @@ fun OnlinePlaylistScreen(
                                 selection.remove(index)
                             }
                         }
-                        if (index == 0) {
+                        if (index == 0 && !isSearching) {
                             playlist.songCountText?.let { songCountText ->
                                 Row(
                                     modifier = Modifier

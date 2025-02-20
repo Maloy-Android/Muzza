@@ -533,7 +533,7 @@ fun AutoPlaylistScreen(
                                 selection.remove(songWrapper.id)
                             }
                         }
-                        if (index == 0) {
+                        if (index == 0 && !isSearching) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()

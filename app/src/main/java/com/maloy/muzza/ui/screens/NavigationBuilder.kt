@@ -200,7 +200,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable("settings/content") {
         ContentSettings(navController, scrollBehavior)
     }
-    composable("settings/import_from_spotify") {
+    composable("settings/import_from_spotify/ImportFromSpotify") {
         ImportFromSpotifyScreen(navController, scrollBehavior)
     }
     composable("settings/player") {

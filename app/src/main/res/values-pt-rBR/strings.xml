@@ -189,6 +189,7 @@
     <string name="music_player">Reprodutor de Música</string>
     <!-- Notifications settings -->
     <string name="notifications">Notificações</string>
+    <string name="enable_notifications">Ativar as notificações</string>
     <string name="keep_alive_title">Impedir que o sistema mate o aplicativo</string>
     <string name="keep_alive_description">Use uma notificação em primeiro plano para evitar que o Muzza seja fechado aleatoriamente pelo sistema.</string>
     <string name="notifications_settings">Configurações de notificações</string>
@@ -209,7 +210,7 @@
     <string name="center">Centro</string>
     <string name="right">Direita</string>
     <string name="content">Conteúdo</string>
-    <string name="default_lib_chips">Chips padrão da biblioteca</string>
+    <string name="default_lib_chips">Lista padrão da biblioteca</string>
     <string name="login">Login</string>
     <string name="content_language">Idioma padrão do conteúdo</string>
     <string name="content_country">País padrão do conteúdo</string>
@@ -219,6 +220,7 @@
     <string name="proxy_url">URL da proxy</string>
     <string name="restart_to_take_effect">Reinicie para fazer efeito</string>
     <string name="player_and_audio">Reprodutor e áudio</string>
+    <string name="player_background_style">Estilo do plano de fundo</string>
     <string name="audio_quality">Qualidade do áudio</string>
     <string name="audio_quality_auto">Automática</string>
     <string name="audio_quality_high">Alta</string>
@@ -288,6 +290,7 @@
     <string name="Telegramchanel">Canal Oficial</string>
     <string name="telegram_info">Canal oficial com novas notícias e processo de desenvolvimento do Muzza ❯</string>
     <string name="Donate">Doação</string>
+    <string name="Hi">Olá novamente</string>
     <string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o Muzza ❯</string>
     <string name="code">Source code</string>
     string name="code_text">Acesse o código fonte do aplicativo ❯</string>
@@ -304,7 +307,7 @@
     <string name="thumbnail_corner_radius">Configurar o tamanho da miniatura</string>
     <string name="hide_explicit">Esconder conteúdo explícito</string>
     <string name="player_text_alignment">Alinhamento do texto do reprodutor</string>
-    <string name="player_slider_style">Estilo do slider do reprodutor</string>
+    <string name="player_slider_style">Estilo de slider do reprodutor</string>
     <string name="default_">Padrão</string>
     <string name="squiggly">Cobrinha</string>
     <string name="your_youtube_playlists">Suas playlists do YouTube</string>
@@ -349,7 +352,7 @@
     <string name="app_language">Idioma do aplicativo</string>
     <string name="configure_app_language">Configurar idiomas do aplicativo</string>
     <string name="intent_app_language_not_found">Não foi possível encontrar as configurações de idioma do aplicativo, configure-as manualmente</string>
-    <string name="history_duration">Duração da história</string>
+    <string name="history_duration">Duração do histórico</string>
      <string name="audio_offload">Habilitar descarregamento</string>
     <string name="audio_offload_description">Use o caminho de áudio offload para reprodução de áudio. Desabilitar isso pode aumentar o uso de energia, mas pode ser útil se você tiver problemas com reprodução de áudio ou pós-processamento</string>
     

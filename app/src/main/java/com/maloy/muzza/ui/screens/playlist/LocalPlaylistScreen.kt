@@ -1,3 +1,5 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
@@ -216,10 +218,10 @@ fun LocalPlaylistScreen(
     }
 
     val headerItems = 2
-    val lazyListState = rememberLazyListState()
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
+    val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             if (to.index >= headerItems && from.index >= headerItems) {
@@ -231,53 +233,63 @@ fun LocalPlaylistScreen(
                 }
                 mutableSongs.move(from.index - headerItems, to.index - headerItems)
             }
-        },
-        onDragEnd = { initialFromIndex, initialToIndex ->
-            if (initialFromIndex < 0 || initialToIndex < 0) {
-                return@rememberReorderableLazyListState
-            }
-            viewModel.viewModelScope.launch(Dispatchers.IO) {
-                val playlistSongMap = database.playlistSongMaps(viewModel.playlistId, 0)
+        }
+    )
 
-                var fromIndex = initialFromIndex - headerItems
-                val toIndex = initialToIndex - headerItems
+    LaunchedEffect(reorderableState) {
+            dragInfo?.let { (from, to) ->
+                database.transaction {
+                    move(viewModel.playlistId, from, to)
+                }
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    val from = from
+                    val to = to
+                    val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
 
-                var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
+                    var fromIndex = from //- headerItems
+                    val toIndex = to //- headerItems
 
-                /*
-                * Because of how YouTube Music handles playlist changes, you necessarily need to
-                * have the SetVideoId of the successor when trying to move a song inside of a
-                * playlist.
-                * For this reason, if we are trying to move a song to the last element of a playlist,
-                * we need to first move it as penultimate and then move the last element before it.
-                */
-                if (successorIndex >= playlistSongMap.size) {
+                    var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
+
+                    /*
+                        * Because of how YouTube Music handles playlist changes, you necessarily need to
+                        * have the SetVideoId of the successor when trying to move a song inside of a
+                        * playlist.
+                        * For this reason, if we are trying to move a song to the last element of a playlist,
+                        * we need to first move it as penultimate and then move the last element before it.
+                        */
+                    if (successorIndex >= playlistSongMap.size) {
+                        playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                            playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                                viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                                    YouTube.moveSongPlaylist(
+                                        browseId,
+                                        setVideoId,
+                                        successorSetVideoId
+                                    )
+                                }
+                            }
+                        }
+
+                        successorIndex = fromIndex
+                        fromIndex = toIndex
+                    }
+
                     playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                        playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                        playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
                             viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                                YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
+                                YouTube.moveSongPlaylist(
+                                    browseId,
+                                    setVideoId,
+                                    successorSetVideoId
+                                )
                             }
                         }
                     }
-
-                    successorIndex = fromIndex
-                    fromIndex = toIndex
                 }
-
-                playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                    playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
-                        viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                            YouTube.moveSongPlaylist(browseId, setVideoId, successorSetVideoId)
-                        }
-                    }
-                }
-
-                database.transaction {
-                    move(viewModel.playlistId, initialFromIndex - headerItems, initialToIndex - headerItems)
-                }
+                dragInfo = null
             }
-        }
-    )
+    }
 
     val showTopBarTitle by remember {
         derivedStateOf {

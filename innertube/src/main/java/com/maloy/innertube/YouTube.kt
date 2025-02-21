@@ -743,12 +743,9 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     suspend fun addToPlaylist(playlistId: String, videoId: String) = runCatching {
         innerTube.addToPlaylist(WEB_REMIX, playlistId, videoId).body<AddItemYouTubePlaylistResponse>()
     }
-    suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String?): Result<Any> = runCatching {
-        if (setVideoId != null) {
-            innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
-        }
+    suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String) = runCatching {
+        innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
     }
-
     @JvmInline
     value class SearchFilter(val value: String) {
         companion object {

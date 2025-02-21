@@ -124,6 +124,9 @@ interface DatabaseDao {
     @Query("DELETE FROM playlist WHERE browseId = :browseId")
     fun deletePlaylistById(browseId: String)
 
+    @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId AND position >= :from ORDER BY position")
+    fun songMapsToPlaylist(playlistId: String, from: Int): List<PlaylistSongMap>
+
     @Transaction
     @Query("SELECT song.* FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = :artistId AND inLibrary IS NOT NULL ORDER BY inLibrary")
     fun artistSongsByCreateDateAsc(artistId: String): Flow<List<Song>>
@@ -852,9 +855,6 @@ interface DatabaseDao {
 
     @Query("SELECT EXISTS(SELECT 1 FROM artist WHERE id = :artistId LIMIT 1)")
     suspend fun artistIdExists(artistId: String):Boolean
-
-    @Query("SELECT * FROM playlist_song_map WHERE playlistId = :playlistId AND position >= :from ORDER BY position")
-    fun playlistSongMaps(playlistId: String, from: Int): List<PlaylistSongMap>
 
     @RawQuery
     fun raw(supportSQLiteQuery: SupportSQLiteQuery): Int

@@ -98,6 +98,7 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.viewmodels.ArtistViewModel
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -481,6 +482,7 @@ fun ArtistScreen(
                                         name = it.title,
                                         channelId = it.channelId,
                                         thumbnailUrl = it.thumbnail,
+                                        bookmarkedAt = LocalDateTime.now()
                                     ).toggleLike()
                                 )
                             }

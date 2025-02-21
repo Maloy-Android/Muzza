@@ -28,6 +28,7 @@ import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
+import java.time.LocalDateTime
 
 @Composable
 fun YouTubeArtistMenu(
@@ -55,6 +56,7 @@ fun YouTubeArtistMenu(
                                     name = artist.title,
                                     channelId = artist.channelId,
                                     thumbnailUrl = artist.thumbnail,
+                                    bookmarkedAt = LocalDateTime.now()
                                 ).toggleLike()
                             )
                         }

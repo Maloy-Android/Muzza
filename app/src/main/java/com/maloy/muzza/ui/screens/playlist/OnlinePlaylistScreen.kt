@@ -79,7 +79,6 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.util.fastAny
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
@@ -154,13 +153,12 @@ fun OnlinePlaylistScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-    val filteredSongs = remember(songs, query) {
-        if (query.text.isEmpty()) songs.mapIndexed { index, song -> index to song }
-        else songs
-            .mapIndexed { index, song -> index to song }
+    val filteredSongs = remember(songs, query, hideExplicit) {
+        songs.mapIndexed { index, song -> index to song }
             .filter { (_, song) ->
-                song.title.contains(query.text, ignoreCase = true) ||
-                        song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }
+                (!hideExplicit || !song.explicit) && (query.text.isEmpty() ||
+                        song.title.contains(query.text, ignoreCase = true) ||
+                        song.artists.any { it.name.contains(query.text, ignoreCase = true) })
             }
     }
     val focusRequester = remember { FocusRequester() }
@@ -728,17 +726,16 @@ fun OnlinePlaylistScreen(
             actions = {
                 if (inSelectMode) {
                     Checkbox(
-                        checked = selection.size == songs.size,
+                        checked = selection.size == filteredSongs.size,
                         onCheckedChange = {
-                            selection.clear()
-                            if (selection.size == songs.size) {
+                            if (selection.size == filteredSongs.size) {
                                 selection.clear()
+                                if (selection.size == songs.size) {
+                                    selection.clear()
+                                }
                             } else {
                                 selection.clear()
-                                selection.addAll(songs.mapIndexedNotNull { index, song ->
-                                    if (hideExplicit && song.explicit) null
-                                    else index
-                                })
+                                selection.addAll(filteredSongs.map { it.first })
                             }
                         }
                     )

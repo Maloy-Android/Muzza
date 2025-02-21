@@ -116,6 +116,47 @@ fun LyricsMenu(
         )
     }
 
+    var showDeleteLyric by remember {
+        mutableStateOf(false)
+    }
+
+    if (showDeleteLyric) {
+        DefaultDialog(
+            onDismiss = { showDeleteLyric = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.delete_lyric_confirm, mediaMetadataProvider().title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showDeleteLyric = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showDeleteLyric = false
+                        onDismiss()
+
+                        lyricsProvider()?.let {
+                            database.query {
+                                delete(it)
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
     if (showSearchDialog) {
         DefaultDialog(
             modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -152,7 +193,12 @@ fun LyricsMenu(
 
                 TextButton(
                     onClick = {
-                        viewModel.search(searchMediaMetadata.id, titleField.text, artistField.text, searchMediaMetadata.duration)
+                        viewModel.search(
+                            searchMediaMetadata.id,
+                            titleField.text,
+                            artistField.text,
+                            searchMediaMetadata.duration
+                        )
                         showSearchResultDialog = true
                     }
                 ) {
@@ -304,6 +350,15 @@ fun LyricsMenu(
             title = R.string.search,
         ) {
             showSearchDialog = true
+        }
+        if (lyricsProvider() != null) {
+            // TODO: hide this for when lrc exists and lyrics is not in the database
+            GridMenuItem(
+                icon = R.drawable.delete,
+                title = R.string.delete,
+            ) {
+                showDeleteLyric = true
+            }
         }
     }
 }

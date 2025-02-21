@@ -141,6 +141,7 @@
 
     <string name="edit_lyrics">Редактировать текст песни</string>
     <string name="search_lyrics">Поиск текста песни</string>
+    <string name="delete_lyric_confirm">Вы действительно хотите удалить сохраненные тексты песен для \"%s\"?</string>
 
     <string name="edit_song">Редактировать композицию</string>
     <string name="song_title">Название композиции</string>

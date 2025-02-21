@@ -139,6 +139,7 @@
 
     <string name="edit_lyrics">Edit lyrics</string>
     <string name="search_lyrics">Search lyrics</string>
+    <string name="delete_lyric_confirm">Do you really want to delete the stored lyrics for \"%s\"?</string>
 
     <string name="edit_song">Edit song</string>
     <string name="song_title">Song title</string>

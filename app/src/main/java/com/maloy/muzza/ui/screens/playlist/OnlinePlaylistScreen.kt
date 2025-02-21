@@ -343,8 +343,7 @@ fun OnlinePlaylistScreen(
                                                             painter = painterResource(
                                                                 if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
                                                             ),
-                                                            contentDescription = null,
-                                                            tint = if (dbPlaylist?.playlist?.bookmarkedAt != null) MaterialTheme.colorScheme.error else LocalContentColor.current
+                                                            contentDescription = null
                                                         )
                                                 }
                                             }

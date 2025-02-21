@@ -461,7 +461,7 @@ fun ContributionCard(uriHandler: UriHandler) {
             .fillMaxWidth()
             .height(140.dp)
             .padding(horizontal = 16.dp)
-            .clickable { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/new/dev") }
+            .clickable { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/pulls") }
             .shadow(elevation = 8.dp, shape = RoundedCornerShape(20.dp)),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),

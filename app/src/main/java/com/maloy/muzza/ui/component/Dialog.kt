@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,6 +26,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -33,8 +36,10 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -148,89 +153,6 @@ fun ListDialog(
     }
 }
 
-/**
- * Dialog for user interaction
- *
- * @param title Title of prompt
- * @param titleBar Title of prompt. Specifying this will override title
- * @param onDismiss
- * @param onConfirm
- * @param onReset
- * @param onCancel
- * @param content
- */
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ActionPromptDialog(
-    title: String? = null,
-    titleBar: @Composable (RowScope.() -> Unit)? = null,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit,
-    onReset: (() -> Unit)? = null,
-    onCancel: (() -> Unit)? = null,
-    content: @Composable ColumnScope.() -> Unit = {}
-) = BasicAlertDialog(
-    onDismissRequest = { onDismiss() },
-    content = {
-        Column(
-            modifier = Modifier
-                .background(
-                    MaterialTheme.colorScheme.background,
-                    RoundedCornerShape(DialogCornerRadius)
-                )
-                .fillMaxWidth(0.8f)
-                .padding(16.dp)
-        ) {
-            Column(modifier = Modifier.padding(12.dp)) {
-                // title
-                if (titleBar != null) {
-                    Row {
-                        titleBar()
-                    }
-                } else if (title != null) {
-                    Text(
-                        text = title,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        style = MaterialTheme.typography.titleLarge,
-                    )
-                }
-
-                content() // body
-            }
-
-            // bottom options
-            // always have an ok, but explicit cancel/reset is optional
-            Row(
-                horizontalArrangement = Arrangement.End,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                if (onReset != null)
-                    Row(modifier = Modifier.weight(1f)) {
-                        TextButton(
-                            onClick = { onReset() },
-                        ) {
-                            Text(stringResource(R.string.reset))
-                        }
-                    }
-
-                TextButton(
-                    onClick = { onConfirm() }
-                ) {
-                    Text(stringResource(android.R.string.ok))
-                }
-
-                if (onCancel != null)
-                    TextButton(
-                        onClick = { onCancel() }
-                    ) {
-                        Text(stringResource(android.R.string.cancel))
-                    }
-            }
-        }
-    }
-)
-
 @Composable
 fun InfoLabel(
     text: String
@@ -320,3 +242,98 @@ fun TextFieldDialog(
         extraContent?.invoke()
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun CounterDialog(
+    title: String,
+    description: String? = null,
+    initialValue: Int,
+    upperBound: Int = 100,
+    lowerBound: Int = 0,
+    unitDisplay: String = "",
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit,
+    onReset: (() -> Unit)? = null,
+    onCancel: (() -> Unit)? = null,
+) = BasicAlertDialog(
+    onDismissRequest = { onDismiss() },
+    content = {
+        val tempValue = rememberSaveable {
+            mutableIntStateOf(initialValue)
+        }
+        Column(
+            modifier = Modifier
+                .background(
+                    MaterialTheme.colorScheme.background,
+                    RoundedCornerShape(DialogCornerRadius)
+                )
+                .fillMaxWidth(0.8f)
+                .padding(16.dp)
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = title,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    style = MaterialTheme.typography.titleLarge,
+                )
+                if (description != null) {
+                    Text(
+                        text = description,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "${tempValue.intValue}$unitDisplay",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(horizontal = 8.dp)
+                    )
+                    Slider(
+                        value = tempValue.intValue.toFloat(),
+                        onValueChange = { tempValue.intValue = it.toInt() },
+                        valueRange = lowerBound.toFloat()..upperBound.toFloat(),
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
+                        }
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    if (onReset != null)
+                        Row(modifier = Modifier.weight(1f)) {
+                            TextButton(
+                                onClick = { onReset() },
+                            ) {
+                                Text(stringResource(R.string.reset))
+                            }
+                        }
+
+                    TextButton(
+                        onClick = { onConfirm(tempValue.intValue) }
+                    ) {
+                        Text(stringResource(android.R.string.ok))
+                    }
+
+                    if (onCancel != null)
+                        TextButton(
+                            onClick = { onCancel() }
+                        ) {
+                            Text(stringResource(android.R.string.cancel))
+                        }
+                }
+            }
+        }
+    }
+)

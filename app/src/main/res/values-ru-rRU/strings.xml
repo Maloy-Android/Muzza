@@ -431,6 +431,7 @@
     <string name="lyrics_multiline_title">Многострочные тексты песен</string>
     <string name="lyrics_multiline_description">Рассматривать все строки между точками синхронизации как один лирический текст</string>
     <string name="lyrics_trim_title">Убрать пробелы вокруг текста песни</string>
+    <string name="lyrics_font_size">Размер шрифта текста</string>
     <string name="hide_explicit">Скрывать контент с нецензурной лексикой</string>
     <string name="enable_notifications">Включить уведомления</string>
 

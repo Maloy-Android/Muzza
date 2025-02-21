@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkModeKey
+import com.maloy.muzza.constants.LyricFontSizeKey
 import com.maloy.muzza.constants.LyricTrimKey
 import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.MultilineLrcKey
@@ -86,6 +87,8 @@ fun Lyrics(
     val density = LocalDensity.current
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val landscapeOffset = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
+    val lyricsFontSize by rememberPreference(LyricFontSizeKey, 20)
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
 
@@ -256,7 +259,7 @@ fun Lyrics(
                 ) { index, item ->
                     Text(
                         text = item.text,
-                        fontSize = 20.sp,
+                        fontSize = lyricsFontSize.sp,
                         color = textColor,
                         textAlign = when (lyricsTextPosition) {
                             LyricsPosition.LEFT -> TextAlign.Left

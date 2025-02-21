@@ -34,7 +34,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -64,7 +63,7 @@ import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
-import com.maloy.muzza.ui.component.ActionPromptDialog
+import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
@@ -111,9 +110,6 @@ fun AppearanceSettings(
     var showCornerRadiusDialog by remember {
         mutableStateOf(false)
     }
-    var thumbnailCornerRadiusDialog by remember {
-        mutableIntStateOf(thumbnailCornerRadius)
-    }
 
     Column(
         modifier = Modifier
@@ -122,41 +118,22 @@ fun AppearanceSettings(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         if (showCornerRadiusDialog) {
-            ActionPromptDialog(
+            CounterDialog(
                 title = stringResource(R.string.thumbnail_corner_radius),
                 onDismiss = { showCornerRadiusDialog = false },
+                initialValue = thumbnailCornerRadius,
+                upperBound = 10,
+                lowerBound = 0,
+                unitDisplay = "%",
                 onConfirm = {
                     showCornerRadiusDialog = false
-                    onThumbnailCornerRadius(thumbnailCornerRadiusDialog)
+                    onThumbnailCornerRadius(it)
                 },
                 onCancel = {
                     showCornerRadiusDialog = false
-                    thumbnailCornerRadiusDialog = thumbnailCornerRadius
-                }
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = thumbnailCornerRadiusDialog.toString(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        modifier = Modifier.padding(horizontal = 8.dp)
-                    )
-                    Slider(
-                        value = thumbnailCornerRadiusDialog.toFloat(),
-                        onValueChange = { thumbnailCornerRadiusDialog = it.toInt() },
-                        valueRange = 0f..10f,
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
-                            )
-                        }
-                    )
-                }
-            }
+                },
+                onReset = { onThumbnailCornerRadius(6) },
+            )
         }
     }
 

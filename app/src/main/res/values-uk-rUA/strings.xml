@@ -428,6 +428,7 @@
     <string name="lyrics_multiline_title">Багаторядкові тексти пісень</string>
     <string name="lyrics_multiline_description">Розглядати всі рядки між точками синхронізації як один ліричний текст</string>
     <string name="lyrics_trim_title">Прибрати прогалини навколо тексту пісні</string>
+    <string name="lyrics_font_size">Розмір шрифту тексту</string>
     <string name="hide_explicit">Приховувати контент із нецензурною лексикою</string>
     <string name="enable_notifications">Включити повідомлення</string>
 

@@ -1,13 +1,9 @@
 package com.maloy.muzza.ui.screens.settings
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -18,23 +14,17 @@ import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
-import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
@@ -48,10 +38,9 @@ import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.minPlaybackDurKey
-import com.maloy.muzza.ui.component.ActionPromptDialog
+import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
@@ -78,51 +67,24 @@ fun PlayerSettings(
     var showMinPlaybackDur by remember {
         mutableStateOf(false)
     }
-    var tempminPlaybackDur by remember {
-        mutableIntStateOf(minPlaybackDur)
-    }
 
     if (showMinPlaybackDur) {
-        ActionPromptDialog(
+        CounterDialog(
             title = stringResource(R.string.minimum_playback_duration),
+            description = stringResource(R.string.minimum_playback_duration_info),
+            initialValue = minPlaybackDur,
+            upperBound = 100,
+            lowerBound = 0,
+            unitDisplay = "%",
             onDismiss = { showMinPlaybackDur = false },
             onConfirm = {
                 showMinPlaybackDur = false
-                onMinPlaybackDurChange(tempminPlaybackDur)
+                onMinPlaybackDurChange(it)
             },
             onCancel = {
                 showMinPlaybackDur = false
-                tempminPlaybackDur = minPlaybackDur
             }
-        ) {
-            Text(
-                text = stringResource(R.string.minimum_playback_duration_info),
-                style = MaterialTheme.typography.bodySmall,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    text = "${tempminPlaybackDur}%",
-                    style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(horizontal = 8.dp)
-                )
-                Slider(
-                    value = tempminPlaybackDur.toFloat(),
-                    onValueChange = { tempminPlaybackDur = it.toInt() },
-                    valueRange = 0f..100f,
-                    thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                    track = { sliderState ->
-                        PlayerSliderTrack(
-                            sliderState = sliderState,
-                            colors = SliderDefaults.colors()
-                        )
-                    },
-                )
-            }
-        }
+        )
     }
 
     Column(

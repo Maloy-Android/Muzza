@@ -2,6 +2,7 @@
 
 package com.maloy.muzza.ui.screens.playlist
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -32,7 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -139,6 +139,7 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 
+@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistScreen(
@@ -151,6 +152,7 @@ fun LocalPlaylistScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val scope = rememberCoroutineScope()
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -235,8 +237,6 @@ fun LocalPlaylistScreen(
             }
         }
     )
-
-    LaunchedEffect(reorderableState) {
             dragInfo?.let { (from, to) ->
                 database.transaction {
                     move(viewModel.playlistId, from, to)
@@ -289,7 +289,6 @@ fun LocalPlaylistScreen(
                 }
                 dragInfo = null
             }
-    }
 
     val showTopBarTitle by remember {
         derivedStateOf {
@@ -387,7 +386,7 @@ fun LocalPlaylistScreen(
                             playlist?.let { delete(it.playlist) }
                         }
 
-                        viewModel.viewModelScope.launch(Dispatchers.IO) {
+                        scope.launch(Dispatchers.IO) {
                             playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
                         }
 
@@ -1007,8 +1006,7 @@ fun LocalPlaylistHeader(
                             val liked = playlist.playlist.bookmarkedAt != null
                             Icon(
                                 painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
-                                contentDescription = null,
-                                tint = if (liked) MaterialTheme.colorScheme.error else LocalContentColor.current
+                                contentDescription = null
                             )
                         }
                     }

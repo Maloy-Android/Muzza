@@ -70,14 +70,13 @@ fun LyricsSettings(
             initialValue = lyricFontSize,
             upperBound = 28,
             lowerBound = 10,
-            unitDisplay = " pt",
             onDismiss = { showFontSizeDialog = false },
             onConfirm = {
                 onLyricFontSizeChange(it)
                 showFontSizeDialog = false
             },
+            onCancel = { showFontSizeDialog = false },
             onReset = { onLyricFontSizeChange(20) },
-            onCancel = { showFontSizeDialog = false }
         )
     }
     Column(

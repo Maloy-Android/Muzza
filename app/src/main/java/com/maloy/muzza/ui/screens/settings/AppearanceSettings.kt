@@ -124,7 +124,7 @@ fun AppearanceSettings(
                 initialValue = thumbnailCornerRadius,
                 upperBound = 10,
                 lowerBound = 0,
-                unitDisplay = "%",
+                unitDisplay = "0%",
                 onConfirm = {
                     showCornerRadiusDialog = false
                     onThumbnailCornerRadius(it)

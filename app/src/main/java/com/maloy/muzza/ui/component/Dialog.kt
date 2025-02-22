@@ -311,7 +311,7 @@ fun CounterDialog(
                     horizontalArrangement = Arrangement.End,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    if (onReset != null)
+                    if (onReset != null) {
                         Row(modifier = Modifier.weight(1f)) {
                             TextButton(
                                 onClick = { onReset() },
@@ -320,10 +320,11 @@ fun CounterDialog(
                             }
                         }
 
-                    TextButton(
-                        onClick = { onConfirm(tempValue.intValue) }
-                    ) {
-                        Text(stringResource(android.R.string.ok))
+                        TextButton(
+                            onClick = { onConfirm(tempValue.intValue) }
+                        ) {
+                            Text(stringResource(android.R.string.ok))
+                        }
                     }
 
                     if (onCancel != null)

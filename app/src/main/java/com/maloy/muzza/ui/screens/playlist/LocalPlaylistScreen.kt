@@ -386,10 +386,6 @@ fun LocalPlaylistScreen(
                             playlist?.let { delete(it.playlist) }
                         }
 
-                        scope.launch(Dispatchers.IO) {
-                            playlist?.playlist?.browseId?.let { YouTube.deletePlaylist(it) }
-                        }
-
                         navController.popBackStack()
                     }
                 ) {

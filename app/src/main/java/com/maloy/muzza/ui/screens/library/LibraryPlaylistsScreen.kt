@@ -155,7 +155,7 @@ fun LibraryPlaylistsScreen(
             onDone = { playlistName ->
                 viewModel.viewModelScope.launch(Dispatchers.IO) {
                     val browseId = if (syncedPlaylist)
-                        YouTube.createPlaylist(playlistName).getOrNull()
+                        YouTube.createPlaylist(playlistName)
                     else null
 
                     database.query {

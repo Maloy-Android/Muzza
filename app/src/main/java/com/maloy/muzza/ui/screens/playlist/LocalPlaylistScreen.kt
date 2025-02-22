@@ -152,7 +152,6 @@ fun LocalPlaylistScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val scope = rememberCoroutineScope()
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -355,46 +354,6 @@ fun LocalPlaylistScreen(
         )
     }
 
-
-    var showDeletePlaylistDialog by remember {
-        mutableStateOf(false)
-    }
-
-    if (showDeletePlaylistDialog) {
-        DefaultDialog(
-            onDismiss = { showDeletePlaylistDialog = false },
-            content = {
-                Text(
-                    text = stringResource(R.string.delete_playlist_confirm, playlist?.playlist!!.name),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = {
-                        showDeletePlaylistDialog = false
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showDeletePlaylistDialog = false
-                        database.query {
-                            playlist?.let { delete(it.playlist) }
-                        }
-
-                        navController.popBackStack()
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            }
-        )
-    }
-
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -419,7 +378,6 @@ fun LocalPlaylistScreen(
                                 playlist = playlist,
                                 songs = songs,
                                 onShowEditDialog = { showEditDialog = true },
-                                onShowDeletePlaylistDialog = { showDeletePlaylistDialog = true},
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 snackbarHostState = snackbarHostState,
                                 modifier = Modifier.animateItem()
@@ -792,7 +750,6 @@ fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
     onShowEditDialog: () -> Unit,
-    onShowDeletePlaylistDialog: () -> Unit ,
     onShowRemoveDownloadDialog: () -> Unit,
     snackbarHostState: SnackbarHostState,
     modifier: Modifier,
@@ -973,17 +930,20 @@ fun LocalPlaylistHeader(
                             contentDescription = null
                         )
                     }
-
                     if (editable) {
                         Button(
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(4.dp)
                                 .clip(RoundedCornerShape(12.dp)),
-                            onClick = onShowDeletePlaylistDialog,
+                            onClick = {
+                                playerConnection.addToQueue(
+                                    items = songs.map { it.song.toMediaItem() },
+                                )
+                            }
                         ) {
                             Icon(
-                                painter = painterResource(R.drawable.delete),
+                                painter = painterResource(R.drawable.queue_music),
                                 contentDescription = null,
                             )
                         }

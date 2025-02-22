@@ -85,6 +85,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Album
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
@@ -340,16 +341,9 @@ fun AlbumScreen(
 
                                 Button(
                                     onClick = {
-                                        menuState.show {
-                                            AlbumMenu(
-                                                originalAlbum = Album(
-                                                    albumWithSongs.album,
-                                                    albumWithSongs.artists
-                                                ),
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
+                                        playerConnection.addToQueue(
+                                            items = albumWithSongs.songs.map { it.toMediaItem() }
+                                        )
                                     },
                                     modifier = Modifier
                                         .weight(1f)
@@ -357,7 +351,7 @@ fun AlbumScreen(
                                         .clip(RoundedCornerShape(12.dp))
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.more_vert),
+                                        painter = painterResource(R.drawable.queue_music),
                                         contentDescription = null
                                     )
                                 }
@@ -633,6 +627,27 @@ fun AlbumScreen(
                 ) {
                     Icon(
                         painterResource(R.drawable.more_vert),
+                        contentDescription = null
+                    )
+                }
+            }
+            if (!inSelectMode) {
+                IconButton(
+                    onClick = {
+                        menuState.show {
+                            AlbumMenu(
+                                originalAlbum = Album(
+                                    albumWithSongs!!.album,
+                                    albumWithSongs!!.artists
+                                ),
+                                navController = navController,
+                                onDismiss = menuState::dismiss
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.more_vert),
                         contentDescription = null
                     )
                 }

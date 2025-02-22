@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.playlist
 
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -32,7 +33,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -454,14 +454,12 @@ fun OnlinePlaylistScreen(
 
                                             Button(
                                                 onClick = {
-                                                    menuState.show {
-                                                        YouTubePlaylistMenu(
-                                                            playlist = playlist,
-                                                            songs = songs,
-                                                            coroutineScope = coroutineScope,
-                                                            onDismiss = menuState::dismiss
-                                                        )
+                                                    val intent = Intent().apply {
+                                                        action = Intent.ACTION_SEND
+                                                        type = "text/plain"
+                                                        putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
                                                     }
+                                                    context.startActivity(Intent.createChooser(intent, null))
                                                 },
                                                 modifier = Modifier
                                                     .weight(1f)
@@ -469,7 +467,7 @@ fun OnlinePlaylistScreen(
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.more_vert),
+                                                    painter = painterResource(R.drawable.share),
                                                     contentDescription = null
                                                 )
                                             }
@@ -765,6 +763,25 @@ fun OnlinePlaylistScreen(
                         )
                     }
                 }
+                if (!isSearching && !inSelectMode) {
+                    IconButton(
+                        onClick = {
+                            menuState.show {
+                                YouTubePlaylistMenu(
+                                    playlist = playlist!!,
+                                    songs = songs,
+                                    coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
+                        }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
+                                contentDescription = null
+                            )
+                        }
+                    }
             },
             scrollBehavior = scrollBehavior
         )

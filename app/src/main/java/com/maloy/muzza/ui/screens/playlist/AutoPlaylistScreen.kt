@@ -50,6 +50,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -114,6 +115,7 @@ import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -129,6 +131,7 @@ fun AutoPlaylistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val scope = rememberCoroutineScope()
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
@@ -410,7 +413,14 @@ fun AutoPlaylistScreen(
                                             if ( isLoggedIn && ytmSync && playlistType == PlaylistType.LIKE) {
                                                 Button(
                                                     onClick = {
-                                                        viewModel.syncLikedSongs()
+                                                        scope.launch(Dispatchers.IO) {
+                                                            viewModel.syncLikedSongs()
+                                                            snackbarHostState.showSnackbar(
+                                                                context.getString(
+                                                                    R.string.playlist_synced
+                                                                )
+                                                            )
+                                                        }
                                                     },
                                                     modifier = Modifier
                                                         .weight(1f)

@@ -147,17 +147,17 @@ fun AccountSettings(
                 isEnabled = true
             )
         }
-        PreferenceGroupTitle(
-            title = stringResource(R.string.title_spotify)
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.import_from_spotify)) },
-            description = null,
-            icon = { Icon(painterResource(R.drawable.download), null) },
-            onClick = {
-                navController.navigate("settings/import_from_spotify/ImportFromSpotify")
-            }
-        )
+        //PreferenceGroupTitle(
+        //    title = stringResource(R.string.title_spotify)
+        //)
+        //PreferenceEntry(
+        //    title = { Text(stringResource(R.string.import_from_spotify)) },
+        //   description = null,
+        //    icon = { Icon(painterResource(R.drawable.download), null) },
+        //    onClick = {
+        //        navController.navigate("settings/import_from_spotify/ImportFromSpotify")
+        //    }
+        //)
         PreferenceGroupTitle(
             title = stringResource(R.string.title_discord)
         )

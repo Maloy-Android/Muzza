@@ -83,7 +83,8 @@ fun PlayerSettings(
             },
             onCancel = {
                 showMinPlaybackDur = false
-            }
+            },
+            onReset = { onMinPlaybackDurChange(30) },
         )
     }
 
@@ -122,6 +123,7 @@ fun PlayerSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.minimum_playback_duration)) },
+            description = "$minPlaybackDur %",
             icon = { Icon(Icons.Rounded.Sync, null) },
             onClick = { showMinPlaybackDur = true }
         )

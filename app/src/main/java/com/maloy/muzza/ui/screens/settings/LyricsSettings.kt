@@ -70,6 +70,7 @@ fun LyricsSettings(
             initialValue = lyricFontSize,
             upperBound = 28,
             lowerBound = 10,
+            unitDisplay = " sp",
             onDismiss = { showFontSizeDialog = false },
             onConfirm = {
                 onLyricFontSizeChange(it)

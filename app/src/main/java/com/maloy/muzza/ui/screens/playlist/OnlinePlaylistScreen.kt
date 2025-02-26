@@ -526,8 +526,7 @@ fun OnlinePlaylistScreen(
                                 selection.remove(index)
                             }
                         }
-                        if (index == 0 && !isSearching) {
-                            playlist.songCountText?.let { songCountText ->
+                        if (index == 0) {
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -536,13 +535,16 @@ fun OnlinePlaylistScreen(
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
                                     Text(
-                                        text = songCountText,
+                                        text = pluralStringResource(
+                                            R.plurals.n_song,
+                                            filteredSongs.size,
+                                            filteredSongs.size
+                                        ),
                                         style = MaterialTheme.typography.bodyMedium,
                                         fontWeight = FontWeight.Normal
                                     )
                                 }
                             }
-                        }
 
                         YouTubeListItem(
                             item = song,

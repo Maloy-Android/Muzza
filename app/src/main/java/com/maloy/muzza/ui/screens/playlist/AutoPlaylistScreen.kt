@@ -543,7 +543,7 @@ fun AutoPlaylistScreen(
                                 selection.remove(songWrapper.id)
                             }
                         }
-                        if (index == 0 && !isSearching) {
+                        if (index == 0) {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -554,8 +554,8 @@ fun AutoPlaylistScreen(
                                 Text(
                                     text = pluralStringResource(
                                         R.plurals.n_song,
-                                        songs!!.size,
-                                        songs!!.size
+                                        filteredSongs.size,
+                                        filteredSongs.size
                                     ),
                                     style = MaterialTheme.typography.bodyMedium,
                                     fontWeight = FontWeight.Normal

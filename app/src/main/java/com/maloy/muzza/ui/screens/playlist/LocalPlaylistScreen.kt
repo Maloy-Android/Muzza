@@ -681,10 +681,6 @@ fun LocalPlaylistScreen(
                         }
                     )
                     IconButton(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {

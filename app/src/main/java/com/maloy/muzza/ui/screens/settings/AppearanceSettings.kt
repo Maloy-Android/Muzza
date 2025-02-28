@@ -333,7 +333,7 @@ fun AppearanceSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.thumbnail_corner_radius)) },
-            description = "$thumbnailCornerRadius 0%",
+            description = "$thumbnailCornerRadius" + "0%",
             icon = { Icon(Icons.Rounded.Image, null) },
             onClick = { showCornerRadiusDialog = true }
         )

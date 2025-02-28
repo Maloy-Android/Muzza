@@ -457,6 +457,8 @@
     <string name="app_version">Версия приложения</string>
 
     <string name="new_version_available">Доступна новая версия</string>
+    <string name="translation_models">Модели перевода</string>
+    <string name="clear_translation_models">Очистить модели перевода</string>
     <string name="history_duration">Продолжительность истории</string>
     <plurals name="seconds" tools:ignore="MissingQuantity">
         <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>

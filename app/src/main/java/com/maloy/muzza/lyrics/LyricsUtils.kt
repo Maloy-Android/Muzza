@@ -120,4 +120,10 @@ object LyricsUtils {
         }
         return lines.lastIndex
     }
+    private fun parseLine(line: String): List<LyricsEntry>? {
+        if (line.isEmpty()) {
+            return null
+        }
+        return TODO("Provide the return value")
+    }
 }

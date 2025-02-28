@@ -311,6 +311,8 @@
     <string name="login_failed">فشل تسجيل الدخول</string>
     <string name="about">حول</string>
     <string name="app_version">نسخة التطبيق</string>
+    <string name="translation_models">نماذج الترجمة</string>
     <string name="logout">تسجيل الخروج</string>
+    <string name="clear_translation_models">مسح نماذج الترجمة</string>
     <string name="disable_screenshot_desc">عند تفعيل هذا الخيار، يتم تعطيل اخذ لقطات للشاشة وعدم اظهار محتوى التطبيق في التطبيقات الأخيرة.</string>
 </resources>

@@ -1,5 +1,6 @@
 package com.maloy.muzza.playback
 
+import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -9,24 +10,31 @@ import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
+import com.maloy.muzza.constants.TranslateLyricsKey
 import com.maloy.muzza.db.MusicDatabase
+import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.extensions.currentMetadata
 import com.maloy.muzza.extensions.getCurrentQueueIndex
 import com.maloy.muzza.extensions.getQueueWindows
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.playback.MusicService.MusicBinder
 import com.maloy.muzza.playback.queues.Queue
+import com.maloy.muzza.utils.TranslationHelper
+import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
+    context: Context,
     binder: MusicBinder,
     val database: MusicDatabase,
     scope: CoroutineScope,
@@ -43,9 +51,26 @@ class PlayerConnection(
     val currentSong = mediaMetadata.flatMapLatest {
         database.song(it?.id)
     }
-    val currentLyrics = mediaMetadata.flatMapLatest { mediaMetadata ->
-        database.lyrics(mediaMetadata?.id)
-    }
+    internal val translating = MutableStateFlow(false)
+    val currentLyrics = combine(
+        context.dataStore.data.map {
+            it[TranslateLyricsKey] ?: false
+        }.distinctUntilChanged(),
+        mediaMetadata.flatMapLatest { mediaMetadata ->
+            database.lyrics(mediaMetadata?.id)
+        }
+    ) { translateEnabled, lyrics ->
+        if (!translateEnabled || lyrics == null || lyrics.lyrics == LYRICS_NOT_FOUND) return@combine lyrics
+        translating.value = true
+        try {
+            TranslationHelper.translate(lyrics)
+        } catch (e: Exception) {
+            reportException(e)
+            lyrics
+        }.also {
+            translating.value = false
+        }
+    }.stateIn(scope, SharingStarted.Lazily, null)
     val currentFormat = mediaMetadata.flatMapLatest { mediaMetadata ->
         database.format(mediaMetadata?.id)
     }

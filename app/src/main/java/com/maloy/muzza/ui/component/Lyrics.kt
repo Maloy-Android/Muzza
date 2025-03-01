@@ -330,7 +330,7 @@ fun Lyrics(
                         Icon(
                             painter = painterResource(id = R.drawable.translate),
                             contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = if (translationEnabled) 1f else 0.3f)
+                            tint = textColor.copy(alpha = if (translationEnabled) 1f else 0.3f)
                         )
                     }
                 }

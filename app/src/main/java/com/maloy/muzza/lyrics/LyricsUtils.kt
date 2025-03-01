@@ -1,3 +1,5 @@
+@file:Suppress("UNREACHABLE_CODE")
+
 package com.maloy.muzza.lyrics
 
 import com.maloy.muzza.ui.component.animateScrollDuration
@@ -120,6 +122,12 @@ object LyricsUtils {
         }
         return lines.lastIndex
     }
+    fun parseLyrics(lyrics: String): List<LyricsEntry> =
+        lyrics.lines()
+            .flatMap { line ->
+                parseLine(line).orEmpty()
+            }.sorted()
+
     private fun parseLine(line: String): List<LyricsEntry>? {
         if (line.isEmpty()) {
             return null

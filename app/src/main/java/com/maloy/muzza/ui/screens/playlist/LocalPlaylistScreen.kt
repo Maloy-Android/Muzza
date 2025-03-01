@@ -429,7 +429,7 @@ fun LocalPlaylistScreen(
                 items = if (isSearching) filteredSongs else mutableSongs, // mutableSongs has higher response when reordering
                 key = { _, song -> song.map.id }
             ) { index, song ->
-                if (index == 0 && !isSearching) {
+                if (index == 0) {
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -440,8 +440,8 @@ fun LocalPlaylistScreen(
                         Text(
                             text = pluralStringResource(
                                 R.plurals.n_song,
-                                playlist!!.songCount,
-                                playlist!!.songCount
+                                filteredSongs.size,
+                                filteredSongs.size
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Normal
@@ -681,10 +681,6 @@ fun LocalPlaylistScreen(
                         }
                     )
                     IconButton(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {

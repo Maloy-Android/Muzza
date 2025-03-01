@@ -158,6 +158,7 @@ enum class PlayerBackgroundStyle {
 
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
+val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 val LockQueueKey = booleanPreferencesKey("lockQueue")
 
 val PlayerVolumeKey = floatPreferencesKey("playerVolume")

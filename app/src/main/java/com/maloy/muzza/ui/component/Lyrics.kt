@@ -22,6 +22,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -60,6 +61,7 @@ import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
+import com.maloy.muzza.constants.TranslateLyricsKey
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.lyrics.LyricsEntry
 import com.maloy.muzza.lyrics.LyricsEntry.Companion.HEAD_LYRICS_ENTRY
@@ -73,6 +75,7 @@ import com.maloy.muzza.ui.screens.settings.LyricsPosition
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.BuildConfig
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.seconds
@@ -92,9 +95,14 @@ fun Lyrics(
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
 
+    var translationEnabled by rememberPreference(TranslateLyricsKey, false)
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
-    val lyrics = remember(lyricsEntity) { lyricsEntity?.lyrics?.trim() }
+    val translating by playerConnection.translating.collectAsState()
+    val lyrics = remember(lyricsEntity, translating) {
+        if (translating) null
+        else lyricsEntity?.lyrics
+    }
     val multilineLrc = rememberPreference(MultilineLrcKey, defaultValue = true)
     val lyricTrim = rememberPreference(LyricTrimKey, defaultValue = false)
 
@@ -312,6 +320,19 @@ fun Lyrics(
                         contentDescription = null,
                         tint = textColor
                     )
+                }
+                if (BuildConfig.FLAVOR != "foss") {
+                    IconButton(
+                        onClick = {
+                            translationEnabled = !translationEnabled
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(id = R.drawable.translate),
+                            contentDescription = null,
+                            tint = textColor.copy(alpha = if (translationEnabled) 1f else 0.3f)
+                        )
+                    }
                 }
                 IconButton(
                     onClick = {

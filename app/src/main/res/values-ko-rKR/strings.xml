@@ -256,4 +256,6 @@
     <string name="app_version">앱 버전</string>
 
     <string name="new_version_available">새 버전을 사용할 수 있습니다</string>
+    <string name="translation_models">번역 모델</string>
+    <string name="clear_translation_models">번역 모델 지우기</string>
 </resources>

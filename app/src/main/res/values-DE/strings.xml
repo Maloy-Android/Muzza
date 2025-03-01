@@ -237,6 +237,8 @@
     <string name="about">Über</string>
     <string name="app_version">App-Version</string>
     <string name="new_version_available">Neue Version verfügbar</string>
+    <string name="translation_models">Übersetzungs-Modelle</string>
+    <string name="clear_translation_models">Lösche Übersetzungs-Modelle</string>
     <string name="forgotten_favorites">Vergessene Favoriten</string>
     <string name="action_remove_like_all">Alle aus Favoriten entfernen</string>
     <string name="default_">Standard</string>

@@ -45,6 +45,7 @@ import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.formatFileSize
+import com.maloy.muzza.utils.TranslationHelper
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -119,13 +120,7 @@ fun StorageSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(
-            Modifier.windowInsetsPadding(
-                LocalPlayerAwareWindowInsets.current.only(
-                    WindowInsetsSides.Top
-                )
-            )
-        )
+        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
 
         PreferenceGroupTitle(
             title = stringResource(R.string.downloaded_songs)
@@ -161,22 +156,14 @@ fun StorageSettings(
                 )
             } else {
                 LinearProgressIndicator(
-                    progress = {
-                        (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(
-                            0f,
-                            1f
-                        )
-                    },
+                    progress = { (playerCacheSize.toFloat() / (maxSongCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp, vertical = 6.dp)
                 )
 
                 Text(
-                    text = stringResource(
-                        R.string.size_used,
-                        "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"
-                    ),
+                    text = stringResource(R.string.size_used, "${formatFileSize(playerCacheSize)} / ${formatFileSize(maxSongCacheSize * 1024 * 1024L)}"),
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                 )
@@ -221,10 +208,7 @@ fun StorageSettings(
             )
 
             Text(
-                text = stringResource(
-                    R.string.size_used,
-                    "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"
-                ),
+                text = stringResource(R.string.size_used, "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )
@@ -251,6 +235,21 @@ fun StorageSettings(
                 }
             },
         )
+
+        if (BuildConfig.FLAVOR != "foss") {
+            PreferenceGroupTitle(
+                title = stringResource(R.string.translation_models)
+            )
+
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.clear_translation_models)) },
+                onClick = {
+                    coroutineScope.launch(Dispatchers.IO) {
+                        TranslationHelper.clearModels()
+                    }
+                },
+            )
+        }
     }
 
     TopAppBar(

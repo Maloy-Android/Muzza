@@ -37,14 +37,18 @@ import io.ktor.http.Parameters
 import io.ktor.http.isSuccess
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.supervisorScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import timber.log.Timber
-import java.time.LocalDateTime
+import java.util.concurrent.atomic.AtomicInteger
 import javax.inject.Inject
 
 @HiltViewModel
@@ -262,9 +266,6 @@ class ImportFromSpotifyViewModel @Inject constructor(
         Timber.tag("Muzza Log").d(string)
     }
 
-    private val generatedPlaylistId = PlaylistEntity.generatePlaylistId()
-    private val currentTime = LocalDateTime.now()
-
 
     private val _likedSongsImportProgress = MutableStateFlow(
         ImportProgressEvent.LikedSongsProgress(
@@ -340,7 +341,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
             val generatedPlaylistId = PlaylistEntity.generatePlaylistId()
             localDatabase.insert(
                 PlaylistEntity(
-                    id = generatedPlaylistId, name = playlist.name, bookmarkedAt = currentTime
+                    id = generatedPlaylistId, name = playlist.name
                 )
             )
             getTracksFromAPlaylist(
@@ -444,96 +445,57 @@ class ImportFromSpotifyViewModel @Inject constructor(
 
     private var progressedTracksInTheLikedSongsCount = 0
 
+    private val progressMutex = Mutex()
+    private val dbMutex = Mutex()
+
     private suspend fun importSpotifyLikedSongs(
         saveInDefaultLikedSongs: Boolean, context: Context
     ): Unit = supervisorScope {
         var url: String? = "https://api.spotify.com/v1/me/tracks?offset=0&limit=50"
         var totalSongsCount = -1
+        val progressedTracks = AtomicInteger(0)
+
         while (url != null) {
             getLikedSongsFromSpotify(
-                authToken = importFromSpotifyScreenState.value.accessToken, url = url, context
-            ).let { spotifyLikedSongsPaginatedResponse ->
-                totalSongsCount = spotifyLikedSongsPaginatedResponse.totalCountOfLikedSongs
-                spotifyLikedSongsPaginatedResponse.tracks.forEachIndexed { _, likedSong ->
-                    launch {
-                        val youtubeSearchResult = YouTube.search(
-                            query = likedSong.trackItem.trackName + " " + likedSong.trackItem.artists.first().name,
-                            filter = YouTube.SearchFilter.FILTER_SONG
-                        )
-                        youtubeSearchResult.onSuccess { result ->
-                            if (result.items.isEmpty()) {
-                                return@onSuccess
-                            }
-                            result.items.first().let { songItem ->
-                                songItem as SongItem
-                                withContext(Dispatchers.IO) {
-                                    localDatabase.insert(
-                                        SongEntity(
-                                            id = songItem.id,
-                                            title = songItem.title,
-                                            liked = saveInDefaultLikedSongs,
-                                            thumbnailUrl = songItem.thumbnail.getOriginalSizeThumbnail()
-                                        )
-                                    )
-                                    songItem.artists.forEachIndexed { index, artist ->
-                                        artist.id?.let { artistId ->
-                                            try {
-                                                if (localDatabase.artistIdExists(artistId).not()) {
-                                                    YouTube.artist(artistId)
-                                                        .onSuccess { artistPage ->
-                                                            localDatabase.insert(
-                                                                ArtistEntity(
-                                                                    id = artistId,
-                                                                    name = artistPage.artist.title
-                                                                )
-                                                            )
-                                                        }
-                                                }
-                                                localDatabase.insert(
-                                                    SongArtistMap(
-                                                        songId = songItem.id,
-                                                        artistId = artistId,
-                                                        position = index
-                                                    )
+                authToken = importFromSpotifyScreenState.value.accessToken,
+                url = url,
+                context = context
+            ).let { response ->
+                totalSongsCount = response.totalCountOfLikedSongs
+                response.tracks.map { likedSong ->
+                    async {
+                            YouTube.search(
+                                query = "${likedSong.trackItem.trackName} ${likedSong.trackItem.artists.first().name}",
+                                filter = YouTube.SearchFilter.FILTER_SONG
+                            ).onSuccess { result ->
+                                result.items.firstOrNull()?.let { songItem ->
+                                    songItem as SongItem
+                                    dbMutex.withLock {
+                                        withContext(Dispatchers.IO) {
+                                            localDatabase.insert(
+                                                SongEntity(
+                                                    id = songItem.id,
+                                                    title = songItem.title,
+                                                    liked = saveInDefaultLikedSongs,
+                                                    thumbnailUrl = songItem.thumbnail.getOriginalSizeThumbnail()
                                                 )
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                            }
+                                            )
                                         }
                                     }
-                                    if (saveInDefaultLikedSongs.not()) {
-                                        localDatabase.insert(
-                                            PlaylistEntity(
-                                                id = generatedPlaylistId,
-                                                name = "Liked Songs",
-                                                bookmarkedAt = currentTime
+                                    progressMutex.withLock {
+                                        _likedSongsImportProgress.emit(
+                                            ImportProgressEvent.LikedSongsProgress(
+                                                completed = false,
+                                                currentCount = progressedTracks.incrementAndGet(),
+                                                totalTracksCount = totalSongsCount
                                             )
                                         )
-                                        localDatabase.insert(
-                                            PlaylistSongMap(
-                                                playlistId = generatedPlaylistId,
-                                                songId = songItem.id
-                                            )
-                                        )
-                                    } else {/*
-                                     Updates `liked` to `true` for a song already in the database.
-                                     Does not affect a newly added song if it is already marked as `liked`.
-                                     */
-                                        localDatabase.toggleLikedToTrue(songId = songItem.id)
                                     }
                                 }
                             }
-                            _likedSongsImportProgress.emit(
-                                ImportProgressEvent.LikedSongsProgress(
-                                    completed = false,
-                                    currentCount = ++progressedTracksInTheLikedSongsCount,
-                                    totalTracksCount = spotifyLikedSongsPaginatedResponse.totalCountOfLikedSongs
-                                )
-                            )
-                        }
                     }
-                }
-                url = spotifyLikedSongsPaginatedResponse.nextPaginatedUrl
+                }.awaitAll()
+                url = response.nextPaginatedUrl
             }
         }
         _likedSongsImportProgress.emit(

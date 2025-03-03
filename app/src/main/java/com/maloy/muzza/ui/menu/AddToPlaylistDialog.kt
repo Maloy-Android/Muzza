@@ -27,6 +27,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -44,6 +45,7 @@ import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -56,6 +58,7 @@ fun AddToPlaylistDialog(
     onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
     onDismiss: () -> Unit,
 ) {
+    val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     var playlists by remember {
@@ -160,7 +163,7 @@ fun AddToPlaylistDialog(
                 }
             },
             extraContent = {
-                if (isLoggedIn) {
+                if (isLoggedIn && isInternetAvailable(context)) {
                 Row(
                     modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
                 ) {

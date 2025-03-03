@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -98,6 +99,7 @@ import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
 import kotlin.math.min
@@ -109,6 +111,7 @@ fun HomeScreen(
     navController: NavController,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -316,48 +319,13 @@ fun HomeScreen(
             )
         }
 
-        /*
-        val context = LocalContext.current
-        var showNoInternetDialog by remember { mutableStateOf(false) }
-
         if (!isInternetAvailable(context)) {
-        showNoInternetDialog = true
+            snackbarHostState.showSnackbar(
+                context.getString(
+                    R.string.playlist_synced
+                )
+            )
         }
-
-        // No Internet Dialog
-        if (showNoInternetDialog) {
-        AlertDialog(
-        onDismissRequest = { showNoInternetDialog = false },
-        title = {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-        Icon(
-        painter = painterResource(id = R.drawable.signal_cellular_nodata),
-        contentDescription = null,
-        modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(stringResource(R.string.not_internet))
-        }
-        },
-        text = { Text(stringResource(R.string.internet_required)) },
-        confirmButton = {},
-        dismissButton = {
-        Box(
-        modifier = Modifier.fillMaxWidth(),
-        contentAlignment = Alignment.Center
-        ) {
-        Button(onClick = {
-
-        navController.navigate("settings")
-        showNoInternetDialog = false
-        }) {
-        Text(stringResource(R.string.settings))
-        }
-        }
-        }
-        )
-        }
-        */
 
         LazyColumn(
             state = lazylistState,

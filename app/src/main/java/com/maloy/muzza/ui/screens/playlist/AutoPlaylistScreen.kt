@@ -110,6 +110,7 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -209,7 +210,7 @@ fun AutoPlaylistScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (ytmSync) {
+        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             withContext(Dispatchers.IO) {
                 if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
             }
@@ -410,7 +411,7 @@ fun AutoPlaylistScreen(
                                                     }
                                                 }
                                             }
-                                            if ( isLoggedIn && ytmSync && playlistType == PlaylistType.LIKE) {
+                                            if (isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE) {
                                                 Button(
                                                     onClick = {
                                                         scope.launch(Dispatchers.IO) {

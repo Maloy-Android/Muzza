@@ -126,6 +126,7 @@ import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -963,7 +964,7 @@ fun LocalPlaylistHeader(
                         }
                     }
 
-                    if (playlist.playlist.browseId != null) {
+                    if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
                         Button(
                             modifier = Modifier
                                 .weight(1f)

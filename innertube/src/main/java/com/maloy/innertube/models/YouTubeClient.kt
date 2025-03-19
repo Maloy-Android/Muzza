@@ -38,14 +38,14 @@ data class YouTubeClient(
 
         val WEB = YouTubeClient(
             clientName = "WEB",
-            clientVersion = "2.2021111",
+            clientVersion = "2.20250312.04.00",
             apikey = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX3",
             userAgent = USER_AGENT_WEB,
         )
 
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
-            clientVersion = "1.20241127.01.00",
+            clientVersion = "1.20250310.01.00",
             apikey = "AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30", // TODO: remove
             userAgent = USER_AGENT_WEB,
             referer = REFERER_YOUTUBE_MUSIC,
@@ -61,10 +61,10 @@ data class YouTubeClient(
 
         val IOS = YouTubeClient(
             clientName = "IOS",
-            clientVersion = "20.03.02",
+            clientVersion = "20.10.4",
             apikey = "AIzaSyB-63vPrdThhKuerbB2N_l7Kwwcxj6yUAc", // TODO: remove
-            userAgent = "com.google.ios.youtube/20.03.02 (iPhone16,2; U; CPU iOS 18_2_1 like Mac OS X;)",
-            osVersion = "18.2.1.22C161",
+            userAgent = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
+            osVersion = "18.3.2.22D82",
         )
     }
 }

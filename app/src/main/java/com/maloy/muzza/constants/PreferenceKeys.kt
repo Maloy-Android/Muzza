@@ -94,6 +94,8 @@ val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 val PreferredLyricsProviderKey = stringPreferencesKey("lyricsProvider")
 
+val FirstSetupPassed = booleanPreferencesKey("firstSetupPassed")
+
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 
 enum class LibraryViewType {

@@ -1,4 +1,16 @@
 <resources>
+
+    <!-- Setup wizard -->
+    <string name="welcome_to_muzza">Welcome to Muzza</string>
+    <string name="yt_music_fingertips">YouTube Music at your fingertips</string>
+    <string name="ytm_account_sync">YouTube-Music account synchronization</string>
+    <string name="ad_free_playback">AD free playback</string>
+    <string name="fos_info">Free open source app"</string>
+    <string name="i_have_a_backup">I have a backup</string>
+    <string name="skip">Skip</string>
+    <string name="back">Back</string>
+    <string name="next">Next</string>
+
     <!-- Bottom navigation -->
     <string name="home">Home</string>
     <string name="songs">Songs</string>

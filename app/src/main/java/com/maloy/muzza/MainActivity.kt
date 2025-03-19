@@ -115,6 +115,7 @@ import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
+import com.maloy.muzza.constants.FirstSetupPassed
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.NavigationBarAnimationSpec
 import com.maloy.muzza.constants.NavigationBarHeight
@@ -416,6 +417,14 @@ class MainActivity : ComponentActivity() {
                                     (playerBottomSheetState.isCollapsed || playerBottomSheetState.isDismissed)
                         }
                     )
+
+                    val (firstSetupPassed) = rememberPreference(FirstSetupPassed, defaultValue = false)
+
+                    LaunchedEffect(Unit) {
+                        if (!firstSetupPassed) {
+                            navController.navigate("setup_wizard")
+                        }
+                    }
 
                     LaunchedEffect(navBackStackEntry) {
                         if (navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
@@ -783,11 +792,14 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
-
-                        BottomSheetPlayer(
-                            state = playerBottomSheetState,
-                            navController = navController
-                        )
+                        Box() {
+                            if (firstSetupPassed) {
+                                BottomSheetPlayer(
+                                    state = playerBottomSheetState,
+                                    navController = navController
+                                )
+                            }
+                        }
 
                         NavigationBar(
                             modifier = Modifier

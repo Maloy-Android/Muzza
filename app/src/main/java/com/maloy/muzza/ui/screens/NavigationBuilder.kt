@@ -236,4 +236,7 @@ fun NavGraphBuilder.navigationBuilder(
     composable("YouTubePlaylists") {
         YouTubePlaylistsScreen(navController, scrollBehavior)
     }
+    composable("setup_wizard") {
+        SetupWizard(navController)
+    }
 }

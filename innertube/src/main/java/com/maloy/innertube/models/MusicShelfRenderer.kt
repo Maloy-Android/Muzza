@@ -8,6 +8,7 @@ data class MusicShelfRenderer(
     val contents: List<Content>?,
     val bottomEndpoint: NavigationEndpoint?,
     val moreContentButton: Button?,
+    val continuations: List<Continuation>?,
 ) {
     @Serializable
     data class Content(

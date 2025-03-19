@@ -485,8 +485,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     items = contents.gridRenderer.items
                         .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
-                    continuation = contents.gridRenderer.continuations?.firstOrNull()?.
-                    nextContinuationData?.continuation
+                    continuation = contents.gridRenderer.continuations?.getContinuation()
                 )
             }
             else -> {
@@ -494,7 +493,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     items = contents?.musicShelfRenderer?.contents!!
                         .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfRenderer.contents.getContinuation()
+                    continuation = contents.musicShelfRenderer.continuations?.getContinuation()
                 )
             }
         }
@@ -514,8 +513,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     items = contents.gridContinuation.items
                         .mapNotNull (GridRenderer.Item::musicTwoRowItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicTwoRowItemRenderer(it) },
-                    continuation = contents.gridContinuation.continuations?.firstOrNull()?.
-                    nextContinuationData?.continuation
+                    continuation = contents.gridContinuation.continuations?.getContinuation()
                 )
             }
 
@@ -524,7 +522,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     items = contents?.musicShelfContinuation?.contents!!
                         .mapNotNull (MusicShelfRenderer.Content::musicResponsiveListItemRenderer)
                         .mapNotNull { LibraryPage.fromMusicResponsiveListItemRenderer(it) },
-                    continuation = contents.musicShelfContinuation.contents.getContinuation()
+                    continuation = contents.musicShelfContinuation.continuations?.getContinuation()
                 )
             }
         }

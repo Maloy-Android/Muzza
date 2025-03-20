@@ -20,10 +20,10 @@ coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
-activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.0" }
-navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.7" }
+activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.1" }
+navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.8.9" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
-datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.2" }
+datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.3" }
 
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
 compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version = "1.7.8" }
@@ -71,14 +71,14 @@ brotli = { group = "org.brotli", name = "dec", version = "0.1.2" }
 
 opencc4j = { group = "com.github.houbb", name = "opencc4j", version = "1.8.1" }
 
-desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.4" }
+desugaring = { group = "com.android.tools", name = "desugar_jdk_libs", version = "2.1.5" }
 
 junit = { group = "junit", name = "junit", version = "4.13.2" }
 
 timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
 
 google-services = { module = "com.google.gms:google-services", version = "4.4.2" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.9.0" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.10.0" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
 firebase-crashlytics-plugin = { module = "com.google.firebase:firebase-crashlytics-gradle", version = "3.0.3" }

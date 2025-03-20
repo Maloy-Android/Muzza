@@ -332,12 +332,7 @@ fun SetupWizard(
                         .padding(16.dp)
                         .align(Alignment.BottomEnd),
                     onClick = {
-                        if (position == 0) {
-                            position += 1
-                        } else {
-                            onFirstSetupPassedChange(true)
-                            navController.navigateUp()
-                        }
+                        navController.navigate("home")
                     }
                 ) {
                     Icon(

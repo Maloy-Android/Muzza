@@ -1,4 +1,15 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Setup wizard -->
+    <string name="welcome_to_muzza">Ласкаво просимо до Muzza</string>
+    <string name="yt_music_fingertips">YouTube-Music завжди під рукою</string>
+    <string name="ytm_account_sync">Синхронізація з аккаунтом YouTube-Music</string>
+    <string name="ad_free_playback">Відтворення без реклами</string>
+    <string name="fos_info">Безкоштовний додаток з відкритим кодом</string>
+    <string name="i_have_a_backup">У мене є резервна копія</string>
+    <string name="skip">Пропустивши</string>
+    <string name="back">Назад</string>
+    <string name="next">Далі</string>
+
     <!-- Bottom navigation -->
     <string name="home">Головна</string>
     <string name="songs">Музика</string>

@@ -12,7 +12,7 @@ data class Continuation(
 ) {
     @Serializable
     data class NextContinuationData(
-        val continuation: List<Continuation>,
+        val continuation: String,
     )
 }
 

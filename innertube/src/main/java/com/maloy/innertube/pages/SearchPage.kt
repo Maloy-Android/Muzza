@@ -4,7 +4,6 @@ import com.maloy.innertube.models.Album
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.ArtistItem
-import com.maloy.innertube.models.Continuation
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
@@ -15,7 +14,7 @@ import com.maloy.innertube.utils.parseTime
 
 data class SearchResult(
     val items: List<YTItem>,
-    val continuation: List<Continuation>? = null,
+    val continuation: String? = null,
 )
 
 object SearchPage {

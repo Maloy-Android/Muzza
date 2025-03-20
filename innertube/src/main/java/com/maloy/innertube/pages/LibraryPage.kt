@@ -4,7 +4,6 @@ import com.maloy.innertube.models.Album
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.ArtistItem
-import com.maloy.innertube.models.Continuation
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicTwoRowItemRenderer
 import com.maloy.innertube.models.PlaylistItem
@@ -16,7 +15,7 @@ import com.maloy.innertube.utils.parseTime
 
 data class LibraryPage(
     val items: List<YTItem>,
-    val continuation: List<Continuation>,
+    val continuation: String?,
 ) {
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {

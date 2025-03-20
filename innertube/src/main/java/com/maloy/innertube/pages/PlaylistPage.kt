@@ -2,7 +2,6 @@ package com.maloy.innertube.pages
 
 import com.maloy.innertube.models.Album
 import com.maloy.innertube.models.Artist
-import com.maloy.innertube.models.Continuation
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
@@ -13,7 +12,7 @@ data class PlaylistPage(
     val playlist: PlaylistItem,
     val songs: List<SongItem>,
     val songsContinuation: String?,
-    val continuation: List<Continuation>,
+    val continuation: String?,
 ) {
     companion object {
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {

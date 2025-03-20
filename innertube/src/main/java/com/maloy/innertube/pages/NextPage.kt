@@ -3,7 +3,6 @@ package com.maloy.innertube.pages
 import com.maloy.innertube.models.Album
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.BrowseEndpoint
-import com.maloy.innertube.models.Continuation
 import com.maloy.innertube.models.PlaylistPanelVideoRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
@@ -17,7 +16,7 @@ data class NextResult(
     val currentIndex: Int? = null,
     val lyricsEndpoint: BrowseEndpoint? = null,
     val relatedEndpoint: BrowseEndpoint? = null,
-    val continuation: List<Continuation>,
+    val continuation: String?,
     val endpoint: WatchEndpoint, // current or continuation next endpoint
 )
 

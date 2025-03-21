@@ -1,6 +1,6 @@
 # Muzza
 
-<img src="https://raw.githubusercontent.com/Maloy-Android/Muzza/assets/Muzza-icon.jpg" height="72">
+<img src="https://github.com/Maloy-Android/Muzza/blob/main/assets/Muzza-icon.jpg" height="72">
 
 A Material 3 YouTube Music client for Android
 
@@ -64,14 +64,14 @@ A Material 3 YouTube Music client for Android
 If you like Muzza, you're welcome to send a donation. Donations will support the development,
 including bug fixes and new features.
 
--Boosty: https://boosty.to/maloybegonia/donate
--T-Bank: https://www.tbank.ru/cf/1WDQfqCFiNn
+- Boosty: https://boosty.to/maloybegonia/donate
+- T-Bank: https://www.tbank.ru/cf/1WDQfqCFiNn
 
 ## Credit
 
 I want to give credit to 
-- 1:[https://github.com/z-huang](https://github.com/z-huang/InnerTune) for InnerTune
-- 2:[https://github.com/DD3Boh, https://github.com/mikooomich](https://github.com/OuterTune/OuterTune) for OuterTune
-- 3:[https://github.com/mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
-- 4:[https://github.com/Arturo254/OpenTune](https://github.com/Arturo254/OpenTune) for OpenTune
-- 5:Other third-party developers ❤️
+- 1. [https://github.com/z-huang](https://github.com/z-huang/InnerTune) for InnerTune
+- 2. [https://github.com/DD3Boh, https://github.com/mikooomich](https://github.com/OuterTune/OuterTune) for OuterTune
+- 3. [https://github.com/mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
+- 4. [https://github.com/Arturo254](https://github.com/Arturo254/OpenTune) for OpenTune
+- 5. Other third-party developers ❤️

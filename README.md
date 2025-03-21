@@ -1,6 +1,6 @@
 # Muzza
 
-<img src="https://raw.githubusercontent.com/Maloy-Android/Muzza/dev/app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.webp" height="72">
+<img src="https://raw.githubusercontent.com/Maloy-Android/Muzza/assets/Muzza-icon.jpg" height="72">
 
 A Material 3 YouTube Music client for Android
 
@@ -44,6 +44,7 @@ A Material 3 YouTube Music client for Android
 <p float="left">
   <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/04.png" width="200" />
   <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/05.png" width="200" />
+    <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/06.png" width="200" />
 </p>
 
 > **Warning**
@@ -69,8 +70,8 @@ including bug fixes and new features.
 ## Credit
 
 I want to give credit to 
-1:[https://github.com/z-huang](https://github.com/z-huang/InnerTune) for InnerTune
-2:[https://github.com/DD3Boh, https://github.com/mikooomich](https://github.com/OuterTune/OuterTune) for OuterTune
-3:[https://github.com/mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
-4:[https://github.com/Arturo254/OpenTune](https://github.com/Arturo254/OpenTune) for OpenTune
-5:Other third-party developers ❤️
+- 1:[https://github.com/z-huang](https://github.com/z-huang/InnerTune) for InnerTune
+- 2:[https://github.com/DD3Boh, https://github.com/mikooomich](https://github.com/OuterTune/OuterTune) for OuterTune
+- 3:[https://github.com/mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
+- 4:[https://github.com/Arturo254/OpenTune](https://github.com/Arturo254/OpenTune) for OpenTune
+- 5:Other third-party developers ❤️

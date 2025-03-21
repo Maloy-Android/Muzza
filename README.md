@@ -70,8 +70,8 @@ including bug fixes and new features.
 ## Credit
 
 I want to give credit to 
-- 1. [https://github.com/z-huang](https://github.com/z-huang/InnerTune) for InnerTune
-- 2. [https://github.com/DD3Boh, https://github.com/mikooomich](https://github.com/OuterTune/OuterTune) for OuterTune
-- 3. [https://github.com/mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
-- 4. [https://github.com/Arturo254](https://github.com/Arturo254/OpenTune) for OpenTune
-- 5. Other third-party developers ❤️
+1. [https://github.com/z-huang](https://github.com/z-huang/InnerTune) for InnerTune
+2. [https://github.com/DD3Boh, https://github.com/mikooomich](https://github.com/OuterTune/OuterTune) for OuterTune
+3. [https://github.com/mostafaalagamy](https://github.com/mostafaalagamy/Metrolist) for Metrolist
+4. [https://github.com/Arturo254](https://github.com/Arturo254/OpenTune) for OpenTune
+5. Other third-party developers ❤️

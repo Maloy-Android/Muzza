@@ -333,6 +333,8 @@ fun SetupWizard(
                         .align(Alignment.BottomEnd),
                     onClick = {
                         navController.navigate("home")
+                        onFirstSetupPassedChange(true)
+                        navController.navigateUp()
                     }
                 ) {
                     Icon(

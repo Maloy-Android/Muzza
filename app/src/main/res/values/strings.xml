@@ -274,6 +274,9 @@
     <string name="sided">Sided</string>
     <string name="left">Left</string>
     <string name="center">Center</string>
+    <string name="player_style">Player style</string>
+    <string name="player_style_old">Old</string>
+    <string name="player_style_new">New</string>
     <string name="follow_theme">Follow theme</string>
     <string name="gradient">Gradient</string>
     <string name="blur">Blur</string>
@@ -362,6 +365,7 @@
     <string name="auto_skip_next_on_error_desc">Ensure your continuous playback experience</string>
     <string name="stop_music_on_task_clear">Stop music on task clear</string>
     <string name="equalizer">Equalizer</string>
+    <string name="lyrics">Lyrics</string>
     <string name="lyrics_settings_title">Lyrics</string>
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>

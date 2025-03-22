@@ -44,6 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.capitalize
+import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -57,6 +59,9 @@ import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
+import com.maloy.muzza.constants.PlayerStyle
+import com.maloy.muzza.constants.PlayerStyleKey
+import com.maloy.muzza.constants.PreferredLyricsProvider
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -94,6 +99,7 @@ fun AppearanceSettings(
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
+    val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -295,6 +301,21 @@ fun AppearanceSettings(
                 }
             }
         )
+
+        ListPreference(
+            title = { Text(stringResource(R.string.player_style)) },
+            icon = { Icon(painterResource(R.drawable.play), null) },
+            selectedValue = playerStyle,
+            values = listOf(PlayerStyle.OLD, PlayerStyle.NEW),
+            valueText = {
+                when (it) {
+                    PlayerStyle.OLD -> stringResource(R.string.player_style_old)
+                    PlayerStyle.NEW -> stringResource(R.string.player_style_new)
+                }
+            },
+            onValueSelected = onPlayerStyle
+        )
+
 
         EnumListPreference(
             title = { Text(stringResource(R.string.player_background_style)) },

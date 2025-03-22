@@ -274,6 +274,9 @@
     <string name="theme">Тема</string>
     <string name="proxy">Проксі</string>
     <string name="enable_dynamic_theme">Увімкнути динамічну тему</string>
+    <string name="player_style">Стиль гравця</string>
+    <string name="player_style_old">Старий</string>
+    <string name="player_style_new">Новий</string>
     <string name="dark_theme">Темна тема</string>
     <string name="dark_theme_on">Увімк.</string>
     <string name="dark_theme_off">Вимк.</string>
@@ -404,6 +407,7 @@
     <string name="auto_skip_next_on_error_desc">Забезпечити безперервне відтворення</string>
     <string name="stop_music_on_task_clear">Зупиняти музику при очищенні завдань</string>
     <string name="equalizer">Еквалайзер</string>
+    <string name="lyrics">Текст пісні</string>
     <string name="lyrics_settings_title">Налаштування текстів</string>
 
     <string name="storage">Сховище</string>

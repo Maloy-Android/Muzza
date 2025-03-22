@@ -279,6 +279,9 @@
     <string name="visit_muzza">Посетить Muzza</string>
     <string name="artist">Исполнитель</string>
     <string name="listen_to_muzza">Слушать в Muzza</string>
+    <string name="player_style">Стиль плеера</string>
+    <string name="player_style_old">Старый</string>
+    <string name="player_style_new">Новый</string>
     <string name="dark_theme">Темная тема</string>
     <string name="dark_theme_on">Вкл.</string>
     <string name="dark_theme_off">Выкл.</string>
@@ -408,6 +411,7 @@
     <string name="auto_skip_next_on_error_desc">Обеспечить непрерывное воспроизведение</string>
     <string name="stop_music_on_task_clear">Останавливать музыку при очистке задач</string>
     <string name="equalizer">Эквалайзер</string>
+    <string name="lyrics">Текст песни</string>
     <string name="lyrics_settings_title">Настройки текстов</string>
 
     <string name="storage">Хранилище</string>

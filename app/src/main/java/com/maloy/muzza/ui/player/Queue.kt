@@ -1,8 +1,10 @@
 package com.maloy.muzza.ui.player
 
+import android.annotation.SuppressLint
 import android.text.format.Formatter
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
@@ -53,7 +55,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -108,6 +109,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import kotlin.math.roundToInt
 
+@SuppressLint("AutoboxingStateCreation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun Queue(
@@ -149,13 +151,15 @@ fun Queue(
 
     val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
 
-    var showSleepTimerDialog by remember {
-        mutableStateOf(false)
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var sleepTimerValue by remember { mutableStateOf(30f) }
+    val sleepTimerEnabled = remember(
+        playerConnection.service.sleepTimer.triggerTime,
+        playerConnection.service.sleepTimer.pauseWhenSongEnd
+    ) {
+        playerConnection.service.sleepTimer.isActive
     }
-
-    var sleepTimerValue by remember {
-        mutableFloatStateOf(30f)
-    }
+    val sleepTimerTimeLeft by remember { mutableStateOf(0L) }
 
     if (showSleepTimerDialog) {
         AlertDialog(
@@ -271,7 +275,11 @@ fun Queue(
 
                         TextButton(
                             onClick = {
-                                showSleepTimerDialog = true
+                                if (sleepTimerEnabled) {
+                                    playerConnection.service.sleepTimer.clear()
+                                } else {
+                                    showSleepTimerDialog = true
+                                }
                             }
                         ) {
                             Row(
@@ -294,6 +302,32 @@ fun Queue(
                                         .sizeIn(maxWidth = 80.dp)
                                         .basicMarquee()
                                 )
+                                AnimatedContent(
+                                    label = "sleepTimer",
+                                    targetState = sleepTimerEnabled,
+                                ) { enabled ->
+                                    if (enabled) {
+                                        Text(
+                                            text = makeTimeString(sleepTimerTimeLeft),
+                                            color = onBackgroundColor,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier
+                                                .sizeIn(maxWidth = 80.dp)
+                                                .basicMarquee()
+                                        )
+                                    } else {
+                                        Text(
+                                            text = stringResource(R.string.sleep_timer),
+                                            color = onBackgroundColor,
+                                            maxLines = 2,
+                                            overflow = TextOverflow.Ellipsis,
+                                            modifier = Modifier
+                                                .sizeIn(maxWidth = 80.dp)
+                                                .basicMarquee()
+                                        )
+                                    }
+                                }
                             }
                         }
 

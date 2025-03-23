@@ -94,6 +94,8 @@ import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerHorizontalPadding
+import com.maloy.muzza.constants.PlayerStyle
+import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.ShowLyricsKey
@@ -162,6 +164,8 @@ fun BottomSheetPlayer(
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
     val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+
+    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
 
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -497,23 +501,37 @@ fun BottomSheetPlayer(
                     )
                 }
                 Box(modifier = Modifier.weight(1f)) {
-                    ResizableIconButton(
-                        icon = R.drawable.skip_previous,
-                        enabled = canSkipPrevious,
-                        color = onBackgroundColor,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .align(Alignment.Center)
-                            .combinedClickable(
-                                onClick = {
-                                    (playerConnection.player::seekToPrevious)()
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                },
-                                onLongClick = {
-                                    playerConnection.player.seekTo(playerConnection.player.currentPosition - 5000)
-                                }
-                            )
-                    )
+                    if (playerStyle == PlayerStyle.NEW) {
+                        ResizableIconButton(
+                            icon = R.drawable.skip_previous,
+                            enabled = canSkipPrevious,
+                            color = onBackgroundColor,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center),
+                            onClick = {
+                                (playerConnection.player::seekToPrevious)()
+                            }
+                        )
+                    } else {
+                        ResizableIconButton(
+                            icon = R.drawable.skip_previous,
+                            enabled = canSkipPrevious,
+                            color = onBackgroundColor,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center)
+                                .combinedClickable(
+                                    onClick = {
+                                        (playerConnection.player::seekToPrevious)()
+                                    },
+                                    onLongClick = {
+                                        playerConnection.player.seekTo(playerConnection.player.currentPosition - 5000)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+                                )
+                        )
+                    }
                 }
 
 
@@ -546,23 +564,37 @@ fun BottomSheetPlayer(
                 Spacer(Modifier.width(8.dp))
 
                 Box(modifier = Modifier.weight(1f)) {
-                    ResizableIconButton(
-                        icon = R.drawable.skip_next,
-                        enabled = canSkipNext,
-                        color = onBackgroundColor,
-                        modifier = Modifier
-                            .size(32.dp)
-                            .align(Alignment.Center)
-                            .combinedClickable(
-                                onClick = {
-                                    (playerConnection.player::seekToNext)()
-                                },
-                                onLongClick = {
-                                    playerConnection.player.seekTo(playerConnection.player.currentPosition + 5000)
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                }
-                            )
-                    )
+                    if (playerStyle == PlayerStyle.NEW) {
+                        ResizableIconButton(
+                            icon = R.drawable.skip_next,
+                            enabled = canSkipNext,
+                            color = onBackgroundColor,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center),
+                            onClick = {
+                                (playerConnection.player::seekToNext)()
+                            }
+                        )
+                    } else {
+                        ResizableIconButton(
+                            icon = R.drawable.skip_next,
+                            enabled = canSkipNext,
+                            color = onBackgroundColor,
+                            modifier = Modifier
+                                .size(32.dp)
+                                .align(Alignment.Center)
+                                .combinedClickable(
+                                    onClick = {
+                                        (playerConnection.player::seekToNext)()
+                                    },
+                                    onLongClick = {
+                                        playerConnection.player.seekTo(playerConnection.player.currentPosition + 5000)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    }
+                                )
+                        )
+                    }
                 }
 
                 Box(modifier = Modifier.weight(1f)) {

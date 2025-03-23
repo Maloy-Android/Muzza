@@ -16,6 +16,7 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -65,10 +66,13 @@ import coil.compose.AsyncImage
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.PlayerHorizontalPadding
+import com.maloy.muzza.constants.PlayerStyle
+import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.ui.component.Lyrics
+import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlin.math.roundToInt
 
@@ -89,6 +93,7 @@ fun Thumbnail(
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, 6)
+    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
 
     val thumbnailAlpha by animateFloatAsState(
         targetValue = if (showLyrics) 0.6f else 1f,
@@ -158,23 +163,53 @@ fun Thumbnail(
                         )
                     },
             ) {
-                AsyncImage(
-                    model = mediaMetadata?.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .offset { IntOffset(offsetX.roundToInt(), 0) }
-                        .fillMaxWidth()
-                        .aspectRatio(1f)
-                        .graphicsLayer {
-                            translationX = offsetX * 0.5f
-                            alpha = thumbnailAlpha
-                            scaleX = thumbnailScale
-                            scaleY = thumbnailScale
-                        }
-                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                        .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
-                )
+                if (playerStyle == PlayerStyle.NEW) {
+                    AsyncImage(
+                        model = mediaMetadata?.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .offset { IntOffset(offsetX.roundToInt(), 0) }
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .graphicsLayer {
+                                translationX = offsetX * 0.5f
+                                alpha = thumbnailAlpha
+                                scaleX = thumbnailScale
+                                scaleY = thumbnailScale
+                            }
+                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onDoubleTap = { offset ->
+                                        if (offset.x < size.width / 2) {
+                                            playerConnection.player.seekBack()
+                                        } else {
+                                            playerConnection.player.seekForward()
+                                        }
+                                    }
+                                )
+                            }
+                    )
+                } else {
+                    AsyncImage(
+                        model = mediaMetadata?.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .offset { IntOffset(offsetX.roundToInt(), 0) }
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .graphicsLayer {
+                                translationX = offsetX * 0.5f
+                                alpha = thumbnailAlpha
+                                scaleX = thumbnailScale
+                                scaleY = thumbnailScale
+                            }
+                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                            .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
+                    )
+                }
             }
             if (swipeThumbnail) {
                 TransitionIndicators(offsetX, player)

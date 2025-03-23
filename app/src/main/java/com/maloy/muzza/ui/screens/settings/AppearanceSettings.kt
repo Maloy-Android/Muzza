@@ -44,8 +44,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.toLowerCase
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -61,7 +59,6 @@ import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
-import com.maloy.muzza.constants.PreferredLyricsProvider
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -302,6 +299,19 @@ fun AppearanceSettings(
             }
         )
 
+        AnimatedVisibility(useDarkTheme) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.pure_black)) },
+                icon = { Icon(painterResource(R.drawable.contrast), null) },
+                checked = pureBlack,
+                onCheckedChange = onPureBlackChange
+            )
+        }
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.player)
+        )
+
         ListPreference(
             title = { Text(stringResource(R.string.player_style)) },
             icon = { Icon(painterResource(R.drawable.play), null) },
@@ -330,19 +340,6 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.blur)
                 }
             }
-        )
-
-        AnimatedVisibility(useDarkTheme) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.pure_black)) },
-                icon = { Icon(painterResource(R.drawable.contrast), null) },
-                checked = pureBlack,
-                onCheckedChange = onPureBlackChange
-            )
-        }
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.player)
         )
 
         SwitchPreference(

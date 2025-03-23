@@ -173,6 +173,7 @@ fun BottomSheetPlayer(
 
     val onBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
+        PlayerBackgroundStyle.MONETBLACK -> Color.White
         else ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
@@ -241,9 +242,12 @@ fun BottomSheetPlayer(
     BottomSheet(
         state = state,
         modifier = modifier,
-        backgroundColor = if (useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT) {
-            MaterialTheme.colorScheme.surfaceContainer
-        } else MaterialTheme.colorScheme.onSurfaceVariant,
+        backgroundColor = when {
+            playerBackground == PlayerBackgroundStyle.MONETBLACK -> Color.Black
+            useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
+                MaterialTheme.colorScheme.surfaceContainer
+            else -> MaterialTheme.colorScheme.onSurfaceVariant
+        },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceContainer,
         onDismiss = {
             playerConnection.player.stop()

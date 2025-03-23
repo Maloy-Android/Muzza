@@ -281,6 +281,7 @@
     <string name="gradient">Gradient</string>
     <string name="blur">Blur</string>
     <string name="blurmv">Blur (Motion)</string>
+    <string name="monetblack">Monet black</string>
     <string name="player_background_style">Player background style</string>
     <string name="right">Right</string>
     <string name="player_slider_style">Player slider style</string>

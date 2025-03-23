@@ -308,6 +308,7 @@
     <string name="gradient">Градієнт</string>
     <string name="blur">Розмиття</string>
     <string name="blurmv">Розмиття (рух)</string>
+    <string name="monetblack">Цiлком темний</string>
     <string name="grid_cell_size">Розмір осередків</string>
     <string name="slim_navbar">Показувати назви кнопок навігаційної панелі</string>
     <string name="Changelog">Історія змін</string>

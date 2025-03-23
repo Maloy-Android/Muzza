@@ -338,6 +338,7 @@ fun AppearanceSettings(
                     PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
                     PlayerBackgroundStyle.BLURMOV ->  stringResource(R.string.blurmv)
                     PlayerBackgroundStyle.BLUR -> stringResource(R.string.blur)
+                    PlayerBackgroundStyle.MONETBLACK -> stringResource(R.string.monetblack)
                 }
             }
         )

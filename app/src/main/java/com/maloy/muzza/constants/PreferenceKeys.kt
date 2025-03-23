@@ -90,7 +90,6 @@ val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
-val PlaylistFilterKey = stringPreferencesKey("playlistFilter")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
 val HistoryDuration = floatPreferencesKey("historyDuration")
 val PreferredLyricsProviderKey = stringPreferencesKey("lyricsProvider")
@@ -146,10 +145,6 @@ enum class ArtistFilter {
 
 enum class AlbumFilter {
     LIBRARY, LIKED
-}
-
-enum class PlaylistFilter {
-    LIBRARY
 }
 
 enum class LibraryFilter {

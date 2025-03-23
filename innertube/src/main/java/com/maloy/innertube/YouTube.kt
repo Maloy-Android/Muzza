@@ -1,5 +1,3 @@
-@file:Suppress("NAME_SHADOWING")
-
 package com.maloy.innertube
 
 import com.maloy.innertube.models.AccountInfo
@@ -390,13 +388,9 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         innerTube.addPlaylistToPlaylist(WEB_REMIX, playlistId, addPlaylistId)
     }
 
-    suspend fun home(continuation: String? = null): Result<HomePage> = runCatching {
-        if (continuation != null) {
-            return@runCatching homeContinuation(continuation).getOrThrow()
-        }
-
-        val response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_home").body<BrowseResponse>()
-        val continuation = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+    suspend fun home(): Result<HomePage> = runCatching {
+        var response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_home").body<BrowseResponse>()
+        var continuation = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
             ?.tabRenderer?.content?.sectionListRenderer?.continuations?.getContinuation()
         val sections = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
             ?.tabRenderer?.content?.sectionListRenderer?.contents!!
@@ -404,21 +398,16 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             .mapNotNull {
                 HomePage.Section.fromMusicCarouselShelfRenderer(it)
             }.toMutableList()
-        HomePage(sections, continuation)
-    }
-
-    private suspend fun homeContinuation(continuation: String): Result<HomePage> = runCatching {
-        val response =
-            innerTube.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
-        val continuation =
-            response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
-        HomePage(
-            response.continuationContents?.sectionListContinuation?.contents
+        while (continuation != null) {
+            response = innerTube.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
+            continuation = response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
+            sections += response.continuationContents?.sectionListContinuation?.contents
                 ?.mapNotNull { it.musicCarouselShelfRenderer }
                 ?.mapNotNull {
                     HomePage.Section.fromMusicCarouselShelfRenderer(it)
-                }.orEmpty(), continuation
-        )
+                }.orEmpty()
+        }
+        HomePage(sections)
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {

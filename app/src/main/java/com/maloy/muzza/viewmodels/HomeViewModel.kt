@@ -53,7 +53,7 @@ class HomeViewModel @Inject constructor(
         if (continuation == null) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val nextSections = YouTube.home(continuation).getOrNull() ?: return@launch
+            val nextSections = YouTube.home().getOrNull() ?: return@launch
             homePage.value = nextSections.copy(
                 homePage.value?.sections.orEmpty() + nextSections.sections
             )

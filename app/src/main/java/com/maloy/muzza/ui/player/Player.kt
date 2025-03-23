@@ -90,7 +90,6 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AlwaysShuffleOnPlayerKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
@@ -150,8 +149,6 @@ fun BottomSheetPlayer(
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-    var (alwaysShuffleOnPlayer) = rememberPreference(key = AlwaysShuffleOnPlayerKey, defaultValue = false)
-
     val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
@@ -208,13 +205,6 @@ fun BottomSheetPlayer(
                     gradientColors = it
                 }
             }
-        }
-    }
-
-    if (alwaysShuffleOnPlayer) {
-        LaunchedEffect(mediaMetadata) {
-            alwaysShuffleOnPlayer = true
-            playerConnection.player.toggleShuffleMode()
         }
     }
 
@@ -509,18 +499,9 @@ fun BottomSheetPlayer(
                             .size(32.dp)
                             .padding(4.dp)
                             .align(Alignment.Center)
-                            .alpha(
-                                if (alwaysShuffleOnPlayer || shuffleModeEnabled) 1f else 0.5f
-                            ),
+                            .alpha(if (shuffleModeEnabled) 1f else 0.5f),
                         color = onBackgroundColor,
-                        onClick = {
-                            if (alwaysShuffleOnPlayer) {
-                                playerConnection.player.shuffleModeEnabled = false
-                                alwaysShuffleOnPlayer = false
-                            } else {
-                                playerConnection.player.toggleShuffleMode()
-                            }
-                        }
+                        onClick = playerConnection.player::toggleShuffleMode
                     )
                 }
                 Box(modifier = Modifier.weight(1f)) {

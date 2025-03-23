@@ -28,7 +28,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AlwaysShuffleOnPlayerKey
 import com.maloy.muzza.constants.AudioNormalizationKey
 import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
@@ -64,7 +63,6 @@ fun PlayerSettings(
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
-    val (alwaysShuffleOnPlayer, onAlwaysShuffleOnPlayerChange) = rememberPreference(key = AlwaysShuffleOnPlayerKey, defaultValue = false)
 
     var showMinPlaybackDur by remember {
         mutableStateOf(false)
@@ -135,13 +133,6 @@ fun PlayerSettings(
             icon = { Icon(painterResource(R.drawable.fast_forward), null) },
             checked = skipSilence,
             onCheckedChange = onSkipSilenceChange
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.allways_shuffle_on_player)) },
-            icon = { Icon(painterResource(R.drawable.shuffle), null) },
-            checked = alwaysShuffleOnPlayer,
-            onCheckedChange = onAlwaysShuffleOnPlayerChange
         )
 
         SwitchPreference(

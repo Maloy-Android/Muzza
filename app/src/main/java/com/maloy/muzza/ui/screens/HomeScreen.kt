@@ -671,6 +671,8 @@ fun HomeScreen(
                                 ) { song ->
                                     YouTubeListItem(
                                         item = song,
+                                        isActive = song.id == mediaMetadata?.id,
+                                        isPlaying = isPlaying,
                                         modifier = Modifier
                                             .width(horizontalLazyGridItemWidth)
                                             .combinedClickable(

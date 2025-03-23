@@ -158,6 +158,7 @@ fun HomeScreen(
                     viewModel.loadMoreYouTubeItems(homePage?.continuation)
                 }
             }
+    }
 
     val localGridItem: @Composable (LocalItem) -> Unit = {
         when (it) {

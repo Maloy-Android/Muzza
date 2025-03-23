@@ -214,6 +214,7 @@ fun BottomSheetPlayer(
     if (alwaysShuffleOnPlayer) {
         LaunchedEffect(mediaMetadata) {
             alwaysShuffleOnPlayer = true
+            playerConnection.player.toggleShuffleMode()
         }
     }
 

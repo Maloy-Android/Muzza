@@ -682,7 +682,19 @@ fun HomeScreen(
                                                             song.toMediaMetadata()
                                                         )
                                                     )
-                                                }
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(
+                                                        HapticFeedbackType.LongPress,
+                                                    )
+                                                    menuState.show {
+                                                        YouTubeSongMenu(
+                                                            song = song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss,
+                                                        )
+                                                    }
+                                                },
                                             ),
                                         trailingContent = {
                                             IconButton(

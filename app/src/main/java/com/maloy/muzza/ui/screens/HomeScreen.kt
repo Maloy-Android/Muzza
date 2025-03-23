@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -60,6 +61,7 @@ import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
+import com.maloy.innertube.pages.HomePage
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
@@ -87,6 +89,7 @@ import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
+import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
@@ -103,6 +106,7 @@ import com.maloy.muzza.viewmodels.HomeViewModel
 import kotlin.math.min
 import kotlin.random.Random
 
+@SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -613,14 +617,81 @@ fun HomeScreen(
                 }
 
                 item {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        items(it.items) { item ->
-                            ytGridItem(item)
+                    when (it.sectionType) {
+                        HomePage.SectionType.LIST -> {
+                            LazyRow(
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                                modifier = Modifier.animateItem()
+                            ) {
+                                items(it.items) { item ->
+                                    ytGridItem(item)
+                                }
+                            }
+                        }
+
+                        HomePage.SectionType.GRID -> {
+                            val lazyGridState = rememberLazyGridState()
+                            val snapLayoutInfoProvider = remember(lazyGridState) {
+                                SnapLayoutInfoProvider(
+                                    lazyGridState = lazyGridState,
+                                    positionInLayout = { layoutSize, itemSize ->
+                                        (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
+                                    }
+                                )
+                            }
+                            LazyHorizontalGrid(
+                                state = lazyGridState,
+                                rows = GridCells.Fixed(4),
+                                flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(ListItemHeight * 4)
+                                    .animateItem()
+                            ) {
+                                items(
+                                    items = it.items.filterIsInstance<SongItem>()
+                                        .take(it.items.size and -4),
+                                    key = { it.id }
+                                ) { song ->
+                                    YouTubeListItem(
+                                        item = song,
+                                        modifier = Modifier
+                                            .width(horizontalLazyGridItemWidth)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    playerConnection.playQueue(
+                                                        YouTubeQueue.radio(
+                                                            song.toMediaMetadata()
+                                                        )
+                                                    )
+                                                }
+                                            ),
+                                        trailingContent = {
+                                            IconButton(
+                                                onClick = {
+                                                    menuState.show {
+                                                        YouTubeSongMenu(
+                                                            song = song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.more_vert),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+                                    )
+                                }
+                            }
                         }
                     }
                 }

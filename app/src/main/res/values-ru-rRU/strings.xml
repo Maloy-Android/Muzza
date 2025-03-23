@@ -406,6 +406,7 @@
     <string name="persistent_queue_desc">Восстанавливать последнюю очередь при запуске приложения</string>
     <string name="auto_load_more">Автозагрузка большего количества песен</string>
     <string name="auto_load_more_desc">Автоматически добавлять больше песен при достижении конца очереди, если это возможно</string>
+    <string name="allways_shuffle_on_player">Всегда использовать перемешивание в плеере</string>
     <string name="skip_silence">Пропуск тишины в композициях</string>
     <string name="audio_normalization">Нормализация аудио</string>
     <string name="auto_skip_next_on_error">Автопереход к следующей песне при ошибке</string>

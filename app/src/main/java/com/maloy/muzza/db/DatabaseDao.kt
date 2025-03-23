@@ -14,9 +14,12 @@ import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.pages.AlbumPage
 import com.maloy.innertube.pages.ArtistPage
+import com.maloy.muzza.constants.AlbumFilter
 import com.maloy.muzza.constants.AlbumSortType
+import com.maloy.muzza.constants.ArtistFilter
 import com.maloy.muzza.constants.ArtistSongSortType
 import com.maloy.muzza.constants.ArtistSortType
+import com.maloy.muzza.constants.PlaylistFilter
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.db.entities.Album
@@ -249,6 +252,9 @@ interface DatabaseDao {
     )
     fun mostPlayedArtists(fromTimeStamp: Long, limit: Int = 6): Flow<List<Artist>>
 
+    fun artistsInLibraryAsc() = artists(ArtistFilter.LIBRARY, ArtistSortType.CREATE_DATE, false)
+    fun artistsBookmarkedAsc(liked: ArtistFilter, sortType: ArtistSortType, descending: Boolean) = artists(ArtistFilter.LIKED, ArtistSortType.CREATE_DATE, false)
+
     @Transaction
     @Query(
         """
@@ -267,6 +273,10 @@ interface DatabaseDao {
     """
     )
     fun mostPlayedAlbums(fromTimeStamp: Long, limit: Int = 6, offset: Int = 0): Flow<List<Album>>
+
+
+    fun albumsInLibraryAsc(library: AlbumFilter, sortType: AlbumSortType, descending: Boolean) = albums(AlbumFilter.LIBRARY, AlbumSortType.CREATE_DATE, false)
+    fun albumsLikedAsc(sortType: AlbumSortType, descending: Boolean) = albums(AlbumFilter.LIKED, AlbumSortType.CREATE_DATE, false)
 
     @Transaction
     @Query("SELECT * FROM song WHERE id = :songId")
@@ -327,16 +337,8 @@ interface DatabaseDao {
     fun artistsByPlayTimeAsc(): Flow<List<Artist>>
 
     @Transaction
-    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt")
-    fun artistsBookmarkedByCreateDateAsc(): Flow<List<Artist>>
-
-    @Transaction
     @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY name")
     fun artistsBookmarkedByNameAsc(): Flow<List<Artist>>
-
-    @Transaction
-    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
-    fun artistsBookmarkedBySongCountAsc(): Flow<List<Artist>>
 
     @Transaction
     @Query(
@@ -358,26 +360,13 @@ interface DatabaseDao {
         WHERE bookmarkedAt IS NOT NULL
     """
     )
-    fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
 
-    fun artists(sortType: ArtistSortType, descending: Boolean) =
+    fun artists(sortType1: ArtistFilter, sortType: ArtistSortType, descending: Boolean) =
         when (sortType) {
             ArtistSortType.CREATE_DATE -> artistsByCreateDateAsc()
             ArtistSortType.NAME -> artistsByNameAsc()
             ArtistSortType.SONG_COUNT -> artistsBySongCountAsc()
             ArtistSortType.PLAY_TIME -> artistsByPlayTimeAsc()
-        }.map { artists ->
-            artists
-                .filter { it.artist.isYouTubeArtist }
-                .reversed(descending)
-        }
-
-    fun artistsBookmarked(sortType: ArtistSortType, descending: Boolean) =
-        when (sortType) {
-            ArtistSortType.CREATE_DATE -> artistsBookmarkedByCreateDateAsc()
-            ArtistSortType.NAME -> artistsBookmarkedByNameAsc()
-            ArtistSortType.SONG_COUNT -> artistsBookmarkedBySongCountAsc()
-            ArtistSortType.PLAY_TIME -> artistsBookmarkedByPlayTimeAsc()
         }.map { artists ->
             artists
                 .filter { it.artist.isYouTubeArtist }
@@ -422,24 +411,8 @@ interface DatabaseDao {
     fun albumsByPlayTimeAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
-    fun albumsLikedByCreateDateAsc(): Flow<List<Album>>
-
-    @Transaction
     @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY title")
     fun albumsLikedByNameAsc(): Flow<List<Album>>
-
-    @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY year")
-    fun albumsLikedByYearAsc(): Flow<List<Album>>
-
-    @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
-    fun albumsLikedBySongCountAsc(): Flow<List<Album>>
-
-    @Transaction
-    @Query("SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY duration")
-    fun albumsLikedByLengthAsc(): Flow<List<Album>>
 
     @Transaction
     @Query(
@@ -453,9 +426,7 @@ interface DatabaseDao {
         ORDER BY SUM(song.totalPlayTime)
     """
     )
-    fun albumsLikedByPlayTimeAsc(): Flow<List<Album>>
-
-    fun albums(sortType: AlbumSortType, descending: Boolean) =
+    fun albums(sortType1: AlbumFilter, sortType: AlbumSortType, descending: Boolean) =
         when (sortType) {
             AlbumSortType.CREATE_DATE -> albumsByCreateDateAsc()
             AlbumSortType.NAME -> albumsByNameAsc()
@@ -469,22 +440,6 @@ interface DatabaseDao {
             AlbumSortType.SONG_COUNT -> albumsBySongCountAsc()
             AlbumSortType.LENGTH -> albumsByLengthAsc()
             AlbumSortType.PLAY_TIME -> albumsByPlayTimeAsc()
-        }.map { it.reversed(descending) }
-
-    fun albumsLiked(sortType: AlbumSortType, descending: Boolean) =
-        when (sortType) {
-            AlbumSortType.CREATE_DATE -> albumsLikedByCreateDateAsc()
-            AlbumSortType.NAME -> albumsLikedByNameAsc()
-            AlbumSortType.ARTIST -> albumsLikedByCreateDateAsc().map { albums ->
-                albums.sortedBy { album ->
-                    album.artists.joinToString(separator = "") { it.name }
-                }
-            }
-
-            AlbumSortType.YEAR -> albumsLikedByYearAsc()
-            AlbumSortType.SONG_COUNT -> albumsLikedBySongCountAsc()
-            AlbumSortType.LENGTH -> albumsLikedByLengthAsc()
-            AlbumSortType.PLAY_TIME -> albumsLikedByPlayTimeAsc()
         }.map { it.reversed(descending) }
 
     @Transaction
@@ -510,12 +465,18 @@ interface DatabaseDao {
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
     fun playlistsBySongCountAsc(): Flow<List<Playlist>>
 
-    fun playlists(sortType: PlaylistSortType, descending: Boolean) =
+    fun playlists(sortType1: PlaylistFilter, sortType: PlaylistSortType, descending: Boolean) =
         when (sortType) {
             PlaylistSortType.CREATE_DATE -> playlistsByCreateDateAsc()
             PlaylistSortType.NAME -> playlistsByNameAsc()
             PlaylistSortType.SONG_COUNT -> playlistsBySongCountAsc()
         }.map { it.reversed(descending) }
+
+    fun playlistInLibraryAsc(
+        library: PlaylistFilter,
+        sortType: PlaylistSortType,
+        descending: Boolean
+    ) = playlists(PlaylistFilter.LIBRARY, PlaylistSortType.CREATE_DATE, false)
 
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE id = :playlistId")
@@ -589,9 +550,6 @@ interface DatabaseDao {
     // If the song is already in the library, the time won't be updated
     @Query("UPDATE song SET inLibrary = :inLibrary WHERE id = :songId AND (inLibrary IS NULL OR :inLibrary IS NULL)")
     fun inLibrary(songId: String, inLibrary: LocalDateTime?)
-
-    @Query("UPDATE song SET liked = 1 WHERE id = :songId")
-    suspend fun toggleLikedToTrue(songId: String)
 
     @Query("SELECT COUNT(1) FROM related_song_map WHERE songId = :songId LIMIT 1")
     fun hasRelatedSongs(songId: String): Boolean

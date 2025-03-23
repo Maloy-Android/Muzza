@@ -21,6 +21,7 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
+import com.maloy.muzza.constants.PlaylistFilter
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
@@ -119,8 +120,8 @@ class LibraryArtistsViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { (filter, sortType, descending) ->
             when (filter) {
-                ArtistFilter.LIBRARY -> database.artists(sortType, descending)
-                ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
+                ArtistFilter.LIBRARY -> database.artists(ArtistFilter.LIBRARY, sortType, descending)
+                ArtistFilter.LIKED -> database.artistsBookmarkedAsc(ArtistFilter.LIKED,sortType, descending)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -163,8 +164,8 @@ class LibraryAlbumsViewModel @Inject constructor(
         .distinctUntilChanged()
         .flatMapLatest { (filter, sortType, descending) ->
             when (filter) {
-                AlbumFilter.LIBRARY -> database.albums(sortType, descending)
-                AlbumFilter.LIKED -> database.albumsLiked(sortType, descending)
+                AlbumFilter.LIBRARY -> database.albumsInLibraryAsc(AlbumFilter.LIBRARY, sortType, descending)
+                AlbumFilter.LIKED -> database.albumsLikedAsc(sortType, descending)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -222,7 +223,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
         }
         .distinctUntilChanged()
         .flatMapLatest { (sortType, descending) ->
-            database.playlists(sortType, descending)
+            database.playlistInLibraryAsc(PlaylistFilter.LIBRARY, sortType, descending)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 }

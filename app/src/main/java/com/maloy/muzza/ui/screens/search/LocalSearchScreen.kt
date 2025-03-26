@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.screens.search
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +44,6 @@ import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.CONTENT_TYPE_LIST
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.db.entities.Album
@@ -112,11 +110,7 @@ fun LocalSearchScreen(
             ),
             currentValue = searchFilter,
             onValueUpdate = { viewModel.filter.value = it },
-            modifier = Modifier
-                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-                .padding(top = AppBarHeight)
-                .background(MaterialTheme.colorScheme.surface)
-                .fillMaxWidth()
+            containerColor = MaterialTheme.colorScheme.surface
         )
 
         LazyColumn(

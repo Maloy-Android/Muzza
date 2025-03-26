@@ -1,3 +1,5 @@
+@file:Suppress("IMPLICIT_CAST_TO_ANY", "IMPLICIT_CAST_TO_ANY")
+
 package com.maloy.muzza.ui.component
 
 import androidx.compose.animation.AnimatedVisibility
@@ -82,6 +84,7 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
+import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.reportException
@@ -290,7 +293,8 @@ fun SongListItem(
     badges = badges,
     thumbnailContent = {
         ItemThumbnail(
-            thumbnailUrl = song.song.thumbnailUrl,
+            thumbnailUrl = (if (song.song.isLocal == true) getLocalThumbnail(song.song.localPath)
+            else song.song.thumbnailUrl)?.toString(),
             albumIndex = albumIndex,
             isActive = isActive,
             isPlaying = isPlaying,

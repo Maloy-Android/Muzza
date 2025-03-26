@@ -72,6 +72,7 @@ import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.ui.component.Lyrics
+import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlin.math.roundToInt
@@ -165,7 +166,8 @@ fun Thumbnail(
             ) {
                 if (playerStyle == PlayerStyle.NEW) {
                     AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl,
+                        model = if (mediaMetadata?.isLocal == true) getLocalThumbnail(mediaMetadata!!.localPath)
+                        else mediaMetadata?.thumbnailUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier
@@ -193,7 +195,8 @@ fun Thumbnail(
                     )
                 } else {
                     AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl,
+                        model = if (mediaMetadata?.isLocal == true) getLocalThumbnail(mediaMetadata!!.localPath)
+                        else mediaMetadata?.thumbnailUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,
                         modifier = Modifier

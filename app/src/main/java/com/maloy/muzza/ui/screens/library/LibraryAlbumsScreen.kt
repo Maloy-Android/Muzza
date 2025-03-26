@@ -194,7 +194,7 @@ fun LibraryAlbumsScreen(
                 onClick = {
                     viewType = viewType.toggle()
                 },
-                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+                modifier = Modifier.padding(start = 6.dp)
             ) {
                 Icon(
                     painter = painterResource(

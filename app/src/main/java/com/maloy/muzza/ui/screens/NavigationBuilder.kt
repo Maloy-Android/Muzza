@@ -30,6 +30,7 @@ import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.ui.screens.library.LibraryScreen
+import com.maloy.muzza.ui.screens.library.LibrarySongsFolderScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
@@ -47,6 +48,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable(Screens.Library.route) {
         LibraryScreen(navController)
+    }
+    composable("songs_folders_screen") {
+        LibrarySongsFolderScreen(navController)
     }
     composable("history") {
         HistoryScreen(navController)

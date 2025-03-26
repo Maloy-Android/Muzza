@@ -30,6 +30,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -280,6 +282,15 @@ fun SongListItem(
             val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
             Icon.Download(download?.state)
         }
+        if (song.song.isLocal == true) {
+            Icon(
+                Icons.Rounded.FolderCopy,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+        }
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
@@ -305,6 +316,37 @@ fun SongListItem(
     trailingContent = trailingContent,
     modifier = modifier,
     isActive = isActive
+)
+
+@Composable
+fun SongFolderItem(
+    folderTitle: String,
+    modifier: Modifier = Modifier,
+) = ListItem( title = folderTitle, thumbnailContent = { Icon(
+    Icons.Rounded.Folder,
+    contentDescription = null,
+    modifier = modifier.size(48.dp)
+)
+},
+    trailingContent = {
+        androidx.compose.material3.IconButton(
+            onClick = {
+                //                menuState.show {
+                //                    SongMenu(
+                //                        originalSong = song,
+                //                        navController = navController,
+                //                        onDismiss = menuState::dismiss
+                //                    )
+                //                }
+            }
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.more_vert),
+                contentDescription = null
+            )
+        }
+    },
+    modifier = modifier
 )
 
 @Composable

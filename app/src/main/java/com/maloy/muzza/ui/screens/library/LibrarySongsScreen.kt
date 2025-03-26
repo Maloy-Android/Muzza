@@ -1,6 +1,6 @@
 package com.maloy.muzza.ui.screens.library
 
-import android.widget.Toast
+
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -71,6 +71,7 @@ import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
+import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.SongMenu
@@ -242,34 +243,22 @@ fun LibrarySongsScreen(
                 }
 
 
-                item (
-                    key = "weh"
-                ) {
-                    IconButton(
-                        onClick = {
-                            viewModel.syncLocalSongs(context, viewModel.databseLink)
-                            viewModel.syncAllSongs(context, viewModel.databseLink, viewModel.downloadUtilLink)
-                            Toast.makeText(context, "SCANNING DATABASE...", Toast.LENGTH_SHORT).show()
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.replay),
-                            contentDescription = null
-                        )
-                    }
 
-                    // show folders
-                    IconButton(
-                        onClick = {
-                            navController.navigate("songs_folders_screen")
-                        }
+                if (filter == SongFilter.LIBRARY)
+                    item (
+                        key = "song_folders"
                     ) {
-                        Icon(
-                            Icons.Rounded.Folder,
-                            contentDescription = null
+                        // enter folders page
+                        SongFolderItem(
+                            folderTitle = "Internal Storage",
+                            modifier = Modifier
+                                .combinedClickable {
+                                    // navigate to next page
+                                    navController.navigate("songs_folders_screen")
+                                }
+                                .animateItem()
                         )
                     }
-                }
 
                 itemsIndexed(
                     items = songs,
@@ -311,13 +300,6 @@ fun LibrarySongsScreen(
                                         painter = painterResource(R.drawable.more_vert),
                                         contentDescription = null
                                     )
-                                    // local song indicator
-                                    if (song.song.isLocal == true) {
-                                        return@IconButton Icon(
-                                            Icons.Rounded.Folder,
-                                            contentDescription = null
-                                        )
-                                    }
                                 }
                             }
                         },

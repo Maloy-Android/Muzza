@@ -89,7 +89,7 @@ fun LibraryArtistsScreen(
 
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIKED)
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
-    val viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
+    var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
@@ -124,6 +124,22 @@ fun LibraryArtistsScreen(
                 },
                 modifier = Modifier.weight(1f),
             )
+            IconButton(
+                onClick = {
+                    viewType = viewType.toggle()
+                },
+                modifier = Modifier.padding(end = 6.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        when (viewType) {
+                            LibraryViewType.LIST -> R.drawable.list
+                            LibraryViewType.GRID -> R.drawable.grid_view
+                        }
+                    ),
+                    contentDescription = null
+                )
+            }
         }
     }
 

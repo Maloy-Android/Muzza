@@ -35,7 +35,7 @@ import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
 import com.maloy.muzza.ui.utils.DirectoryTree
-import com.maloy.muzza.ui.utils.scanLocal
+import com.maloy.muzza.ui.utils.refreshLocal
 import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
@@ -73,7 +73,7 @@ class LibrarySongsViewModel @Inject constructor(
     val databseLink = database
     val downloadUtilLink = downloadUtil
     val allSongs = syncAllSongs(context, database, downloadUtil)
-    val localSongDirectoryTree = scanLocal(context, database)
+    val localSongDirectoryTree = refreshLocal(context, database)
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
@@ -83,7 +83,7 @@ class LibrarySongsViewModel @Inject constructor(
      * @return DirectoryTree
      */
     fun syncLocalSongs(context: Context, database: MusicDatabase): MutableStateFlow<DirectoryTree> {
-        val directoryStructure = scanLocal(context, database).value
+        val directoryStructure = refreshLocal(context, database).value
 
         syncDB(database, directoryStructure.toList())
         return MutableStateFlow(directoryStructure)

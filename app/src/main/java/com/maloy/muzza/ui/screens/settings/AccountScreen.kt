@@ -6,9 +6,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
-import androidx.compose.material.icons.automirrored.rounded.Logout
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -79,19 +79,22 @@ fun AccountSettings(
             description = if (isLoggedIn) {
                 accountEmail.takeIf { it.isNotEmpty() }
                     ?: accountChannelHandle.takeIf { it.isNotEmpty() }
-            } else null,
+            } else {
+                null
+            },
             icon = { Icon(painterResource(R.drawable.person), null) },
-            onClick = { navController.navigate("login") }
-        )
-        if (isLoggedIn) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.logout)) },
-                icon = { Icon(Icons.AutoMirrored.Rounded.Logout, null) },
-                onClick = {
-                    onInnerTubeCookieChange("")
+            trailingContent = {
+                if (isLoggedIn) {
+                    OutlinedButton(onClick = {
+                        onInnerTubeCookieChange("")
+                    },
+                    ) {
+                        Text(stringResource(R.string.logout))
+                    }
                 }
-            )
-        }
+            },
+            onClick = { if (!isLoggedIn) navController.navigate("login") }
+        )
         if (showTokenEditor) {
             TextFieldDialog(
                 modifier = Modifier,

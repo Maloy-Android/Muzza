@@ -16,6 +16,9 @@ import androidx.navigation.navArgument
 import com.maloy.muzza.ui.screens.artist.ArtistItemsScreen
 import com.maloy.muzza.ui.screens.artist.ArtistScreen
 import com.maloy.muzza.ui.screens.artist.ArtistSongsScreen
+import com.maloy.muzza.ui.screens.library.LibraryAlbumsScreen
+import com.maloy.muzza.ui.screens.library.LibraryArtistsScreen
+import com.maloy.muzza.ui.screens.library.LibraryPlaylistsScreen
 import com.maloy.muzza.ui.screens.playlist.LocalPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.OnlinePlaylistScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchResult
@@ -30,6 +33,7 @@ import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.ui.screens.library.LibraryScreen
+import com.maloy.muzza.ui.screens.library.LibrarySongsScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
@@ -47,6 +51,18 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable(Screens.Library.route) {
         LibraryScreen(navController)
+    }
+    composable(Screens.Songs.route) {
+        LibrarySongsScreen(navController)
+    }
+    composable(Screens.Artists.route) {
+        LibraryArtistsScreen(navController)
+    }
+    composable(Screens.Albums.route) {
+        LibraryAlbumsScreen(navController)
+    }
+    composable(Screens.Playlists.route) {
+        LibraryPlaylistsScreen(navController)
     }
     composable("history") {
         HistoryScreen(navController)

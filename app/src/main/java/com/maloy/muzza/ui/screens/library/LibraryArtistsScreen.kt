@@ -47,6 +47,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.ArtistFilter
 import com.maloy.muzza.constants.ArtistFilterKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
@@ -95,6 +97,7 @@ fun LibraryArtistsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
+    val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -104,16 +107,18 @@ fun LibraryArtistsScreen(
     val filterContent = @Composable {
         Row {
             Spacer(Modifier.width(12.dp))
-            FilterChip(
-                label = { Text(stringResource(R.string.artists)) },
-                selected = true,
-                colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
-                onClick = { filterType = LibraryFilter.LIBRARY},
-                shape = RoundedCornerShape(16.dp),
-                leadingIcon = {
-                    Icon(painter = painterResource(R.drawable.close), contentDescription = "")
-                },
-            )
+            if (appDesignVariant == AppDesignVariantType.NEW) {
+                FilterChip(
+                    label = { Text(stringResource(R.string.artists)) },
+                    selected = true,
+                    colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
+                    onClick = { filterType = LibraryFilter.LIBRARY },
+                    shape = RoundedCornerShape(16.dp),
+                    leadingIcon = {
+                        Icon(painter = painterResource(R.drawable.close), contentDescription = "")
+                    },
+                )
+            }
             ChipsRow(
                 chips =
                 listOf(

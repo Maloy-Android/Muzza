@@ -5,6 +5,7 @@ import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
+val AppDesignVariantKey = stringPreferencesKey("appDesignVariant")
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
@@ -15,10 +16,15 @@ val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 
+enum class AppDesignVariantType {
+    NEW, OLD
+}
+
 enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE
 }
 
+val DefaultOpenTabOldKey = stringPreferencesKey("defaultOpenTabOld")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val GridCellSizeKey = stringPreferencesKey("gridCellSize")
 

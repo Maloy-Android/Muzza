@@ -263,6 +263,7 @@
     <string name="dark_theme_off">Off</string>
     <string name="dark_theme_follow_system">Follow system</string>
     <string name="pure_black">Pure black</string>
+    <string name="app_design_variant">App design</string>
     <string name="listen_youtube_music">Listen on YouTube Music</string>
     <string name="visit_muzza">Visit Muzza</string>
     <string name="artist">Artist</string>

@@ -54,6 +54,8 @@ import com.maloy.muzza.constants.AlbumSortDescendingKey
 import com.maloy.muzza.constants.AlbumSortType
 import com.maloy.muzza.constants.AlbumSortTypeKey
 import com.maloy.muzza.constants.AlbumViewTypeKey
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.CONTENT_TYPE_ALBUM
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.ChipSortTypeKey
@@ -100,6 +102,8 @@ fun LibraryAlbumsScreen(
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
+    val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
+
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -109,16 +113,18 @@ fun LibraryAlbumsScreen(
     val filterContent = @Composable {
         Row {
             Spacer(Modifier.width(12.dp))
-            FilterChip(
-                label = { Text(stringResource(R.string.albums)) },
-                selected = true,
-                colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
-                onClick = { filterType = LibraryFilter.LIBRARY },
-                shape = RoundedCornerShape(16.dp),
-                leadingIcon = {
-                    Icon(painter = painterResource(R.drawable.close), contentDescription = "")
-                },
-            )
+            if (appDesignVariant == AppDesignVariantType.NEW) {
+                FilterChip(
+                    label = { Text(stringResource(R.string.albums)) },
+                    selected = true,
+                    colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
+                    onClick = { filterType = LibraryFilter.LIBRARY },
+                    shape = RoundedCornerShape(16.dp),
+                    leadingIcon = {
+                        Icon(painter = painterResource(R.drawable.close), contentDescription = "")
+                    },
+                )
+            }
             ChipsRow(
                 chips =
                 listOf(

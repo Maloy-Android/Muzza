@@ -54,6 +54,8 @@ import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
 import com.maloy.muzza.constants.ChipSortTypeKey
@@ -94,28 +96,31 @@ fun LibraryPlaylistsScreen(
     navController: NavController,
     viewModel: LibraryPlaylistsViewModel = hiltViewModel(),
 ) {
+    val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
     var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
-    val filterContent = @Composable {
-        Row {
-            ChipsRow(
-                chips =
-                listOf(
-                    LibraryFilter.PLAYLISTS to stringResource(R.string.filter_playlists),
-                    LibraryFilter.SONGS to stringResource(R.string.filter_songs),
-                    LibraryFilter.ALBUMS to stringResource(R.string.filter_albums),
-                    LibraryFilter.ARTISTS to stringResource(R.string.filter_artists),
-                ),
-                currentValue = filterType,
-                onValueUpdate = {
-                    filterType =
-                        if (filterType == it) {
-                            LibraryFilter.LIBRARY
-                        } else {
-                            it
-                        }
-                },
-                modifier = Modifier.weight(1f),
-            )
+        val filterContent = @Composable {
+            if (appDesignVariant == AppDesignVariantType.NEW) {
+            Row {
+                ChipsRow(
+                    chips =
+                    listOf(
+                        LibraryFilter.PLAYLISTS to stringResource(R.string.filter_playlists),
+                        LibraryFilter.SONGS to stringResource(R.string.filter_songs),
+                        LibraryFilter.ALBUMS to stringResource(R.string.filter_albums),
+                        LibraryFilter.ARTISTS to stringResource(R.string.filter_artists),
+                    ),
+                    currentValue = filterType,
+                    onValueUpdate = {
+                        filterType =
+                            if (filterType == it) {
+                                LibraryFilter.LIBRARY
+                            } else {
+                                it
+                            }
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            }
         }
     }
     val context = LocalContext.current

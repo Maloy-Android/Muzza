@@ -111,8 +111,11 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.AppBarHeight
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
+import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.FirstSetupPassed
@@ -148,6 +151,7 @@ import com.maloy.muzza.ui.screens.search.LocalSearchScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
 import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.screens.settings.NavigationTab
+import com.maloy.muzza.ui.screens.settings.NavigationTabOld
 import com.maloy.muzza.ui.screens.settings.updateLanguage
 import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
@@ -266,6 +270,8 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
+            val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
+            val (defaultOpenTabOld) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
             val navController = rememberNavController()
             val navBackStackEntry by navController.currentBackStackEntryAsState()
             val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
@@ -323,19 +329,39 @@ class MainActivity : ComponentActivity() {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
                     val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = true)
-                    val navigationItems = remember { Screens.MainScreens }
+                    val navigationItems = remember(appDesignVariant) {
+                        if (appDesignVariant == AppDesignVariantType.NEW) {
+                            Screens.MainScreens
+                        } else {
+                            Screens.MainScreensOld
+                        }
+                    }
                     val defaultOpenTab = remember {
                         dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                     }
                     val tabOpenedFromShortcut = remember {
-                        when (intent?.action) {
-                            ACTION_LIBRARY -> NavigationTab.LIBRARY
-                            else -> null
+                        if (appDesignVariant == AppDesignVariantType.NEW) {
+                            when (intent?.action) {
+                                ACTION_LIBRARY -> NavigationTab.LIBRARY
+                                else -> null
+                            }
+                        } else {
+                            when (intent?.action) {
+                                ACTION_SONGS -> NavigationTabOld.SONGS
+                                ACTION_ARTISTS -> NavigationTabOld.ARTISTS
+                                ACTION_ALBUMS -> NavigationTabOld.ALBUMS
+                                ACTION_PLAYLISTS -> NavigationTabOld.PLAYLISTS
+                                else -> null
+                            }
                         }
                     }
                     val topLevelScreens = listOf(
                         Screens.Home.route,
                         Screens.Library.route,
+                        Screens.Songs.route,
+                        Screens.Artists.route,
+                        Screens.Albums.route,
+                        Screens.Playlists.route,
                         "settings"
                     )
 
@@ -547,57 +573,127 @@ class MainActivity : ComponentActivity() {
                         LocalShimmerTheme provides ShimmerTheme,
                         LocalSyncUtils provides syncUtils
                     ) {
-                        NavHost(
-                            navController = navController,
-                            startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
-                                NavigationTab.HOME -> Screens.Home
-                                NavigationTab.LIBRARY-> Screens.Library
-                            }.route,
-                            enterTransition = {
-                                if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
-                                    fadeIn(tween(250))
-                                } else {
-                                    fadeIn(tween(250)) + slideInHorizontally { it / 2 }
-                                }
-                            },
-                            exitTransition = {
-                                if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
-                                    fadeOut(tween(200))
-                                } else {
-                                    fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
-                                }
-                            },
-                            popEnterTransition = {
-                                if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith("search/") == true) && targetState.destination.route in topLevelScreens) {
-                                    fadeIn(tween(250))
-                                } else {
-                                    fadeIn(tween(250)) + slideInHorizontally { -it / 2 }
-                                }
-                            },
-                            popExitTransition = {
-                                if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith("search/") == true) && targetState.destination.route in topLevelScreens) {
-                                    fadeOut(tween(200))
-                                } else {
-                                    fadeOut(tween(200)) + slideOutHorizontally { it / 2 }
-                                }
-                            },
-                            modifier = Modifier
-                                .nestedScroll(
-                                    if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
-                                        navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
-                                        searchBarScrollBehavior.nestedScrollConnection
+                        if (appDesignVariant == AppDesignVariantType.NEW) {
+                            NavHost(
+                                navController = navController,
+                                startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
+                                    NavigationTab.HOME -> Screens.Home
+                                    NavigationTab.LIBRARY -> Screens.Library
+                                    else -> null
+                                }!!.route,
+                                enterTransition = {
+                                    if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
+                                        fadeIn(tween(250))
                                     } else {
-                                        topAppBarScrollBehavior.nestedScrollConnection
+                                        fadeIn(tween(250)) + slideInHorizontally { it / 2 }
                                     }
-                                )
-                        ) {
-                            navigationBuilder(navController, topAppBarScrollBehavior)
+                                },
+                                exitTransition = {
+                                    if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
+                                        fadeOut(tween(200))
+                                    } else {
+                                        fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
+                                    }
+                                },
+                                popEnterTransition = {
+                                    if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith(
+                                            "search/"
+                                        ) == true) && targetState.destination.route in topLevelScreens
+                                    ) {
+                                        fadeIn(tween(250))
+                                    } else {
+                                        fadeIn(tween(250)) + slideInHorizontally { -it / 2 }
+                                    }
+                                },
+                                popExitTransition = {
+                                    if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith(
+                                            "search/"
+                                        ) == true) && targetState.destination.route in topLevelScreens
+                                    ) {
+                                        fadeOut(tween(200))
+                                    } else {
+                                        fadeOut(tween(200)) + slideOutHorizontally { it / 2 }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .nestedScroll(
+                                        if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
+                                            navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
+                                            searchBarScrollBehavior.nestedScrollConnection
+                                        } else {
+                                            topAppBarScrollBehavior.nestedScrollConnection
+                                        }
+                                    )
+                            ) {
+                                navigationBuilder(navController, topAppBarScrollBehavior)
+                            }
+                        } else {
+                            NavHost(
+                                navController = navController,
+                                startDestination = when (tabOpenedFromShortcut ?: defaultOpenTabOld) {
+                                    NavigationTabOld.HOME -> Screens.Home
+                                    NavigationTabOld.SONGS -> Screens.Songs
+                                    NavigationTabOld.ARTISTS -> Screens.Artists
+                                    NavigationTabOld.ALBUMS -> Screens.Albums
+                                    NavigationTabOld.PLAYLISTS -> Screens.Playlists
+                                    else -> null
+                                }!!.route,
+                                enterTransition = {
+                                    if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
+                                        fadeIn(tween(250))
+                                    } else {
+                                        fadeIn(tween(250)) + slideInHorizontally { it / 2 }
+                                    }
+                                },
+                                exitTransition = {
+                                    if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
+                                        fadeOut(tween(200))
+                                    } else {
+                                        fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
+                                    }
+                                },
+                                popEnterTransition = {
+                                    if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith(
+                                            "search/"
+                                        ) == true) && targetState.destination.route in topLevelScreens
+                                    ) {
+                                        fadeIn(tween(250))
+                                    } else {
+                                        fadeIn(tween(250)) + slideInHorizontally { -it / 2 }
+                                    }
+                                },
+                                popExitTransition = {
+                                    if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith(
+                                            "search/"
+                                        ) == true) && targetState.destination.route in topLevelScreens
+                                    ) {
+                                        fadeOut(tween(200))
+                                    } else {
+                                        fadeOut(tween(200)) + slideOutHorizontally { it / 2 }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .nestedScroll(
+                                        if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
+                                            navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
+                                            searchBarScrollBehavior.nestedScrollConnection
+                                        } else {
+                                            topAppBarScrollBehavior.nestedScrollConnection
+                                        }
+                                    )
+                            ) {
+                                navigationBuilder(navController, topAppBarScrollBehavior)
+                            }
                         }
 
                         val currentTitle = remember(navBackStackEntry) {
                             when (navBackStackEntry?.destination?.route) {
                                 Screens.Home.route -> R.string.home
                                 Screens.Library.route -> R.string.filter_library
+                                Screens.Songs.route -> R.string.songs
+                                Screens.Artists.route -> R.string.artists
+                                Screens.Albums.route -> R.string.albums
+                                Screens.Playlists.route -> R.string.playlists
                                 else -> null
                             }
                         }
@@ -925,6 +1021,10 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val ACTION_SEARCH = "com.maloy.muzza.action.SEARCH"
         const val ACTION_LIBRARY = "com.maloy.muzza.action.LIBRARY"
+        const val ACTION_SONGS = "com.maloy.muzza.action.SONGS"
+        const val ACTION_ARTISTS = "com.maloy.muzza.action.ARTISTS"
+        const val ACTION_ALBUMS = "com.maloy.muzza.action.ALBUMS"
+        const val ACTION_PLAYLISTS = "com.maloy.muzza.action.PLAYLISTS"
     }
 }
 

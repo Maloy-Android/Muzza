@@ -52,6 +52,8 @@ import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
 import com.maloy.muzza.constants.ChipSortTypeKey
@@ -101,6 +103,7 @@ fun LibrarySongsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
+    val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -168,16 +171,21 @@ fun LibrarySongsScreen(
             ) {
                 Row {
                     Spacer(Modifier.width(12.dp))
-                    FilterChip(
-                        label = { Text(stringResource(R.string.songs)) },
-                        selected = true,
-                        colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
-                        onClick = { filterType = LibraryFilter.LIBRARY },
-                        shape = RoundedCornerShape(16.dp),
-                        leadingIcon = {
-                            Icon(painter = painterResource(R.drawable.close), contentDescription = "")
-                        },
-                    )
+                    if (appDesignVariant == AppDesignVariantType.NEW) {
+                        FilterChip(
+                            label = { Text(stringResource(R.string.songs)) },
+                            selected = true,
+                            colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
+                            onClick = { filterType = LibraryFilter.LIBRARY },
+                            shape = RoundedCornerShape(16.dp),
+                            leadingIcon = {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = ""
+                                )
+                            },
+                        )
+                    }
                     ChipsRow(
                         chips =
                         listOf(

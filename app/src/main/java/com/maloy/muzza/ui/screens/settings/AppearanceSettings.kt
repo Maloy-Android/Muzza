@@ -21,6 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -48,9 +49,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
+import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
@@ -86,10 +90,12 @@ fun AppearanceSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (appDesignVariant, onAppDesignVariantChange) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
+    val (defaultOpenTabOld, onDefaultOpenTabOldChange) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
@@ -308,6 +314,19 @@ fun AppearanceSettings(
             )
         }
 
+        EnumListPreference(
+            title = { Text(stringResource(R.string.app_design_variant)) },
+            icon = { Icon(Icons.Rounded.DesignServices,null) },
+            selectedValue = appDesignVariant,
+            onValueSelected = onAppDesignVariantChange,
+            valueText = {
+                when (it) {
+                    AppDesignVariantType.NEW -> stringResource(R.string.player_style_new)
+                    AppDesignVariantType.OLD -> stringResource(R.string.player_style_old)
+                }
+            }
+        )
+
         PreferenceGroupTitle(
             title = stringResource(R.string.player)
         )
@@ -374,18 +393,36 @@ fun AppearanceSettings(
             title = stringResource(R.string.misc)
         )
 
-        EnumListPreference(
-            title = { Text(stringResource(R.string.default_open_tab)) },
-            icon = { Icon(painterResource(R.drawable.tab), null) },
-            selectedValue = defaultOpenTab,
-            onValueSelected = onDefaultOpenTabChange,
-            valueText = {
-                when (it) {
-                    NavigationTab.HOME -> stringResource(R.string.home)
-                    NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
+        if (appDesignVariant == AppDesignVariantType.NEW) {
+            EnumListPreference(
+                title = { Text(stringResource(R.string.default_open_tab)) },
+                icon = { Icon(painterResource(R.drawable.tab), null) },
+                selectedValue = defaultOpenTab,
+                onValueSelected = onDefaultOpenTabChange,
+                valueText = {
+                    when (it) {
+                        NavigationTab.HOME -> stringResource(R.string.home)
+                        NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
+                    }
                 }
-            }
-        )
+            )
+        } else {
+            EnumListPreference(
+                title = { Text(stringResource(R.string.default_open_tab)) },
+                icon = { Icon(painterResource(R.drawable.tab), null) },
+                selectedValue = defaultOpenTabOld,
+                onValueSelected = onDefaultOpenTabOldChange,
+                valueText = {
+                    when (it) {
+                        NavigationTabOld.HOME -> stringResource(R.string.home)
+                        NavigationTabOld.SONGS -> stringResource(R.string.songs)
+                        NavigationTabOld.ARTISTS -> stringResource(R.string.artists)
+                        NavigationTabOld.ALBUMS -> stringResource(R.string.albums)
+                        NavigationTabOld.PLAYLISTS -> stringResource(R.string.playlists)
+                    }
+                }
+            )
+        }
 
         SwitchPreference(
             title = { Text(stringResource(R.string.slim_navbar)) },
@@ -450,6 +487,10 @@ fun AppearanceSettings(
 
 enum class DarkMode {
     ON, OFF, AUTO
+}
+
+enum class NavigationTabOld {
+    HOME, SONGS, ARTISTS, ALBUMS, PLAYLISTS
 }
 
 enum class NavigationTab {

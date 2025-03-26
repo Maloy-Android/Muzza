@@ -282,6 +282,7 @@
     <string name="dark_theme_on">Увімк.</string>
     <string name="dark_theme_off">Вимк.</string>
     <string name="dark_theme_follow_system">Використовувати налаштування системи</string>
+    <string name="app_design_variant">Дизайн програми</string>
     <string name="pure_black">Режим чистого чорного кольору</string>
     <string name="listen_youtube_music">Слухати в YouTube Music</string>
     <string name="visit_muzza">Відвідавши Muzza</string>

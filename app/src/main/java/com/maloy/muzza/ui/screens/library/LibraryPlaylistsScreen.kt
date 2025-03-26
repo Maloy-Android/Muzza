@@ -56,10 +56,12 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
@@ -69,6 +71,7 @@ import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
+import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistGridItem
@@ -89,9 +92,32 @@ import java.util.UUID
 @Composable
 fun LibraryPlaylistsScreen(
     navController: NavController,
-    filterContent: @Composable () -> Unit,
     viewModel: LibraryPlaylistsViewModel = hiltViewModel(),
 ) {
+    var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
+    val filterContent = @Composable {
+        Row {
+            ChipsRow(
+                chips =
+                listOf(
+                    LibraryFilter.PLAYLISTS to stringResource(R.string.filter_playlists),
+                    LibraryFilter.SONGS to stringResource(R.string.filter_songs),
+                    LibraryFilter.ALBUMS to stringResource(R.string.filter_albums),
+                    LibraryFilter.ARTISTS to stringResource(R.string.filter_artists),
+                ),
+                currentValue = filterType,
+                onValueUpdate = {
+                    filterType =
+                        if (filterType == it) {
+                            LibraryFilter.LIBRARY
+                        } else {
+                            it
+                        }
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current

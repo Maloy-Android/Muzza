@@ -38,7 +38,9 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MixSortDescendingKey
 import com.maloy.muzza.constants.MixSortType
 import com.maloy.muzza.constants.MixSortTypeKey
@@ -53,6 +55,7 @@ import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ArtistListItem
+import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.PlaylistListItem
@@ -72,9 +75,32 @@ import java.util.UUID
 @Composable
 fun LibraryMixScreen(
     navController: NavController,
-    filterContent: @Composable () -> Unit,
     viewModel: LibraryMixViewModel = hiltViewModel(),
 ) {
+    var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
+    val filterContent = @Composable {
+        Row {
+            ChipsRow(
+                chips =
+                listOf(
+                    LibraryFilter.PLAYLISTS to stringResource(R.string.filter_playlists),
+                    LibraryFilter.SONGS to stringResource(R.string.filter_songs),
+                    LibraryFilter.ALBUMS to stringResource(R.string.filter_albums),
+                    LibraryFilter.ARTISTS to stringResource(R.string.filter_artists),
+                ),
+                currentValue = filterType,
+                onValueUpdate = {
+                    filterType =
+                        if (filterType == it) {
+                            LibraryFilter.LIBRARY
+                        } else {
+                            it
+                        }
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return

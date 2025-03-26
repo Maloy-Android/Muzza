@@ -55,10 +55,12 @@ import com.maloy.muzza.constants.ArtistSortTypeKey
 import com.maloy.muzza.constants.ArtistViewTypeKey
 import com.maloy.muzza.constants.CONTENT_TYPE_ARTIST
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
@@ -80,9 +82,9 @@ import kotlinx.coroutines.withContext
 @Composable
 fun LibraryArtistsScreen(
     navController: NavController,
-    onDeselect: () -> Unit,
     viewModel: LibraryArtistsViewModel = hiltViewModel(),
 ) {
+    var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -106,7 +108,7 @@ fun LibraryArtistsScreen(
                 label = { Text(stringResource(R.string.artists)) },
                 selected = true,
                 colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
-                onClick = onDeselect,
+                onClick = { filterType = LibraryFilter.LIBRARY},
                 shape = RoundedCornerShape(16.dp),
                 leadingIcon = {
                     Icon(painter = painterResource(R.drawable.close), contentDescription = "")

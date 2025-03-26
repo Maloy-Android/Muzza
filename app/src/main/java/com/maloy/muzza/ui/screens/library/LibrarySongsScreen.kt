@@ -54,7 +54,9 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.SongFilter
 import com.maloy.muzza.constants.SongFilterKey
 import com.maloy.muzza.constants.SongSortDescendingKey
@@ -83,9 +85,9 @@ import kotlinx.coroutines.withContext
 @Composable
 fun LibrarySongsScreen(
     navController: NavController,
-    onDeselect: () -> Unit,
     viewModel: LibrarySongsViewModel = hiltViewModel(),
 ) {
+    var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
     val haptic = LocalHapticFeedback.current
     val context = LocalContext.current
     val menuState = LocalMenuState.current
@@ -170,7 +172,7 @@ fun LibrarySongsScreen(
                         label = { Text(stringResource(R.string.songs)) },
                         selected = true,
                         colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
-                        onClick = onDeselect,
+                        onClick = { filterType = LibraryFilter.LIBRARY },
                         shape = RoundedCornerShape(16.dp),
                         leadingIcon = {
                             Icon(painter = painterResource(R.drawable.close), contentDescription = "")

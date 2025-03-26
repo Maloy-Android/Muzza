@@ -130,6 +130,7 @@
 
     <!-- Sort menu -->
     <string name="sort_by_create_date">Нещодавно додані</string>
+    <string name="sort_by_last_updated">Нещодавно оновлені</string>
     <string name="sort_by_name">Назва</string>
     <string name="sort_by_artist">Виконавець</string>
     <string name="sort_by_year">Рік</string>

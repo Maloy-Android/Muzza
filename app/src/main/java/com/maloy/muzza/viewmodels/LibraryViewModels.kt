@@ -152,6 +152,7 @@ class LibraryAlbumsViewModel @Inject constructor(
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    @OptIn(ExperimentalCoroutinesApi::class)
     val allAlbums = context.dataStore.data
         .map {
             Triple(
@@ -253,6 +254,16 @@ class LibraryMixViewModel @Inject constructor(
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
 ) : ViewModel() {
+    var artists =
+        database
+            .artistsBookmarked(
+                ArtistSortType.CREATE_DATE,
+                true,
+            ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var albums = database.albumsLiked(AlbumSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
     val downloadSongs =

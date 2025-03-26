@@ -124,22 +124,6 @@ fun LibraryArtistsScreen(
                 },
                 modifier = Modifier.weight(1f),
             )
-            IconButton(
-                onClick = {
-                    viewType = viewType.toggle()
-                },
-                modifier = Modifier.padding(end = 6.dp)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
-                        }
-                    ),
-                    contentDescription = null
-                )
-            }
         }
     }
 
@@ -195,6 +179,22 @@ fun LibraryArtistsScreen(
                     text = pluralStringResource(R.plurals.n_artist, artists.size, artists.size),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.secondary
+                )
+            }
+            IconButton(
+                onClick = {
+                    viewType = viewType.toggle()
+                },
+                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        when (viewType) {
+                            LibraryViewType.LIST -> R.drawable.list
+                            LibraryViewType.GRID -> R.drawable.grid_view
+                        }
+                    ),
+                    contentDescription = null
                 )
             }
         }

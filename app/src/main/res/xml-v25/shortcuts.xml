@@ -1,34 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
     <shortcut
-        android:shortcutId="search"
+        android:shortcutId="songs"
         android:enabled="true"
-        android:icon="@drawable/shortcut_search"
-        android:shortcutShortLabel="@string/search">
+        android:icon="@drawable/shortcut_songs"
+        android:shortcutShortLabel="@string/songs">
         <intent
             android:targetClass="com.maloy.muzza.MainActivity"
             android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.SEARCH" />
+            android:action="com.maloy.muzza.action.SONGS" />
     </shortcut>
     <shortcut
-        android:shortcutId="home"
+        android:shortcutId="artists"
         android:enabled="true"
-        android:icon="@drawable/shortcut_home"
-        android:shortcutShortLabel="@string/home">
+        android:icon="@drawable/shortcut_artists"
+        android:shortcutShortLabel="@string/artists">
         <intent
             android:targetClass="com.maloy.muzza.MainActivity"
             android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.HOME" />
+            android:action="com.maloy.muzza.action.ARTISTS" />
     </shortcut>
-
     <shortcut
-        android:shortcutId="library"
+        android:shortcutId="albums"
         android:enabled="true"
-        android:icon="@drawable/shortcut_library"
-        android:shortcutShortLabel="@string/filter_library">
+        android:icon="@drawable/shortcut_albums"
+        android:shortcutShortLabel="@string/albums">
         <intent
             android:targetClass="com.maloy.muzza.MainActivity"
             android:targetPackage="com.maloy.muzza"
-            android:action="com.maloy.muzza.action.LIBRARY" />
+            android:action="com.maloy.muzza.action.ALBUMS" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="playlists"
+        android:enabled="true"
+        android:icon="@drawable/shortcut_playlists"
+        android:shortcutShortLabel="@string/filter_playlists">
+        <intent
+            android:targetClass="com.maloy.muzza.MainActivity"
+            android:targetPackage="com.maloy.muzza"
+            android:action="com.maloy.muzza.action.PLAYLISTS" />
     </shortcut>
 </shortcuts>

@@ -113,12 +113,14 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.AppDesignVariantKey
 import com.maloy.muzza.constants.AppDesignVariantType
+import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
 import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.FirstSetupPassed
+import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.NavigationBarAnimationSpec
 import com.maloy.muzza.constants.NavigationBarHeight
@@ -337,22 +339,26 @@ class MainActivity : ComponentActivity() {
                         }
                     }
                     val defaultOpenTab = remember {
-                        dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
+                        if (appDesignVariant == AppDesignVariantType.NEW) dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
+                        else dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                     }
                     val tabOpenedFromShortcut = remember {
-                        if (appDesignVariant == AppDesignVariantType.NEW) {
-                            when (intent?.action) {
-                                ACTION_LIBRARY -> NavigationTab.LIBRARY
-                                else -> null
-                            }
-                        } else {
-                            when (intent?.action) {
-                                ACTION_SONGS -> NavigationTabOld.SONGS
-                                ACTION_ARTISTS -> NavigationTabOld.ARTISTS
-                                ACTION_ALBUMS -> NavigationTabOld.ALBUMS
-                                ACTION_PLAYLISTS -> NavigationTabOld.PLAYLISTS
-                                else -> null
-                            }
+                        when (intent?.action) {
+                            ACTION_SONGS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.SONGS
+                            ACTION_ARTISTS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.ARTISTS
+                            ACTION_ALBUMS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.ALBUMS
+                            ACTION_PLAYLISTS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.PLAYLISTS
+                            else -> null
+                        }
+                    }
+                    if (tabOpenedFromShortcut != null && appDesignVariant == AppDesignVariantType.NEW) {
+                        var filter by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
+                        filter = when (intent?.action) {
+                            ACTION_SONGS -> LibraryFilter.SONGS
+                            ACTION_ARTISTS -> LibraryFilter.ARTISTS
+                            ACTION_ALBUMS -> LibraryFilter.ALBUMS
+                            ACTION_PLAYLISTS -> LibraryFilter.PLAYLISTS
+                            else -> LibraryFilter.LIBRARY
                         }
                     }
                     val topLevelScreens = listOf(
@@ -578,9 +584,12 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
                                     NavigationTab.HOME -> Screens.Home
-                                    NavigationTab.LIBRARY -> Screens.Library
-                                    else -> null
-                                }!!.route,
+                                    NavigationTabOld.SONGS -> Screens.Songs
+                                    NavigationTabOld.ARTISTS -> Screens.Artists
+                                    NavigationTabOld.ALBUMS -> Screens.Albums
+                                    NavigationTabOld.PLAYLISTS -> Screens.Playlists
+                                    else -> Screens.Library
+                                }.route,
                                 enterTransition = {
                                     if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
                                         fadeIn(tween(250))
@@ -636,8 +645,8 @@ class MainActivity : ComponentActivity() {
                                     NavigationTabOld.ARTISTS -> Screens.Artists
                                     NavigationTabOld.ALBUMS -> Screens.Albums
                                     NavigationTabOld.PLAYLISTS -> Screens.Playlists
-                                    else -> null
-                                }!!.route,
+                                    else -> Screens.Library
+                                }.route,
                                 enterTransition = {
                                     if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
                                         fadeIn(tween(250))
@@ -1020,7 +1029,6 @@ class MainActivity : ComponentActivity() {
 
     companion object {
         const val ACTION_SEARCH = "com.maloy.muzza.action.SEARCH"
-        const val ACTION_LIBRARY = "com.maloy.muzza.action.LIBRARY"
         const val ACTION_SONGS = "com.maloy.muzza.action.SONGS"
         const val ACTION_ARTISTS = "com.maloy.muzza.action.ARTISTS"
         const val ACTION_ALBUMS = "com.maloy.muzza.action.ALBUMS"

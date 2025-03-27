@@ -21,11 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -40,12 +43,14 @@ import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
 import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MixSortDescendingKey
 import com.maloy.muzza.constants.MixSortType
 import com.maloy.muzza.constants.MixSortTypeKey
 import com.maloy.muzza.constants.MixViewType
 import com.maloy.muzza.constants.MixViewTypeKey
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
@@ -63,9 +68,12 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.ui.menu.PlaylistMenu
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryMixViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.time.LocalDateTime
 import java.util.Locale
@@ -101,6 +109,7 @@ fun LibraryMixScreen(
             )
         }
     }
+    val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -112,6 +121,13 @@ fun LibraryMixScreen(
     )
     val (sortDescending, onSortDescendingChange) = rememberPreference(MixSortDescendingKey, true)
     var viewType by rememberEnumPreference(MixViewTypeKey, MixViewType.GRID)
+
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
 
     val likedSongs by viewModel.likedSongs.collectAsState()
     val downloadSongs by viewModel.downloadSongs.collectAsState(initial = null)
@@ -138,6 +154,14 @@ fun LibraryMixScreen(
                 MixViewType.GRID -> lazyGridState.animateScrollToItem(0)
             }
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
+        }
+    }
+
+    LaunchedEffect(Unit) {
+        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+            withContext(Dispatchers.IO) {
+                viewModel.syncAllLibrary()
+            }
         }
     }
 

@@ -253,7 +253,16 @@ class ArtistSongsViewModel @Inject constructor(
 class LibraryMixViewModel @Inject constructor(
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
+    private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    val syncAllLibrary = {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncUtils.syncLikedSongs()
+            syncUtils.syncArtistsSubscriptions()
+            syncUtils.syncLikedAlbums()
+            syncUtils.syncSavedPlaylists()
+        }
+    }
     var artists =
         database
             .artistsBookmarked(

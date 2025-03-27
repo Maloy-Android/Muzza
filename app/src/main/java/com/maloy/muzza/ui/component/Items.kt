@@ -541,7 +541,12 @@ fun AlbumGridItem(
 fun PlaylistListItem(
     playlist: Playlist,
     modifier: Modifier = Modifier,
-    trailingContent: @Composable RowScope.() -> Unit = {},
+    showLikedIcon: Boolean = true,
+    trailingContent: @Composable (RowScope.() -> Unit) = {
+        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+            Icon.Favorite()
+        }
+    },
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
@@ -583,8 +588,13 @@ fun PlaylistListItem(
 fun PlaylistGridItem(
     playlist: Playlist,
     modifier: Modifier = Modifier,
-    badges: @Composable RowScope.() -> Unit = { },
+    showLikedIcon: Boolean = true,
     fillMaxWidth: Boolean = false,
+    badges: @Composable (RowScope.() -> Unit) = {
+        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+            Icon.Favorite()
+        }
+    },
 ) = GridItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),

@@ -687,9 +687,11 @@ fun YouTubeListItem(
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
+        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null ||
+            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }
@@ -740,9 +742,11 @@ fun YouTubeGridItem(
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
+        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null ||
+            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }

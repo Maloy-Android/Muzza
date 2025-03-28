@@ -12,6 +12,7 @@
 
     <!-- Bottom navigation -->
     <string name="home">Головна</string>
+    <string name="explore">Навігатор</string>
     <string name="songs">Музика</string>
     <string name="artists">Виконавці</string>
     <string name="albums">Альбоми</string>

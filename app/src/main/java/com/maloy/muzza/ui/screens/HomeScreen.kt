@@ -5,7 +5,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -717,90 +716,6 @@ fun HomeScreen(
                                     )
                                 }
                             }
-                        }
-                    }
-                }
-            }
-
-            explorePage?.newReleaseAlbums?.let { newReleaseAlbums ->
-                item {
-                    NavigationTitle(
-                        title = stringResource(R.string.new_release_albums),
-                        onClick = {
-                            navController.navigate("new_release")
-                        },
-                        modifier = Modifier.animateItem()
-                    )
-                }
-
-                item {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        items(
-                            items = newReleaseAlbums,
-                            key = { it.id }
-                        ) { album ->
-                            YouTubeGridItem(
-                                item = album,
-                                isActive = mediaMetadata?.album?.id == album.id,
-                                isPlaying = isPlaying,
-                                coroutineScope = scope,
-                                modifier = Modifier
-                                    .combinedClickable(
-                                        onClick = {
-                                            navController.navigate("album/${album.id}")
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubeAlbumMenu(
-                                                    albumItem = album,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    )
-                                    .animateItem()
-                            )
-                        }
-                    }
-                }
-            }
-
-            explorePage?.moodAndGenres?.let { moodAndGenres ->
-                item {
-                    NavigationTitle(
-                        title = stringResource(R.string.mood_and_genres),
-                        onClick = {
-                            navController.navigate("mood_and_genres")
-                        },
-                        modifier = Modifier.animateItem()
-                    )
-                }
-
-                item {
-                    LazyHorizontalGrid(
-                        rows = GridCells.Fixed(4),
-                        contentPadding = PaddingValues(6.dp),
-                        modifier = Modifier
-                            .height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp)
-                            .animateItem()
-                    ) {
-                        items(moodAndGenres) {
-                            MoodAndGenresButton(
-                                title = it.title,
-                                onClick = {
-                                    navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
-                                },
-                                modifier = Modifier
-                                    .padding(6.dp)
-                                    .width(180.dp)
-                            )
                         }
                     }
                 }

@@ -363,6 +363,7 @@ class MainActivity : ComponentActivity() {
                     }
                     val topLevelScreens = listOf(
                         Screens.Home.route,
+                        Screens.Explore.route,
                         Screens.Library.route,
                         Screens.Songs.route,
                         Screens.Artists.route,
@@ -584,6 +585,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
                                     NavigationTab.HOME -> Screens.Home
+                                    NavigationTab.EXPLORE -> Screens.Explore
                                     NavigationTabOld.SONGS -> Screens.Songs
                                     NavigationTabOld.ARTISTS -> Screens.Artists
                                     NavigationTabOld.ALBUMS -> Screens.Albums
@@ -641,6 +643,7 @@ class MainActivity : ComponentActivity() {
                                 navController = navController,
                                 startDestination = when (tabOpenedFromShortcut ?: defaultOpenTabOld) {
                                     NavigationTabOld.HOME -> Screens.Home
+                                    NavigationTabOld.EXPLORE -> Screens.Explore
                                     NavigationTabOld.SONGS -> Screens.Songs
                                     NavigationTabOld.ARTISTS -> Screens.Artists
                                     NavigationTabOld.ALBUMS -> Screens.Albums
@@ -698,6 +701,7 @@ class MainActivity : ComponentActivity() {
                         val currentTitle = remember(navBackStackEntry) {
                             when (navBackStackEntry?.destination?.route) {
                                 Screens.Home.route -> R.string.home
+                                Screens.Explore.route -> R.string.explore
                                 Screens.Library.route -> R.string.filter_library
                                 Screens.Songs.route -> R.string.songs
                                 Screens.Artists.route -> R.string.artists

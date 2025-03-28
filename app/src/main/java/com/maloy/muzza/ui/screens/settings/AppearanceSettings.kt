@@ -402,6 +402,7 @@ fun AppearanceSettings(
                 valueText = {
                     when (it) {
                         NavigationTab.HOME -> stringResource(R.string.home)
+                        NavigationTab.EXPLORE -> stringResource(R.string.explore)
                         NavigationTab.SONGS -> stringResource(R.string.songs)
                         NavigationTab.ARTISTS -> stringResource(R.string.artists)
                         NavigationTab.ALBUMS -> stringResource(R.string.albums)
@@ -419,6 +420,7 @@ fun AppearanceSettings(
                 valueText = {
                     when (it) {
                         NavigationTabOld.HOME -> stringResource(R.string.home)
+                        NavigationTabOld.EXPLORE -> stringResource(R.string.explore)
                         NavigationTabOld.SONGS -> stringResource(R.string.songs)
                         NavigationTabOld.ARTISTS -> stringResource(R.string.artists)
                         NavigationTabOld.ALBUMS -> stringResource(R.string.albums)
@@ -494,11 +496,11 @@ enum class DarkMode {
 }
 
 enum class NavigationTabOld {
-    HOME, SONGS, ARTISTS, ALBUMS, PLAYLISTS
+    HOME, EXPLORE ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
 }
 
 enum class NavigationTab {
-     HOME, LIBRARY ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
+     HOME, LIBRARY, EXPLORE ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
 }
 
 enum class LyricsPosition {

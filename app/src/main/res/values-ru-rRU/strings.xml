@@ -13,6 +13,7 @@
 
     <!-- Bottom navigation -->
     <string name="home">Главная</string>
+    <string name="explore">Навигатор</string>
     <string name="songs">Музыка</string>
     <string name="artists">Исполнители</string>
     <string name="albums">Альбомы</string>

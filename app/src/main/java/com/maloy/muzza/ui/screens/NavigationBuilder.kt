@@ -49,6 +49,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable(Screens.Home.route) {
         HomeScreen(navController)
     }
+    composable(Screens.Explore.route) {
+        ExploreScreen(navController)
+    }
     composable(Screens.Library.route) {
         LibraryScreen(navController)
     }

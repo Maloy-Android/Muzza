@@ -18,9 +18,14 @@ data class PlaylistPage(
         fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
             return SongItem(
                 id = renderer.playlistItemData?.videoId ?: return null,
-                title = renderer.flexColumns.firstOrNull()
-                    ?.musicResponsiveListItemFlexColumnRenderer?.text
-                    ?.runs?.firstOrNull()?.text ?: return null,
+                title =
+                renderer.flexColumns
+                    .firstOrNull()
+                    ?.musicResponsiveListItemFlexColumnRenderer
+                    ?.text
+                    ?.runs
+                    ?.firstOrNull()
+                    ?.text ?: return null,
                 artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
                     Artist(
                         name = it.text,

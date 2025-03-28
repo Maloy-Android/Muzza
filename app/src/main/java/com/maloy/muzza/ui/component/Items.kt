@@ -349,8 +349,9 @@ fun SongGridItem(
 fun ArtistListItem(
     artist: Artist,
     modifier: Modifier = Modifier,
+    showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (artist.artist.bookmarkedAt != null) {
+        if (showLikedIcon && artist.artist.bookmarkedAt != null) {
             Icon.Favorite()
         }
     },
@@ -376,8 +377,9 @@ fun ArtistListItem(
 fun ArtistGridItem(
     artist: Artist,
     modifier: Modifier = Modifier,
+    showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (artist.artist.bookmarkedAt != null) {
+        if (showLikedIcon && artist.artist.bookmarkedAt != null) {
             Icon.Favorite()
         }
     },
@@ -467,6 +469,7 @@ fun AlbumListItem(
 fun AlbumGridItem(
     album: Album,
     modifier: Modifier = Modifier,
+    showLikedIcon: Boolean = true,
     coroutineScope: CoroutineScope,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
@@ -496,7 +499,7 @@ fun AlbumGridItem(
             }
         }
 
-        if (album.album.bookmarkedAt != null) {
+        if (showLikedIcon && album.album.bookmarkedAt != null) {
             Icon.Favorite()
         }
 

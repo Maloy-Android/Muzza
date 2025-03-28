@@ -46,6 +46,7 @@ fun ArtistMenu(
 
     ArtistListItem(
         artist = artist,
+        showLikedIcon = false,
         badges = {},
         trailingContent = {
             IconButton(

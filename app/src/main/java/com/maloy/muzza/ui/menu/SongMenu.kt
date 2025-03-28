@@ -197,6 +197,7 @@ fun SongMenu(
 
     SongListItem(
         song = song,
+        showLikedIcon = false,
         badges = {},
         trailingContent = {
             IconButton(

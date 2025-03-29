@@ -1,12 +1,12 @@
 package com.maloy.muzza.ui.screens.settings
 
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -62,16 +63,182 @@ import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.net.URL
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun SettingsScreen(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+) {
+    val uriHandler = LocalUriHandler.current
+    val backgroundImages = listOf(R.drawable.cardbg, R.drawable.cardbg2, R.drawable.cardbg3, R.drawable.cardbg4, R.drawable.cardbg5, R.drawable.cardbg6, R.drawable.cardbg7, R.drawable.cardbg8, R.drawable.cardbg9, R.drawable.cardbg11, R.drawable.cardbg12, R.drawable.cardbg13, R.drawable.cardbg14, R.drawable.cardbg15, R.drawable.cardbg16, R.drawable.cardbg17, R.drawable.cardbg18, R.drawable.cardbg19, R.drawable.cardbg20, R.drawable.cardbg22, R.drawable.cardbg23, R.drawable.cardbg24, R.drawable.cardbg25, R.drawable.cardbg26, R.drawable.cardbg27, R.drawable.cardbg28, R.drawable.cardbg29)
+    var currentImageIndex by remember { mutableIntStateOf((0..backgroundImages.lastIndex).random()) }
+    fun changeBackgroundImage() {
+        currentImageIndex = (currentImageIndex + 1) % backgroundImages.size
+    }
+    val accountName by rememberPreference(AccountNameKey, "")
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
+
+    Column(
+        Modifier
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
+            .verticalScroll(rememberScrollState())
+    ) {
+        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+            Box(
+                modifier = Modifier
+                    .height(220.dp)
+                    .clip(RoundedCornerShape(25.dp))
+                    .background(color = Color.Transparent)
+                    .clickable { changeBackgroundImage() }
+        ) {
+            Image(
+                painter = painterResource(id = backgroundImages[currentImageIndex]),
+                contentDescription = "background",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(0.5.dp)
+                )
+                if (isLoggedIn) {
+                PreferenceEntry(
+                    title = {
+                        Column(
+                            modifier = Modifier.padding(16.dp),
+                        ) {
+                            Text(
+                                stringResource(R.string.Hi),
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontFamily = FontFamily.SansSerif
+                            )
+                            Spacer(modifier = Modifier.height(3.dp))
+                            Text(
+                                accountName.replace("@", ""),
+                                color = Color.White,
+                                fontSize = 20.sp,
+                                style = MaterialTheme.typography.titleSmall,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    },
+                    description = null,
+                    onClick = { changeBackgroundImage() }
+                )
+            } else {
+                    PreferenceEntry(
+                        title = {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.CenterStart
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
+                                    Image(
+                                        painter = painterResource(R.drawable.small_icon),
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(50.dp)
+                                            .padding(end = 8.dp)
+                                            .background(
+                                                Color.Black,
+                                                shape = RoundedCornerShape(18.dp)
+                                            )
+                                    )
+                                    Text(
+                                        stringResource(R.string.app_name),
+                                        color = Color.White,
+                                        fontSize = 20.sp,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontFamily = FontFamily.SansSerif
+                                    )
+                                }
+                            }
+                        },
+                        description = null,
+                        onClick = { changeBackgroundImage() }
+                    )
+            }
+        }
+
+        Spacer(Modifier.height(25.dp))
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.appearance)) },
+            icon = { Icon(painterResource(R.drawable.palette), null) },
+            onClick = { navController.navigate("settings/appearance") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.account)) },
+            icon = { Icon(painterResource(R.drawable.person), null) },
+            onClick = { navController.navigate("settings/account") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.content)) },
+            icon = { Icon(painterResource(R.drawable.language), null) },
+            onClick = { navController.navigate("settings/content") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.player_and_audio)) },
+            icon = { Icon(painterResource(R.drawable.play), null) },
+            onClick = { navController.navigate("settings/player") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.storage)) },
+            icon = { Icon(painterResource(R.drawable.storage), null) },
+            onClick = { navController.navigate("settings/storage") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.privacy)) },
+            icon = { Icon(painterResource(R.drawable.security), null) },
+            onClick = { navController.navigate("settings/privacy") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.backup_restore)) },
+            icon = { Icon(painterResource(R.drawable.restore), null) },
+            onClick = { navController.navigate("settings/backup_restore") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.about)) },
+            icon = { Icon(painterResource(R.drawable.info), null) },
+            onClick = { navController.navigate("settings/about") }
+        )
+
+        UpdateCard(uriHandler)
+        Spacer(Modifier.height(25.dp))
+        VersionCard(uriHandler)
+        Spacer(Modifier.height(25.dp))
+    }
+    TopAppBar(
+        title = { Text(stringResource(R.string.settings)) },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
+}
+
 @Composable
 fun VersionCard(uriHandler: UriHandler) {
-
     Spacer(Modifier.height(25.dp))
     ElevatedCard(
         elevation = CardDefaults.cardElevation(
             defaultElevation = 6.dp
         ),
         modifier = Modifier
-//           .clip(RoundedCornerShape(38.dp))
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .height(85.dp),
@@ -182,184 +349,4 @@ fun isNewerVersion(remoteVersion: String, currentVersion: String): Boolean {
         if (r < c) return false
     }
     return false
-}
-
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun SettingsScreen(
-    navController: NavController,
-    scrollBehavior: TopAppBarScrollBehavior,
-) {
-
-
-    val uriHandler = LocalUriHandler.current
-
-
-//    var isBetaFunEnabled by remember { mutableStateOf(false) }
-
-
-    val backgroundImages = listOf(
-
-        R.drawable.cardbg,
-        R.drawable.cardbg2,
-        R.drawable.cardbg3,
-        R.drawable.cardbg4,
-        R.drawable.cardbg5,
-        R.drawable.cardbg6,
-        R.drawable.cardbg7,
-        R.drawable.cardbg8,
-        R.drawable.cardbg9,
-        R.drawable.cardbg11,
-        R.drawable.cardbg12,
-        R.drawable.cardbg13,
-        R.drawable.cardbg14,
-        R.drawable.cardbg15,
-        R.drawable.cardbg16,
-        R.drawable.cardbg17,
-        R.drawable.cardbg18,
-        R.drawable.cardbg19,
-        R.drawable.cardbg20,
-        R.drawable.cardbg22,
-        R.drawable.cardbg23,
-        R.drawable.cardbg24,
-        R.drawable.cardbg25,
-        R.drawable.cardbg26,
-        R.drawable.cardbg27,
-        R.drawable.cardbg28,
-        R.drawable.cardbg29,
-
-
-        )
-
-    var currentImageIndex by remember { mutableIntStateOf((0..backgroundImages.lastIndex).random()) }
-
-
-    fun changeBackgroundImage() {
-        currentImageIndex = (currentImageIndex + 1) % backgroundImages.size
-    }
-
-
-    val accountName by rememberPreference(AccountNameKey, "")
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
-        }
-
-    Column(
-        Modifier
-            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState())
-    ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
-        if (isLoggedIn) {
-            Box(
-                modifier = Modifier
-                    .height(220.dp)
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(color = Color.Transparent)
-                    .clickable { changeBackgroundImage() } // change background image on click
-
-
-        ) {
-            Image(
-                painter = painterResource(id = backgroundImages[currentImageIndex]),
-                contentDescription = "background",
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .blur(0.5.dp)
-
-                )
-                PreferenceEntry(
-                    title = {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                        ) {
-                            Text(
-                                stringResource(R.string.Hi),
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontFamily = FontFamily.SansSerif
-                            )
-                            Spacer(modifier = Modifier.height(3.dp))
-                            Text(
-                                accountName.replace("@", ""),
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        }
-                    },
-                    description = null,
-                    onClick = { changeBackgroundImage() },
-                )
-            }
-        }
-
-        Spacer(Modifier.height(25.dp))
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.appearance)) },
-            icon = { Icon(painterResource(R.drawable.palette), null) },
-            onClick = { navController.navigate("settings/appearance") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.account)) },
-            icon = { Icon(painterResource(R.drawable.person), null) },
-            onClick = { navController.navigate("settings/account") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.content)) },
-            icon = { Icon(painterResource(R.drawable.language), null) },
-            onClick = { navController.navigate("settings/content") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.player_and_audio)) },
-            icon = { Icon(painterResource(R.drawable.play), null) },
-            onClick = { navController.navigate("settings/player") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.storage)) },
-            icon = { Icon(painterResource(R.drawable.storage), null) },
-            onClick = { navController.navigate("settings/storage") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.privacy)) },
-            icon = { Icon(painterResource(R.drawable.security), null) },
-            onClick = { navController.navigate("settings/privacy") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.backup_restore)) },
-            icon = { Icon(painterResource(R.drawable.restore), null) },
-            onClick = { navController.navigate("settings/backup_restore") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.about)) },
-            icon = { Icon(painterResource(R.drawable.info), null) },
-            onClick = { navController.navigate("settings/about") }
-        )
-
-        UpdateCard(uriHandler)
-        Spacer(Modifier.height(25.dp))
-        VersionCard(uriHandler)
-        Spacer(Modifier.height(25.dp))
-    }
-    TopAppBar(
-        title = { Text(stringResource(R.string.settings)) },
-        navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null
-                )
-            }
-        },
-        scrollBehavior = scrollBehavior
-    )
 }

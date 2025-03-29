@@ -52,22 +52,24 @@ data class HomePage(
             private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
                 return when {
                     renderer.isSong -> {
-                        SongItem(
-                            id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
-                            title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                            artists = listOfNotNull(renderer.subtitle?.runs?.firstOrNull()?.let {
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
-                                )
-                            }),
-                            album = null,
-                            duration = null,
-                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
-                            explicit = renderer.subtitleBadges?.find {
-                                it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                            } != null
-                        )
+                        renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        }?.let {
+                            SongItem(
+                                id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                                title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                                artists = it,
+                                album = null,
+                                duration = null,
+                                thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                                explicit = renderer.subtitleBadges?.find {
+                                    it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                                } != null
+                            )
+                        }
                     }
 
                     renderer.isAlbum -> {

@@ -27,7 +27,7 @@ data class RelatedPage(
                 artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
                     Artist(
                         name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        id = it.navigationEndpoint?.browseEndpoint?.browseId,
                     )
                 } ?: return null,
                 album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
@@ -52,7 +52,12 @@ data class RelatedPage(
                         ?.content?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    artists = null,
+                    artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    },
                     year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                     explicit = renderer.subtitleBadges?.find {

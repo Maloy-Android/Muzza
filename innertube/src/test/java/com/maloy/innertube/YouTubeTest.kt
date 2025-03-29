@@ -47,7 +47,6 @@ class YouTubeTest {
 
     @Test
     fun `Check 'search' endpoint`() = runBlocking {
-        // Top result with radio link
         val searchAllTypeResult = youTube.searchSummary("musi").getOrThrow()
         assertTrue(searchAllTypeResult.summaries.size > 1)
         for (filter in listOf(
@@ -89,7 +88,7 @@ class YouTubeTest {
     fun `Check 'browse' endpoint`() = runBlocking {
         var artist = youTube.artist("UCI6B8NkZKqlFWoiC_xE-hzA").getOrThrow()
         assertTrue(artist.sections.isNotEmpty())
-        artist = youTube.artist("UCy2RKLxIOMOfGld_yBYEBLw").getOrThrow() // Artist that contains audiobook
+        artist = youTube.artist("UCy2RKLxIOMOfGld_yBYEBLw").getOrThrow()
         assertTrue(artist.sections.isNotEmpty())
         val album = youTube.album("MPREb_oNAdr9eUOfS").getOrThrow()
         assertTrue(album.songs.isNotEmpty())
@@ -132,7 +131,6 @@ class YouTubeTest {
 
     @Test
     fun `Browse playlist`() = runBlocking {
-        // This playlist has 2900 songs
         val playlistId = "PLtAw-mgfCzRwduBTjBHknz5U4_ZM4n6qm"
         var count = 5
         val playlistPage = YouTube.playlist(playlistId).getOrThrow()
@@ -174,7 +172,7 @@ class YouTubeTest {
         private val VIDEO_IDS = listOf(
             "4H-N260cPCg",
             "jF4KKOsoyDs",
-            "x8VYWazR5mE" // Login required
+            "x8VYWazR5mE"
         )
 
         private const val PLAYLIST_ID = "RDAMVM_WVXrDmm-P0"

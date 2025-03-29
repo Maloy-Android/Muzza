@@ -43,11 +43,7 @@ fun AsyncLocalImage(
         CoroutineScope(imageSession).launch {
             try {
                 imageBitmapState = image.invoke()?.asImageBitmap()
-            } catch (e: Exception) {
-//                e.printStackTrace()
-                // this probably won't be an issue when debugging...
-                // I'd like to add that this WAS a problem when debugging.
-            }
+            } catch (e: Exception) { }
         }
     }
 

@@ -712,7 +712,7 @@ fun AutoPlaylistScreen(
                         trailingIcon = {
                             if (searchQuery.text.isNotEmpty()) {
                                 IconButton(
-                                    onClick = { searchQuery = TextFieldValue("") } // Очищаем текст
+                                    onClick = { searchQuery = TextFieldValue("") }
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),

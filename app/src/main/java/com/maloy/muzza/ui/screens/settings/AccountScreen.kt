@@ -59,7 +59,7 @@ fun AccountSettings(
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
     val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
-    // temp vars
+
     var showToken: Boolean by remember {
         mutableStateOf(false)
     }
@@ -126,7 +126,7 @@ fun AccountSettings(
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Light,
                         overflow = TextOverflow.Ellipsis,
-                        maxLines = 1 // just give a preview so user knows it's at least there
+                        maxLines = 1
                     )
                 } else {
                     Text(stringResource(R.string.token_hidden))

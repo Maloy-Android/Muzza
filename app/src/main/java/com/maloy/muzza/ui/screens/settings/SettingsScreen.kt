@@ -293,7 +293,6 @@ fun UpdateCard(uriHandler: UriHandler) {
                 defaultElevation = 6.dp
             ),
             modifier = Modifier
-//                .clip(RoundedCornerShape(28.dp))
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp)
                 .height(120.dp),

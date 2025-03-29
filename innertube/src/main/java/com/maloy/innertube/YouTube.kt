@@ -587,7 +587,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         ).body<BrowseResponse>()
         val gridRenderer = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer
         val playlists = gridRenderer?.items!!
-            .drop(1) // the first item is "create new playlist"
+            .drop(1)
             .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
             .mapNotNull {
                 ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
@@ -601,7 +601,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             ).body<BrowseResponse>()
             val gridContinuation = response.continuationContents?.gridContinuation
             playlists += gridContinuation?.items!!
-                .drop(1) // the first item is "create new playlist"
+                .drop(1)
                 .mapNotNull(GridRenderer.Item::musicTwoRowItemRenderer)
                 .mapNotNull {
                     ArtistItemsPage.fromMusicTwoRowItemRenderer(it) as? PlaylistItem
@@ -677,7 +677,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         }
         val songs = items.map { it.first }
         val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
-        // load automix items
         playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.let { watchPlaylistEndpoint ->
             return@runCatching next(watchPlaylistEndpoint).getOrThrow().let { result ->
                 result.copy(
@@ -735,7 +734,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
 
     suspend fun queue(videoIds: List<String>? = null, playlistId: String? = null): Result<List<SongItem>> = runCatching {
         if (videoIds != null) {
-            assert(videoIds.size <= MAX_GET_QUEUE_SIZE) // Max video limit
+            assert(videoIds.size <= MAX_GET_QUEUE_SIZE)
         }
         innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueData
             .mapNotNull {

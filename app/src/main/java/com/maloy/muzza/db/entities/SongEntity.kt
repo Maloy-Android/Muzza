@@ -25,14 +25,14 @@ import java.time.LocalDateTime
 data class SongEntity(
     @PrimaryKey val id: String,
     val title: String,
-    val duration: Int = -1, // in seconds
+    val duration: Int = -1,
     val thumbnailUrl: String? = null,
     val albumId: String? = null,
     val albumName: String? = null,
     val liked: Boolean = false,
-    val totalPlayTime: Long = 0, // in milliseconds
+    val totalPlayTime: Long = 0,
     val inLibrary: LocalDateTime? = null,
-    val dateDownload: LocalDateTime? = null, // doubles as "isDownloaded"
+    val dateDownload: LocalDateTime? = null,
 ) {
     fun localToggleLike() = copy(
         liked = !liked,

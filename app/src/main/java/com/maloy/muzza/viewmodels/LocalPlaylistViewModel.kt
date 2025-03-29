@@ -52,7 +52,6 @@ class LocalPlaylistViewModel @Inject constructor(
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     init {
-        // Fix playlist song order
         viewModelScope.launch {
             val sortedSongs = playlistSongs.first().sortedWith(compareBy({ it.map.position }, { it.map.id }))
             database.transaction {

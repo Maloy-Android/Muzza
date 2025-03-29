@@ -175,7 +175,7 @@ fun QueueSelectionMenu(
             title = R.string.remove_from_queue
         ) {
             selection.sortedBy {
-                -it.firstPeriodIndex // descending
+                -it.firstPeriodIndex
             }.forEach { item ->
                 playerConnection.player.removeMediaItem(item.firstPeriodIndex)
             }

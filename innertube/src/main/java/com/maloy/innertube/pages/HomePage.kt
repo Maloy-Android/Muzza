@@ -94,7 +94,6 @@ data class HomePage(
                     }
 
                     renderer.isPlaylist -> {
-                        // Playlist from YouTube Music
                         PlaylistItem(
                             id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,

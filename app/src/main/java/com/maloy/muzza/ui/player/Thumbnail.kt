@@ -303,20 +303,18 @@ private fun TransitionIndicators(
     Box(modifier = Modifier.fillMaxSize()) {
         val offsetXDp = with(density) { offsetX.toDp() }
 
-        // Стрелка влево
         if (player.hasPreviousMediaItem()) {
             Icon(
                 imageVector = Icons.Filled.ChevronLeft,
                 contentDescription = null,
                 tint = color.copy(alpha = (offsetX / 300f).coerceIn(0f, 1f)),
                 modifier = Modifier
-                    .size(iconSize) // Теперь работает с правильным импортом
+                    .size(iconSize)
                     .align(Alignment.CenterStart)
                     .offset(x = offsetXDp - 50.dp)
             )
         }
 
-        // Стрелка вправо
         if (player.hasNextMediaItem()) {
             Icon(
                 imageVector = Icons.Filled.ChevronRight,

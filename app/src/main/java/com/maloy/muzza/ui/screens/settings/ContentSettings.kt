@@ -167,7 +167,6 @@ fun ContentSettings(
             onCheckedChange = onHideExplicitChange
         )
 
-        // Notification settings
         PreferenceGroupTitle(title = stringResource(R.string.notifications))
         PreferenceEntry(
             title = { Text(stringResource(R.string.notifications_settings)) },

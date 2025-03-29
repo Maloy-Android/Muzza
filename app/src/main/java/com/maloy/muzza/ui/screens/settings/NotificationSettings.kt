@@ -47,7 +47,6 @@ fun NotificationSettings(
     val (keepAlive, onKeepAliveChange) = rememberPreference(key = KeepAliveKey, defaultValue = false)
 
     fun toggleKeepAlive(newValue: Boolean) {
-        // disable and request if disabled
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             onKeepAliveChange(false)
@@ -64,7 +63,6 @@ fun NotificationSettings(
         }
         if (keepAlive != newValue) {
             onKeepAliveChange(newValue)
-            // start/stop service accordingly
             if (newValue) {
                 try {
                     context.startService(Intent(context, KeepAlive::class.java))
@@ -80,7 +78,6 @@ fun NotificationSettings(
             }
         }
     }
-    // reset if no permission
     LaunchedEffect(keepAlive) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
             && context.checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {

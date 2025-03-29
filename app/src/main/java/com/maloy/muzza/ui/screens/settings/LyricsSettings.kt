@@ -52,7 +52,6 @@ fun LyricsSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    // state variables and such
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(LyricsTextPositionKey, defaultValue = LyricsPosition.CENTER)
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
@@ -89,7 +88,6 @@ fun LyricsSettings(
             title = stringResource(R.string.main)
         )
 
-        // KuGou
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_kugou)) },
             icon = { Icon(Icons.Rounded.Lyrics, null) },
@@ -102,7 +100,6 @@ fun LyricsSettings(
             checked = enableLrcLib,
             onCheckedChange = onEnableLrcLibChange
         )
-        // multiline lyrics
         SwitchPreference(
             title = { Text(stringResource(R.string.lyrics_multiline_title)) },
             description = stringResource(R.string.lyrics_multiline_description),
@@ -110,7 +107,6 @@ fun LyricsSettings(
             checked = multilineLrc,
             onCheckedChange = onMultilineLrcChange
         )
-        // trim (remove spaces around) lyrics
         SwitchPreference(
             title = { Text(stringResource(R.string.lyrics_trim_title)) },
             icon = { Icon(Icons.Rounded.ContentCut, null) },
@@ -118,7 +114,6 @@ fun LyricsSettings(
             onCheckedChange = onLyricTrimChange
         )
 
-        // lyrics position
         EnumListPreference(
             title = { Text(stringResource(R.string.lyrics_text_position)) },
             icon = { Icon(Icons.Rounded.Lyrics, null) },
@@ -132,7 +127,6 @@ fun LyricsSettings(
                 }
             }
         )
-        // font size
         PreferenceEntry(
             title = { Text( stringResource(R.string.lyrics_font_size)) },
             description = "$lyricFontSize sp",

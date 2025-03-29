@@ -93,7 +93,6 @@ import kotlinx.coroutines.withContext
 
 const val ActiveBoxAlpha = 0.6f
 
-// Basic list item
 @Composable
 inline fun ListItem(
     modifier: Modifier = Modifier,
@@ -146,7 +145,6 @@ inline fun ListItem(
     }
 }
 
-// merge badges and subtitle text and pass to basic list item
 @Composable
 fun ListItem(
     modifier: Modifier = Modifier,

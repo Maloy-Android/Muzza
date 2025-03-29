@@ -137,8 +137,7 @@ fun Lyrics(
     var currentLineIndex by remember {
         mutableIntStateOf(-1)
     }
-    // Because LaunchedEffect has delay, which leads to inconsistent with current line color and scroll animation,
-    // we use deferredCurrentLineIndex when user is scrolling
+
     var deferredCurrentLineIndex by rememberSaveable {
         mutableIntStateOf(0)
     }
@@ -185,7 +184,7 @@ fun Lyrics(
          */
         fun calculateOffset() = with(density) {
             if (landscapeOffset) {
-                16.dp.toPx().toInt() * countNewLine(lines[currentLineIndex].text) // landscape sits higher by default
+                16.dp.toPx().toInt() * countNewLine(lines[currentLineIndex].text)
             } else {
                 20.dp.toPx().toInt() * countNewLine(lines[currentLineIndex].text)
             }

@@ -79,7 +79,7 @@ object KuGou {
 
     suspend fun getLyricsCandidate(keyword: Pair<String, String>, duration: Int): SearchLyricsResponse.Candidate? {
         searchSongs(keyword).data.info.forEach { song ->
-            if (duration == -1 || abs(song.duration - duration) <= DURATION_TOLERANCE) { // if duration == -1, we don't care duration
+            if (duration == -1 || abs(song.duration - duration) <= DURATION_TOLERANCE) {
                 val candidate = searchLyricsByHash(song.hash).candidates.firstOrNull()
                 if (candidate != null) return candidate
             }
@@ -101,7 +101,7 @@ object KuGou {
             parameter("ver", 1)
             parameter("man", "yes")
             parameter("client", "pc")
-            parameter("duration", duration.takeIf { it != -1 }?.times(1000)) // if duration == -1, we don't care duration
+            parameter("duration", duration.takeIf { it != -1 }?.times(1000))
             url.encodedParameters.append("keyword", "${keyword.first} - ${keyword.second}".encodeURLParameter(spaceToPlus = false))
         }.body<SearchLyricsResponse>()
 
@@ -147,7 +147,6 @@ object KuGou {
         replace("&apos;", "'").lines().filter { line ->
             line matches ACCEPTED_REGEX
         }.let {
-            // Remove useless information such as singer, writer, composer, guitar, etc.
             var headCutLine = 0
             for (i in min(30, it.lastIndex) downTo 0) {
                 if (it[i] matches BANNED_REGEX) {

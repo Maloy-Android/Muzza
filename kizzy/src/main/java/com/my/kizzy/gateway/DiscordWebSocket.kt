@@ -75,8 +75,6 @@ open class DiscordWebSocket(
                 Logger.getLogger("Kizzy").log(INFO, "Gateway: Connect called")
                 val url = resumeGatewayUrl ?: gatewayUrl
                 websocket = client.webSocketSession(url)
-
-                // start receiving messages
                 websocket!!.incoming.receiveAsFlow()
                     .collect {
                         when (it) {
@@ -244,7 +242,6 @@ open class DiscordWebSocket(
     }
 
     suspend fun sendActivity(presence: Presence) {
-        // TODO : Figure out a better way to wait for socket to be connected to account
         while (!isSocketConnectedToAccount()) {
             delay(10.milliseconds)
         }

@@ -39,7 +39,6 @@ class AlbumViewModel @Inject constructor(
             }.onFailure {
                 reportException(it)
                 if (it.message?.contains("NOT_FOUND") == true) {
-                    // This album no longer exists in YouTube Music
                     database.query {
                         album?.album?.let(::delete)
                     }

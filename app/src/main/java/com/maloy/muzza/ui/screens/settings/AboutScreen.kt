@@ -156,7 +156,6 @@ fun UserCard(
                 }
             }
 
-            // Decorative element
             Box(
                 modifier = Modifier
                     .align(Alignment.TopEnd)
@@ -192,7 +191,6 @@ fun AboutScreen(
         Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
         Spacer(Modifier.height(4.dp))
 
-        // Image with shimmer effect
         Box(
             modifier = Modifier
                 .size(90.dp)
@@ -208,7 +206,6 @@ fun AboutScreen(
                     .clickable { }
             )
 
-            // Shimmer effect overlay only for the image
             Box(
                 modifier = Modifier
                     .matchParentSize()
@@ -408,7 +405,6 @@ fun CardItem(
         modifier = Modifier
             .fillMaxWidth()
             .height(120.dp)
-//            .shadow(8.dp, RoundedCornerShape(16.dp))
             .padding(horizontal = 16.dp),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(
@@ -511,7 +507,6 @@ fun ContributionCard(uriHandler: UriHandler) {
                     )
                 }
             }
-            // Shimmer effect overlay
             Box(
                 modifier = Modifier
                     .fillMaxSize()

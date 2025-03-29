@@ -65,7 +65,6 @@ fun Bitmap.extractThemeColor(): Color {
     return Color(rankedColors.first())
 }
 
-// from OuterTune
 fun Bitmap.extractGradientColors(): List<Color> {
     val extractedColors =
         Palette

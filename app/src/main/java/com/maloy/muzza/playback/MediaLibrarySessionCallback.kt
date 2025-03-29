@@ -199,7 +199,6 @@ class MediaLibrarySessionCallback @Inject constructor(
         startIndex: Int,
         startPositionMs: Long,
     ): ListenableFuture<MediaSession.MediaItemsWithStartPosition> = scope.future {
-        // Play from Android Auto
         val defaultResult = MediaSession.MediaItemsWithStartPosition(emptyList(), startIndex, startPositionMs)
         val path = mediaItems.firstOrNull()?.mediaId?.split("/")
             ?: return@future defaultResult

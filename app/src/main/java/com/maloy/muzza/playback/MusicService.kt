@@ -210,7 +210,6 @@ class MusicService : MediaLibraryService(),
                     setSmallIcon(R.drawable.small_icon)
                 }
         )
-        // FG notification
         if (dataStore.get(KeepAliveKey, false)) {
             try {
                 startService(Intent(this, KeepAlive::class.java))
@@ -263,7 +262,6 @@ class MusicService : MediaLibraryService(),
             .build()
         player.repeatMode = dataStore.get(RepeatModeKey, REPEAT_MODE_OFF)
 
-        // Keep a connected controller so that notification works
         val sessionToken = SessionToken(this, ComponentName(this, MusicService::class.java))
         val controllerFuture = MediaController.Builder(this, sessionToken).buildAsync()
         controllerFuture.addListener({ controllerFuture.get() }, MoreExecutors.directExecutor())
@@ -369,7 +367,6 @@ class MusicService : MediaLibraryService(),
             }
         }
 
-        // Save queue periodically to prevent queue loss from crash or force kill
         scope.launch {
             while (isActive) {
                 delay(30.seconds)
@@ -485,7 +482,6 @@ class MusicService : MediaLibraryService(),
             }
             if (initialStatus.items.isEmpty()) return@launch
             if (queue.preloadItem != null) {
-                // add missing songs back, without affecting current playing song
                 player.addMediaItems(0, initialStatus.items.subList(0, initialStatus.mediaItemIndex))
                 player.addMediaItems(initialStatus.items.subList(initialStatus.mediaItemIndex + 1, initialStatus.items.size))
             } else {
@@ -576,8 +572,6 @@ class MusicService : MediaLibraryService(),
             player.prepare()
             player.play()
         }
-
-        // Auto load more songs
         if (dataStore.get(AutoLoadMoreKey, true) &&
             reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT &&
             player.mediaItemCount - player.currentMediaItemIndex <= 5 &&
@@ -618,7 +612,6 @@ class MusicService : MediaLibraryService(),
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
         updateNotification()
         if (shuffleModeEnabled) {
-            // Always put current playing item at first
             val shuffledIndices = IntArray(player.mediaItemCount) { it }
             shuffledIndices.shuffle()
             shuffledIndices[shuffledIndices.indexOf(player.currentMediaItemIndex)] = shuffledIndices[0]
@@ -684,8 +677,6 @@ class MusicService : MediaLibraryService(),
                 return@Factory dataSpec.withUri(it.first.toUri())
             }
 
-            // Check whether format exists so that users from older version can view format details
-            // There may be inconsistent between the downloaded file and the displayed info if user change audio quality frequently
             val playedFormat = runBlocking(Dispatchers.IO) { database.format(mediaId).first() }
             val playerResponse = runBlocking(Dispatchers.IO) {
                 YouTube.player(mediaId)
@@ -709,7 +700,6 @@ class MusicService : MediaLibraryService(),
             val format =
                 if (playedFormat != null) {
                     playerResponse.streamingData?.adaptiveFormats?.find {
-                        // Use itag to identify previously played format
                         it.itag == playedFormat.itag
                     }
                 } else {
@@ -721,7 +711,7 @@ class MusicService : MediaLibraryService(),
                                 AudioQuality.MAX -> 5
                                 AudioQuality.HIGH -> 1
                                 AudioQuality.LOW -> -1
-                            } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0) // prefer opus stream
+                            } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
                         }
                 } ?: throw PlaybackException(getString(R.string.error_no_stream), null, ERROR_CODE_NO_STREAM)
 
@@ -776,7 +766,6 @@ class MusicService : MediaLibraryService(),
     override fun onPlaybackStatsReady(eventTime: AnalyticsListener.EventTime, playbackStats: PlaybackStats) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
         val minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100)
-        // ensure within bounds. Ehhh 99 is good enough to avoid any rounding errors
         if (playbackStats.totalPlayTimeMs.toFloat() / ((mediaItem.metadata?.duration?.times(1000)) ?: -1) >= minPlaybackDur
             && !dataStore.get(PauseListenHistoryKey, false)) {
             database.query {

@@ -39,12 +39,10 @@ fun SnapLayoutInfoProvider(
             layoutInfo.visibleItemsInfo.fastForEach { item ->
                 val offset = calculateDistanceToDesiredSnapPosition(layoutInfo, item, positionInLayout)
 
-                // Find item that is closest to the center
                 if (offset <= 0 && offset > lowerBoundOffset) {
                     lowerBoundOffset = offset
                 }
 
-                // Find item that is closest to center, but after it
                 if (offset >= 0 && offset < upperBoundOffset) {
                     upperBoundOffset = offset
                 }

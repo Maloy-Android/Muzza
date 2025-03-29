@@ -391,7 +391,6 @@ fun HomeScreen(
                             items = quickPicks,
                             key = { it.id }
                         ) { originalSong ->
-                            // fetch song from database to keep updated
                             val song by database.song(originalSong.id).collectAsState(initial = originalSong)
 
                             SongListItem(
@@ -453,7 +452,6 @@ fun HomeScreen(
                 }
 
                 item {
-                    // take min in case list size is less than 4
                     val rows = min(4, forgottenFavorites.size)
                     LazyHorizontalGrid(
                         state = forgottenFavoritesLazyGridState,

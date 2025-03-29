@@ -114,7 +114,6 @@ fun PlayerSettings(
             }
         )
 
-        // lyrics settings
         PreferenceEntry(
             title = { Text(stringResource(R.string.lyrics_settings_title)) },
             icon = { Icon(Icons.Rounded.Lyrics, null) },

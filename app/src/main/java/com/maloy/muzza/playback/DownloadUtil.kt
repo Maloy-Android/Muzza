@@ -94,7 +94,7 @@ class DownloadUtil @Inject constructor(
                             AudioQuality.MAX -> 5
                             AudioQuality.HIGH -> 1
                             AudioQuality.LOW -> -1
-                        } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0) // prefer opus stream
+                        } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
                     }
             }!!
 
@@ -114,7 +114,6 @@ class DownloadUtil @Inject constructor(
         }
 
         val streamUrl = format.findUrl()?.let {
-            // Specify range to avoid YouTube's throttling
             "${it}&range=0-${format.contentLength ?: 10000000}"
         }
 

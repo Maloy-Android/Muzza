@@ -39,8 +39,6 @@ object LyricsUtils {
         val list = mutableListOf<LyricsEntry>()
         var foundNonNull = false
         var lyricsText: StringBuilder? = StringBuilder()
-        //val measureTime = measureTimeMillis {
-        // Add all lines found on LRC (probably will be unordered because of "compression" or translation type)
         lyrics.lines().forEach { line ->
             timeMarksRegex.findAll(line).let { sequence ->
                 if (sequence.count() == 0) {
@@ -57,14 +55,12 @@ object LyricsUtils {
                     }
                     if (multilineEnable) {
                         val startIndex = lyrics.indexOf(line) + firstSync.length + 1
-                        var endIndex = lyrics.length // default to end
+                        var endIndex = lyrics.length
                         var nextSync = ""
-                        // track next sync point if found
                         if (timeMarksRegex.find(lyrics, startIndex)?.value != null) {
                             nextSync = timeMarksRegex.find(lyrics, startIndex)?.value!!
-                            endIndex = lyrics.indexOf(nextSync) - 1 // delete \n at end
+                            endIndex = lyrics.indexOf(nextSync) - 1
                         }
-                        // read as single line *IF* this is a single line lyric
                         lyricLine = if (nextSync == "[$firstSync]") {
                             line.substring(sequence.last().range.last + 1)
                                 .let { if (trim) it.trim() else it }
@@ -81,7 +77,6 @@ object LyricsUtils {
                 }
             }
         }
-        // Sort and mark as translations all found duplicated timestamps (usually one)
         list.sortBy { it.time }
         var previousTs = -1L
         list.forEach {
@@ -107,8 +102,6 @@ object LyricsUtils {
         val minutes = matchResult?.groupValues?.get(1)?.toLongOrNull() ?: 0
         val seconds = matchResult?.groupValues?.get(2)?.toLongOrNull() ?: 0
         val millisecondsString = matchResult?.groupValues?.get(3)
-        // if one specifies micro/pico/nano/whatever seconds for some insane reason,
-        // scrap the extra information
         val milliseconds = (millisecondsString?.substring(0, millisecondsString.length.coerceAtMost(3)
         )?.toLongOrNull() ?: 0) * 10f.pow(3 - (millisecondsString?.length ?: 0)).toLong()
         return minutes * 60000 + seconds * 1000 + milliseconds

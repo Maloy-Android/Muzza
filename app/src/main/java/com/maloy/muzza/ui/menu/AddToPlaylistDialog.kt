@@ -55,7 +55,7 @@ import java.time.LocalDateTime
 fun AddToPlaylistDialog(
     isVisible: Boolean,
     initialTextFieldValue: String? = null,
-    onGetSong: suspend (Playlist) -> List<String>, // list of song ids. Songs should be inserted to database in this function.
+    onGetSong: suspend (Playlist) -> List<String>,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -83,7 +83,7 @@ fun AddToPlaylistDialog(
         mutableStateOf<Playlist?>(null)
     }
     var songIds by remember {
-        mutableStateOf<List<String>?>(null) // list is not saveable
+        mutableStateOf<List<String>?>(null)
     }
     var duplicates by remember {
         mutableStateOf(emptyList<String>())
@@ -195,7 +195,6 @@ fun AddToPlaylistDialog(
         )
     }
 
-    // duplicate songs warning
     if (showDuplicateDialog) {
         DefaultDialog(
             title = { Text(stringResource(R.string.duplicates)) },

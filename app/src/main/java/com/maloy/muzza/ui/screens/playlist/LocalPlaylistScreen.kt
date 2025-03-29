@@ -427,7 +427,7 @@ fun LocalPlaylistScreen(
             }
 
             itemsIndexed(
-                items = if (isSearching) filteredSongs else mutableSongs, // mutableSongs has higher response when reordering
+                items = if (isSearching) filteredSongs else mutableSongs,
                 key = { _, song -> song.map.id }
             ) { index, song ->
                 if (index == 0) {
@@ -623,7 +623,7 @@ fun LocalPlaylistScreen(
                         trailingIcon = {
                             if (query.text.isNotEmpty()) {
                                 IconButton(
-                                    onClick = { query = TextFieldValue("") } // Очищаем текст
+                                    onClick = { query = TextFieldValue("") }
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.close),

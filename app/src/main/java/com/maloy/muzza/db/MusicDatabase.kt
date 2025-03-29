@@ -97,12 +97,12 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
         data class OldSongEntity(
             val id: String,
             val title: String,
-            val duration: Int = -1, // in seconds
+            val duration: Int = -1,
             val thumbnailUrl: String? = null,
             val albumId: String? = null,
             val albumName: String? = null,
             val liked: Boolean = false,
-            val totalPlayTime: Long = 0, // in milliseconds
+            val totalPlayTime: Long = 0,
             val downloadState: Int = 0,
             val createDate: LocalDateTime = LocalDateTime.now(),
             val modifyDate: LocalDateTime = LocalDateTime.now(),
@@ -152,7 +152,6 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
                 )
             }
         }
-        // ensure we have continuous playlist song position
         playlistSongMaps.sortBy { it.position }
         val playlistSongCount = mutableMapOf<String, Int>()
         playlistSongMaps.map { map ->

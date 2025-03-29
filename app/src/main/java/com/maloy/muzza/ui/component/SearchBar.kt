@@ -136,7 +136,6 @@ fun TopSearch(
         derivedStateOf {
             when {
                 shape == defaultInputFieldShape -> {
-                    // The shape can only be animated if it's the default spec value
                     val animatedRadius = SearchBarCornerRadius * (1 - animationProgress)
                     RoundedCornerShape(CornerSize(animatedRadius))
                 }
@@ -288,8 +287,6 @@ private fun SearchBarInputField(
                 .focusRequester(focusRequester)
                 .pointerInput(Unit) {
                     awaitEachGesture {
-                        // Must be PointerEventPass.Initial to observe events before the text field
-                        // consumes them in the Main pass
                         awaitFirstDown(pass = PointerEventPass.Initial)
                         val upEvent = waitForUpOrCancellation(pass = PointerEventPass.Initial)
                         if (upEvent != null) {
@@ -341,14 +338,11 @@ private fun SearchBarInputField(
     }
 }
 
-// Measurement specs
 val InputFieldHeight = 48.dp
 private val SearchBarCornerRadius: Dp = InputFieldHeight / 2
 internal val SearchBarVerticalPadding: Dp = 8.dp
 internal val SearchBarHorizontalPadding: Dp = 12.dp
 
-// Search bar has 16dp padding between icons and start/end, while by default text field has 12dp.
 val SearchBarIconOffsetX: Dp = 4.dp
 
-// Animation specs
 private const val AnimationDurationMillis: Int = MotionTokens.DurationMedium2.toInt()

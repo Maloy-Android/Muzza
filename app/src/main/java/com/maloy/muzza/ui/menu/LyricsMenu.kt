@@ -352,7 +352,6 @@ fun LyricsMenu(
             showSearchDialog = true
         }
         if (lyricsProvider() != null) {
-            // TODO: hide this for when lrc exists and lyrics is not in the database
             GridMenuItem(
                 icon = R.drawable.delete,
                 title = R.string.delete,

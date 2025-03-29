@@ -662,7 +662,7 @@ fun BottomSheetPlayer(
                 animationSpec = infiniteRepeatable(
                     animation = tween(
                         durationMillis = 100000,
-                        easing = FastOutSlowInEasing // Easing suave
+                        easing = FastOutSlowInEasing
                     ),
                     repeatMode = RepeatMode.Restart
                 ), label = ""
@@ -689,7 +689,7 @@ fun BottomSheetPlayer(
                     animationSpec = infiniteRepeatable(
                         animation = tween(
                             durationMillis = 100000,
-                            easing = FastOutSlowInEasing // Easing suave
+                            easing = FastOutSlowInEasing
                         ),
                         repeatMode = RepeatMode.Restart
                     ), label = ""

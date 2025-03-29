@@ -27,7 +27,6 @@ data class SectionListRenderer(
                 data class ChipCloudChipRenderer(
                     val isSelected: Boolean,
                     val navigationEndpoint: NavigationEndpoint,
-                    // The close button doesn't have the following two fields
                     val text: Runs?,
                     val uniqueId: String?,
                 )

@@ -58,7 +58,7 @@ class BackupRestoreViewModel @Inject constructor(
         runCatching {
             context.applicationContext.contentResolver.openInputStream(uri)?.use {
                 it.zipInputStream().use { inputStream ->
-                    var entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
+                    var entry = tryOrNull { inputStream.nextEntry }
                     while (entry != null) {
                         when (entry.name) {
                             SETTINGS_FILENAME -> {
@@ -77,7 +77,7 @@ class BackupRestoreViewModel @Inject constructor(
                                 }
                             }
                         }
-                        entry = tryOrNull { inputStream.nextEntry } // prevent ZipException
+                        entry = tryOrNull { inputStream.nextEntry }
                     }
                 }
             }

@@ -303,7 +303,7 @@ class MainActivity : ComponentActivity() {
                             val result = imageLoader.execute(
                                 ImageRequest.Builder(this@MainActivity)
                                     .data(song.thumbnailUrl)
-                                    .allowHardware(false) // pixel access is not supported on Config#HARDWARE bitmaps
+                                    .allowHardware(false)
                                     .build()
                             )
                             (result.drawable as? BitmapDrawable)?.bitmap?.extractThemeColor() ?: DefaultThemeColor
@@ -833,29 +833,6 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     } else if (navBackStackEntry?.destination?.route in topLevelScreens) {
-//                                        Box(
-//                                            contentAlignment = Alignment.Center,
-//                                            modifier =
-//                                                Modifier
-//                                                    .size(48.dp)
-//                                                    .clip(CircleShape)
-//                                                    .clickable {
-//                                                        navController.navigate("settings")
-//                                                    },
-//                                        ) {
-//                                            BadgedBox(
-//                                                badge = {
-//                                                    if (latestVersion > BuildConfig.VERSION_CODE) {
-//                                                        Badge()
-//                                                    }
-//                                                },
-//                                            ) {
-//                                                Icon(
-//                                                    painter = painterResource(R.drawable.settingsv2),
-//                                                    contentDescription = null,
-//                                                )
-//                                            }
-//                                        }
                                         SettingsIconWithUpdateBadge(
                                             currentVersion = BuildConfig.VERSION_NAME,
                                             onSettingsClick = { navController.navigate("settings") }
@@ -1083,7 +1060,6 @@ fun NotificationPermissionPreference() {
                     notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
                 }
             }
-            // Note: We don't update permissionGranted here because it will be updated by the LaunchedEffect
         }
     )
 }

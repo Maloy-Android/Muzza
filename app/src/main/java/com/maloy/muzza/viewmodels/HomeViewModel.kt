@@ -84,7 +84,7 @@ class HomeViewModel @Inject constructor(
             .filter { it is Song || it is Album }
 
 
-        if (YouTube.cookie != null) { // if logged in
+        if (YouTube.cookie != null) {
             YouTube.likedPlaylists().onSuccess {
                 accountPlaylists.value = it
             }.onFailure {
@@ -92,7 +92,6 @@ class HomeViewModel @Inject constructor(
             }
         }
 
-        // Similar to artists
         val artistRecommendations =
             database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
                 .filter { it.artist.isYouTubeArtist }
@@ -111,7 +110,6 @@ class HomeViewModel @Inject constructor(
                             .ifEmpty { return@mapNotNull null }
                     )
                 }
-        // Similar to songs
         val songRecommendations =
             database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
                 .filter { it.album != null }

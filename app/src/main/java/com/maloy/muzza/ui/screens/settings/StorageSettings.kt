@@ -200,14 +200,14 @@ fun StorageSettings(
 
         if (maxImageCacheSize > 0) {
             LinearProgressIndicator(
-                progress = { (imageCacheSize.toFloat() / imageDiskCache.maxSize).coerceIn(0f, 1f) },
+                progress = { (imageCacheSize.toFloat() / (imageCacheSize * 1024 * 1024L)).coerceIn(0f, 1f) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 6.dp)
             )
 
             Text(
-                text = stringResource(R.string.size_used, "${formatFileSize(imageCacheSize)} / ${formatFileSize(imageDiskCache.maxSize)}"),
+                text = stringResource(R.string.size_used, "${formatFileSize(imageCacheSize)} / ${formatFileSize(maxImageCacheSize * 1024 * 1024L)}"),
                 style = MaterialTheme.typography.bodyMedium,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
             )

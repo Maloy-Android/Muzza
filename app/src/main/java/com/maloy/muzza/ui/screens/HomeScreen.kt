@@ -124,7 +124,6 @@ fun HomeScreen(
     val quickPicks by viewModel.quickPicks.collectAsState()
     val forgottenFavorites by viewModel.forgottenFavorites.collectAsState()
     val keepListening by viewModel.keepListening.collectAsState()
-    val similarRecommendations by viewModel.similarRecommendations.collectAsState()
     val accountPlaylists by viewModel.accountPlaylists.collectAsState()
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
@@ -559,50 +558,6 @@ fun HomeScreen(
                     }
                 }
             }
-
-            similarRecommendations?.forEach {
-                item {
-                    NavigationTitle(
-                        label = stringResource(R.string.similar_to),
-                        title = it.title.title,
-                        thumbnail = it.title.thumbnailUrl?.let { thumbnailUrl ->
-                            {
-                                val shape = if (it.title is Artist) CircleShape else RoundedCornerShape(ThumbnailCornerRadius)
-                                AsyncImage(
-                                    model = thumbnailUrl,
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(ListThumbnailSize)
-                                        .clip(shape)
-                                )
-                            }
-                        },
-                        onClick = {
-                            when (it.title) {
-                                is Song -> navController.navigate("album/${it.title.album!!.id}")
-                                is Album -> navController.navigate("album/${it.title.id}")
-                                is Artist -> navController.navigate("artist/${it.title.id}")
-                                is Playlist -> {}
-                            }
-                        },
-                        modifier = Modifier.animateItem()
-                    )
-                }
-
-                item {
-                    LazyRow(
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier.animateItem()
-                    ) {
-                        items(it.items) { item ->
-                            ytGridItem(item)
-                        }
-                    }
-                }
-            }
-
             homePage?.sections?.forEach {
                 item {
                     NavigationTitle(

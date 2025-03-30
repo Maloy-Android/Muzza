@@ -14,8 +14,7 @@ import com.maloy.innertube.models.SearchSuggestions
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
-import com.maloy.innertube.models.YouTubeClient.Companion.IOS
-import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
+import com.maloy.innertube.models.YouTubeClient
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.YouTubeLocale
@@ -30,7 +29,6 @@ import com.maloy.innertube.models.response.GetQueueResponse
 import com.maloy.innertube.models.response.GetSearchSuggestionsResponse
 import com.maloy.innertube.models.response.GetTranscriptResponse
 import com.maloy.innertube.models.response.NextResponse
-import com.maloy.innertube.models.response.PipedResponse
 import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.innertube.models.response.SearchResponse
 import com.maloy.innertube.pages.AlbumPage
@@ -64,6 +62,7 @@ import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import org.schabi.newpipe.extractor.NewPipe
 import java.net.Proxy
+import kotlin.random.Random
 
 /**
  * Parse useful data with [InnerTube] sending requests.
@@ -642,26 +641,27 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             innerTube.unlikePlaylist(WEB_REMIX, playlistId)
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null): Result<PlayerResponse> = runCatching {
-        val playerResponse: PlayerResponse = innerTube.player(IOS, videoId, playlistId).body<PlayerResponse>()
-        if (playerResponse.playabilityStatus.status == "OK") {
-            return@runCatching playerResponse
-        }
-        val safePlayerResponse = innerTube.player(TVHTML5, videoId, playlistId).body<PlayerResponse>()
-        if (safePlayerResponse.playabilityStatus.status != "OK") {
-            return@runCatching safePlayerResponse
-        }
-        val audioStreams = innerTube.pipedStreams(videoId).body<PipedResponse>().audioStreams
-        safePlayerResponse.copy(
-            streamingData = safePlayerResponse.streamingData?.copy(
-                adaptiveFormats = safePlayerResponse.streamingData.adaptiveFormats.mapNotNull { adaptiveFormat ->
-                    audioStreams.find { it.bitrate == adaptiveFormat.bitrate }?.let {
-                        adaptiveFormat.copy(
-                            url = it.url
-                        )
-                    }
-                }
-            )
+    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null): Result<PlayerResponse> = runCatching {
+        innerTube.player(client, videoId, playlistId, signatureTimestamp).body<PlayerResponse>()
+    }
+
+    suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
+        val cpn = (1..16).map {
+            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
+                0,
+                64
+            )]
+        }.joinToString("")
+
+        val playbackUrl = playbackTracking.replace(
+            "https://s.youtube.com",
+            "https://music.youtube.com",
+        )
+
+        innerTube.registerPlayback(
+            url = playbackUrl,
+            playlistId = playlistId,
+            cpn = cpn
         )
     }
 

@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 13,
-    "identityHash": "6303cd063a49106e319df9e9e0a8df3e",
+    "identityHash": "4468b5f75dd6729c868c3df1b3f03f74",
     "entities": [
       {
         "tableName": "song",
@@ -642,7 +642,7 @@
       },
       {
         "tableName": "format",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `itag` INTEGER NOT NULL, `mimeType` TEXT NOT NULL, `codecs` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `sampleRate` INTEGER, `contentLength` INTEGER NOT NULL, `loudnessDb` REAL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `itag` INTEGER NOT NULL, `mimeType` TEXT NOT NULL, `codecs` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `sampleRate` INTEGER, `contentLength` INTEGER NOT NULL, `loudnessDb` REAL, `playbackUrl` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -690,6 +690,12 @@
             "fieldPath": "loudnessDb",
             "columnName": "loudnessDb",
             "affinity": "REAL",
+            "notNull": false
+          },
+          {
+            "fieldPath": "playbackUrl",
+            "columnName": "playbackUrl",
+            "affinity": "TEXT",
             "notNull": false
           }
         ],
@@ -905,7 +911,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '6303cd063a49106e319df9e9e0a8df3e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4468b5f75dd6729c868c3df1b3f03f74')"
     ]
   }
 }

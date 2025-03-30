@@ -49,16 +49,21 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.exoplayer.ExoPlayer
@@ -74,6 +79,7 @@ import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.ui.component.Lyrics
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
@@ -113,6 +119,9 @@ fun Thumbnail(
     var offsetX by remember { mutableFloatStateOf(0f) }
 
     var currentMediaItem by remember { mutableStateOf<MediaItem?>(null) }
+    val layoutDirection = LocalLayoutDirection.current
+    var showSeekEffect by remember { mutableStateOf(false) }
+    var seekDirection by remember { mutableStateOf("") }
 
     LaunchedEffect(playerConnection.player.currentMediaItemIndex) {
         currentMediaItem = playerConnection.player.currentMediaItem
@@ -182,11 +191,16 @@ fun Thumbnail(
                             .pointerInput(Unit) {
                                 detectTapGestures(
                                     onDoubleTap = { offset ->
-                                        if (offset.x < size.width / 2) {
-                                            playerConnection.player.seekBack()
+                                        val currentPosition = playerConnection.player.currentPosition
+                                        if ((layoutDirection == LayoutDirection.Ltr && offset.x < size.width / 2) ||
+                                            (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)) {
+                                            playerConnection.player.seekTo((currentPosition - 5000).coerceAtLeast(0))
+                                            seekDirection = context.getString(R.string.seek_backward)
                                         } else {
-                                            playerConnection.player.seekForward()
+                                            playerConnection.player.seekTo((currentPosition + 5000).coerceAtMost(playerConnection.player.duration))
+                                            seekDirection = context.getString(R.string.seek_forward)
                                         }
+                                        showSeekEffect = true
                                     }
                                 )
                             }
@@ -214,6 +228,31 @@ fun Thumbnail(
             if (swipeThumbnail) {
                 TransitionIndicators(offsetX, player)
             }
+        }
+
+        LaunchedEffect(showSeekEffect) {
+            if (showSeekEffect) {
+                delay(1000)
+                showSeekEffect = false
+            }
+        }
+
+        AnimatedVisibility(
+            visible = showSeekEffect,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier.align(Alignment.Center)
+        ) {
+            Text(
+                text = seekDirection,
+                color = Color.White,
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .background(Color.Black.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
+                    .padding(8.dp)
+            )
         }
 
         AnimatedVisibility(

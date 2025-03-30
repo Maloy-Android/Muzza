@@ -246,6 +246,9 @@
     <string name="error_timeout">Тайм-аут</string>
     <string name="error_unknown">Невідома помилка</string>
 
+    <string name="seek_backward">5 секунд тому</string>
+    <string name="seek_forward">5 секунд вперед</string>
+
     <!-- Player action -->
     <string name="action_like">Поставити «Подобається»</string>
     <string name="action_like_all">Відзначити все як «Подобається»</string>

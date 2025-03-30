@@ -46,6 +46,8 @@
     <string name="yesterday">Вчора</string>
     <string name="this_week">Цього тижня</string>
     <string name="last_week">Минулого тижня</string>
+    <string name="local_history">Локальний</string>
+    <string name="remote_history">Онлайн</string>
 
     <!-- Stats -->
     <string name="most_played_songs">Найпопулярніші пісні</string>

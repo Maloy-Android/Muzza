@@ -37,6 +37,7 @@ import com.maloy.innertube.pages.ArtistItemsPage
 import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.pages.BrowseResult
 import com.maloy.innertube.pages.ExplorePage
+import com.maloy.innertube.pages.HistoryPage
 import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.LibraryContinuationPage
 import com.maloy.innertube.pages.LibraryPage
@@ -639,6 +640,24 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             innerTube.likePlaylist(WEB_REMIX, playlistId)
         else
             innerTube.unlikePlaylist(WEB_REMIX, playlistId)
+    }
+
+    suspend fun musicHistory() = runCatching {
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            browseId = "FEmusic_history",
+            setLogin = true
+        ).body<BrowseResponse>()
+
+        HistoryPage(
+            sections = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents
+                ?.mapNotNull {
+                    it.musicShelfRenderer?.let { musicShelfRenderer ->
+                        HistoryPage.fromMusicShelfRenderer(musicShelfRenderer)
+                    }
+                }
+        )
     }
 
     suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null): Result<PlayerResponse> = runCatching {

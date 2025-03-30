@@ -31,6 +31,8 @@
 
     <!-- Home -->
     <string name="history">История</string>
+    <string name="local_history">Локальная</string>
+    <string name="remote_history">Онлайн</string>
     <string name="stats">Статистика</string>
     <string name="mood_and_genres">Настроение и жанры</string>
     <string name="account">Аккаунт</string>

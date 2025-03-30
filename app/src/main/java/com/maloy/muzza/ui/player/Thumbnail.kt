@@ -172,7 +172,7 @@ fun Thumbnail(
                         )
                     },
             ) {
-                if (playerStyle == PlayerStyle.NEW && !swipeThumbnail) {
+                if (playerStyle == PlayerStyle.NEW) {
                     AsyncImage(
                         model = mediaMetadata?.thumbnailUrl,
                         contentDescription = null,

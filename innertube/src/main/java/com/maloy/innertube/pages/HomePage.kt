@@ -52,24 +52,30 @@ data class HomePage(
             private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
                 return when {
                     renderer.isSong -> {
-                        renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
-                            Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
-                            )
-                        }?.let {
-                            SongItem(
-                                id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
-                                title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                                artists = it,
-                                album = null,
-                                duration = null,
-                                thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
-                                explicit = renderer.subtitleBadges?.find {
-                                    it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                                } != null
-                            )
-                        }
+                        renderer.subtitle?.runs
+                            ?.filter {
+                                it.navigationEndpoint?.browseEndpoint?.browseId != null
+                            }
+                            ?.map {
+                                Artist(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                )
+                            }
+                            ?.takeIf { it.isNotEmpty() }
+                            ?.let {
+                                SongItem(
+                                    id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                                    title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                                    artists = it,
+                                    album = null,
+                                    duration = null,
+                                    thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                                    explicit = renderer.subtitleBadges?.any {
+                                        it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                                    } == true
+                                )
+                            }
                     }
 
                     renderer.isAlbum -> {

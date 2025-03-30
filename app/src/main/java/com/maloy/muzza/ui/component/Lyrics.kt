@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -127,6 +128,7 @@ fun Lyrics(
 
     val textColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
+        PlayerBackgroundStyle.MONETBLACK -> Color.White
         else ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
@@ -292,7 +294,7 @@ fun Lyrics(
             Text(
                 text = stringResource(R.string.lyrics_not_found),
                 fontSize = 20.sp,
-                color = MaterialTheme.colorScheme.secondary,
+                color = textColor,
                 textAlign = when (lyricsTextPosition) {
                     LyricsPosition.LEFT -> TextAlign.Left
                     LyricsPosition.CENTER -> TextAlign.Center

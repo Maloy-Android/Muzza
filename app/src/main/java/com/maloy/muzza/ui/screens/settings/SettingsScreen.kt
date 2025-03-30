@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -103,68 +101,41 @@ fun SettingsScreen(
                     .fillMaxSize()
                     .blur(0.5.dp)
                 )
-                if (isLoggedIn) {
                 PreferenceEntry(
                     title = {
                         Column(
                             modifier = Modifier.padding(16.dp),
                         ) {
-                            Text(
-                                stringResource(R.string.Hi),
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontFamily = FontFamily.SansSerif
-                            )
-                            Spacer(modifier = Modifier.height(3.dp))
-                            Text(
-                                accountName.replace("@", ""),
-                                color = Color.White,
-                                fontSize = 20.sp,
-                                style = MaterialTheme.typography.titleSmall,
-                                fontFamily = FontFamily.Monospace
-                            )
+                            if (isLoggedIn) {
+                                Text(
+                                    stringResource(R.string.Hi),
+                                    color = Color.White,
+                                    fontSize = 20.sp,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                                Spacer(modifier = Modifier.height(3.dp))
+                                Text(
+                                    accountName.replace("@", ""),
+                                    color = Color.White,
+                                    fontSize = 20.sp,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            } else {
+                                Text(
+                                    stringResource(R.string.not_logged_in),
+                                    color = Color.White,
+                                    fontSize = 20.sp,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontFamily = FontFamily.SansSerif
+                                )
+                            }
                         }
                     },
                     description = null,
                     onClick = { changeBackgroundImage() }
                 )
-            } else {
-                    PreferenceEntry(
-                        title = {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.CenterStart
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Image(
-                                        painter = painterResource(R.drawable.small_icon),
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(50.dp)
-                                            .padding(end = 8.dp)
-                                            .background(
-                                                Color.Black,
-                                                shape = RoundedCornerShape(18.dp)
-                                            )
-                                    )
-                                    Text(
-                                        stringResource(R.string.app_name),
-                                        color = Color.White,
-                                        fontSize = 20.sp,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontFamily = FontFamily.SansSerif
-                                    )
-                                }
-                            }
-                        },
-                        description = null,
-                        onClick = { changeBackgroundImage() }
-                    )
-            }
         }
 
         Spacer(Modifier.height(25.dp))

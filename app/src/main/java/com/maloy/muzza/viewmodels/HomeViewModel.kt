@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.pages.ExplorePage
@@ -15,6 +16,7 @@ import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.models.SimilarRecommendation
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
@@ -89,6 +91,44 @@ class HomeViewModel @Inject constructor(
             }
         }
 
+        val artistRecommendations =
+            database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
+                .filter { it.artist.isYouTubeArtist }
+                .shuffled().take(3)
+                .mapNotNull {
+                    val items = mutableListOf<YTItem>()
+                    YouTube.artist(it.id).onSuccess { page ->
+                        items += page.sections.getOrNull(page.sections.size - 2)?.items.orEmpty()
+                        items += page.sections.lastOrNull()?.items.orEmpty()
+                    }
+                    SimilarRecommendation(
+                        title = it,
+                        items = items
+                            .filterExplicit(hideExplicit)
+                            .shuffled()
+                            .ifEmpty { return@mapNotNull null }
+                    )
+                }
+        val songRecommendations =
+            database.mostPlayedSongs(fromTimeStamp, limit = 10).first()
+                .filter { it.album != null }
+                .shuffled().take(2)
+                .mapNotNull { song ->
+                    val endpoint = YouTube.next(WatchEndpoint(videoId = song.id)).getOrNull()?.relatedEndpoint ?: return@mapNotNull null
+                    val page = YouTube.related(endpoint).getOrNull() ?: return@mapNotNull null
+                    SimilarRecommendation(
+                        title = song,
+                        items = (page.songs.shuffled().take(8) +
+                                page.albums.shuffled().take(4) +
+                                page.artists.shuffled().take(4) +
+                                page.playlists.shuffled().take(4))
+                            .filterExplicit(hideExplicit)
+                            .shuffled()
+                            .ifEmpty { return@mapNotNull null }
+                    )
+                }
+        similarRecommendations.value = (artistRecommendations + songRecommendations).shuffled()
+
         YouTube.home().onSuccess { page ->
             homePage.value = page.filterExplicit(hideExplicit)
         }.onFailure {
@@ -118,7 +158,8 @@ class HomeViewModel @Inject constructor(
             reportException(it)
         }
 
-        allYtItems.value = homePage.value?.sections?.flatMap { it.items }.orEmpty() +
+        allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
+                homePage.value?.sections?.flatMap { it.items }.orEmpty() +
                 explorePage.value?.newReleaseAlbums.orEmpty()
 
         isLoading.value = false

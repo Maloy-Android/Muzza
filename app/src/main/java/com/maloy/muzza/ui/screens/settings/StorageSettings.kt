@@ -216,10 +216,11 @@ fun StorageSettings(
         ListPreference(
             title = { Text(stringResource(R.string.max_cache_size)) },
             selectedValue = maxImageCacheSize,
-            values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192),
+            values = listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1),
             valueText = {
                 when (it) {
                     0 -> stringResource(R.string.off)
+                    -1 -> stringResource(R.string.unlimited)
                     else -> formatFileSize(it * 1024 * 1024L)
                 }
             },

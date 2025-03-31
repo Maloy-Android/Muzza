@@ -398,6 +398,7 @@ fun HomeScreen(
                                 showInLibraryIcon = true,
                                 isActive = song!!.id == mediaMetadata?.id,
                                 isPlaying = isPlaying,
+                                isSwipeable = false,
                                 trailingContent = {
                                     IconButton(
                                         onClick = {
@@ -670,6 +671,7 @@ fun HomeScreen(
                                         item = song,
                                         isActive = song.id == mediaMetadata?.id,
                                         isPlaying = isPlaying,
+                                        isSwipeable = false,
                                         modifier = Modifier
                                             .width(horizontalLazyGridItemWidth)
                                             .combinedClickable(

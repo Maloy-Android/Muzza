@@ -1,12 +1,15 @@
 package com.maloy.muzza.ui.component
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -16,6 +19,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,7 +36,10 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -47,6 +54,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -80,6 +88,7 @@ import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.utils.joinByBullet
@@ -264,6 +273,7 @@ fun SongListItem(
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
+    isSwipeable: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         if (showLikedIcon && song.song.liked) {
             Icon.Favorite()
@@ -279,27 +289,213 @@ fun SongListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
-) = ListItem(
-    title = song.song.title,
-    subtitle = joinByBullet(
-        song.artists.joinToString { it.name },
-        makeTimeString(song.song.duration * 1000L)
-    ),
-    badges = badges,
-    thumbnailContent = {
-        ItemThumbnail(
-            thumbnailUrl = song.song.thumbnailUrl,
-            albumIndex = albumIndex,
-            isActive = isActive,
-            isPlaying = isPlaying,
-            shape = RoundedCornerShape(ThumbnailCornerRadius),
-            modifier = Modifier.size(ListThumbnailSize)
+) {
+    if (isSwipeable) {
+        val context = LocalContext.current
+        val playerConnection = LocalPlayerConnection.current ?: return
+
+        val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
+        val colorScheme = MaterialTheme.colorScheme
+
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {
+                val target = dismissState.targetValue
+                LaunchedEffect(target) {
+                    when (target) {
+                        SwipeToDismissBoxValue.StartToEnd -> {
+                            Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT).show()
+                            playerConnection.playNext(listOf(song.toMediaItem()))
+                        }
+
+                        SwipeToDismissBoxValue.EndToStart -> {
+                            Toast.makeText(context, R.string.add_to_queue, Toast.LENGTH_SHORT)
+                                .show()
+
+                            playerConnection.addToQueue(listOf(song.toMediaItem()))
+
+                        }
+
+                        else -> {}
+                    }
+                }
+                val color by
+                animateColorAsState(
+                    when (dismissState.targetValue) {
+                        SwipeToDismissBoxValue.Settled -> Color.Transparent
+                        SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
+                        SwipeToDismissBoxValue.EndToStart -> colorScheme.primary
+                    }, label = ""
+                )
+                val icon = when (target) {
+                    SwipeToDismissBoxValue.StartToEnd -> R.drawable.playlist_play
+                    SwipeToDismissBoxValue.EndToStart -> R.drawable.queue_music
+                    else -> null
+                }
+                when (target) {
+                    SwipeToDismissBoxValue.StartToEnd -> Arrangement.Start
+                    SwipeToDismissBoxValue.EndToStart -> Arrangement.End
+                    else -> null
+                }?.let {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(Color.Transparent)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .width(56.dp)
+                                .fillMaxHeight()
+                                .background(color)
+                                .align(
+                                    when (target) {
+                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                                        else -> Alignment.Center
+                                    }
+                                )
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            icon?.let {
+                                Icon(
+                                    painter = painterResource(it),
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .align(Alignment.CenterEnd),
+                                    tint = Color.White
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        ) {
+            ListItem(
+                title = song.song.title,
+                subtitle =
+                joinByBullet(
+                    song.artists.joinToString { it.name },
+                    makeTimeString(song.song.duration * 1000L),
+                ),
+                badges = badges,
+                thumbnailContent = {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.size(ListThumbnailSize),
+                    ) {
+                        if (albumIndex != null) {
+                            androidx.compose.animation.AnimatedVisibility(
+                                visible = !isActive,
+                                enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                                exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut(),
+                            ) {
+                                Text(
+                                    text = albumIndex.toString(),
+                                    style = MaterialTheme.typography.labelLarge,
+                                )
+                            }
+                            AsyncImage(
+                                model = song.song.thumbnailUrl,
+                                contentDescription = null,
+                                modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                            )
+                        }
+
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = if (albumIndex != null) MaterialTheme.colorScheme.onBackground else Color.White,
+                            modifier =
+                            Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color =
+                                    if (albumIndex != null) {
+                                        Color.Transparent
+                                    } else {
+                                        Color.Black.copy(
+                                            alpha = 0.4f,
+                                        )
+                                    },
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius),
+                                ),
+                        )
+                    }
+
+                },
+
+                trailingContent = trailingContent,
+                modifier = modifier,
+                isActive = isActive,
+            )
+        }
+    } else{
+        ListItem(
+            title = song.song.title,
+            subtitle =
+            joinByBullet(
+                song.artists.joinToString { it.name },
+                makeTimeString(song.song.duration * 1000L),
+            ),
+            badges = badges,
+            thumbnailContent = {
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier.size(ListThumbnailSize),
+                ) {
+                    if (albumIndex != null) {
+                        AnimatedVisibility(
+                            visible = !isActive,
+                            enter = fadeIn() + expandIn(expandFrom = Alignment.Center),
+                            exit = shrinkOut(shrinkTowards = Alignment.Center) + fadeOut(),
+                        ) {
+                            Text(
+                                text = albumIndex.toString(),
+                                style = MaterialTheme.typography.labelLarge,
+                            )
+                        }
+                        AsyncImage(
+                            model = song.song.thumbnailUrl,
+                            contentDescription = null,
+                            modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(ThumbnailCornerRadius)),
+                        )
+                    }
+
+                    PlayingIndicatorBox(
+                        isActive = isActive,
+                        playWhenReady = isPlaying,
+                        color = if (albumIndex != null) MaterialTheme.colorScheme.onBackground else Color.White,
+                        modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .background(
+                                color =
+                                if (albumIndex != null) {
+                                    Color.Transparent
+                                } else {
+                                    Color.Black.copy(
+                                        alpha = 0.4f,
+                                    )
+                                },
+                                shape = RoundedCornerShape(ThumbnailCornerRadius),
+                            )
+                    )
+                }
+
+            },
+            trailingContent = trailingContent,
+            modifier = modifier,
+            isActive = isActive
         )
-    },
-    trailingContent = trailingContent,
-    modifier = modifier,
-    isActive = isActive
-)
+    }
+}
 
 @Composable
 fun SongGridItem(
@@ -680,56 +876,141 @@ fun MediaMetadataListItem(
 fun YouTubeListItem(
     item: YTItem,
     modifier: Modifier = Modifier,
+    isSwipeable: Boolean = true,
     albumIndex: Int? = null,
-    badges: @Composable RowScope.() -> Unit = {
-        val database = LocalDatabase.current
-        val song by database.song(item.id).collectAsState(initial = null)
-        val album by database.album(item.id).collectAsState(initial = null)
-        val playlist by database.playlist(item.id).collectAsState(initial = null)
-
-        if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null ||
-            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null
-        ) {
-            Icon.Favorite()
-        }
-        if (item.explicit) {
-            Icon.Explicit()
-        }
-        if (item is SongItem && song?.song?.inLibrary != null) {
-            Icon.Library()
-        }
-        if (item is SongItem) {
-            val downloads by LocalDownloadUtil.current.downloads.collectAsState()
-            Icon.Download(downloads[item.id]?.state)
-        }
-    },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
-) = ListItem(
-    title = item.title,
-    subtitle = when (item) {
-        is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
-        is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
-        is ArtistItem -> null
-        is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
-    },
-    badges = badges,
-    thumbnailContent = {
-        ItemThumbnail(
-            thumbnailUrl = item.thumbnail,
+    badges: @Composable RowScope.() -> Unit = { }
+) {
+    if (item is SongItem && isSwipeable) {
+        val context = LocalContext.current
+        val playerConnection = LocalPlayerConnection.current ?: return
+
+        val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
+        val colorScheme = MaterialTheme.colorScheme
+
+        SwipeToDismissBox(
+            state = dismissState,
+            backgroundContent = {
+                val target = dismissState.targetValue
+                LaunchedEffect(target) {
+                    when (target) {
+                        SwipeToDismissBoxValue.StartToEnd -> {
+                            Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT).show()
+                            playerConnection.playNext(listOf(item.toMediaItem()))
+                        }
+                        SwipeToDismissBoxValue.EndToStart -> {
+                            Toast.makeText(context, R.string.add_to_queue, Toast.LENGTH_SHORT).show()
+                            playerConnection.addToQueue(listOf(item.toMediaItem()))
+                        }
+                        else -> {}
+                    }
+                }
+
+                val color by animateColorAsState(
+                    when (dismissState.targetValue) {
+                        SwipeToDismissBoxValue.Settled -> Color.Transparent
+                        else -> colorScheme.primary
+                    }, label = ""
+                )
+
+                val icon = when (target) {
+                    SwipeToDismissBoxValue.StartToEnd -> R.drawable.playlist_play
+                    SwipeToDismissBoxValue.EndToStart -> R.drawable.queue_music
+                    else -> null
+                }
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Transparent)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .width(56.dp)
+                            .fillMaxHeight()
+                            .background(color)
+                            .align(
+                                when (target) {
+                                    SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
+                                    SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
+                                    else -> Alignment.Center
+                                }
+                            )
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        icon?.let {
+                            Icon(
+                                painter = painterResource(it),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .align(Alignment.CenterEnd),
+                                tint = Color.White
+                            )
+                        }
+                    }
+                }
+            }
+        ) {
+            BaseListItemContent(
+                item = item,
+                modifier = modifier,
+                albumIndex = albumIndex,
+                badges = badges,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                trailingContent = trailingContent
+            )
+        }
+    } else {
+        BaseListItemContent(
+            item = item,
+            modifier = modifier,
             albumIndex = albumIndex,
+            badges = badges,
             isActive = isActive,
             isPlaying = isPlaying,
-            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
-            modifier = Modifier.size(ListThumbnailSize)
+            trailingContent = trailingContent
         )
-    },
-    trailingContent = trailingContent,
-    modifier = modifier,
-    isActive = isActive
-)
+    }
+}
+
+@Composable
+private fun BaseListItemContent(
+    item: YTItem,
+    modifier: Modifier,
+    albumIndex: Int?,
+    badges: @Composable RowScope.() -> Unit,
+    isActive: Boolean,
+    isPlaying: Boolean,
+    trailingContent: @Composable RowScope.() -> Unit
+) {
+    ListItem(
+        title = item.title,
+        subtitle = when (item) {
+            is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
+            is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
+            is ArtistItem -> null
+            is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
+        },
+        badges = badges,
+        thumbnailContent = {
+            ItemThumbnail(
+                thumbnailUrl = item.thumbnail,
+                albumIndex = albumIndex,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
+                modifier = Modifier.size(ListThumbnailSize)
+            )
+        },
+        trailingContent = trailingContent,
+        modifier = modifier,
+        isActive = isActive
+    )
+}
+
 
 @Composable
 fun YouTubeGridItem(

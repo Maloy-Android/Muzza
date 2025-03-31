@@ -435,6 +435,11 @@
     <string name="max_song_cache_size">Макс. розмір кешу аудіо</string>
     <string name="clear_song_cache">Очистити кеш аудіо</string>
     <string name="size_used">%s використано</string>
+    <string name="clear_all_cache_dialog">Ви впевнені, що хочете очистити всі кешовані дані?</string>
+    <string name="clear_all_downloads_dialog">Ви впевнені, що хочете очистити всі завантаження?</string>
+    <string name="clear_song_cache_dialog">Ви впевнені, що хочете очистити всі кешовані пісні?</string>
+    <string name="clear_images_cache_dialog">Ви впевнені, що хочете очистити всі кешовані зображення?</string>
+    <string name="clear_translation_models_cache_dialog">Ви впевнені, що хочете очистити всі кешовані моделі перекладу?</string>
 
     <string name="privacy">Конфіденційність</string>
     <string name="listen_history">Історія прослуховувань</string>

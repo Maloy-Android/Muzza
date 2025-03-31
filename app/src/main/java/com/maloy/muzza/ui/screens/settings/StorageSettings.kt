@@ -15,12 +15,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -39,6 +41,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.MaxImageCacheSizeKey
 import com.maloy.muzza.constants.MaxSongCacheSizeKey
 import com.maloy.muzza.extensions.tryOrNull
+import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ListPreference
 import com.maloy.muzza.ui.component.PreferenceEntry
@@ -95,6 +98,160 @@ fun StorageSettings(
         mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0)
     }
 
+    var showClearAllDownloadsDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showClearSongCacheDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showClearImagesCacheDialog by remember {
+        mutableStateOf(false)
+    }
+
+    var showClearTranslationModels by remember {
+        mutableStateOf(false)
+    }
+
+    if (showClearAllDownloadsDialog) {
+        DefaultDialog(
+            onDismiss = { showClearAllDownloadsDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_all_downloads_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showClearAllDownloadsDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearAllDownloadsDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            downloadCache.keys.forEach { key ->
+                                downloadCache.removeResource(key)
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (showClearSongCacheDialog) {
+        DefaultDialog(
+            onDismiss = { showClearSongCacheDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_song_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showClearSongCacheDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearSongCacheDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            downloadCache.keys.forEach { key ->
+                                downloadCache.removeResource(key)
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (showClearImagesCacheDialog) {
+        DefaultDialog(
+            onDismiss = { showClearImagesCacheDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_images_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showClearImagesCacheDialog = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearImagesCacheDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            downloadCache.keys.forEach { key ->
+                                downloadCache.removeResource(key)
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
+    if (showClearTranslationModels) {
+        DefaultDialog(
+            onDismiss = { showClearTranslationModels = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_translation_models),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showClearTranslationModels = false
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearTranslationModels = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            TranslationHelper.clearModels()
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+
     LaunchedEffect(imageDiskCache) {
         while (isActive) {
             delay(500)
@@ -133,13 +290,7 @@ fun StorageSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_all_downloads)) },
-            onClick = {
-                coroutineScope.launch(Dispatchers.IO) {
-                    downloadCache.keys.forEach { key ->
-                        downloadCache.removeResource(key)
-                    }
-                }
-            },
+            onClick = { showClearAllDownloadsDialog = true }
         )
 
         PreferenceGroupTitle(
@@ -185,13 +336,7 @@ fun StorageSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_song_cache)) },
-            onClick = {
-                coroutineScope.launch(Dispatchers.IO) {
-                    playerCache.keys.forEach { key ->
-                        playerCache.removeResource(key)
-                    }
-                }
-            },
+            onClick = { showClearSongCacheDialog = true }
         )
 
         PreferenceGroupTitle(
@@ -229,11 +374,7 @@ fun StorageSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.clear_image_cache)) },
-            onClick = {
-                coroutineScope.launch(Dispatchers.IO) {
-                    imageDiskCache.clear()
-                }
-            },
+            onClick = { showClearImagesCacheDialog = true }
         )
 
         if (BuildConfig.FLAVOR != "foss") {
@@ -243,11 +384,7 @@ fun StorageSettings(
 
             PreferenceEntry(
                 title = { Text(stringResource(R.string.clear_translation_models)) },
-                onClick = {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        TranslationHelper.clearModels()
-                    }
-                },
+                onClick = { showClearTranslationModels = true }
             )
         }
     }

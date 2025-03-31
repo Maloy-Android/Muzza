@@ -91,7 +91,6 @@ import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.utils.joinByBullet
@@ -458,15 +457,8 @@ fun SongGridItem(
             shape = RoundedCornerShape(ThumbnailCornerRadius),
             modifier = Modifier.size(GridThumbnailHeight)
         )
-        val playerConnection = LocalPlayerConnection.current ?: return@GridItem
-        val localCoroutineScope = rememberCoroutineScope()
         SongPlayButton(
-            visible = !isActive,
-            onClick = {
-               localCoroutineScope.launch(Dispatchers.Main) {
-                    playerConnection.player.togglePlayPause()
-                }
-            }
+            visible = !isActive
         )
     },
     fillMaxWidth = fillMaxWidth,
@@ -1077,11 +1069,6 @@ fun YouTubeGridItem(
         )
         SongPlayButton(
             visible = item is SongItem && !isActive,
-            onClick = {
-                coroutineScope?.launch(Dispatchers.Main) {
-                    playerConnection.player.togglePlayPause()
-                }
-            }
         )
     },
     thumbnailRatio = thumbnailRatio,
@@ -1221,7 +1208,6 @@ fun BoxScope.AlbumPlayButton(
 @Composable
 fun BoxScope.SongPlayButton(
     visible: Boolean,
-    onClick: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -1247,7 +1233,6 @@ fun BoxScope.SongPlayButton(
                     .clip(CircleShape)
                     .background(Color.Black.copy(alpha = ActiveBoxAlpha))
                     .align(Alignment.Center)
-                    .clickable(onClick = onClick)
             )
         }
     }

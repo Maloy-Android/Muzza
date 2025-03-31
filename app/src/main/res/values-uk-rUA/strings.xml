@@ -412,6 +412,7 @@
     <string name="auto_load_more_desc">Автоматично додавати більше пісень при досягненні кінця черги, якщо це можливо</string>
     <string name="skip_silence">Пропуск тиші в композиціях</string>
     <string name="audio_normalization">Нормалізація аудіо</string>
+    <string name="adding_played_songs_to_ytm_history">Додавати програні пісні в історію YouTube-Music</string>
     <string name="auto_skip_next_on_error">Автоперехід до наступної пісні при помилці</string>
     <string name="auto_skip_next_on_error_desc">Забезпечити безперервне відтворення</string>
     <string name="stop_music_on_task_clear">Зупиняти музику при очищенні завдань</string>

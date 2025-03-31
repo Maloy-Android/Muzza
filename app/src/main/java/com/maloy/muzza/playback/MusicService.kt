@@ -8,6 +8,7 @@ import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.os.Binder
+import androidx.compose.runtime.Composable
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -55,6 +56,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.MainActivity
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AddingPlayedSongsToYTMHistoryKey
 import com.maloy.muzza.constants.AudioNormalizationKey
 import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
@@ -108,6 +110,7 @@ import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.enumPreference
 import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -433,11 +436,13 @@ class MusicService : MediaLibraryService(),
             ?: playbackData?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
             ?: YTPlayerUtils.playerResponseForMetadata(mediaId).getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
 
-        playbackUrl?.let {
-            YouTube.registerPlayback(null, playbackUrl)
-                .onFailure {
-                    reportException(it)
-                }
+        if (dataStore.get(AddingPlayedSongsToYTMHistoryKey, true)) {
+            playbackUrl?.let {
+                YouTube.registerPlayback(null, playbackUrl)
+                    .onFailure {
+                        reportException(it)
+                    }
+            }
         }
 
         val song = database.song(mediaId).first()

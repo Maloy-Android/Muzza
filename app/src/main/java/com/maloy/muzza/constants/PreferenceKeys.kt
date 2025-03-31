@@ -24,6 +24,7 @@ enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE
 }
 
+val SwipeSongToDismissKey = booleanPreferencesKey("swipe_song_to_dismiss")
 val DefaultOpenTabOldKey = stringPreferencesKey("defaultOpenTabOld")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val GridCellSizeKey = stringPreferencesKey("gridCellSize")

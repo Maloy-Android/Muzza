@@ -308,6 +308,7 @@
     <string name="squiggly">Хвилястий</string>
     <string name="misc">Різне</string>
     <string name="main">Основні</string>
+    <string name="swipe_song_to_dismiss">Проведіть по пісні вправо для наступного відтворення або вліво для додавання в чергу</string>
     <string name="default_open_tab">Основна вкладка навігації</string>
     <string name="default_lib_chips">Вкладка бібліотеки за замовчуванням</string>
     <string name="enable_swipe_thumbnail">Включити свайп по обкладинці для перемикання композиції</string>

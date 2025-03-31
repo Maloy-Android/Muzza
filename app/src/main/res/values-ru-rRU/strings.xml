@@ -309,6 +309,7 @@
     <string name="thumbnail_corner_radius">Радиус скругления обложки</string>
     <string name="misc">Разное</string>
     <string name="main">Основное</string>
+    <string name="swipe_song_to_dismiss">Проведите по песне вправо для следующего воспроизведения или влево для добавления в очередь</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
     <string name="default_lib_chips">Вкладка библиотеки по умолчанию</string>
     <string name="enable_swipe_thumbnail">Включить свайп по обложке для переключения композиции</string>

@@ -67,6 +67,7 @@ import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SlimNavBarKey
+import com.maloy.muzza.constants.SwipeSongToDismissKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.ui.component.CounterDialog
@@ -94,6 +95,7 @@ fun AppearanceSettings(
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTabOld, onDefaultOpenTabOldChange) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
@@ -391,6 +393,13 @@ fun AppearanceSettings(
 
         PreferenceGroupTitle(
             title = stringResource(R.string.misc)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.swipe_song_to_dismiss)) },
+            icon = { Icon(painterResource(R.drawable.queue_music), null) },
+            checked = swipeSongToDismiss,
+            onCheckedChange = onSwipeSongToDismissChange
         )
 
         if (appDesignVariant == AppDesignVariantType.NEW) {

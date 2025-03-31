@@ -84,6 +84,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
+import com.maloy.muzza.constants.SwipeSongToDismissKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
@@ -95,6 +96,7 @@ import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
+import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -298,7 +300,9 @@ fun SongListItem(
     val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
     val colorScheme = MaterialTheme.colorScheme
 
-    if (isSwipeable) {
+    val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
+
+    if (isSwipeable && swipeSongToDismiss) {
         SwipeToDismissBox(
             state = dismissState,
             backgroundContent = {
@@ -835,7 +839,8 @@ fun YouTubeListItem(
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
-    if (item is SongItem && isSwipeable) {
+    val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
+    if (item is SongItem && isSwipeable && swipeSongToDismiss) {
         val context = LocalContext.current
         val playerConnection = LocalPlayerConnection.current ?: return
 

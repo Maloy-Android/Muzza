@@ -47,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -89,6 +90,7 @@ import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.utils.joinByBullet
@@ -451,6 +453,16 @@ fun SongGridItem(
             isPlaying = isPlaying,
             shape = RoundedCornerShape(ThumbnailCornerRadius),
             modifier = Modifier.size(GridThumbnailHeight)
+        )
+        val playerConnection = LocalPlayerConnection.current ?: return@GridItem
+        val localCoroutineScope = rememberCoroutineScope()
+        SongPlayButton(
+            visible = !isActive,
+            onClick = {
+               localCoroutineScope.launch(Dispatchers.Main) {
+                    playerConnection.player.togglePlayPause()
+                }
+            }
         )
     },
     fillMaxWidth = fillMaxWidth,
@@ -1058,6 +1070,14 @@ fun YouTubeGridItem(
                 }
             }
         )
+        SongPlayButton(
+            visible = item is SongItem && !isActive,
+            onClick = {
+                coroutineScope?.launch(Dispatchers.Main) {
+                    playerConnection.player.togglePlayPause()
+                }
+            }
+        )
     },
     thumbnailRatio = thumbnailRatio,
     fillMaxWidth = fillMaxWidth,
@@ -1188,6 +1208,41 @@ fun BoxScope.AlbumPlayButton(
                 painter = painterResource(R.drawable.play),
                 contentDescription = null,
                 tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun BoxScope.SongPlayButton(
+    visible: Boolean,
+    onClick: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = Modifier
+            .align(Alignment.Center)
+            .padding(8.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = ActiveBoxAlpha))
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.play),
+                contentDescription = null,
+                tint = Color.White,
+                modifier = Modifier
+                    .size(45.dp)
+                    .clip(CircleShape)
+                    .background(Color.Black.copy(alpha = ActiveBoxAlpha))
+                    .align(Alignment.Center)
+                    .clickable(onClick = onClick)
             )
         }
     }

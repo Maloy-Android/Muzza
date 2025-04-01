@@ -58,26 +58,30 @@ data class HomePage(
 
                         val artists = subtitleRuns
                             .filter { it.navigationEndpoint?.browseEndpoint?.browseId != null }
-                            .map {
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
-                                )
+                            .mapNotNull {
+                                if (it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true) {
+                                    Artist(
+                                        name = it.text,
+                                        id = it.navigationEndpoint.browseEndpoint.browseId
+                                    )
+                                } else {
+                                    null
+                                }
                             }
                             .takeIf { it.isNotEmpty() } ?: return null
-
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                             artists = artists,
-                            album = subtitleRuns.lastOrNull { run ->
+                            album = subtitleRuns.firstOrNull { run ->
                                 run.navigationEndpoint?.browseEndpoint?.browseId != null &&
+                                        run.navigationEndpoint.browseEndpoint.browseId.startsWith("MPREb_") &&
                                         !artists.any { it.name == run.text }
                             }?.let {
-                                it.navigationEndpoint?.browseEndpoint?.browseId?.let { it1 ->
+                                it.navigationEndpoint?.browseEndpoint?.let { it1 ->
                                     Album(
                                         name = it.text,
-                                        id = it1
+                                        id = it1.browseId
                                     )
                                 }
                             },

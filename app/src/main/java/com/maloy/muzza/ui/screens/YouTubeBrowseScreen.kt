@@ -1,3 +1,5 @@
+@file:Suppress("UNUSED_EXPRESSION")
+
 package com.maloy.muzza.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -5,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -85,17 +88,19 @@ fun YouTubeBrowseScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val songsLazyGridState = rememberLazyGridState()
-
-    Box(
+    BoxWithConstraints(
         modifier = Modifier.fillMaxSize(),
     ) {
-        val snapLayoutInfoProviderSongs =
-            remember(songsLazyGridState) {
-                SnapLayoutInfoProvider(
-                    lazyGridState = songsLazyGridState,
-                )
-            }
+        val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
+        val lazyGridState = rememberLazyGridState()
+        val snapLayoutInfoProvider = remember(lazyGridState) {
+            SnapLayoutInfoProvider(
+                lazyGridState = lazyGridState,
+                positionInLayout = { layoutSize, itemSize ->
+                    (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
+                }
+            )
+        }
         LazyColumn(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
@@ -126,24 +131,19 @@ fun YouTubeBrowseScreen(
                             NavigationTitle(title)
                         }
                     }
-
-                    if ((it.items.firstOrNull() as? SongItem)?.album != null) {
+                    if (it.items.all { item -> item is SongItem }) {
                         item {
                             LazyHorizontalGrid(
-                                state = songsLazyGridState,
-                                rows = GridCells.Fixed(5),
-                                flingBehavior =
-                                rememberSnapFlingBehavior(
-                                    snapLayoutInfoProviderSongs,
-                                ),
-                                contentPadding =
-                                WindowInsets.systemBars
+                                state = lazyGridState,
+                                rows = GridCells.Fixed(4),
+                                flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
+                                contentPadding = WindowInsets.systemBars
                                     .only(WindowInsetsSides.Horizontal)
                                     .asPaddingValues(),
-                                modifier =
-                                Modifier
+                                modifier = Modifier
                                     .fillMaxWidth()
-                                    .height(ListItemHeight * 5),
+                                    .height(ListItemHeight * 4)
+                                    .animateItem()
                             ) {
                                 items(
                                     items = it.items,
@@ -153,6 +153,7 @@ fun YouTubeBrowseScreen(
                                             item = song as SongItem,
                                             isActive = mediaMetadata?.id == song.id,
                                             isPlaying = isPlaying,
+                                            isSwipeable = false,
                                             trailingContent = {
                                                 IconButton(
                                                     onClick = {
@@ -163,7 +164,7 @@ fun YouTubeBrowseScreen(
                                                                 onDismiss = menuState::dismiss,
                                                             )
                                                         }
-                                                    },
+                                                    }
                                                 ) {
                                                     Icon(
                                                         painter = painterResource(R.drawable.more_vert),
@@ -177,9 +178,14 @@ fun YouTubeBrowseScreen(
                                                     if (song.id == mediaMetadata?.id) {
                                                         playerConnection.player.togglePlayPause()
                                                     } else {
-                                                        playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+                                                        playerConnection.playQueue(
+                                                            YouTubeQueue.radio(
+                                                                song.toMediaMetadata()
+                                                            )
+                                                        )
                                                     }
-                                                }.animateItem()
+                                                }
+                                                .animateItem()
                                         )
                                     }
                                 }
@@ -195,7 +201,6 @@ fun YouTubeBrowseScreen(
                                         item = item,
                                         isActive =
                                         when (item) {
-                                            is SongItem -> mediaMetadata?.id == item.id
                                             is AlbumItem -> mediaMetadata?.album?.id == item.id
                                             else -> false
                                         },
@@ -206,16 +211,10 @@ fun YouTubeBrowseScreen(
                                             .combinedClickable(
                                                 onClick = {
                                                     when (item) {
-                                                        is SongItem ->
-                                                            if (item.id == mediaMetadata?.id) {
-                                                                playerConnection.player.togglePlayPause()
-                                                            } else {
-                                                                playerConnection.playQueue(YouTubeQueue.radio(item.toMediaMetadata()))
-                                                            }
-
                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
                                                         is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                        else -> item
                                                     }
                                                 },
                                                 onLongClick = {
@@ -251,7 +250,8 @@ fun YouTubeBrowseScreen(
                                                         }
                                                     }
                                                 }
-                                            ).animateItem()
+                                            )
+                                            .animateItem()
                                     )
                                 }
                             }

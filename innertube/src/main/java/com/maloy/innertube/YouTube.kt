@@ -755,7 +755,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         if (videoIds != null) {
             assert(videoIds.size <= MAX_GET_QUEUE_SIZE)
         }
-        innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueData
+        innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
             .mapNotNull {
                 it.content.playlistPanelVideoRenderer?.let { renderer ->
                     NextPage.fromPlaylistPanelVideoRenderer(renderer)

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class GetQueueResponse(
-    val queueData: List<QueueData>,
+    val queueDatas: List<QueueData>,
 ) {
     @Serializable
     data class QueueData(

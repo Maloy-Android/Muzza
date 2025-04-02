@@ -370,30 +370,39 @@ fun HistoryScreen(
             }
         }
 
-        HideOnScrollFAB(
-            visible = filteredEventsMap.isNotEmpty(),
-            lazyListState = lazyListState,
-            icon = R.drawable.shuffle,
-            onClick = {
-                if (historySource == HistorySource.REMOTE) {
-                    val songs = filteredRemoteContent?.flatMap { it.songs } ?: emptyList()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = context.getString(R.string.history + R.string.remote_history),
-                            items = songs.map { it.toMediaItem() }.shuffled()
+        if (historySource == HistorySource.REMOTE) {
+            filteredRemoteContent?.let { it ->
+                HideOnScrollFAB(
+                    visible = it.isNotEmpty(),
+                    lazyListState = lazyListState,
+                    icon = R.drawable.shuffle,
+                    onClick = {
+                        val songs = filteredRemoteContent.flatMap { it.songs }
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = context.getString(R.string.history_queue_title_online),
+                                items = songs.map { it.toMediaItem() }.shuffled()
+                            )
                         )
-                    )
-                } else {
+                    }
+                )
+            }
+        } else {
+            HideOnScrollFAB(
+                visible = filteredEventsMap.isNotEmpty(),
+                lazyListState = lazyListState,
+                icon = R.drawable.shuffle,
+                onClick = {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.history + R.string.local_history),
+                            title = context.getString(R.string.history_queue_title_local),
                             items = filteredEventIndex.values.map { it.song.toMediaItem() }
-                                .shuffled(),
+                                .shuffled()
                         )
                     )
                 }
-            }
-        )
+            )
+        }
     }
 
     TopAppBar(

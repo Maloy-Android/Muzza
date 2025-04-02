@@ -175,18 +175,33 @@ fun ContentSettings(
         )
 
         PreferenceGroupTitle(title = stringResource(R.string.app_language))
-        ListPreference(
-            title = { Text(stringResource(R.string.app_language)) },
-            icon = { Icon(painterResource(R.drawable.translate), null) },
-            selectedValue = selectedLanguage,
-            values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
-            valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
-            onValueSelected = {
-                onSelectedLanguage(it)
-                updateLanguage(context, it)
-                saveLanguagePreference(context, it)
-            }
-        )
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.app_language)) },
+                icon = { Icon(painterResource(R.drawable.translate), null) },
+                onClick = {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APP_LOCALE_SETTINGS,
+                            Uri.parse("package:${context.packageName}")
+                        )
+                    )
+                }
+            )
+        } else {
+            ListPreference(
+                title = { Text(stringResource(R.string.app_language)) },
+                icon = { Icon(painterResource(R.drawable.translate), null) },
+                selectedValue = selectedLanguage,
+                values = listOf(SYSTEM_DEFAULT) + LanguageCodeToName.keys.toList(),
+                valueText = { LanguageCodeToName[it] ?: stringResource(R.string.system_default) },
+                onValueSelected = {
+                    onSelectedLanguage(it)
+                    updateLanguage(context, it)
+                    saveLanguagePreference(context, it)
+                }
+            )
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.misc)

@@ -54,9 +54,19 @@ data class HomePage(
                 return when {
                     renderer.isSong -> {
                         val subtitleRuns = renderer.subtitle?.runs ?: return null
-                        val (artistRuns, albumRuns) = subtitleRuns.partition { run ->
-                            run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
+
+                        val durationRun = subtitleRuns.findLast { run ->
+                            run.text.matches(Regex("\\d+:\\d{2}(:\\d{2})?"))
                         }
+
+                        val duration = subtitleRuns.lastOrNull { run ->
+                            run.text.matches(Regex("\\d+:\\d{2}"))
+                        }?.text?.let(::parseDuration)
+
+                        val (artistRuns, albumRuns) = subtitleRuns.filterNot { it.text == duration?.toString() }
+                            .partition { run ->
+                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
+                            }
 
                         val artists = artistRuns.map {
                             Artist(
@@ -79,7 +89,7 @@ data class HomePage(
                                     )
                                 }
                             },
-                            duration = null,
+                            duration = durationRun?.text?.let(::parseDuration),
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                             explicit = renderer.subtitleBadges?.any {

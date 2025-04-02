@@ -1,5 +1,6 @@
 package com.maloy.innertube.pages
 
+import com.maloy.innertube.models.Album
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicShelfRenderer
@@ -32,7 +33,16 @@ data class HistoryPage(
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
                 }),
-                album = null,
+                album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                    ?.takeIf {
+                        it.navigationEndpoint?.browseEndpoint?.browseId != null
+                    }?.let {
+                        it.navigationEndpoint?.browseEndpoint?.browseId?.let { it1 ->
+                            Album(
+                                name = it.text, id = it1
+                            )
+                        }
+                    },
                 duration = null,
                 thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                 explicit = renderer.badges?.find {

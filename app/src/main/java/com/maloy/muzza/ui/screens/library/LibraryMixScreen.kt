@@ -42,8 +42,6 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
 import com.maloy.muzza.constants.ChipSortTypeKey
-import com.maloy.muzza.constants.GridCellSize
-import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryFilter
@@ -123,7 +121,6 @@ fun LibraryMixScreen(
     )
     val (sortDescending, onSortDescendingChange) = rememberPreference(MixSortDescendingKey, true)
     var viewType by rememberEnumPreference(MixViewTypeKey, MixViewType.GRID)
-    val gridItemSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
@@ -263,10 +260,7 @@ fun LibraryMixScreen(
         ) {
             LazyVerticalGrid(
                 state = lazyGridState,
-                columns =
-                GridCells.Adaptive(
-                    minSize = GridThumbnailHeight + if (gridItemSize == GridCellSize.BIG) 24.dp else (-24).dp,
-                ),
+                columns = GridCells.Fixed(1),
                 contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
             ) {
                 item(

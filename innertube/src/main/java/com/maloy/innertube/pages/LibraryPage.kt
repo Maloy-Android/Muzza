@@ -75,19 +75,9 @@ data class LibraryPage(
 
                 renderer.isSong -> {
                     val subtitleRuns = renderer.subtitle?.runs ?: return null
-
-                    val durationRun = subtitleRuns.findLast { run ->
-                        run.text.matches(Regex("\\d+:\\d{2}(:\\d{2})?"))
+                    val (artistRuns, albumRuns) = subtitleRuns.partition { run ->
+                        run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
                     }
-
-                    val duration = subtitleRuns.lastOrNull { run ->
-                        run.text.matches(Regex("\\d+:\\d{2}"))
-                    }?.text?.let(::parseDuration)
-
-                    val (artistRuns, albumRuns) = subtitleRuns.filterNot { it.text == duration?.toString() }
-                        .partition { run ->
-                            run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
-                        }
 
                     val artists = artistRuns.map {
                         Artist(
@@ -110,7 +100,7 @@ data class LibraryPage(
                                 )
                             }
                         },
-                        duration = durationRun?.text?.let(::parseDuration),
+                        duration = null,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,
                         explicit = renderer.subtitleBadges?.any {
@@ -188,17 +178,6 @@ data class LibraryPage(
                 }
             }
             return artists
-        }
-        private fun parseDuration(durationString: String?): Int? {
-            return durationString?.split(":")?.let { parts ->
-                when (parts.size) {
-                    2 -> parts[0].toIntOrNull()?.times(60)?.plus(parts[1].toIntOrNull() ?: 0)
-                    3 -> parts[0].toIntOrNull()?.times(3600)?.plus(
-                        parts[1].toIntOrNull()?.times(60) ?: 0
-                    )?.plus(parts[2].toIntOrNull() ?: 0)
-                    else -> null
-                }
-            }
         }
     }
 }

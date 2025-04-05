@@ -38,6 +38,7 @@ import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ChipsRow
+import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
@@ -71,126 +72,98 @@ fun StatsScreen(
         contentPadding = LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom).asPaddingValues(),
         modifier = Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top))
     ) {
-        item {
-            ChipsRow(
-                chips = listOf(
-                    StatPeriod.`1_WEEK` to pluralStringResource(R.plurals.n_week, 1, 1),
-                    StatPeriod.`1_MONTH` to pluralStringResource(R.plurals.n_month, 1, 1),
-                    StatPeriod.`3_MONTH` to pluralStringResource(R.plurals.n_month, 3, 3),
-                    StatPeriod.`6_MONTH` to pluralStringResource(R.plurals.n_month, 6, 6),
-                    StatPeriod.`1_YEAR` to pluralStringResource(R.plurals.n_year, 1, 1),
-                    StatPeriod.ALL to stringResource(R.string.filter_all)
-                ),
-                currentValue = statPeriod,
-                onValueUpdate = { viewModel.statPeriod.value = it }
-            )
-        }
-
-        item(key = "mostPlayedSongs") {
-            NavigationTitle(
-                title = stringResource(R.string.most_played_songs),
-                modifier = Modifier.animateItem()
-            )
-        }
-
-        items(
-            items = mostPlayedSongs,
-            key = { it.id }
-        ) { song ->
-            SongListItem(
-                song = song,
-                isActive = song.id == mediaMetadata?.id,
-                showInLibraryIcon = true,
-                isPlaying = isPlaying,
-                trailingContent = {
-                    IconButton(
-                        onClick = {
-                            menuState.show {
-                                SongMenu(
-                                    originalSong = song,
-                                    navController = navController,
-                                    onDismiss = menuState::dismiss
-                                )
-                            }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.more_vert),
-                            contentDescription = null
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable (
-                        onClick = {
-                            if (song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    YouTubeQueue(
-                                        endpoint = WatchEndpoint(song.id),
-                                        preloadItem = song.toMediaMetadata()
-                                    )
-                                )
-                            }
-                        },
-                        onLongClick = {
-                            menuState.show {
-                                SongMenu(
-                                    originalSong = song,
-                                    navController = navController,
-                                    onDismiss = menuState::dismiss
-                                )
-                            }
-                        }
-                    )
-                    .animateItem()
-            )
-        }
-
-        item(key = "mostPlayedArtists") {
-            NavigationTitle(
-                title = stringResource(R.string.most_played_artists),
-                modifier = Modifier.animateItem()
-            )
-
-            LazyRow(
-                modifier = Modifier.animateItem()
-            ) {
-                items(
-                    items = mostPlayedArtists,
-                    key = { it.id }
-                ) { artist ->
-                    ArtistGridItem(
-                        artist = artist,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .combinedClickable(
-                                onClick = {
-                                    navController.navigate("artist/${artist.id}")
-                                },
-                                onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    menuState.show {
-                                        ArtistMenu(
-                                            originalArtist = artist,
-                                            coroutineScope = coroutineScope,
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                }
-                            )
-                            .animateItem()
-                    )
-                }
+        if (mostPlayedSongs.isEmpty() && mostPlayedArtists.isEmpty() && mostPlayedAlbums.isEmpty()) {
+            item {
+                EmptyPlaceholder(
+                    icon = R.drawable.trending_up,
+                    text = stringResource(R.string.stats_empty),
+                    modifier = Modifier
+                        .fillParentMaxSize()
+                        .animateItem()
+                )
             }
-        }
+        } else {
+            item {
+                ChipsRow(
+                    chips = listOf(
+                        StatPeriod.`1_WEEK` to pluralStringResource(R.plurals.n_week, 1, 1),
+                        StatPeriod.`1_MONTH` to pluralStringResource(R.plurals.n_month, 1, 1),
+                        StatPeriod.`3_MONTH` to pluralStringResource(R.plurals.n_month, 3, 3),
+                        StatPeriod.`6_MONTH` to pluralStringResource(R.plurals.n_month, 6, 6),
+                        StatPeriod.`1_YEAR` to pluralStringResource(R.plurals.n_year, 1, 1),
+                        StatPeriod.ALL to stringResource(R.string.filter_all)
+                    ),
+                    currentValue = statPeriod,
+                    onValueUpdate = { viewModel.statPeriod.value = it }
+                )
+            }
 
-        if (mostPlayedAlbums.isNotEmpty()) {
-            item(key = "mostPlayedAlbums") {
+            item(key = "mostPlayedSongs") {
                 NavigationTitle(
-                    title = stringResource(R.string.most_played_albums),
+                    title = stringResource(R.string.most_played_songs),
+                    modifier = Modifier.animateItem()
+                )
+            }
+
+            items(
+                items = mostPlayedSongs,
+                key = { it.id }
+            ) { song ->
+                SongListItem(
+                    song = song,
+                    isActive = song.id == mediaMetadata?.id,
+                    showInLibraryIcon = true,
+                    isPlaying = isPlaying,
+                    trailingContent = {
+                        IconButton(
+                            onClick = {
+                                menuState.show {
+                                    SongMenu(
+                                        originalSong = song,
+                                        navController = navController,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
+                                contentDescription = null
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = {
+                                if (song.id == mediaMetadata?.id) {
+                                    playerConnection.player.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(
+                                        YouTubeQueue(
+                                            endpoint = WatchEndpoint(song.id),
+                                            preloadItem = song.toMediaMetadata()
+                                        )
+                                    )
+                                }
+                            },
+                            onLongClick = {
+                                menuState.show {
+                                    SongMenu(
+                                        originalSong = song,
+                                        navController = navController,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
+                        )
+                        .animateItem()
+                )
+            }
+
+            item(key = "mostPlayedArtists") {
+                NavigationTitle(
+                    title = stringResource(R.string.most_played_artists),
                     modifier = Modifier.animateItem()
                 )
 
@@ -198,26 +171,23 @@ fun StatsScreen(
                     modifier = Modifier.animateItem()
                 ) {
                     items(
-                        items = mostPlayedAlbums,
+                        items = mostPlayedArtists,
                         key = { it.id }
-                    ) { album ->
-                        AlbumGridItem(
-                            album = album,
-                            isActive = album.id == mediaMetadata?.album?.id,
-                            isPlaying = isPlaying,
-                            coroutineScope = coroutineScope,
+                    ) { artist ->
+                        ArtistGridItem(
+                            artist = artist,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .combinedClickable(
                                     onClick = {
-                                        navController.navigate("album/${album.id}")
+                                        navController.navigate("artist/${artist.id}")
                                     },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                         menuState.show {
-                                            AlbumMenu(
-                                                originalAlbum = album,
-                                                navController = navController,
+                                            ArtistMenu(
+                                                originalArtist = artist,
+                                                coroutineScope = coroutineScope,
                                                 onDismiss = menuState::dismiss
                                             )
                                         }
@@ -225,6 +195,49 @@ fun StatsScreen(
                                 )
                                 .animateItem()
                         )
+                    }
+                }
+            }
+
+            if (mostPlayedAlbums.isNotEmpty()) {
+                item(key = "mostPlayedAlbums") {
+                    NavigationTitle(
+                        title = stringResource(R.string.most_played_albums),
+                        modifier = Modifier.animateItem()
+                    )
+
+                    LazyRow(
+                        modifier = Modifier.animateItem()
+                    ) {
+                        items(
+                            items = mostPlayedAlbums,
+                            key = { it.id }
+                        ) { album ->
+                            AlbumGridItem(
+                                album = album,
+                                isActive = album.id == mediaMetadata?.album?.id,
+                                isPlaying = isPlaying,
+                                coroutineScope = coroutineScope,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("album/${album.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                AlbumMenu(
+                                                    originalAlbum = album,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    )
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
             }

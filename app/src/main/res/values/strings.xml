@@ -29,6 +29,8 @@
 
     <!-- Home -->
     <string name="history">History</string>
+    <string name="history_empty">Your history will show up here</string>
+    <string name="stats_empty">Your stats will show up here</string>
     <string name="stats">Stats</string>
     <string name="mood_and_genres">Mood and Genres</string>
     <string name="account">Account</string>

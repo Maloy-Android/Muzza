@@ -30,7 +30,9 @@
 
     <!-- Home -->
     <string name="history">Історія</string>
+    <string name="history_empty">Ваша історія прослуховувань буде знаходиться тут</string>
     <string name="stats">Статистика</string>
+    <string name="stats_empty">Ваша статистика буде знаходиться тут</string>
     <string name="mood_and_genres">Настрій та жанри</string>
     <string name="account">Акаунт</string>
     <string name="quick_picks">Швидкий вибір</string>

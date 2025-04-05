@@ -31,11 +31,13 @@
 
     <!-- Home -->
     <string name="history">История</string>
+    <string name="history_empty">Ваша история прослушиваний будет находится здесь</string>
     <string name="local_history">Локальная</string>
     <string name="remote_history">Онлайн</string>
     <string name="history_queue_title_local">Локальная история</string>
     <string name="history_queue_title_online">Онлайн история</string>
     <string name="stats">Статистика</string>
+    <string name="stats_empty">Ваша статистика будет находится здесь</string>
     <string name="mood_and_genres">Настроение и жанры</string>
     <string name="account">Аккаунт</string>
     <string name="quick_picks">Быстрый выбор</string>

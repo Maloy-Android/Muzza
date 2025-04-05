@@ -112,24 +112,22 @@ class App : Application(), ImageLoaderFactory {
 
     override fun newImageLoader(): ImageLoader {
         val cacheSize = dataStore[MaxImageCacheSizeKey]
-        if (cacheSize == 0) {
-            return ImageLoader.Builder(this)
-                .crossfade(true)
-                .respectCacheHeaders(false)
+
+        return if (cacheSize == 0) {
+            ImageLoader.Builder(this).crossfade(true).respectCacheHeaders(false)
                 .allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-                .diskCachePolicy(CachePolicy.DISABLED)
-                .build()
+                .diskCachePolicy(CachePolicy.DISABLED).build()
+        } else {
+            val maxSize = when {
+                cacheSize == -1 -> Long.MAX_VALUE
+                else -> (cacheSize ?: 512) * 1024 * 1024L
+            }
+
+            ImageLoader.Builder(this).crossfade(true).respectCacheHeaders(false)
+                .allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P).diskCache(
+                    DiskCache.Builder().directory(cacheDir.resolve("coil")).maxSizeBytes(maxSize)
+                        .build()
+                ).build()
         }
-        return ImageLoader.Builder(this)
-            .crossfade(true)
-            .respectCacheHeaders(false)
-            .allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P)
-            .diskCache(
-                DiskCache.Builder()
-                    .directory(cacheDir.resolve("coil"))
-                    .maxSizeBytes((cacheSize ?: 512) * 1024 * 1024L)
-                    .build()
-            )
-            .build()
     }
 }

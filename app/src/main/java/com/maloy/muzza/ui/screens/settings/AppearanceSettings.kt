@@ -58,6 +58,7 @@ import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
+import com.maloy.muzza.constants.HideAutoPlaylistsKey
 import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
@@ -105,6 +106,7 @@ fun AppearanceSettings(
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
+    val (hideAutoPlaylists, onHideAutoPlaylistsChange) = rememberPreference(HideAutoPlaylistsKey, defaultValue = false)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -400,6 +402,13 @@ fun AppearanceSettings(
             icon = { Icon(painterResource(R.drawable.queue_music), null) },
             checked = swipeSongToDismiss,
             onCheckedChange = onSwipeSongToDismissChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.hide_auto_playlists)) },
+            icon = { Icon(painterResource(R.drawable.playlist_play), null) },
+            checked = hideAutoPlaylists,
+            onCheckedChange = onHideAutoPlaylistsChange
         )
 
         if (appDesignVariant == AppDesignVariantType.NEW) {

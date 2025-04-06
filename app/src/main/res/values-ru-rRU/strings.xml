@@ -91,6 +91,7 @@
     <string name="library_artist_empty">Здесь будут отображаться исполнители из вашей библиотеки</string>
     <string name="library_album_empty">Здесь будут отображаться альбомы из вашей библиотеки</string>
     <string name="library_playlist_empty">Здесь будут отображаться ваши плейлисты</string>
+    <string name="library_empty">Ваша библиотека будет отображаться здесь</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Любимые треки</string>
@@ -313,6 +314,7 @@
     <string name="thumbnail_corner_radius">Радиус скругления обложки</string>
     <string name="misc">Разное</string>
     <string name="main">Основное</string>
+    <string name="hide_auto_playlists">Скрыть автоплейлисты</string>
     <string name="swipe_song_to_dismiss">Проведите по песне вправо для следующего воспроизведения или влево для добавления в очередь</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
     <string name="default_lib_chips">Вкладка библиотеки по умолчанию</string>

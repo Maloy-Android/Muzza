@@ -25,6 +25,7 @@ enum class SliderStyle {
 }
 
 val SwipeSongToDismissKey = booleanPreferencesKey("swipe_song_to_dismiss")
+val HideAutoPlaylistsKey = booleanPreferencesKey("hide_auto_playlists")
 val DefaultOpenTabOldKey = stringPreferencesKey("defaultOpenTabOld")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val GridCellSizeKey = stringPreferencesKey("gridCellSize")

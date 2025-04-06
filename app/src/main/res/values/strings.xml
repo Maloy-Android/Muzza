@@ -83,7 +83,6 @@
     <string name="library_artist_empty">Library artists will show up here</string>
     <string name="library_album_empty">Library albums will show up here</string>
     <string name="library_playlist_empty">Your playlists will show up here</string>
-    <string name="library_empty">Your library will show up here</string>
 
     <!-- Artist screen -->
     <string name="from_your_library">From your library</string>
@@ -304,7 +303,6 @@
     <string name="thumbnail_corner_radius">Configure thumbnail corner radius</string>
     <string name="misc">Misc</string>
     <string name="main">Main</string>
-    <string name="hide_auto_playlists">Hide auto playlists</string>
     <string name="swipe_song_to_dismiss">Swipe song to right for play next or left for adding to queue</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="default_lib_chips">Default library chips</string>

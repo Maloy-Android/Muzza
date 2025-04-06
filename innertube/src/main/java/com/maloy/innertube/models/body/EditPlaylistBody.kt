@@ -35,7 +35,8 @@ sealed class Action {
     data class RemoveVideoAction(
         val action: String = "ACTION_REMOVE_VIDEO",
         val setVideoId: String,
-        val removedVideoId: String
+        val removedVideoId: String,
+        val params: String
     ) : Action()
 
     @Serializable

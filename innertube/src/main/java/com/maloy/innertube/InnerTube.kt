@@ -416,6 +416,7 @@ class InnerTube {
                     Action.RemoveVideoAction(
                         removedVideoId = videoId,
                         setVideoId = setVideoId,
+                        params = "Pw%3D%3D"
                     )
                 )
             )

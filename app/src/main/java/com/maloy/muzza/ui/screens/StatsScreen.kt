@@ -82,7 +82,7 @@ fun StatsScreen(
                         .animateItem()
                 )
             }
-        } else {
+        } else if (mostPlayedSongs.isNotEmpty() && mostPlayedArtists.isNotEmpty() && mostPlayedAlbums.isNotEmpty()){
             item {
                 ChipsRow(
                     chips = listOf(

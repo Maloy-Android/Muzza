@@ -212,7 +212,8 @@ fun HistoryScreen(
                             .animateItem()
                     )
                 }
-            } else {
+            } else if (historySource == HistorySource.REMOTE && filteredRemoteContent?.isNotEmpty() == true ||
+                historySource == HistorySource.LOCAL && filteredEventsMap.isNotEmpty()) {
                 item {
                     ChipsRow(
                         chips = if (ytmSync && isLoggedIn && isInternetAvailable(context)) listOf(

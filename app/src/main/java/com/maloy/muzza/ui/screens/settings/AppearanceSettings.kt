@@ -348,21 +348,39 @@ fun AppearanceSettings(
         )
 
 
-        EnumListPreference(
-            title = { Text(stringResource(R.string.player_background_style)) },
-            icon = { Icon(painterResource(R.drawable.gradient), null) },
-            selectedValue = playerBackground,
-            onValueSelected = onPlayerBackgroundChange,
-            valueText = {
-                when (it) {
-                    PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
-                    PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
-                    PlayerBackgroundStyle.BLURMOV ->  stringResource(R.string.blurmv)
-                    PlayerBackgroundStyle.BLUR -> stringResource(R.string.blur)
-                    PlayerBackgroundStyle.MONETBLACK -> stringResource(R.string.monetblack)
+        if (useDarkTheme) {
+            EnumListPreference(
+                title = { Text(stringResource(R.string.player_background_style)) },
+                icon = { Icon(painterResource(R.drawable.gradient), null) },
+                selectedValue = playerBackground,
+                onValueSelected = onPlayerBackgroundChange,
+                valueText = {
+                    when (it) {
+                        PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
+                        PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
+                        PlayerBackgroundStyle.BLURMOV -> stringResource(R.string.blurmv)
+                        PlayerBackgroundStyle.BLUR -> stringResource(R.string.blur)
+                        PlayerBackgroundStyle.MONETBLACK -> stringResource(R.string.monetblack)
+                    }
                 }
-            }
-        )
+            )
+        } else {
+            EnumListPreference(
+                title = { Text(stringResource(R.string.player_background_style)) },
+                icon = { Icon(painterResource(R.drawable.gradient), null) },
+                selectedValue = playerBackground,
+                onValueSelected = onPlayerBackgroundChange,
+                valueText = {
+                    when (it) {
+                        PlayerBackgroundStyle.DEFAULT -> stringResource(R.string.follow_theme)
+                        PlayerBackgroundStyle.GRADIENT -> stringResource(R.string.gradient)
+                        PlayerBackgroundStyle.BLURMOV -> stringResource(R.string.blurmv)
+                        PlayerBackgroundStyle.BLUR -> stringResource(R.string.blur)
+                        else -> null.toString()
+                    }
+                }
+            )
+        }
 
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_swipe_thumbnail)) },

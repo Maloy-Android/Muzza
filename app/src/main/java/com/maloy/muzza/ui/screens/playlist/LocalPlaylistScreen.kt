@@ -363,6 +363,14 @@ fun LocalPlaylistScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
             modifier = Modifier.reorderable(reorderableState)
         ) {
+            if (filteredSongs.isEmpty() && isSearching) {
+                item {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search,
+                        text = stringResource(R.string.no_results_found)
+                    )
+                }
+            }
             playlist?.let { playlist ->
                 if (playlist.songCount == 0) {
                     item {
@@ -386,39 +394,41 @@ fun LocalPlaylistScreen(
                         }
                     }
 
-                    item {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .padding(start = 16.dp)
-                                .animateItem()
-                        ) {
-                            SortHeader(
-                                sortType = sortType,
-                                sortDescending = sortDescending,
-                                onSortTypeChange = onSortTypeChange,
-                                onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
-                                    when (sortType) {
-                                        PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
-                                        PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        PlaylistSongSortType.NAME -> R.string.sort_by_name
-                                        PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
-                                        PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                    }
-                                },
-                                modifier = Modifier.weight(1f)
-                            )
+                    if (filteredSongs.isNotEmpty()) {
+                        item {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .padding(start = 16.dp)
+                                    .animateItem()
+                            ) {
+                                SortHeader(
+                                    sortType = sortType,
+                                    sortDescending = sortDescending,
+                                    onSortTypeChange = onSortTypeChange,
+                                    onSortDescendingChange = onSortDescendingChange,
+                                    sortTypeText = { sortType ->
+                                        when (sortType) {
+                                            PlaylistSongSortType.CUSTOM -> R.string.sort_by_custom
+                                            PlaylistSongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                            PlaylistSongSortType.NAME -> R.string.sort_by_name
+                                            PlaylistSongSortType.ARTIST -> R.string.sort_by_artist
+                                            PlaylistSongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        }
+                                    },
+                                    modifier = Modifier.weight(1f)
+                                )
 
-                            if (!inSelectMode) {
-                                IconButton(
-                                    onClick = { locked = !locked },
-                                    modifier = Modifier.padding(horizontal = 6.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
-                                        contentDescription = null
-                                    )
+                                if (!inSelectMode) {
+                                    IconButton(
+                                        onClick = { locked = !locked },
+                                        modifier = Modifier.padding(horizontal = 6.dp)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(if (locked) R.drawable.lock else R.drawable.lock_open),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
                         }

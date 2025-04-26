@@ -106,6 +106,7 @@ import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
+import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -250,6 +251,14 @@ fun OnlinePlaylistScreen(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues()
         ) {
+            if (filteredSongs.isEmpty() && isSearching) {
+                item {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search,
+                        text = stringResource(R.string.no_results_found)
+                    )
+                }
+            }
             playlist.let { playlist ->
                 if (playlist != null) {
                     if (!isSearching) {

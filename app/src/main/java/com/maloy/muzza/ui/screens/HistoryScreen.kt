@@ -200,6 +200,19 @@ fun HistoryScreen(
                     .only(WindowInsetsSides.Top)
             )
         ) {
+            if (historySource == HistorySource.REMOTE && filteredRemoteContent.isNullOrEmpty() && isSearching ||
+                historySource == HistorySource.LOCAL && filteredEventsMap.isEmpty() && isSearching
+            ) {
+                item {
+                    EmptyPlaceholder(
+                        icon = R.drawable.history,
+                        text = stringResource(R.string.no_results_found),
+                        modifier = Modifier
+                            .fillParentMaxSize()
+                            .animateItem()
+                    )
+                }
+            }
             if (historySource == HistorySource.REMOTE && filteredRemoteContent.isNullOrEmpty() ||
                 historySource == HistorySource.LOCAL && filteredEventsMap.isEmpty()
             ) {

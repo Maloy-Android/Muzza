@@ -274,6 +274,16 @@ fun AutoPlaylistScreen(
             }
         )
     }
+    val searchQueryStr = searchQuery.text.trim()
+    val filteredSongs = if (searchQueryStr.isEmpty()) {
+        songs
+    } else {
+        songs?.filter { song ->
+            song.song.title.contains(searchQueryStr, ignoreCase = true) ||
+                    song.artists.joinToString("")
+                        .contains(searchQueryStr, ignoreCase = true)
+        }
+    }
     val state = rememberLazyListState()
     Box(
         modifier = Modifier.fillMaxSize()
@@ -282,6 +292,14 @@ fun AutoPlaylistScreen(
             state = state,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
         ) {
+            if (filteredSongs.isNullOrEmpty() && isSearching) {
+                item {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search,
+                        text = stringResource(R.string.no_results_found)
+                    )
+                }
+            }
             if (songs != null) {
                 if (songs!!.isEmpty()) {
                     item {
@@ -297,129 +315,105 @@ fun AutoPlaylistScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.padding(12.dp)
                             ) {
-                                    val libcarditem = 25.dp
-                                    Box(
+                                val libcarditem = 25.dp
+                                Box(
+                                    modifier = Modifier
+                                        .size(AlbumThumbnailSize)
+                                        .clip(RoundedCornerShape(libcarditem))
+                                        .align(alignment = Alignment.CenterHorizontally)
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceContainer,
+                                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                        )
+                                ) {
+                                    Icon(
+                                        imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.8f),
                                         modifier = Modifier
-                                            .size(AlbumThumbnailSize)
-                                            .clip(RoundedCornerShape(libcarditem))
-                                            .align(alignment = Alignment.CenterHorizontally)
-                                            .background(
-                                                MaterialTheme.colorScheme.surfaceContainer,
-                                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                            )
-                                    ) {
-                                        Icon(
-                                            imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
-                                            contentDescription = null,
-                                            tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                            modifier = Modifier
-                                                .size(110.dp)
-                                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                                .align(Alignment.Center)
-                                        )
-                                    }
+                                            .size(110.dp)
+                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                            .align(Alignment.Center)
+                                    )
+                                }
+                                Spacer(Modifier.height(12.dp))
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    AutoResizeText(
+                                        text = playlist,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSizeRange = FontSizeRange(16.sp, 22.sp)
+                                    )
+                                    Text(
+                                        text = makeTimeString(likeLength * 1000L),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Normal
+                                    )
                                     Spacer(Modifier.height(12.dp))
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    Row(
+                                        horizontalArrangement = Arrangement.SpaceEvenly,
+                                        modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        AutoResizeText(
-                                            text = playlist,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                            fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                                        )
-                                        Text(
-                                            text = makeTimeString(likeLength * 1000L),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Normal
-                                        )
-                                        Spacer(Modifier.height(12.dp))
-                                        Row(
-                                            horizontalArrangement = Arrangement.SpaceEvenly,
-                                            modifier = Modifier.fillMaxWidth()
-                                        )  {
-                                            when (downloadState) {
-                                                Download.STATE_COMPLETED -> {
-                                                    Button(
-                                                        onClick = {
-                                                            showRemoveDownloadDialog = true
-                                                        },
-                                                        modifier = Modifier
-                                                            .weight(1f)
-                                                            .padding(4.dp)
-                                                            .clip(RoundedCornerShape(12.dp))
-                                                    ) {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.offline),
-                                                            contentDescription = null
-                                                        )
-                                                    }
-                                                }
-
-                                                Download.STATE_DOWNLOADING -> {
-                                                    Button(
-                                                        onClick = {
-                                                            songs!!.forEach { song ->
-                                                                DownloadService.sendRemoveDownload(
-                                                                    context,
-                                                                    ExoDownloadService::class.java,
-                                                                    song.song.id,
-                                                                    false
-                                                                )
-                                                            }
-                                                        }
-                                                    ) {
-                                                        CircularProgressIndicator(
-                                                            strokeWidth = 2.dp,
-                                                            modifier = Modifier.size(24.dp),
-                                                            color = MaterialTheme.colorScheme.surfaceContainer
-                                                        )
-                                                    }
-                                                }
-
-                                                else -> {
-                                                    Button(
-                                                        onClick = {
-                                                            songs!!.forEach { song ->
-                                                                val downloadRequest =
-                                                                    DownloadRequest.Builder(
-                                                                        song.song.id,
-                                                                        song.song.id.toUri()
-                                                                    )
-                                                                        .setCustomCacheKey(song.song.id)
-                                                                        .setData(song.song.title.toByteArray())
-                                                                        .build()
-                                                                DownloadService.sendAddDownload(
-                                                                    context,
-                                                                    ExoDownloadService::class.java,
-                                                                    downloadRequest,
-                                                                    false
-                                                                )
-                                                            }
-                                                        },
-                                                        modifier = Modifier
-                                                            .weight(1f)
-                                                            .padding(4.dp)
-                                                            .clip(RoundedCornerShape(12.dp))
-                                                    ) {
-                                                        Icon(
-                                                            painter = painterResource(R.drawable.download),
-                                                            contentDescription = null
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                            if (isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE) {
+                                        when (downloadState) {
+                                            Download.STATE_COMPLETED -> {
                                                 Button(
                                                     onClick = {
-                                                        scope.launch(Dispatchers.IO) {
-                                                            viewModel.syncLikedSongs()
-                                                            snackbarHostState.showSnackbar(
-                                                                context.getString(
-                                                                    R.string.playlist_synced
+                                                        showRemoveDownloadDialog = true
+                                                    },
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.offline),
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            }
+
+                                            Download.STATE_DOWNLOADING -> {
+                                                Button(
+                                                    onClick = {
+                                                        songs!!.forEach { song ->
+                                                            DownloadService.sendRemoveDownload(
+                                                                context,
+                                                                ExoDownloadService::class.java,
+                                                                song.song.id,
+                                                                false
+                                                            )
+                                                        }
+                                                    }
+                                                ) {
+                                                    CircularProgressIndicator(
+                                                        strokeWidth = 2.dp,
+                                                        modifier = Modifier.size(24.dp),
+                                                        color = MaterialTheme.colorScheme.surfaceContainer
+                                                    )
+                                                }
+                                            }
+
+                                            else -> {
+                                                Button(
+                                                    onClick = {
+                                                        songs!!.forEach { song ->
+                                                            val downloadRequest =
+                                                                DownloadRequest.Builder(
+                                                                    song.song.id,
+                                                                    song.song.id.toUri()
                                                                 )
+                                                                    .setCustomCacheKey(song.song.id)
+                                                                    .setData(song.song.title.toByteArray())
+                                                                    .build()
+                                                            DownloadService.sendAddDownload(
+                                                                context,
+                                                                ExoDownloadService::class.java,
+                                                                downloadRequest,
+                                                                false
                                                             )
                                                         }
                                                     },
@@ -429,16 +423,23 @@ fun AutoPlaylistScreen(
                                                         .clip(RoundedCornerShape(12.dp))
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.sync),
+                                                        painter = painterResource(R.drawable.download),
                                                         contentDescription = null
                                                     )
                                                 }
                                             }
+                                        }
+                                        if (isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE) {
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(
-                                                        items = songs!!.map { it.toMediaItem() },
-                                                    )
+                                                    scope.launch(Dispatchers.IO) {
+                                                        viewModel.syncLikedSongs()
+                                                        snackbarHostState.showSnackbar(
+                                                            context.getString(
+                                                                R.string.playlist_synced
+                                                            )
+                                                        )
+                                                    }
                                                 },
                                                 modifier = Modifier
                                                     .weight(1f)
@@ -446,13 +447,30 @@ fun AutoPlaylistScreen(
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.queue_music),
+                                                    painter = painterResource(R.drawable.sync),
                                                     contentDescription = null
                                                 )
                                             }
                                         }
+                                        Button(
+                                            onClick = {
+                                                playerConnection.addToQueue(
+                                                    items = songs!!.map { it.toMediaItem() },
+                                                )
+                                            },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.queue_music),
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
-                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
                                             playerConnection.playQueue(
@@ -498,37 +516,28 @@ fun AutoPlaylistScreen(
                             }
                         }
                     }
-                    item {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.padding(start = 16.dp)
-                        ) {
-                            SortHeader(
-                                sortType = sortType,
-                                sortDescending = sortDescending,
-                                onSortTypeChange = onSortTypeChange,
-                                onSortDescendingChange = onSortDescendingChange,
-                                sortTypeText = { sortType ->
-                                    when (sortType) {
-                                        SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                        SongSortType.NAME -> R.string.sort_by_name
-                                        SongSortType.ARTIST -> R.string.sort_by_artist
-                                        SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                    if (filteredSongs!!.isNotEmpty()) {
+                        item {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(start = 16.dp)
+                            ) {
+                                SortHeader(
+                                    sortType = sortType,
+                                    sortDescending = sortDescending,
+                                    onSortTypeChange = onSortTypeChange,
+                                    onSortDescendingChange = onSortDescendingChange,
+                                    sortTypeText = { sortType ->
+                                        when (sortType) {
+                                            SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                            SongSortType.NAME -> R.string.sort_by_name
+                                            SongSortType.ARTIST -> R.string.sort_by_artist
+                                            SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
                         }
-                    }
-                }
- 
-                val searchQueryStr = searchQuery.text.trim()
-                val filteredSongs = if (searchQueryStr.isEmpty()) {
-                    songs
-                } else {
-                    songs?.filter { song ->
-                        song.song.title.contains(searchQueryStr, ignoreCase = true) ||
-                                song.artists.joinToString("")
-                                    .contains(searchQueryStr, ignoreCase = true)
                     }
                 }
                 if (filteredSongs != null) {
@@ -641,16 +650,6 @@ fun AutoPlaylistScreen(
                 }
             },
             actions = {
-                val searchQueryStr = searchQuery.text.trim()
-                val filteredSongs = if (searchQueryStr.isEmpty()) {
-                    songs
-                } else {
-                    songs?.filter { song ->
-                        song.song.title.contains(searchQueryStr, ignoreCase = true) ||
-                                song.artists.joinToString("")
-                                    .contains(searchQueryStr, ignoreCase = true)
-                    }
-                }
                 Checkbox(
                     checked = selection.size == filteredSongs?.size && selection.isNotEmpty(),
                     onCheckedChange = {

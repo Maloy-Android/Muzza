@@ -252,7 +252,7 @@ class ImportFromSpotifyViewModel @Inject constructor(
                     FormDataContent(Parameters.build {
                         append("grant_type", "authorization_code")
                         append("code", authorizationCode)
-                        append("redirect_uri", "http://localhost:45454")
+                        append("redirect_uri", "http://127.0.0.1:45454")
                     })
                 )
             })

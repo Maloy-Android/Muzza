@@ -531,7 +531,7 @@ fun ImportFromSpotifyScreen(
             )
             Button(
                 onClick = {
-                    val encodedUrl = "https://accounts.spotify.com/authorize?client_id=${spotifyClientId.value}&response_type=code&redirect_uri=http://localhost:45454&scope=user-library-read%20playlist-read-private"
+                    val encodedUrl = "https://accounts.spotify.com/authorize?client_id=${spotifyClientId.value}&response_type=code&redirect_uri=http://127.0.0.1:45454&scope=user-library-read%20playlist-read-private"
                     localUriHandler.openUri(encodedUrl)
                 }, modifier = Modifier
                     .fillMaxWidth()
@@ -564,7 +564,7 @@ fun ImportFromSpotifyScreen(
                 value = spotifyAuthorizationCode.value,
                 onValueChange = {
                     spotifyAuthorizationCode.value =
-                        it.substringAfter("http://localhost:45454/?code=").trim()
+                        it.substringAfter("http://127.0.0.1:45454/?code=").trim()
                 },
                 label = {
                     Text(text = stringResource(R.string.authorization_code))

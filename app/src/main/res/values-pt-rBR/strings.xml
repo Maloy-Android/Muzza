@@ -365,7 +365,7 @@
     <string name="make_sure_to_click">3. Certifique-se de clicar em "Adicionar" depois de inserir o caminho local acima.</string>
     <string name="accept_the_terms_of_service">5. Aceite os termos de serviço e clique em "Salvar".</string>
     <string name="you_ll_be_redirected_to_a_new_page">Você será redirecionado para uma nova página. Clique em Configurações, copie o Client ID e o Client secret e cole-os nos campos de texto abaixo neste aplicativo.</string>
-    <string name="enter_the_necessary_details">2. Insira os detalhes necessários e use http://localhost:45454 como URIs de redirecionamento.</string>
+    <string name="enter_the_necessary_details">2. Insira os detalhes necessários e use http://127.0.0.1:45454 como URIs de redirecionamento.</string>
     <string name="toggle_wep_api">4. Marque a caixa de seleção onde esta escrito Web API.</string>
     <string name="now_click_the_authorize_and_continue">Agora, clique no botão Autorizar e Continuar abaixo e faça login com sua conta da qual deseja importar, ao Autorizar e Continuar, você será redirecionado para um site que deve começar com http:// localhost:45454/?code= Cole a URL inteira no campo de texto abaixo que diz Código de Autorização e clique no botão Autenticar</string>
     <string name="visit_spotify_for_developers">1. Visite o site do Spotify para desenvolvedores, depois acesse o Painel do Spotify para desenvolvedores e clique em "Criar aplicativo". </string>

@@ -343,7 +343,7 @@ fun StorageSettings(
             title = stringResource(R.string.image_cache)
         )
 
-        if (maxImageCacheSize > 0) {
+        if (maxImageCacheSize != 0) {
             if (maxSongCacheSize == -1) {
                 Text(
                     text = stringResource(R.string.size_used, formatFileSize(imageCacheSize)),

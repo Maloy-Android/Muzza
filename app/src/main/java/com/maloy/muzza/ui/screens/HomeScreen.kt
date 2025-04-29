@@ -668,11 +668,10 @@ fun HomeScreen(
                                         .take(it.items.size and -4),
                                     key = { it.id }
                                 ) { song ->
-                                    YouTubeListItem(
+                                    YouTubeGridItem(
                                         item = song,
                                         isActive = song.id == mediaMetadata?.id,
                                         isPlaying = isPlaying,
-                                        isSwipeable = false,
                                         modifier = Modifier
                                             .width(horizontalLazyGridItemWidth)
                                             .combinedClickable(
@@ -695,25 +694,7 @@ fun HomeScreen(
                                                         )
                                                     }
                                                 },
-                                            ),
-                                        trailingContent = {
-                                            IconButton(
-                                                onClick = {
-                                                    menuState.show {
-                                                        YouTubeSongMenu(
-                                                            song = song,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss
-                                                        )
-                                                    }
-                                                }
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.more_vert),
-                                                    contentDescription = null
-                                                )
-                                            }
-                                        }
+                                            )
                                     )
                                 }
                             }

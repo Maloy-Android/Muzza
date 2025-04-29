@@ -165,7 +165,7 @@ fun BottomSheetPlayer(
 
     val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
 
-    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
+    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON

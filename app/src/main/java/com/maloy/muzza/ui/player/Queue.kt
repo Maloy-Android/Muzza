@@ -151,7 +151,7 @@ fun Queue(
 
     var showLyrics by rememberPreference(ShowLyricsKey, false)
 
-    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
+    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var sleepTimerValue by remember { mutableStateOf(30f) }

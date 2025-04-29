@@ -104,7 +104,7 @@ fun AppearanceSettings(
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
-    val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.OLD)
+    val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {

@@ -47,6 +47,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 @Composable
 fun YouTubePlaylistMenu(
@@ -254,17 +255,19 @@ fun YouTubePlaylistMenu(
             val intent = Intent(Intent.ACTION_VIEW, Uri.parse(playlist.shareLink))
             context.startActivity(intent)
         }
-        GridMenuItem(
-            icon = R.drawable.share,
-            title = R.string.share
-        ) {
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
+        if (playlist.id != "LM") {
+            GridMenuItem(
+                icon = R.drawable.share,
+                title = R.string.share
+            ) {
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
+                }
+                context.startActivity(Intent.createChooser(intent, null))
+                onDismiss()
             }
-            context.startActivity(Intent.createChooser(intent, null))
-            onDismiss()
         }
     }
 }

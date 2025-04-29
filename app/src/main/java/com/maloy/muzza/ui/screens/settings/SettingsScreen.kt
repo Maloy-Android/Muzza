@@ -189,7 +189,7 @@ fun SettingsScreen(
         title = { Text(stringResource(R.string.settings)) },
         navigationIcon = {
             IconButton(
-                onClick = navController::navigateUp,
+                onClick = { navController.navigate("home") },
                 onLongClick = navController::backToMain
             ) {
                 Icon(

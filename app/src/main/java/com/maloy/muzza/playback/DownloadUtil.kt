@@ -32,7 +32,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.runBlocking
@@ -74,11 +73,9 @@ class DownloadUtil @Inject constructor(
             return@Factory dataSpec.withUri(it.first.toUri())
         }
 
-        val playedFormat = runBlocking(Dispatchers.IO) { database.format(mediaId).first() }
         val playbackData = runBlocking(Dispatchers.IO) {
             YTPlayerUtils.playerResponseForPlayback(
                 mediaId,
-                playedFormat = playedFormat,
                 audioQuality = audioQuality,
                 connectivityManager = connectivityManager,
             )

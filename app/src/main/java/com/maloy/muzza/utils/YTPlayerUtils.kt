@@ -10,7 +10,6 @@ import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.innertube.pages.NewPipeUtils
 import com.maloy.muzza.constants.AudioQuality
-import com.maloy.muzza.db.entities.FormatEntity
 import okhttp3.OkHttpClient
 
 object YTPlayerUtils {
@@ -47,7 +46,6 @@ object YTPlayerUtils {
     suspend fun playerResponseForPlayback(
         videoId: String,
         playlistId: String? = null,
-        playedFormat: FormatEntity?,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
     ): Result<PlaybackData> = runCatching {
@@ -91,7 +89,6 @@ object YTPlayerUtils {
                 format =
                     findFormat(
                         streamPlayerResponse,
-                        playedFormat,
                         audioQuality,
                         connectivityManager,
                     ) ?: continue
@@ -146,13 +143,9 @@ object YTPlayerUtils {
         YouTube.player(videoId, playlistId, client = MAIN_CLIENT)
     private fun findFormat(
         playerResponse: PlayerResponse,
-        playedFormat: FormatEntity?,
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
     ): PlayerResponse.StreamingData.Format? =
-        if (playedFormat != null) {
-            playerResponse.streamingData?.adaptiveFormats?.find { it.itag == playedFormat.itag }
-        } else {
             playerResponse.streamingData?.adaptiveFormats
                 ?.filter { it.isAudio }
                 ?.maxByOrNull {
@@ -164,7 +157,6 @@ object YTPlayerUtils {
                                 AudioQuality.LOW -> -1
                             } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0) // prefer opus stream
                 }
-        }
     /**
      * Checks if the stream url returns a successful status.
      * If this returns true the url is likely to work.

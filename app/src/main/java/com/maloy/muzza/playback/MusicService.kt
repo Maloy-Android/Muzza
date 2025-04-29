@@ -8,7 +8,6 @@ import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.os.Binder
-import androidx.compose.runtime.Composable
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -110,7 +109,6 @@ import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.enumPreference
 import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.isInternetAvailable
-import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -693,11 +691,9 @@ class MusicService : MediaLibraryService(),
                 return@Factory dataSpec.withUri(it.first.toUri())
             }
 
-            val playedFormat = runBlocking(Dispatchers.IO) { database.format(mediaId).first() }
             val playbackData = runBlocking(Dispatchers.IO) {
                 YTPlayerUtils.playerResponseForPlayback(
                     mediaId,
-                    playedFormat = playedFormat,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                 )

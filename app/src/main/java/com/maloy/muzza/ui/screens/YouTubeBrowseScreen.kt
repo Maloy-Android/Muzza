@@ -3,7 +3,6 @@
 package com.maloy.muzza.ui.screens
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Box
@@ -174,17 +173,31 @@ fun YouTubeBrowseScreen(
                                             },
                                             modifier =
                                             Modifier
-                                                .clickable {
-                                                    if (song.id == mediaMetadata?.id) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.playQueue(
-                                                            YouTubeQueue.radio(
-                                                                song.toMediaMetadata()
+                                                .combinedClickable(
+                                                    onClick = {
+                                                        if (song.id == mediaMetadata?.id) {
+                                                            playerConnection.player.togglePlayPause()
+                                                        } else {
+                                                            playerConnection.playQueue(
+                                                                YouTubeQueue.radio(
+                                                                    song.toMediaMetadata()
+                                                                )
                                                             )
+                                                        }
+                                                    },
+                                                    onLongClick = {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress,
                                                         )
+                                                        menuState.show {
+                                                            YouTubeSongMenu(
+                                                                song = song,
+                                                                navController = navController,
+                                                                onDismiss = menuState::dismiss,
+                                                            )
+                                                        }
                                                     }
-                                                }
+                                                )
                                                 .animateItem()
                                         )
                                     }

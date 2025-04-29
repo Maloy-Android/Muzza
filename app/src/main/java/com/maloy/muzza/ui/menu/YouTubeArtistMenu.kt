@@ -3,7 +3,6 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -29,6 +28,7 @@ import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
 import java.time.LocalDateTime
+import androidx.core.net.toUri
 
 @Composable
 fun YouTubeArtistMenu(
@@ -105,7 +105,7 @@ fun YouTubeArtistMenu(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(artist.shareLink))
+            val intent = Intent(Intent.ACTION_VIEW, artist.shareLink.toUri())
             context.startActivity(intent)
         }
         GridMenuItem(

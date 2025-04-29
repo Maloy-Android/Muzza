@@ -2,7 +2,6 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -252,7 +251,7 @@ fun YouTubePlaylistMenu(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse(playlist.shareLink))
+            val intent = Intent(Intent.ACTION_VIEW, playlist.shareLink.toUri())
             context.startActivity(intent)
         }
         if (playlist.id != "LM") {

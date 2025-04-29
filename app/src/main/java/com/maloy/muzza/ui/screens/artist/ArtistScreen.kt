@@ -1,8 +1,6 @@
 package com.maloy.muzza.ui.screens.artist
 
 import android.content.Intent
-import android.net.Uri
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -98,9 +96,9 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.viewmodels.ArtistViewModel
-import java.time.LocalDateTime
+import androidx.core.net.toUri
 
-@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ArtistScreen(
     navController: NavController,
@@ -498,7 +496,8 @@ fun ArtistScreen(
 
             IconButton(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(viewModel.artistPage?.artist?.shareLink))
+                    val intent = Intent(Intent.ACTION_VIEW,
+                        viewModel.artistPage?.artist?.shareLink?.toUri())
                     context.startActivity(intent)
                 }
             ) {

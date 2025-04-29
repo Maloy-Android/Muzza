@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
-import android.net.Uri
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -31,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import androidx.core.net.toUri
 
 @Composable
 fun ArtistMenu(
@@ -118,7 +118,8 @@ fun ArtistMenu(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/channel/${artist.id}"))
+            val intent = Intent(Intent.ACTION_VIEW,
+                "https://music.youtube.com/channel/${artist.id}".toUri())
             context.startActivity(intent)
         }
         if (artist.artist.isYouTubeArtist) {

@@ -4,7 +4,6 @@ package com.maloy.muzza.ui.menu
 
 import android.content.Intent
 import android.media.audiofx.AudioEffect
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -402,7 +401,8 @@ fun PlayerMenu(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://music.youtube.com/watch?v=${mediaMetadata.id}"))
+            val intent = Intent(Intent.ACTION_VIEW,
+                "https://music.youtube.com/watch?v=${mediaMetadata.id}".toUri())
             context.startActivity(intent)
         }
         GridMenuItem(

@@ -32,6 +32,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -423,6 +425,15 @@ fun SongListItem(
                     shape = RoundedCornerShape(ThumbnailCornerRadius),
                     modifier = Modifier.size(ListThumbnailSize)
                 )
+                if (song.song.isLocal == true) {
+                    Icon(
+                        Icons.Rounded.FolderCopy,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .padding(end = 2.dp)
+                    )
+                }
             },
             trailingContent = trailingContent,
             modifier = modifier,
@@ -430,6 +441,29 @@ fun SongListItem(
         )
     }
 }
+
+@Composable
+fun SongFolderItem(
+    folderTitle: String,
+    modifier: Modifier = Modifier,
+) = ListItem( title = folderTitle, thumbnailContent = { Icon(
+    Icons.Rounded.Folder,
+    contentDescription = null,
+    modifier = modifier.size(48.dp)
+)
+},
+    trailingContent = {
+        androidx.compose.material3.IconButton(
+            onClick = {}
+        ) {
+            Icon(
+                painterResource(R.drawable.more_vert),
+                contentDescription = null
+            )
+        }
+    },
+    modifier = modifier
+)
 
 @Composable
 fun SongGridItem(

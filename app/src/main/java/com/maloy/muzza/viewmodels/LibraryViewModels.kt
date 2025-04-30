@@ -36,8 +36,6 @@ import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
 import com.maloy.muzza.ui.utils.DirectoryTree
 import com.maloy.muzza.ui.utils.refreshLocal
-import com.maloy.muzza.ui.utils.scanLocal
-import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
@@ -73,11 +71,8 @@ class LibrarySongsViewModel @Inject constructor(
      */
     val folderPositionStack = Stack<DirectoryTree>()
     val databseLink = database
-    val downloadUtilLink = downloadUtil
 
     val allSongs = syncAllSongs(context, database, downloadUtil)
-
-    // In the future, build this based on paths from database, and the metadata gets filled in on the fly
     val localSongDirectoryTree = refreshLocal(context, database)
 
     fun syncLikedSongs() {
@@ -86,17 +81,14 @@ class LibrarySongsViewModel @Inject constructor(
 
 
     /**
-     * Rescan local songs
+     * Get local songs
      *
      * @return DirectoryTree
      */
-    fun syncLocalSongs(context: Context, database: MusicDatabase): MutableStateFlow<DirectoryTree> {
+    fun getLocalSongs(context: Context, database: MusicDatabase): MutableStateFlow<DirectoryTree> {
         val directoryStructure = refreshLocal(context, database).value
-
-        syncDB(database, directoryStructure.toList())
         return MutableStateFlow(directoryStructure)
     }
-
 
     fun syncAllSongs(context: Context, database: MusicDatabase, downloadUtil: DownloadUtil): StateFlow<List<Song>> {
 

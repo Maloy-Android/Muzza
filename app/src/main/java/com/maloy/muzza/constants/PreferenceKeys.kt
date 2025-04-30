@@ -219,6 +219,20 @@ val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 
+val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
+
+/**
+ * Specify how strict the metadata scanner should be
+ */
+enum class ScannerSensitivity {
+    LEVEL_1,
+    LEVEL_2,
+    LEVEL_3,
+}
+
+val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
+val AutomaticScannerKey = booleanPreferencesKey("autoLocalScanner")
+
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",
     "az" to "Azərbaycan",

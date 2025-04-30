@@ -33,6 +33,8 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
+import com.maloy.muzza.ui.utils.scanLocal
+import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
@@ -58,6 +60,8 @@ class LibrarySongsViewModel @Inject constructor(
     downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    val localSongs = syncDB(database, scanLocal(context).toList())
+    val databseLink = database
     val allSongs = context.dataStore.data
         .map {
             Triple(
@@ -76,7 +80,7 @@ class LibrarySongsViewModel @Inject constructor(
                         .flowOn(Dispatchers.IO)
                         .map { songs ->
                             songs.filter {
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
+                                downloads[it.id]?.state == Download.STATE_COMPLETED || it.song.isLocal == true
                             }
                         }
                         .map { songs ->

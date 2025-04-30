@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.library
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -76,6 +77,8 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
+import com.maloy.muzza.ui.utils.scanLocal
+import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -248,6 +251,23 @@ fun LibrarySongsScreen(
                     }
                 }
 
+                // temp button to force re scan of DB
+                item (
+                    key = "weh"
+                ) {
+                    IconButton(
+                        onClick = {
+                            syncDB(viewModel.databseLink, scanLocal(context).toList())
+                            Toast.makeText(context, "SCANNING DATABASE...", Toast.LENGTH_SHORT).show()
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.replay),
+                            contentDescription = null
+                        )
+                    }
+                }
+
                 itemsIndexed(
                     items = songs,
                     key = { _, item -> item.id },
@@ -288,6 +308,12 @@ fun LibrarySongsScreen(
                                         painter = painterResource(R.drawable.more_vert),
                                         contentDescription = null
                                     )
+                                    if (song.song.isLocal == true) {
+                                        return@IconButton Icon(
+                                            painter = painterResource(R.drawable.tab),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
                         },

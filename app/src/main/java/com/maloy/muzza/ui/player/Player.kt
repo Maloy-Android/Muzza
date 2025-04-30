@@ -173,10 +173,12 @@ fun BottomSheetPlayer(
 
     val onBackgroundColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
-        PlayerBackgroundStyle.MONETBLACK -> Color.White
         else ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
+            else
+                if (pureBlack)
+                    Color.White
             else
                 MaterialTheme.colorScheme.onPrimary
     }
@@ -243,7 +245,7 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = when {
-            playerBackground == PlayerBackgroundStyle.MONETBLACK -> Color.Black
+            pureBlack -> Color.Black
             useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
                 MaterialTheme.colorScheme.surfaceContainer
             else -> MaterialTheme.colorScheme.onSurfaceVariant

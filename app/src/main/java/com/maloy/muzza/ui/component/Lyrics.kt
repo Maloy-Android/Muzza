@@ -76,6 +76,7 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
+import com.maloy.muzza.constants.PureBlackKey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.seconds
@@ -111,6 +112,7 @@ fun Lyrics(
     val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
+    val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -128,10 +130,12 @@ fun Lyrics(
 
     val textColor = when (playerBackground) {
         PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.secondary
-        PlayerBackgroundStyle.MONETBLACK -> Color.White
         else ->
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
+            else
+                if (pureBlack)
+                    Color.White
             else
                 MaterialTheme.colorScheme.onPrimary
     }

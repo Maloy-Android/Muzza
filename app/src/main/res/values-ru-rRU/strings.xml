@@ -322,7 +322,6 @@
     <string name="gradient">Градиент</string>
     <string name="blur">Размытие</string>
     <string name="blurmv">Размытие (движение)</string>
-    <string name="monetblack">Полностью тёмный</string>
     <string name="grid_cell_size">Размер ячеек</string>
     <string name="slim_navbar">Показывать названия кнопок навигационной панели</string>
     <string name="small">Маленький</string>

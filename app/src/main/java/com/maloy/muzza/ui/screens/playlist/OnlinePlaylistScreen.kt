@@ -461,24 +461,34 @@ fun OnlinePlaylistScreen(
                                                 )
                                             }
 
-                                            Button(
-                                                onClick = {
-                                                    val intent = Intent().apply {
-                                                        action = Intent.ACTION_SEND
-                                                        type = "text/plain"
-                                                        putExtra(Intent.EXTRA_TEXT, playlist.shareLink)
-                                                    }
-                                                    context.startActivity(Intent.createChooser(intent, null))
-                                                },
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(4.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.share),
-                                                    contentDescription = null
-                                                )
+                                            if (playlist.id != "LM") {
+                                                Button(
+                                                    onClick = {
+                                                        val intent = Intent().apply {
+                                                            action = Intent.ACTION_SEND
+                                                            type = "text/plain"
+                                                            putExtra(
+                                                                Intent.EXTRA_TEXT,
+                                                                playlist.shareLink
+                                                            )
+                                                        }
+                                                        context.startActivity(
+                                                            Intent.createChooser(
+                                                                intent,
+                                                                null
+                                                            )
+                                                        )
+                                                    },
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.share),
+                                                        contentDescription = null
+                                                    )
+                                                }
                                             }
                                         }
                                     }

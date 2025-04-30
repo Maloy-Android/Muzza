@@ -16,6 +16,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -257,12 +260,25 @@ fun LibrarySongsScreen(
                 ) {
                     IconButton(
                         onClick = {
-                            syncDB(viewModel.databseLink, scanLocal(context).toList())
                             Toast.makeText(context, "SCANNING DATABASE...", Toast.LENGTH_SHORT).show()
+                            viewModel.syncLocalSongs(context, viewModel.databseLink)
+                            viewModel.syncAllSongs(context, viewModel.databseLink, viewModel.downloadUtilLink)
                         }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.replay),
+                            Icons.Rounded.Replay,
+                            contentDescription = null
+                        )
+                    }
+
+                    // show folders
+                    IconButton(
+                        onClick = {
+                            navController.navigate("localSongs")
+                        }
+                    ) {
+                        Icon(
+                            Icons.Rounded.Folder,
                             contentDescription = null
                         )
                     }
@@ -310,7 +326,7 @@ fun LibrarySongsScreen(
                                     )
                                     if (song.song.isLocal == true) {
                                         return@IconButton Icon(
-                                            painter = painterResource(R.drawable.tab),
+                                            Icons.Rounded.Folder,
                                             contentDescription = null
                                         )
                                     }

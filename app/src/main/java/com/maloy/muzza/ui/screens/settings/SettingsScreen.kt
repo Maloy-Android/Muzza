@@ -190,7 +190,7 @@ fun SettingsScreen(
         navigationIcon = {
             IconButton(
                 onClick = { navController.navigate("home") },
-                onLongClick = navController::backToMain
+                onLongClick = { navController.navigate("home") },
             ) {
                 Icon(
                     painterResource(R.drawable.arrow_back),

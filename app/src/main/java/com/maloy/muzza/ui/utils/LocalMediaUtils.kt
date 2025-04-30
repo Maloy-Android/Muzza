@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.utils
 
 import android.content.ContentResolver
 import android.content.Context
+import android.graphics.Bitmap
 import android.provider.MediaStore
 import android.util.Log
 import com.maloy.muzza.db.MusicDatabase

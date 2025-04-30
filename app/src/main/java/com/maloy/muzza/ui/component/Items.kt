@@ -47,7 +47,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,6 +92,7 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
+import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
@@ -392,7 +392,8 @@ fun SongListItem(
                 badges = badges,
                 thumbnailContent = {
                     ItemThumbnail(
-                        thumbnailUrl = song.song.thumbnailUrl,
+                        thumbnailUrl = (if (song.song.isLocal == true) getLocalThumbnail(song.song.localPath)
+                        else song.song.thumbnailUrl),
                         albumIndex = albumIndex,
                         isActive = isActive,
                         isPlaying = isPlaying,
@@ -1100,7 +1101,7 @@ fun YouTubeGridItem(
 
 @Composable
 fun ItemThumbnail(
-    thumbnailUrl: String?,
+    thumbnailUrl: Any?,
     isActive: Boolean,
     isPlaying: Boolean,
     shape: Shape,

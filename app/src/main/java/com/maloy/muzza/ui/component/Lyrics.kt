@@ -134,7 +134,7 @@ fun Lyrics(
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
             else
-                if (pureBlack)
+                if (pureBlack && darkTheme == DarkMode.ON && isSystemInDarkTheme)
                     Color.White
             else
                 MaterialTheme.colorScheme.onPrimary

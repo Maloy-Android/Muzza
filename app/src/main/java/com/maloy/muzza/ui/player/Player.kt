@@ -125,7 +125,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.saket.squiggles.SquigglySlider
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -177,7 +177,7 @@ fun BottomSheetPlayer(
             if (useDarkTheme)
                 MaterialTheme.colorScheme.onSurface
             else
-                if (pureBlack)
+                if (pureBlack && darkTheme == DarkMode.ON && isSystemInDarkTheme)
                     Color.White
             else
                 MaterialTheme.colorScheme.onPrimary
@@ -245,7 +245,7 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = when {
-            pureBlack -> Color.Black
+            pureBlack && darkTheme == DarkMode.ON && isSystemInDarkTheme -> Color.Black
             useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
                 MaterialTheme.colorScheme.surfaceContainer
             else -> MaterialTheme.colorScheme.onSurfaceVariant

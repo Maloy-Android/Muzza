@@ -388,7 +388,8 @@ class ImportFromSpotifyViewModel @Inject constructor(
                                 SongEntity(
                                     id = firstSong.id,
                                     thumbnailUrl = firstSong.thumbnail.getOriginalSizeThumbnail(),
-                                    title = firstSong.title
+                                    title = firstSong.title,
+                                    localPath = null
                                 )
                             )
                             localDatabase.insert(
@@ -477,7 +478,8 @@ class ImportFromSpotifyViewModel @Inject constructor(
                                                     id = songItem.id,
                                                     title = songItem.title,
                                                     liked = saveInDefaultLikedSongs,
-                                                    thumbnailUrl = songItem.thumbnail.getOriginalSizeThumbnail()
+                                                    thumbnailUrl = songItem.thumbnail.getOriginalSizeThumbnail(),
+                                                    localPath = null
                                                 )
                                             )
                                         }

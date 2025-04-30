@@ -18,7 +18,7 @@ import javax.inject.Inject
 class LyricsHelper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    private const val PREFER_LOCAL_LYRIC = true
+    private val PREFER_LOCAL_LYRIC = true
     private var lyricsProviders = listOf(LrcLibLyricsProvider,KuGouLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
     val preferred = context.dataStore.data.map {
         it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.LRCLIB)

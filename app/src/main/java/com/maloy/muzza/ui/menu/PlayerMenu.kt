@@ -314,45 +314,48 @@ fun PlayerMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
-            icon = R.drawable.radio,
-            title = R.string.start_radio
-        ) {
-            playerConnection.service.startRadioSeamlessly()
-            onDismiss()
-        }
-        GridMenuItem(
-            icon = R.drawable.playlist_add,
-            title = R.string.add_to_playlist
-        ) {
-            showChoosePlaylistDialog = true
-        }
-        DownloadGridMenu(
-            state = download?.state,
-            onDownload = {
-                database.transaction {
-                    insert(mediaMetadata)
-                }
-                val downloadRequest = DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-                    .setCustomCacheKey(mediaMetadata.id)
-                    .setData(mediaMetadata.title.toByteArray())
-                    .build()
-                DownloadService.sendAddDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    downloadRequest,
-                    false
-                )
-            },
-            onRemoveDownload = {
-                DownloadService.sendRemoveDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    mediaMetadata.id,
-                    false
-                )
+        if (mediaMetadata.isLocal != true) {
+            GridMenuItem(
+                icon = R.drawable.radio,
+                title = R.string.start_radio
+            ) {
+                playerConnection.service.startRadioSeamlessly()
+                onDismiss()
             }
-        )
+            GridMenuItem(
+                icon = R.drawable.playlist_add,
+                title = R.string.add_to_playlist
+            ) {
+                showChoosePlaylistDialog = true
+            }
+            DownloadGridMenu(
+                state = download?.state,
+                onDownload = {
+                    database.transaction {
+                        insert(mediaMetadata)
+                    }
+                    val downloadRequest =
+                        DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                            .setCustomCacheKey(mediaMetadata.id)
+                            .setData(mediaMetadata.title.toByteArray())
+                            .build()
+                    DownloadService.sendAddDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                },
+                onRemoveDownload = {
+                    DownloadService.sendRemoveDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        mediaMetadata.id,
+                        false
+                    )
+                }
+            )
+        }
         if (librarySong?.song?.inLibrary != null) {
             GridMenuItem(
                 icon = R.drawable.library_add_check,
@@ -373,49 +376,56 @@ fun PlayerMenu(
                 }
             }
         }
-        if (artists.isNotEmpty()) {
-            GridMenuItem(
-                icon = R.drawable.artist,
-                title = R.string.view_artist
-            ) {
-                if (artists.size == 1) {
-                    navController.navigate("artist/${artists[0].id}")
-                    bottomSheetState.collapseSoft()
-                    onDismiss()
-                } else {
-                    showSelectArtistDialog = true
+        if (mediaMetadata.isLocal != true) {
+            if (artists.isNotEmpty()) {
+                GridMenuItem(
+                    icon = R.drawable.artist,
+                    title = R.string.view_artist
+                ) {
+                    if (artists.size == 1) {
+                        navController.navigate("artist/${artists[0].id}")
+                        bottomSheetState.collapseSoft()
+                        onDismiss()
+                    } else {
+                        showSelectArtistDialog = true
+                    }
                 }
             }
-        }
-        if (mediaMetadata.album != null) {
+            if (mediaMetadata.album != null) {
+                GridMenuItem(
+                    icon = R.drawable.album,
+                    title = R.string.view_album
+                ) {
+                    navController.navigate("album/${mediaMetadata.album.id}")
+                    bottomSheetState.collapseSoft()
+                    onDismiss()
+                }
+            }
             GridMenuItem(
-                icon = R.drawable.album,
-                title = R.string.view_album
+                icon = R.drawable.music_note,
+                title = R.string.listen_youtube_music
             ) {
-                navController.navigate("album/${mediaMetadata.album.id}")
-                bottomSheetState.collapseSoft()
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    "https://music.youtube.com/watch?v=${mediaMetadata.id}".toUri()
+                )
+                context.startActivity(intent)
+            }
+            GridMenuItem(
+                icon = R.drawable.share,
+                title = R.string.share
+            ) {
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                    )
+                }
+                context.startActivity(Intent.createChooser(intent, null))
                 onDismiss()
             }
-        }
-        GridMenuItem(
-            icon = R.drawable.music_note,
-            title = R.string.listen_youtube_music
-        ) {
-            val intent = Intent(Intent.ACTION_VIEW,
-                "https://music.youtube.com/watch?v=${mediaMetadata.id}".toUri())
-            context.startActivity(intent)
-        }
-        GridMenuItem(
-            icon = R.drawable.share,
-            title = R.string.share
-        ) {
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${mediaMetadata.id}")
-            }
-            context.startActivity(Intent.createChooser(intent, null))
-            onDismiss()
         }
 
         GridMenuItem(

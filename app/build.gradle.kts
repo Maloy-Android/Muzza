@@ -135,7 +135,7 @@ dependencies {
 
     implementation(libs.material3)
     implementation(libs.palette)
-    implementation(libs.materialKolor)
+    implementation(projects.materialColorUtilities)
     implementation(libs.squigglyslider)
     implementation(libs.compose.icons.extended)
 

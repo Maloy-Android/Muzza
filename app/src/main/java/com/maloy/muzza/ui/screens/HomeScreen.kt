@@ -89,7 +89,6 @@ import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
-import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
@@ -642,60 +641,14 @@ fun HomeScreen(
                         }
 
                         HomePage.SectionType.GRID -> {
-                            val lazyGridState = rememberLazyGridState()
-                            val snapLayoutInfoProvider = remember(lazyGridState) {
-                                SnapLayoutInfoProvider(
-                                    lazyGridState = lazyGridState,
-                                    positionInLayout = { layoutSize, itemSize ->
-                                        (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
-                                    }
-                                )
-                            }
-                            LazyHorizontalGrid(
-                                state = lazyGridState,
-                                rows = GridCells.Fixed(4),
-                                flingBehavior = rememberSnapFlingBehavior(snapLayoutInfoProvider),
+                            LazyRow (
                                 contentPadding = WindowInsets.systemBars
                                     .only(WindowInsetsSides.Horizontal)
                                     .asPaddingValues(),
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(ListItemHeight * 4)
-                                    .animateItem()
+                                modifier = Modifier.animateItem()
                             ) {
-                                items(
-                                    items = it.items.filterIsInstance<SongItem>()
-                                        .take(it.items.size and -4),
-                                    key = { it.id }
-                                ) { song ->
-                                    YouTubeGridItem(
-                                        item = song,
-                                        isActive = song.id == mediaMetadata?.id,
-                                        isPlaying = isPlaying,
-                                        modifier = Modifier
-                                            .width(horizontalLazyGridItemWidth)
-                                            .combinedClickable(
-                                                onClick = {
-                                                    playerConnection.playQueue(
-                                                        YouTubeQueue.radio(
-                                                            song.toMediaMetadata()
-                                                        )
-                                                    )
-                                                },
-                                                onLongClick = {
-                                                    haptic.performHapticFeedback(
-                                                        HapticFeedbackType.LongPress,
-                                                    )
-                                                    menuState.show {
-                                                        YouTubeSongMenu(
-                                                            song = song,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss,
-                                                        )
-                                                    }
-                                                },
-                                            )
-                                    )
+                                items(it.items) { item ->
+                                    ytGridItem(item)
                                 }
                             }
                         }

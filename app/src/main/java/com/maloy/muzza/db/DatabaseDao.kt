@@ -283,6 +283,11 @@ interface DatabaseDao {
     @Query("SELECT * FROM song")
     fun allSongs(): Flow<List<Song>>
 
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal = 1")
+    fun allLocalSongsData(): Flow<List<Song>>
+
     @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
     suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 
@@ -665,7 +670,8 @@ interface DatabaseDao {
             insert(
                 ArtistEntity(
                     id = artistId,
-                    name = artist.name
+                    name = artist.name,
+                    isLocal = artist.isLocal
                 )
             )
             insert(

@@ -7,7 +7,9 @@ import android.content.Intent
 import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
+import android.net.Uri
 import android.os.Binder
+import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -41,8 +43,6 @@ import androidx.media3.exoplayer.audio.DefaultAudioSink
 import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
-import androidx.media3.extractor.mkv.MatroskaExtractor
-import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaController
@@ -124,6 +124,7 @@ import kotlinx.coroutines.flow.debounce
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -133,6 +134,7 @@ import kotlinx.coroutines.plus
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
+import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.net.ConnectException
@@ -225,7 +227,7 @@ class MusicService : MediaLibraryService(),
             }
         }
         player = ExoPlayer.Builder(this)
-            .setMediaSourceFactory(createMediaSourceFactory())
+            .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
             .setRenderersFactory(createRenderersFactory())
             .setHandleAudioBecomingNoisy(true)
             .setWakeMode(C.WAKE_MODE_NETWORK)
@@ -679,6 +681,16 @@ class MusicService : MediaLibraryService(),
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
 
+            // find a better way to detect local files later...
+            if (mediaId.startsWith("1000")) {
+                val songPath = runBlocking(Dispatchers.IO) {
+                    database.song(mediaId).firstOrNull()?.song?.localPath
+                }
+                Log.d("WTF", "Looking for local file: " + songPath)
+
+                return@Factory dataSpec.withUri(Uri.fromFile(File(songPath)))
+            }
+
             if (downloadCache.isCached(mediaId, dataSpec.position, if (dataSpec.length >= 0) dataSpec.length else 1) ||
                 playerCache.isCached(mediaId, dataSpec.position, CHUNK_LENGTH)
             ) {
@@ -735,13 +747,6 @@ class MusicService : MediaLibraryService(),
             dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
         }
     }
-
-    private fun createMediaSourceFactory() =
-        DefaultMediaSourceFactory(
-            createDataSourceFactory()
-        ) {
-            arrayOf(MatroskaExtractor(), FragmentedMp4Extractor())
-        }
 
     private fun createRenderersFactory() =
         object : DefaultRenderersFactory(this) {

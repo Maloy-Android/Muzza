@@ -32,6 +32,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.Folder
+import androidx.compose.material.icons.rounded.FolderCopy
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -47,7 +50,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,6 +95,7 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
+import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
@@ -392,7 +395,8 @@ fun SongListItem(
                 badges = badges,
                 thumbnailContent = {
                     ItemThumbnail(
-                        thumbnailUrl = song.song.thumbnailUrl,
+                        thumbnailUrl = (if (song.song.isLocal == true) R.drawable.music_note
+                        else song.song.thumbnailUrl),
                         albumIndex = albumIndex,
                         isActive = isActive,
                         isPlaying = isPlaying,
@@ -415,13 +419,23 @@ fun SongListItem(
             badges = badges,
             thumbnailContent = {
                 ItemThumbnail(
-                    thumbnailUrl = song.song.thumbnailUrl,
+                    thumbnailUrl = (if (song.song.isLocal == true) R.drawable.music_note
+                    else song.song.thumbnailUrl),
                     albumIndex = albumIndex,
                     isActive = isActive,
                     isPlaying = isPlaying,
                     shape = RoundedCornerShape(ThumbnailCornerRadius),
                     modifier = Modifier.size(ListThumbnailSize)
                 )
+                if (song.song.isLocal == true) {
+                    Icon(
+                        Icons.Rounded.FolderCopy,
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(18.dp)
+                            .padding(end = 2.dp)
+                    )
+                }
             },
             trailingContent = trailingContent,
             modifier = modifier,
@@ -429,6 +443,19 @@ fun SongListItem(
         )
     }
 }
+
+@Composable
+fun SongFolderItem(
+    folderTitle: String,
+    modifier: Modifier = Modifier,
+) = ListItem( title = folderTitle, thumbnailContent = { Icon(
+    Icons.Rounded.Folder,
+    contentDescription = null,
+    modifier = modifier.size(48.dp)
+)
+},
+    modifier = modifier
+)
 
 @Composable
 fun SongGridItem(
@@ -461,7 +488,8 @@ fun SongGridItem(
     badges = badges,
     thumbnailContent = {
         ItemThumbnail(
-            thumbnailUrl = song.song.thumbnailUrl,
+            thumbnailUrl = (if (song.song.isLocal == true) R.drawable.music_note
+            else song.song.thumbnailUrl),
             isActive = isActive,
             isPlaying = isPlaying,
             shape = RoundedCornerShape(ThumbnailCornerRadius),
@@ -687,6 +715,7 @@ fun PlaylistListItem(
         val painter = when (playlist.playlist.name) {
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
+            stringResource(R.string.local) -> Icons.Rounded.MusicNote
             else -> Icons.AutoMirrored.Rounded.QueueMusic
         }
         Box(
@@ -736,6 +765,7 @@ fun PlaylistGridItem(
         val painter = when (playlist.playlist.name) {
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
+            stringResource(R.string.local) -> Icons.Rounded.MusicNote
             else -> Icons.AutoMirrored.Rounded.QueueMusic
         }
         val width = maxWidth
@@ -1100,7 +1130,7 @@ fun YouTubeGridItem(
 
 @Composable
 fun ItemThumbnail(
-    thumbnailUrl: String?,
+    thumbnailUrl: Any?,
     isActive: Boolean,
     isPlaying: Boolean,
     shape: Shape,

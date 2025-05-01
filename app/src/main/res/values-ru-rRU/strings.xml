@@ -20,6 +20,7 @@
     <string name="playlists">Плейлисты</string>
     <string name="liked">Любимая музыка</string>
     <string name="offline">Загруженная музыка</string>
+    <string name="local">Локальная музыка</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">

@@ -48,6 +48,7 @@ import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.ui.utils.getLocalThumbnail
 
 @Composable
 fun MiniPlayer(
@@ -146,7 +147,8 @@ fun MiniMediaInfo(
     ) {
         Box(modifier = Modifier.padding(6.dp)) {
             AsyncImage(
-                model = mediaMetadata.thumbnailUrl,
+                model = if (mediaMetadata.isLocal == true) R.drawable.music_note
+                else mediaMetadata.thumbnailUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier

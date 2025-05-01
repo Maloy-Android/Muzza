@@ -152,7 +152,7 @@ fun LibrarySongsScreen(
 
     LaunchedEffect(songs) {
         selection.fastForEachReversed { songId ->
-            if (songs?.find { it.id == songId } == null) {
+            if (songs.find { it.id == songId } == null) {
                 selection.remove(songId)
             }
         }
@@ -227,7 +227,7 @@ fun LibrarySongsScreen(
 
                     Spacer(Modifier.weight(1f))
 
-                    songs?.let { songs ->
+                    songs.let { songs ->
                         Text(
                             text = pluralStringResource(R.plurals.n_song, songs.size, songs.size),
                             style = MaterialTheme.typography.titleSmall,
@@ -237,7 +237,7 @@ fun LibrarySongsScreen(
                 }
             }
 
-            songs?.let { songs ->
+            songs.let { songs ->
                 if (songs.isEmpty()) {
                     item {
                         EmptyPlaceholder(
@@ -324,14 +324,14 @@ fun LibrarySongsScreen(
         }
 
         HideOnScrollFAB(
-            visible = !songs.isNullOrEmpty(),
+            visible = songs.isNotEmpty(),
             lazyListState = lazyListState,
             icon = R.drawable.shuffle,
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(
                         title = context.getString(R.string.queue_all_songs),
-                        items = songs!!.shuffled().map { it.toMediaItem() },
+                        items = songs.shuffled().map { it.toMediaItem() },
                     )
                 )
             }
@@ -353,13 +353,13 @@ fun LibrarySongsScreen(
             },
             actions = {
                 Checkbox(
-                    checked = selection.size == songs?.size && selection.isNotEmpty(),
+                    checked = selection.size == songs.size && selection.isNotEmpty(),
                     onCheckedChange = {
-                        if (selection.size == songs?.size) {
+                        if (selection.size == songs.size) {
                             selection.clear()
                         } else {
                             selection.clear()
-                            selection.addAll(songs?.map { it.id }.orEmpty())
+                            selection.addAll(songs.map { it.id })
                         }
                     }
                 )
@@ -369,7 +369,7 @@ fun LibrarySongsScreen(
                         menuState.show {
                             SongSelectionMenu(
                                 selection = selection.mapNotNull { songId ->
-                                    songs?.find { it.id == songId }
+                                    songs.find { it.id == songId }
                                 },
                                 onDismiss = menuState::dismiss,
                                 onExitSelectionMode = onExitSelectionMode

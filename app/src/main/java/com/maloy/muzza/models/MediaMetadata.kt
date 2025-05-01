@@ -15,6 +15,8 @@ data class MediaMetadata(
     val thumbnailUrl: String? = null,
     val album: Album? = null,
     val setVideoId: String? = null,
+    val isLocal: Boolean? = false,
+    val localPath: String? = null,
     val explicit: Boolean = false,
     val blurSync: Boolean = false,
     val blurThumbnail: String? = null,
@@ -38,6 +40,8 @@ data class MediaMetadata(
         thumbnailUrl = thumbnailUrl,
         albumId = album?.id,
         albumName = album?.title,
+        isLocal = isLocal,
+        localPath = localPath
     )
 }
 
@@ -62,7 +66,9 @@ fun Song.toMediaMetadata() = MediaMetadata(
             id = albumId,
             title = song.albumName.orEmpty()
         )
-    }
+    },
+    isLocal = song.isLocal,
+    localPath = song.localPath
 )
 
 fun SongItem.toMediaMetadata() = MediaMetadata(

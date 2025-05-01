@@ -225,12 +225,14 @@ fun SongMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
-            icon = R.drawable.radio,
-            title = R.string.start_radio
-        ) {
-            onDismiss()
-            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+        if (song.song.isLocal != true) {
+            GridMenuItem(
+                icon = R.drawable.radio,
+                title = R.string.start_radio
+            ) {
+                onDismiss()
+                playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+            }
         }
         GridMenuItem(
             icon = R.drawable.playlist_play,
@@ -246,120 +248,127 @@ fun SongMenu(
             onDismiss()
             playerConnection.addToQueue((song.toMediaItem()))
         }
-        GridMenuItem(
-            icon = R.drawable.edit,
-            title = R.string.edit
-        ) {
-            showEditDialog = true
-        }
-        GridMenuItem(
-            icon = R.drawable.playlist_add,
-            title = R.string.add_to_playlist
-        ) {
-            showChoosePlaylistDialog = true
-        }
-        if (playlistSong != null) {
+        if (song.song.isLocal != true) {
             GridMenuItem(
-                icon = R.drawable.playlist_remove,
-                title = R.string.remove_from_playlist
+                icon = R.drawable.edit,
+                title = R.string.edit
             ) {
-                database.transaction {
-                    coroutineScope.launch {
-                        playlistBrowseId?.let { playlistId ->
-                            if (playlistSong.map.setVideoId != null) {
-                                YouTube.removeFromPlaylist(
-                                    playlistId, playlistSong.map.songId, playlistSong.map.setVideoId
-                                )
+                showEditDialog = true
+            }
+            GridMenuItem(
+                icon = R.drawable.playlist_add,
+                title = R.string.add_to_playlist
+            ) {
+                showChoosePlaylistDialog = true
+            }
+            if (playlistSong != null) {
+                GridMenuItem(
+                    icon = R.drawable.playlist_remove,
+                    title = R.string.remove_from_playlist
+                ) {
+                    database.transaction {
+                        coroutineScope.launch {
+                            playlistBrowseId?.let { playlistId ->
+                                if (playlistSong.map.setVideoId != null) {
+                                    YouTube.removeFromPlaylist(
+                                        playlistId,
+                                        playlistSong.map.songId,
+                                        playlistSong.map.setVideoId
+                                    )
+                                }
                             }
                         }
+                        move(playlistSong.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
+                        delete(playlistSong.map.copy(position = Int.MAX_VALUE))
                     }
-                    move(playlistSong.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
-                    delete(playlistSong.map.copy(position = Int.MAX_VALUE))
-                }
 
-                onDismiss()
+                    onDismiss()
+                }
             }
-        }
-        DownloadGridMenu(
-            state = download?.state,
-            onDownload = {
-                val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
-                    .setCustomCacheKey(song.id)
-                    .setData(song.song.title.toByteArray())
-                    .build()
-                DownloadService.sendAddDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    downloadRequest,
-                    false
-                )
-            },
-            onRemoveDownload = {
-                DownloadService.sendRemoveDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    song.id,
-                    false
-                )
-            }
-        )
-        GridMenuItem(
-            icon = R.drawable.artist,
-            title = R.string.view_artist
-        ) {
-            if (song.artists.size == 1) {
-                navController.navigate("artist/${song.artists[0].id}")
-                onDismiss()
-            } else {
-                showSelectArtistDialog = true
-            }
-        }
-        if (song.song.albumId != null) {
+            DownloadGridMenu(
+                state = download?.state,
+                onDownload = {
+                    val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                        .setCustomCacheKey(song.id)
+                        .setData(song.song.title.toByteArray())
+                        .build()
+                    DownloadService.sendAddDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                },
+                onRemoveDownload = {
+                    DownloadService.sendRemoveDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        song.id,
+                        false
+                    )
+                }
+            )
+
             GridMenuItem(
-                icon = R.drawable.album,
-                title = R.string.view_album
+                icon = R.drawable.artist,
+                title = R.string.view_artist
+            ) {
+                if (song.artists.size == 1) {
+                    navController.navigate("artist/${song.artists[0].id}")
+                    onDismiss()
+                } else {
+                    showSelectArtistDialog = true
+                }
+            }
+            if (song.song.albumId != null) {
+                GridMenuItem(
+                    icon = R.drawable.album,
+                    title = R.string.view_album
+                ) {
+                    onDismiss()
+                    navController.navigate("album/${song.song.albumId}")
+                }
+            }
+            GridMenuItem(
+                icon = R.drawable.music_note,
+                title = R.string.listen_youtube_music
+            ) {
+                val intent = Intent(
+                    Intent.ACTION_VIEW,
+                    "https://music.youtube.com/watch?v=${song.id}".toUri()
+                )
+                context.startActivity(intent)
+            }
+            GridMenuItem(
+                icon = R.drawable.share,
+                title = R.string.share
             ) {
                 onDismiss()
-                navController.navigate("album/${song.song.albumId}")
+                val intent = Intent().apply {
+                    action = Intent.ACTION_SEND
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${song.id}")
+                }
+                context.startActivity(Intent.createChooser(intent, null))
             }
-        }
-        GridMenuItem(
-            icon = R.drawable.music_note,
-            title = R.string.listen_youtube_music
-        ) {
-            val intent = Intent(Intent.ACTION_VIEW,
-                "https://music.youtube.com/watch?v=${song.id}".toUri())
-            context.startActivity(intent)
-        }
-        GridMenuItem(
-            icon = R.drawable.share,
-            title = R.string.share
-        ) {
-            onDismiss()
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${song.id}")
-            }
-            context.startActivity(Intent.createChooser(intent, null))
-        }
-        GridMenuItem(
-            icon = {
-                Icon(
-                    painter = painterResource(R.drawable.sync),
-                    contentDescription = null,
-                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
-                )
-            },
-            title = R.string.refetch
-        ) {
-            refetchIconDegree -= 360
-            scope.launch(Dispatchers.IO) {
-                YouTube.queue(listOf(song.id)).onSuccess {
-                    val newSong = it.firstOrNull()
-                    if (newSong != null) {
-                        database.transaction {
-                            update(song, newSong.toMediaMetadata())
+            GridMenuItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.sync),
+                        contentDescription = null,
+                        modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                    )
+                },
+                title = R.string.refetch
+            ) {
+                refetchIconDegree -= 360
+                scope.launch(Dispatchers.IO) {
+                    YouTube.queue(listOf(song.id)).onSuccess {
+                        val newSong = it.firstOrNull()
+                        if (newSong != null) {
+                            database.transaction {
+                                update(song, newSong.toMediaMetadata())
+                            }
                         }
                     }
                 }

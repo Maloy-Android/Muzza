@@ -142,6 +142,14 @@ fun LibraryPlaylistsScreen(
         songCount = if (downloadSongs!= null) downloadSongs!!.size else 0,
         thumbnails = emptyList()
     )
+    val localPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = UUID.randomUUID().toString(),
+            name = stringResource(R.string.local)
+        ),
+        songCount = 0,
+        thumbnails = emptyList()
+    )
 
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
@@ -341,7 +349,22 @@ fun LibraryPlaylistsScreen(
                                     .animateItem()
                             )
                         }
-
+                        item(
+                            key = "localPlaylist",
+                            contentType = { CONTENT_TYPE_PLAYLIST }
+                        ) {
+                            PlaylistListItem(
+                                playlist = localPlaylist,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("AutoPlaylistLocal")
+                                        }
+                                    )
+                                    .animateItem()
+                            )
+                        }
                         items(
                             items = playlists,
                             key = { it.id },
@@ -466,7 +489,23 @@ fun LibraryPlaylistsScreen(
                                     .animateItem()
                             )
                         }
-
+                        item(
+                            key = "localPlaylist",
+                            contentType = { CONTENT_TYPE_PLAYLIST }
+                        ) {
+                            PlaylistGridItem(
+                                playlist = localPlaylist,
+                                fillMaxWidth = true,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("AutoPlaylistLocal")
+                                        }
+                                    )
+                                    .animateItem()
+                            )
+                        }
                         items(
                             items = playlists,
                             key = { it.id },

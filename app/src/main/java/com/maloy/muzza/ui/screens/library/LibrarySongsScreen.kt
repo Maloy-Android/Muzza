@@ -72,7 +72,6 @@ import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.SongMenu
@@ -248,23 +247,6 @@ fun LibrarySongsScreen(
                         )
                     }
                 }
-
-
-                // Only show under library filter, subject to change
-                if (filter == SongFilter.LIBRARY)
-                    item (
-                        key = "song_folders"
-                    ) {
-                            // enter folders page
-                            SongFolderItem(
-                                folderTitle = "Internal Storage",
-                                modifier = Modifier
-                                    .combinedClickable {
-                                        navController.navigate("localSongs")
-                                    }
-                                    .animateItem()
-                        )
-                    }
 
                 itemsIndexed(
                     items = songs,

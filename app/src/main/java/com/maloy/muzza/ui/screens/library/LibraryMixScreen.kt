@@ -147,6 +147,14 @@ fun LibraryMixScreen(
         songCount = if (downloadSongs != null) downloadSongs!!.size else 0,
         thumbnails = emptyList()
     )
+    val localPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = UUID.randomUUID().toString(),
+            name = stringResource(R.string.local)
+        ),
+        songCount = 0,
+        thumbnails = emptyList()
+    )
 
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
@@ -312,7 +320,22 @@ fun LibraryMixScreen(
                             .animateItem()
                     )
                 }
-
+                item(
+                    key = "localPlaylist",
+                    contentType = { CONTENT_TYPE_PLAYLIST }
+                ) {
+                    PlaylistListItem(
+                        playlist = localPlaylist,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("AutoPlaylistLocal")
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
                 items(
                     allItems,
                     key = { it.id },
@@ -455,7 +478,23 @@ fun LibraryMixScreen(
                             .animateItem()
                     )
                 }
-
+                item(
+                    key = "localPlaylist",
+                    contentType = { CONTENT_TYPE_PLAYLIST }
+                ) {
+                    PlaylistGridItem(
+                        playlist = localPlaylist,
+                        fillMaxWidth = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("AutoPlaylistLocal")
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
                 items(
                     allItems,
                     key = { it.id },

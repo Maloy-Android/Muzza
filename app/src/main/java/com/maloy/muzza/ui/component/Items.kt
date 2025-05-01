@@ -715,7 +715,7 @@ fun PlaylistListItem(
         val painter = when (playlist.playlist.name) {
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
-            stringResource(R.string.local_history) -> Icons.Rounded.MusicNote
+            stringResource(R.string.local) -> Icons.Rounded.MusicNote
             else -> Icons.AutoMirrored.Rounded.QueueMusic
         }
         Box(
@@ -765,7 +765,7 @@ fun PlaylistGridItem(
         val painter = when (playlist.playlist.name) {
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
-            stringResource(R.string.local_history) -> Icons.Rounded.MusicNote
+            stringResource(R.string.local) -> Icons.Rounded.MusicNote
             else -> Icons.AutoMirrored.Rounded.QueueMusic
         }
         val width = maxWidth

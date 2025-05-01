@@ -110,8 +110,7 @@ class LibrarySongsViewModel @Inject constructor(
                             .flowOn(Dispatchers.IO)
                             .map { songs ->
                                 songs.filter {
-                                    // show local songs as under downloaded for now
-                                    downloads[it.id]?.state == Download.STATE_COMPLETED || it.song.isLocal == true
+                                    downloads[it.id]?.state == Download.STATE_COMPLETED
                                 }
                             }
                             .map { songs ->

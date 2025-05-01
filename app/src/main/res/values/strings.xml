@@ -21,6 +21,7 @@
 
     <string name="liked">Liked music</string>
     <string name="offline">Offline music</string>
+    <string name="local">Local music</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">

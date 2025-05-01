@@ -9,6 +9,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DividerDefaults
@@ -144,7 +146,7 @@ fun AutoPlaylistLocalScreen(
                             )
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.music_note),
+                            imageVector = Icons.Rounded.MusicNote,
                             contentDescription = null,
                             tint = LocalContentColor.current.copy(alpha = 0.8f),
                             modifier = Modifier
@@ -215,6 +217,8 @@ fun AutoPlaylistLocalScreen(
                                     painter = painterResource(R.drawable.sync),
                                     contentDescription = null
                                 )
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(stringResource(R.string.sync))
                             }
                         }
                     }

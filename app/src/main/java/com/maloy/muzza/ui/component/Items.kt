@@ -96,6 +96,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.ui.utils.getLocalThumbnail
+import com.maloy.muzza.ui.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
@@ -295,6 +296,7 @@ fun SongListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
+    contentScale: ContentScale = ContentScale.Fit,
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -394,15 +396,37 @@ fun SongListItem(
                 ),
                 badges = badges,
                 thumbnailContent = {
-                    ItemThumbnail(
-                        thumbnailUrl = (if (song.song.isLocal == true) R.drawable.music_note
-                        else song.song.thumbnailUrl),
-                        albumIndex = albumIndex,
-                        isActive = isActive,
-                        isPlaying = isPlaying,
-                        shape = RoundedCornerShape(ThumbnailCornerRadius),
-                        modifier = Modifier.size(ListThumbnailSize)
-                    )
+                    if (song.song.isLocal == true) {
+                        song.song.let {
+                            AsyncLocalImage(
+                                image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                                contentDescription = null,
+                                contentScale = contentScale,
+                                modifier = Modifier.size(ListThumbnailSize)
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                            )
+                            PlayingIndicatorBox(
+                                isActive = isActive,
+                                playWhenReady = isPlaying,
+                                color = Color.White,
+                                modifier = Modifier.size(ListThumbnailSize)
+                                    .align(alignment = Alignment.CenterVertically)
+                                    .background(
+                                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                    )
+                            )
+                        }
+                    } else {
+                        ItemThumbnail(
+                            thumbnailUrl = song.song.thumbnailUrl,
+                            albumIndex = albumIndex,
+                            isActive = isActive,
+                            isPlaying = isPlaying,
+                            shape = RoundedCornerShape(ThumbnailCornerRadius),
+                            modifier = Modifier.size(ListThumbnailSize)
+                        )
+                    }
                 },
                 trailingContent = trailingContent,
                 modifier = modifier,
@@ -418,15 +442,38 @@ fun SongListItem(
             ),
             badges = badges,
             thumbnailContent = {
-                ItemThumbnail(
-                    thumbnailUrl = (if (song.song.isLocal == true) R.drawable.music_note
-                    else song.song.thumbnailUrl),
-                    albumIndex = albumIndex,
-                    isActive = isActive,
-                    isPlaying = isPlaying,
-                    shape = RoundedCornerShape(ThumbnailCornerRadius),
-                    modifier = Modifier.size(ListThumbnailSize)
-                )
+                if (song.song.isLocal == true) {
+                    song.song.let {
+                        AsyncLocalImage(
+                            image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                            contentDescription = null,
+                            contentScale = contentScale,
+                            modifier = Modifier.size(ListThumbnailSize)
+                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        )
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
+                        )
+                    }
+                } else {
+                    ItemThumbnail(
+                        thumbnailUrl = song.song.thumbnailUrl,
+                        albumIndex = albumIndex,
+                        isActive = isActive,
+                        isPlaying = isPlaying,
+                        shape = RoundedCornerShape(ThumbnailCornerRadius),
+                        modifier = Modifier.size(ListThumbnailSize)
+                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    )
+                }
                 if (song.song.isLocal == true) {
                     Icon(
                         Icons.Rounded.FolderCopy,
@@ -479,6 +526,7 @@ fun SongGridItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     fillMaxWidth: Boolean = false,
+    contentScale: ContentScale = ContentScale.Fit,
 ) = GridItem(
     title = song.song.title,
     subtitle = joinByBullet(
@@ -487,14 +535,37 @@ fun SongGridItem(
     ),
     badges = badges,
     thumbnailContent = {
-        ItemThumbnail(
-            thumbnailUrl = (if (song.song.isLocal == true) R.drawable.music_note
-            else song.song.thumbnailUrl),
-            isActive = isActive,
-            isPlaying = isPlaying,
-            shape = RoundedCornerShape(ThumbnailCornerRadius),
-            modifier = Modifier.size(GridThumbnailHeight)
-        )
+        if (song.song.isLocal == true) {
+            song.song.let {
+                AsyncLocalImage(
+                    image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                    contentDescription = null,
+                    contentScale = contentScale,
+                    modifier = Modifier.size(GridThumbnailHeight)
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
+                PlayingIndicatorBox(
+                    isActive = isActive,
+                    playWhenReady = isPlaying,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                )
+            }
+        } else {
+            ItemThumbnail(
+                thumbnailUrl = song.song.thumbnailUrl,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                shape = RoundedCornerShape(ThumbnailCornerRadius),
+                modifier = Modifier.size(GridThumbnailHeight)
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+            )
+        }
         SongPlayButton(
             visible = !isActive
         )

@@ -76,8 +76,9 @@ import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
+import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.Lyrics
-import com.maloy.muzza.ui.utils.getLocalThumbnail
+import com.maloy.muzza.ui.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.delay
@@ -88,6 +89,7 @@ fun Thumbnail(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
     showLyricsOnClick: Boolean = false,
+    contentScale: ContentScale = ContentScale.Fit,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentView = LocalView.current
@@ -100,7 +102,7 @@ fun Thumbnail(
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, 6)
-    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
+    val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
 
     val thumbnailAlpha by animateFloatAsState(
         targetValue = if (showLyrics) 0.6f else 1f,
@@ -173,59 +175,144 @@ fun Thumbnail(
                         )
                     },
             ) {
-                if (playerStyle == PlayerStyle.NEW) {
-                    AsyncImage(
-                        model = if (mediaMetadata?.isLocal == true) R.drawable.music_note
-                        else mediaMetadata?.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .offset { IntOffset(offsetX.roundToInt(), 0) }
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .graphicsLayer {
-                                translationX = offsetX * 0.5f
-                                alpha = thumbnailAlpha
-                                scaleX = thumbnailScale
-                                scaleY = thumbnailScale
-                            }
-                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onDoubleTap = { offset ->
-                                        val currentPosition = playerConnection.player.currentPosition
-                                        if ((layoutDirection == LayoutDirection.Ltr && offset.x < size.width / 2) ||
-                                            (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)) {
-                                            playerConnection.player.seekTo((currentPosition - 5000).coerceAtLeast(0))
-                                            seekDirection = context.getString(R.string.seek_backward)
-                                        } else {
-                                            playerConnection.player.seekTo((currentPosition + 5000).coerceAtMost(playerConnection.player.duration))
-                                            seekDirection = context.getString(R.string.seek_forward)
+                if (mediaMetadata?.isLocal == false) {
+                    if (playerStyle == PlayerStyle.NEW) {
+                        AsyncImage(
+                            model = mediaMetadata?.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .graphicsLayer {
+                                    translationX = offsetX * 0.5f
+                                    alpha = thumbnailAlpha
+                                    scaleX = thumbnailScale
+                                    scaleY = thumbnailScale
+                                }
+                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onDoubleTap = { offset ->
+                                            val currentPosition =
+                                                playerConnection.player.currentPosition
+                                            if ((layoutDirection == LayoutDirection.Ltr && offset.x < size.width / 2) ||
+                                                (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
+                                            ) {
+                                                playerConnection.player.seekTo(
+                                                    (currentPosition - 5000).coerceAtLeast(
+                                                        0
+                                                    )
+                                                )
+                                                seekDirection =
+                                                    context.getString(R.string.seek_backward)
+                                            } else {
+                                                playerConnection.player.seekTo(
+                                                    (currentPosition + 5000).coerceAtMost(
+                                                        playerConnection.player.duration
+                                                    )
+                                                )
+                                                seekDirection =
+                                                    context.getString(R.string.seek_forward)
+                                            }
+                                            showSeekEffect = true
                                         }
-                                        showSeekEffect = true
-                                    }
+                                    )
+                                }
+                        )
+                    } else {
+                        AsyncImage(
+                            model = mediaMetadata?.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .graphicsLayer {
+                                    translationX = offsetX * 0.5f
+                                    alpha = thumbnailAlpha
+                                    scaleX = thumbnailScale
+                                    scaleY = thumbnailScale
+                                }
+                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                                .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
+                        )
+                    }
+                } else {
+                    if (mediaMetadata?.isLocal == true) {
+                        if (playerStyle == PlayerStyle.NEW) {
+                            mediaMetadata.let {
+                                AsyncLocalImage(
+                                    image = { imageCache.getLocalThumbnail(it?.localPath, false) },
+                                    contentDescription = null,
+                                    contentScale = contentScale,
+                                    modifier = Modifier
+                                        .offset { IntOffset(offsetX.roundToInt(), 0) }
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                        .graphicsLayer {
+                                            translationX = offsetX * 0.5f
+                                            alpha = thumbnailAlpha
+                                            scaleX = thumbnailScale
+                                            scaleY = thumbnailScale
+                                        }
+                                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                                        .pointerInput(Unit) {
+                                            detectTapGestures(
+                                                onDoubleTap = { offset ->
+                                                    val currentPosition =
+                                                        playerConnection.player.currentPosition
+                                                    if ((layoutDirection == LayoutDirection.Ltr && offset.x < size.width / 2) ||
+                                                        (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
+                                                    ) {
+                                                        playerConnection.player.seekTo(
+                                                            (currentPosition - 5000).coerceAtLeast(
+                                                                0
+                                                            )
+                                                        )
+                                                        seekDirection =
+                                                            context.getString(R.string.seek_backward)
+                                                    } else {
+                                                        playerConnection.player.seekTo(
+                                                            (currentPosition + 5000).coerceAtMost(
+                                                                playerConnection.player.duration
+                                                            )
+                                                        )
+                                                        seekDirection =
+                                                            context.getString(R.string.seek_forward)
+                                                    }
+                                                    showSeekEffect = true
+                                                }
+                                            )
+                                        }
                                 )
                             }
-                    )
-                } else {
-                    AsyncImage(
-                        model = if (mediaMetadata?.isLocal == true) getLocalThumbnail(mediaMetadata!!.localPath)
-                        else mediaMetadata?.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .offset { IntOffset(offsetX.roundToInt(), 0) }
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .graphicsLayer {
-                                translationX = offsetX * 0.5f
-                                alpha = thumbnailAlpha
-                                scaleX = thumbnailScale
-                                scaleY = thumbnailScale
+                        } else {
+                            mediaMetadata.let {
+                                AsyncLocalImage(
+                                    image = { imageCache.getLocalThumbnail(it?.localPath, false) },
+                                    contentDescription = null,
+                                    contentScale = contentScale,
+                                    modifier = Modifier
+                                        .offset { IntOffset(offsetX.roundToInt(), 0) }
+                                        .fillMaxWidth()
+                                        .aspectRatio(1f)
+                                        .graphicsLayer {
+                                            translationX = offsetX * 0.5f
+                                            alpha = thumbnailAlpha
+                                            scaleX = thumbnailScale
+                                            scaleY = thumbnailScale
+                                        }
+                                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                                        .clickable(enabled = showLyricsOnClick) {
+                                            showLyrics = !showLyrics
+                                        }
+                                )
                             }
-                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                            .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
-                    )
+                        }
+                    }
                 }
             }
             if (swipeThumbnail) {

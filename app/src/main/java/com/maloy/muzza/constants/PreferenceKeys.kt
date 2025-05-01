@@ -231,7 +231,6 @@ enum class ScannerSensitivity {
 }
 
 val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
-val AutomaticScannerKey = booleanPreferencesKey("autoLocalScanner")
 
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",

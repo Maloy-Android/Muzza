@@ -13,9 +13,8 @@ import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.YouTube.search
 import com.maloy.muzza.constants.ScannerSensitivity
+import com.maloy.muzza.utils.LmImageCacheMgr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +33,7 @@ const val sdcardRoot = "/storage/emulated/0/"
 val testScanPaths = arrayListOf("Music")
 var directoryUID = 0
 var cachedDirectoryTree: DirectoryTree? = null
+var imageCache: LmImageCacheMgr = LmImageCacheMgr()
 
 
 // useful metadata
@@ -466,6 +466,72 @@ fun compareSong(a: Song, b: Song, matchStrength: ScannerSensitivity, strictFileN
                 compareArtist(a.artists, b.artists) && true // album compare go here
     }
 }
+
+object CachedBitmap {
+    var path: String? = null
+    var image: Bitmap? = null
+
+    /**
+     * Adds an image to the cache
+     */
+    fun cache(path: String, image: Bitmap?) {
+        if (image == null) {
+            return
+        }
+
+        this.path = path
+        this.image = image
+        bitmapCache.add(this)
+    }
+
+    /**
+     * Retrieves an image from the cache
+     */
+    fun retrieveImage(path: String): Bitmap? {
+        return bitmapCache.first { it.path == path }.image
+    }
+}
+
+/**
+ * TODO: Fix the root cause of the miniplayer constantly needing reloading
+ * TODO: Clear the cache on library re-scan
+ */
+// memory leak? who cares? speed is king!
+var bitmapCache = ArrayList<CachedBitmap>()
+
+/**
+ * Extract the album art from the audio file
+ *
+ * @param path Full path of audio file
+ */
+fun getLocalThumbnail(path: String?): Deferred<Bitmap?> {
+    return CoroutineScope(Dispatchers.IO).async {
+        if (path == null) {
+            return@async null
+        }
+
+        // get cached image
+        try {
+            return@async CachedBitmap.retrieveImage(path)
+        } catch (_: NoSuchElementException) {
+        }
+
+
+        val mData = MediaMetadataRetriever()
+        mData.setDataSource(path)
+
+        val image: Bitmap? = try {
+            val art = mData.embeddedPicture
+            BitmapFactory.decodeByteArray(art, 0, art!!.size)
+        } catch (e: Exception) {
+            null
+        }
+
+        CachedBitmap.cache(path, image)
+        return@async image
+    }
+}
+
 
 /**
  * Get cached directory tree

@@ -347,6 +347,7 @@ fun HomeScreen(
                             Pair("stats", stringResource(R.string.stats)),
                             Pair("liked", stringResource(R.string.liked)),
                             Pair("downloads", stringResource(R.string.offline)),
+                            Pair("local", stringResource(R.string.local))
                         ),
                         currentValue = "",
                         onValueUpdate = { value ->
@@ -355,6 +356,7 @@ fun HomeScreen(
                                 "stats" -> navController.navigate("stats")
                                 "liked" -> navController.navigate("auto_playlist/liked")
                                 "downloads" -> navController.navigate("auto_playlist/downloaded")
+                                "local" -> navController.navigate("AutoPlaylistLocal")
                             }
                         },
                         modifier = Modifier

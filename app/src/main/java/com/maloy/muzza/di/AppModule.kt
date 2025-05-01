@@ -9,6 +9,7 @@ import androidx.media3.datasource.cache.SimpleCache
 import com.maloy.muzza.constants.MaxSongCacheSizeKey
 import com.maloy.muzza.db.InternalDatabase
 import com.maloy.muzza.db.MusicDatabase
+import com.maloy.muzza.utils.LmImageCacheMgr
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
 import dagger.Module
@@ -26,6 +27,10 @@ import javax.inject.Singleton
 
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
+annotation class ImageCache
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
 annotation class PlayerCache
 
 @Qualifier
@@ -39,6 +44,11 @@ object AppModule {
     @Provides
     fun provideDatabase(@ApplicationContext context: Context): MusicDatabase =
         InternalDatabase.newInstance(context)
+
+    @Provides
+    @Singleton
+    @ImageCache
+    fun provideImageCache(): LmImageCacheMgr = LmImageCacheMgr()
 
     @Singleton
     @Provides

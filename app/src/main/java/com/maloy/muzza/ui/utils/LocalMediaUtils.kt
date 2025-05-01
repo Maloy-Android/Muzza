@@ -13,9 +13,8 @@ import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.YouTube.search
 import com.maloy.muzza.constants.ScannerSensitivity
+import com.maloy.muzza.utils.LmImageCacheMgr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -34,6 +33,7 @@ const val sdcardRoot = "/storage/emulated/0/"
 val testScanPaths = arrayListOf("Music")
 var directoryUID = 0
 var cachedDirectoryTree: DirectoryTree? = null
+var imageCache: LmImageCacheMgr = LmImageCacheMgr()
 
 
 // useful metadata

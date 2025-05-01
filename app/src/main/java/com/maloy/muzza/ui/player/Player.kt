@@ -105,7 +105,6 @@ import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
-import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -115,6 +114,7 @@ import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.theme.extractGradientColors
+import com.maloy.muzza.ui.utils.imageCache
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -190,11 +190,6 @@ fun BottomSheetPlayer(
         if (playerBackground != PlayerBackgroundStyle.GRADIENT) return@LaunchedEffect
 
         withContext(Dispatchers.IO) {
-            if (mediaMetadata?.blurSync == true) {
-                getLocalThumbnail(mediaMetadata?.blurThumbnail)?.extractGradientColors()?.let {
-                    gradientColors = it
-                }
-            } else {
                 val result = (ImageLoader(context).execute(
                     ImageRequest.Builder(context)
                         .data(mediaMetadata?.thumbnailUrl)
@@ -207,7 +202,6 @@ fun BottomSheetPlayer(
                 }
             }
         }
-    }
 
     var position by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.currentPosition)
@@ -621,10 +615,10 @@ fun BottomSheetPlayer(
             }
         }
             if (playerBackground == PlayerBackgroundStyle.BLUR) {
-                if (mediaMetadata?.blurSync == true) {
-                    mediaMetadata?.let {
+                if (mediaMetadata?.isLocal == true) {
+                    mediaMetadata.let {
                         AsyncLocalImage(
-                            image = { getLocalThumbnail(it.blurThumbnail) },
+                            image = { imageCache.getLocalThumbnail(it?.localPath) },
                             contentDescription = null,
                             contentScale = ContentScale.FillBounds,
                             modifier = Modifier
@@ -668,10 +662,10 @@ fun BottomSheetPlayer(
                     repeatMode = RepeatMode.Restart
                 ), label = ""
             )
-            if (mediaMetadata?.blurSync == true) {
+            if (mediaMetadata?.isLocal == true) {
                 mediaMetadata?.let {
                     AsyncLocalImage(
-                        image = { getLocalThumbnail(it.blurThumbnail) },
+                        image = { imageCache.getLocalThumbnail(it.localPath) },
                         contentDescription = null,
                         contentScale = ContentScale.FillBounds,
                         modifier = Modifier

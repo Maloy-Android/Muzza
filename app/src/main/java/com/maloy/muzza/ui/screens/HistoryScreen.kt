@@ -345,10 +345,12 @@ fun HistoryScreen(
                                 showInLibraryIcon = true,
                                 trailingContent = {
                                     if (inSelectMode) {
-                                        Checkbox(
-                                            checked = event.event.id in selection,
-                                            onCheckedChange = onCheckedChange
-                                        )
+                                        if (!event.song.song.isLocal!!) {
+                                            Checkbox(
+                                                checked = event.event.id in selection,
+                                                onCheckedChange = onCheckedChange
+                                            )
+                                        }
                                     } else {
                                         IconButton(
                                             onClick = {
@@ -374,7 +376,9 @@ fun HistoryScreen(
                                     .combinedClickable(
                                         onClick = {
                                             if (inSelectMode) {
-                                                onCheckedChange(event.event.id !in selection)
+                                                if (!event.song.song.isLocal!!) {
+                                                    onCheckedChange(event.event.id !in selection)
+                                                }
                                             } else if (event.song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
@@ -382,9 +386,8 @@ fun HistoryScreen(
                                                     YouTubeQueue.radio(event.song.toMediaMetadata())
                                                 )
                                             }
-                                        },
-                                        onLongClick = {
-                                            if (!inSelectMode) {
+                                        },onLongClick = {
+                                            if (!event.song.song.isLocal!! && !inSelectMode) {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 inSelectMode = true
                                                 onCheckedChange(true)
@@ -518,9 +521,13 @@ fun HistoryScreen(
                             selection.clear()
                         } else {
                             selection.clear()
-                            selection.addAll(filteredEventsMap.flatMap { group ->
-                                group.value.map { it.event.id }
-                            })
+                            selection.addAll(
+                                filteredEventsMap.flatMap { group ->
+                                    group.value
+                                        .filter { !it.song.song.isLocal!! }
+                                        .map { it.event.id }
+                                }
+                            )
                         }
                     }
                 )

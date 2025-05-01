@@ -175,7 +175,7 @@ fun Thumbnail(
             ) {
                 if (playerStyle == PlayerStyle.NEW) {
                     AsyncImage(
-                        model = if (mediaMetadata?.isLocal == true) getLocalThumbnail(mediaMetadata!!.localPath)
+                        model = if (mediaMetadata?.isLocal == true) R.drawable.music_note
                         else mediaMetadata?.thumbnailUrl,
                         contentDescription = null,
                         contentScale = ContentScale.Crop,

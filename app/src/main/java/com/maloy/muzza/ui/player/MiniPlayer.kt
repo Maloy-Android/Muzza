@@ -147,7 +147,7 @@ fun MiniMediaInfo(
     ) {
         Box(modifier = Modifier.padding(6.dp)) {
             AsyncImage(
-                model = if (mediaMetadata.isLocal == true) getLocalThumbnail(mediaMetadata.localPath)
+                model = if (mediaMetadata.isLocal == true) R.drawable.music_note
                 else mediaMetadata.thumbnailUrl,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,

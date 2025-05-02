@@ -14,6 +14,7 @@ data class YouTubeClient(
     val loginSupported: Boolean = false,
     val loginRequired: Boolean = false,
     val useSignatureTimestamp: Boolean = false,
+    val isEmbedded: Boolean = false,
 ) {
     fun toContext(locale: YouTubeLocale, visitorData: String?) = Context(
         client = Context.Client(
@@ -27,7 +28,9 @@ data class YouTubeClient(
     )
 
     companion object {
-        private const val REFERER_YOUTUBE_MUSIC = "https://music.youtube.com/"
+        const val ORIGIN_YOUTUBE_MUSIC = "https://music.youtube.com"
+        const val REFERER_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/"
+        const val API_URL_YOUTUBE_MUSIC = "$ORIGIN_YOUTUBE_MUSIC/youtubei/v1/"
 
         const val USER_AGENT_WEB = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36"
         private const val USER_AGENT_ANDROID = "Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/65.0.3325.181 Mobile Safari/537.36"
@@ -65,11 +68,12 @@ data class YouTubeClient(
             useSignatureTimestamp = true,
         )
 
-        val TVHTML5 = YouTubeClient(
+        val TVHTML5_SIMPLY_EMBEDDED_PLAYER = YouTubeClient(
             clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
             clientVersion = "2.0",
             clientId = "85",
-            userAgent = "Mozilla/5.0 (PlayStation 4 5.55) AppleWebKit/601.2 (KHTML, like Gecko)"
+            userAgent = "Mozilla/5.0 (PlayStation 4 5.55) AppleWebKit/601.2 (KHTML, like Gecko)",
+            isEmbedded = true
         )
 
         val IOS = YouTubeClient(

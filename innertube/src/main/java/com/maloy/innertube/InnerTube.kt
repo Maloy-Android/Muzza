@@ -70,7 +70,7 @@ class InnerTube {
         }
 
         defaultRequest {
-            url("https://music.youtube.com/youtubei/v1/")
+            url(YouTubeClient.API_URL_YOUTUBE_MUSIC)
         }
     }
 
@@ -78,7 +78,7 @@ class InnerTube {
         contentType(ContentType.Application.Json)
         headers {
             append("X-Goog-Api-Format-Version", "1")
-            append("X-YouTube-Client-Name", client.clientName)
+            append("X-YouTube-Client-Name", client.clientId /* Not a typo. The Client-Name header does contain the client id. */)
             append("X-YouTube-Client-Version", client.clientVersion)
             append("x-origin", "https://music.youtube.com")
             if (client.referer != null) {
@@ -230,7 +230,7 @@ class InnerTube {
         setBody(
             PlayerBody(
                 context = client.toContext(locale, visitorData).let {
-                    if (client == YouTubeClient.TVHTML5) {
+                    if (client == YouTubeClient.TVHTML5_SIMPLY_EMBEDDED_PLAYER) {
                         it.copy(
                             thirdParty = Context.ThirdParty(
                                 embedUrl = "https://www.youtube.com/watch?v=${videoId}"

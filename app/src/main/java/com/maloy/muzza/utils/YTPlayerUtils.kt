@@ -5,7 +5,7 @@ import androidx.media3.common.PlaybackException
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YouTubeClient
 import com.maloy.innertube.models.YouTubeClient.Companion.IOS
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB_CREATOR
+import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.innertube.pages.NewPipeUtils
@@ -29,7 +29,11 @@ object YTPlayerUtils {
     /**
      * Clients used for fallback streams in case the streams of the main client do not work.
      */
-    private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(WEB_CREATOR, IOS)
+
+    private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
+        TVHTML5_SIMPLY_EMBEDDED_PLAYER,
+        IOS,
+    )
     data class PlaybackData(
         val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
         val videoDetails: PlayerResponse.VideoDetails?,

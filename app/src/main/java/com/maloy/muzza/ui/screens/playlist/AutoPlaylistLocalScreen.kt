@@ -470,14 +470,11 @@ fun AutoPlaylistLocalScreen(
                                 if (song.id == mediaMetadata?.id) {
                                     playerConnection.player.togglePlayPause()
                                 } else {
-                                    val songs = currDir.files.toList()
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = context.getString(R.string.local),
-                                            items = filteredItems
-                                                .toList()
-                                                .map { it.toMediaItem() },
-                                            startIndex = songs.indexOfFirst { it.id == song.id }
+                                            items = songs.map { it.toMediaItem() },
+                                            startIndex = songs.indexOfFirst { it.song.id == song.id }
                                         )
                                     )
                                 }

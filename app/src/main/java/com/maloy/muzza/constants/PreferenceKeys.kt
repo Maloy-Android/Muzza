@@ -102,7 +102,6 @@ val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
-val HistoryDuration = floatPreferencesKey("historyDuration")
 val PreferredLyricsProviderKey = stringPreferencesKey("lyricsProvider")
 
 val FirstSetupPassed = booleanPreferencesKey("firstSetupPassed")

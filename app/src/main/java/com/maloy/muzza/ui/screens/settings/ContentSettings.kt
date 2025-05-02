@@ -5,7 +5,6 @@ package com.maloy.muzza.ui.screens.settings
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.widget.Toast
@@ -39,7 +38,6 @@ import com.maloy.muzza.constants.ContentCountryKey
 import com.maloy.muzza.constants.ContentLanguageKey
 import com.maloy.muzza.constants.CountryCodeToName
 import com.maloy.muzza.constants.HideExplicitKey
-import com.maloy.muzza.constants.HistoryDuration
 import com.maloy.muzza.constants.LanguageCodeToName
 import com.maloy.muzza.constants.LikedAutoDownloadKey
 import com.maloy.muzza.constants.LikedAutodownloadMode
@@ -53,13 +51,14 @@ import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ListPreference
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.component.SliderPreference
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import java.net.Proxy
 import java.util.Locale
+import androidx.core.net.toUri
+import androidx.core.content.edit
 
 @SuppressLint("PrivateResource")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -78,7 +77,6 @@ fun ContentSettings(
     val (proxyEnabled, onProxyEnabledChange) = rememberPreference(key = ProxyEnabledKey, defaultValue = false)
     val (proxyType, onProxyTypeChange) = rememberEnumPreference(key = ProxyTypeKey, defaultValue = Proxy.Type.HTTP)
     val (proxyUrl, onProxyUrlChange) = rememberPreference(key = ProxyUrlKey, defaultValue = "host:port")
-    val (historyDuration, onHistoryDurationChange) = rememberPreference(key = HistoryDuration, defaultValue = 30f)
 
     Column(
         Modifier
@@ -145,7 +143,7 @@ fun ContentSettings(
                         context.startActivity(
                             Intent(
                                 Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                                Uri.parse("package:${context.packageName}")
+                                "package:${context.packageName}".toUri()
                             ),
                         )
                     } catch (e: ActivityNotFoundException) {
@@ -183,7 +181,7 @@ fun ContentSettings(
                     context.startActivity(
                         Intent(
                             Settings.ACTION_APP_LOCALE_SETTINGS,
-                            Uri.parse("package:${context.packageName}")
+                            "package:${context.packageName}".toUri()
                         )
                     )
                 }
@@ -202,16 +200,6 @@ fun ContentSettings(
                 }
             )
         }
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.misc)
-        )
-
-        SliderPreference(
-            title = { Text(stringResource(R.string.history_duration)) },
-            value = historyDuration,
-            onValueChange = onHistoryDurationChange,
-        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.proxy)
@@ -261,7 +249,7 @@ fun ContentSettings(
 
 fun saveLanguagePreference(context: Context, languageCode: String) {
     val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    sharedPreferences.edit().putString("app_language", languageCode).apply()
+    sharedPreferences.edit { putString("app_language", languageCode) }
 }
 
 

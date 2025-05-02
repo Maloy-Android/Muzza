@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Button
@@ -25,6 +26,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -34,10 +37,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -45,6 +52,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -60,6 +69,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
+import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
@@ -96,12 +106,14 @@ fun AutoPlaylistLocalScreen(
     var isScannerActive by remember { mutableStateOf(false) }
     var isScanFinished by remember { mutableStateOf(false) }
     var mediaPermission by remember { mutableStateOf(true) }
-    val mediaPermissionLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
-    else Manifest.permission.READ_EXTERNAL_STORAGE
+    val mediaPermissionLevel =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
+        else Manifest.permission.READ_EXTERNAL_STORAGE
 
     val (autoSyncLocalSongs) = rememberPreference(
         key = AutoSyncLocalSongsKey,
-        defaultValue = true)
+        defaultValue = true
+    )
     val (scannerSensitivity) = rememberEnumPreference(
         key = ScannerSensitivityKey,
         defaultValue = ScannerSensitivity.LEVEL_2
@@ -117,9 +129,28 @@ fun AutoPlaylistLocalScreen(
 
         folderStack.push(viewModel.localSongDirectoryTree.value)
     }
-    var currDir by remember { mutableStateOf(
-        if (flatSubfolders) folderStack.peek().toFlattenedTree() else folderStack.peek()
-    )}
+    var currDir by remember {
+        mutableStateOf(
+            if (flatSubfolders) folderStack.peek().toFlattenedTree() else folderStack.peek()
+        )
+    }
+
+    var isSearching by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val focusRequester = remember { FocusRequester() }
+
+    val searchQueryStr = searchQuery.text.trim()
+    val filteredItems = remember(currDir, searchQueryStr) {
+        if (searchQueryStr.isEmpty()) currDir else currDir.copy(
+            subdirs = currDir.subdirs.filter { dir ->
+                dir.currentDir.contains(searchQueryStr, ignoreCase = true)
+            },
+            files = currDir.files.filter { song ->
+                song.title.contains(searchQueryStr, ignoreCase = true) ||
+                        song.artists.joinToString("").contains(searchQueryStr, ignoreCase = true)
+            }
+        )
+    }
 
     if (autoSyncLocalSongs) {
         LaunchedEffect(Unit) {
@@ -127,7 +158,8 @@ fun AutoPlaylistLocalScreen(
                 return@LaunchedEffect
             }
             if (context.checkSelfPermission(mediaPermissionLevel)
-                != PackageManager.PERMISSION_GRANTED) {
+                != PackageManager.PERMISSION_GRANTED
+            ) {
 
                 Toast.makeText(
                     context,
@@ -135,14 +167,16 @@ fun AutoPlaylistLocalScreen(
                     Toast.LENGTH_SHORT
                 ).show()
 
-                requestPermissions(context as Activity,
+                requestPermissions(
+                    context as Activity,
                     arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
                 )
 
                 mediaPermission = false
                 return@LaunchedEffect
             } else if (context.checkSelfPermission(mediaPermissionLevel)
-                == PackageManager.PERMISSION_GRANTED) {
+                == PackageManager.PERMISSION_GRANTED
+            ) {
                 mediaPermission = true
             }
             isScanFinished = false
@@ -164,173 +198,192 @@ fun AutoPlaylistLocalScreen(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
-            item {
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    modifier = Modifier.padding(12.dp)
-                ) {
-                    val libcarditem = 25.dp
-                    Box(
-                        modifier = Modifier
-                            .size(AlbumThumbnailSize)
-                            .clip(RoundedCornerShape(libcarditem))
-                            .align(alignment = Alignment.CenterHorizontally)
-                            .background(
-                                MaterialTheme.colorScheme.surfaceContainer,
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.MusicNote,
-                            contentDescription = null,
-                            tint = LocalContentColor.current.copy(alpha = 0.8f),
-                            modifier = Modifier
-                                .size(110.dp)
-                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                .align(Alignment.Center)
-                        )
-                    }
-                    Spacer(Modifier.height(12.dp))
+            if (filteredItems.toList().isEmpty()) {
+                item {
+                    EmptyPlaceholder(
+                        icon = R.drawable.music_note,
+                        text = stringResource(R.string.playlist_is_empty)
+                    )
+                }
+            }
+            if (filteredItems.toList().isEmpty() && isSearching) {
+                item {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search,
+                        text = stringResource(R.string.no_results_found)
+                    )
+                }
+            }
+            if (!isSearching) {
+                item {
                     Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        modifier = Modifier.padding(12.dp)
                     ) {
-                        AutoResizeText(
-                            text = stringResource(R.string.local),
-                            fontWeight = FontWeight.Bold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                        )
-                        Spacer(Modifier.height(12.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceEvenly,
-                            modifier = Modifier.fillMaxWidth()
+                        val libcarditem = 25.dp
+                        Box(
+                            modifier = Modifier
+                                .size(AlbumThumbnailSize)
+                                .clip(RoundedCornerShape(libcarditem))
+                                .align(alignment = Alignment.CenterHorizontally)
+                                .background(
+                                    MaterialTheme.colorScheme.surfaceContainer,
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
                         ) {
-                            Button(
-                                onClick = {
-                                    if (isScannerActive) {
-                                        return@Button
-                                    }
-                                    if (context.checkSelfPermission(mediaPermissionLevel)
-                                        != PackageManager.PERMISSION_GRANTED
-                                    ) {
+                            Icon(
+                                imageVector = Icons.Rounded.MusicNote,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                modifier = Modifier
+                                    .size(110.dp)
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                    .align(Alignment.Center)
+                            )
+                        }
+                        Spacer(Modifier.height(12.dp))
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            AutoResizeText(
+                                text = stringResource(R.string.local),
+                                fontWeight = FontWeight.Bold,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                                fontSizeRange = FontSizeRange(16.sp, 22.sp)
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceEvenly,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Button(
+                                    onClick = {
+                                        if (isScannerActive) {
+                                            return@Button
+                                        }
+                                        if (context.checkSelfPermission(mediaPermissionLevel)
+                                            != PackageManager.PERMISSION_GRANTED
+                                        ) {
+
+                                            Toast.makeText(
+                                                context,
+                                                "The scanner requires storage permissions",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+
+                                            requestPermissions(
+                                                context as Activity,
+                                                arrayOf(mediaPermissionLevel),
+                                                PackageManager.PERMISSION_GRANTED
+                                            )
+
+                                            mediaPermission = false
+                                            return@Button
+                                        } else if (context.checkSelfPermission(mediaPermissionLevel)
+                                            == PackageManager.PERMISSION_GRANTED
+                                        ) {
+                                            mediaPermission = true
+                                        }
+                                        isScanFinished = false
+                                        isScannerActive = true
 
                                         Toast.makeText(
                                             context,
-                                            "The scanner requires storage permissions",
+                                            "Starting full library scan this may take a while...",
                                             Toast.LENGTH_SHORT
                                         ).show()
+                                        coroutineScope.launch(Dispatchers.IO) {
+                                            val directoryStructure =
+                                                scanLocal(context, database).value
+                                            syncDB(
+                                                database,
+                                                directoryStructure.toList(),
+                                                scannerSensitivity,
+                                                strictExtensions
+                                            )
 
-                                        requestPermissions(
-                                            context as Activity,
-                                            arrayOf(mediaPermissionLevel),
-                                            PackageManager.PERMISSION_GRANTED
-                                        )
-
-                                        mediaPermission = false
-                                        return@Button
-                                    } else if (context.checkSelfPermission(mediaPermissionLevel)
-                                        == PackageManager.PERMISSION_GRANTED
-                                    ) {
-                                        mediaPermission = true
-                                    }
-                                    isScanFinished = false
-                                    isScannerActive = true
-
-                                    Toast.makeText(
-                                        context,
-                                        "Starting full library scan this may take a while...",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                    coroutineScope.launch(Dispatchers.IO) {
-                                        val directoryStructure = scanLocal(context, database).value
-                                        syncDB(
-                                            database,
-                                            directoryStructure.toList(),
-                                            scannerSensitivity,
-                                            strictExtensions
-                                        )
-
-                                        isScannerActive = false
-                                        isScanFinished = true
-                                    }
-                                },
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(4.dp)
-                                    .clip(RoundedCornerShape(12.dp))
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.sync),
-                                    contentDescription = null
-                                )
-                            }
-                            Button(
-                                onClick = {
-                                    playerConnection.addToQueue(
-                                        items = currDir.toList().map { it.toMediaItem() },
+                                            isScannerActive = false
+                                            isScanFinished = true
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.sync),
+                                        contentDescription = null
                                     )
-                                },
-                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.queue_music),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                            }
-                        }
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Button(
-                                onClick = {
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = context.getString(R.string.local),
-                                            items = currDir
-                                                .toList()
-                                                .map { it.toMediaItem() })
-                                    )
-                                },
-                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.play),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.play))
-                            }
-                            Button(
-                                onClick = {
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = context.getString(R.string.local),
-                                            items = currDir.toList().shuffled()
-                                                .map { it.toMediaItem() }
+                                }
+                                Button(
+                                    onClick = {
+                                        playerConnection.addToQueue(
+                                            items = currDir.toList().map { it.toMediaItem() },
                                         )
+                                    },
+                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.queue_music),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
-                                },
-                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.shuffle),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.shuffle))
+                                }
+                            }
+                            Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Button(
+                                    onClick = {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = context.getString(R.string.local),
+                                                items = currDir
+                                                    .toList()
+                                                    .map { it.toMediaItem() })
+                                        )
+                                    },
+                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.play),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                    )
+                                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                    Text(stringResource(R.string.play))
+                                }
+                                Button(
+                                    onClick = {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = context.getString(R.string.local),
+                                                items = currDir.toList().shuffled()
+                                                    .map { it.toMediaItem() }
+                                            )
+                                        )
+                                    },
+                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.shuffle),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                    )
+                                    Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                    Text(stringResource(R.string.shuffle))
+                                }
                             }
                         }
                     }
                 }
             }
             itemsIndexed(
-                items = currDir.subdirs,
+                items = filteredItems.subdirs,
                 key = { _, item -> item.uid },
                 contentType = { _, _ -> CONTENT_TYPE_SONG }
             ) { _, folder ->
@@ -346,7 +399,7 @@ fun AutoPlaylistLocalScreen(
             if (currDir.subdirs.size > 0 && currDir.files.size > 0) {
                 item(
                     key = "folder_songs_divider",
-                    ) {
+                ) {
                     HorizontalDivider(
                         thickness = DividerDefaults.Thickness,
                         modifier = Modifier.padding(20.dp)
@@ -354,7 +407,7 @@ fun AutoPlaylistLocalScreen(
                 }
             }
             itemsIndexed(
-                items = currDir.files,
+                items = filteredItems.files,
                 key = { _, item -> item.id },
                 contentType = { _, _ -> CONTENT_TYPE_SONG }
             ) { index, song ->
@@ -369,7 +422,7 @@ fun AutoPlaylistLocalScreen(
                         Text(
                             text = pluralStringResource(
                                 R.plurals.n_song,
-                                R.plurals.n_song, currDir.toList().size, currDir.toList().size
+                                R.plurals.n_song, filteredItems.toList().size, filteredItems.toList().size
                             ),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Normal
@@ -405,13 +458,14 @@ fun AutoPlaylistLocalScreen(
                                 if (song.id == mediaMetadata?.id) {
                                     playerConnection.player.togglePlayPause()
                                 } else {
+                                    val songs = currDir.files.toList()
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = context.getString(R.string.local),
-                                            items = currDir
+                                            items = filteredItems
                                                 .toList()
                                                 .map { it.toMediaItem() },
-                                            startIndex = index
+                                            startIndex = songs.indexOfFirst { it.id == song.id }
                                         )
                                     )
                                 }
@@ -433,24 +487,66 @@ fun AutoPlaylistLocalScreen(
         }
         TopAppBar(
             title = {
-                if (viewModel.folderPositionStack.size > 1) Text(currDir.currentDir)
-                else Text("Internal Storage")
+                if (isSearching) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (searchQuery.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+                    )
+                } else {
+                    Text(if (viewModel.folderPositionStack.size > 1) currDir.currentDir else "Internal Storage")
+                }
             },
             navigationIcon = {
                 IconButton(
                     onClick = {
-                        if (folderStack.size == 0) {
-                            navController.navigate(Screens.Library.route)
-                            return@IconButton
+                        if (isSearching) {
+                            isSearching = false
+                            searchQuery = TextFieldValue()
+                        } else {
+                            if (folderStack.isEmpty()) navController.navigate(Screens.Library.route)
+                            else currDir = folderStack.pop()
                         }
-                        currDir = folderStack.pop()
                     }
-
                 ) {
-                    Icon(
-                        painterResource(R.drawable.arrow_back),
-                        contentDescription = null
-                    )
+                    Icon(painterResource(R.drawable.arrow_back), null)
+                }
+            },
+            actions = {
+                if (!isSearching) {
+                    IconButton(onClick = { isSearching = true }) {
+                        Icon(painterResource(R.drawable.search), null)
+                    }
                 }
             },
             scrollBehavior = scrollBehavior

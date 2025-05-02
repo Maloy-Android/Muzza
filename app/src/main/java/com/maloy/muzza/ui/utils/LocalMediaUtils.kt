@@ -206,6 +206,16 @@ class DirectoryTree(path: String) {
             it.subdirs.forEach { getSubdirsRecursive(it, result) }
         }
     }
+    fun copy(
+        currentDir: String = this.currentDir,
+        subdirs: List<DirectoryTree> = this.subdirs,
+        files: List<Song> = this.files
+    ): DirectoryTree {
+        return DirectoryTree(currentDir).apply {
+            this.subdirs = subdirs.toMutableList() as ArrayList<DirectoryTree>
+            this.files = files.toMutableList() as ArrayList<Song>
+        }
+    }
 }
 
 /**

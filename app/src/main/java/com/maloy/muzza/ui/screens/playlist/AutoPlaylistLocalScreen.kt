@@ -203,32 +203,18 @@ fun AutoPlaylistLocalScreen(
                             fontSizeRange = FontSizeRange(16.sp, 22.sp)
                         )
                         Spacer(Modifier.height(12.dp))
-                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Button(
-                                onClick = {
-                                    playerConnection.playQueue(ListQueue(title = context.getString(R.string.local),
-                                        items = currDir
-                                            .toList()
-                                            .map { it.toMediaItem() }))
-                                },
-                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.play),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(ButtonDefaults.IconSize)
-                                )
-                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.play))
-                            }
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceEvenly,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
                             Button(
                                 onClick = {
                                     if (isScannerActive) {
                                         return@Button
                                     }
                                     if (context.checkSelfPermission(mediaPermissionLevel)
-                                        != PackageManager.PERMISSION_GRANTED) {
+                                        != PackageManager.PERMISSION_GRANTED
+                                    ) {
 
                                         Toast.makeText(
                                             context,
@@ -236,14 +222,17 @@ fun AutoPlaylistLocalScreen(
                                             Toast.LENGTH_SHORT
                                         ).show()
 
-                                        requestPermissions(context as Activity,
-                                            arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
+                                        requestPermissions(
+                                            context as Activity,
+                                            arrayOf(mediaPermissionLevel),
+                                            PackageManager.PERMISSION_GRANTED
                                         )
 
                                         mediaPermission = false
                                         return@Button
                                     } else if (context.checkSelfPermission(mediaPermissionLevel)
-                                        == PackageManager.PERMISSION_GRANTED) {
+                                        == PackageManager.PERMISSION_GRANTED
+                                    ) {
                                         mediaPermission = true
                                     }
                                     isScanFinished = false
@@ -256,7 +245,12 @@ fun AutoPlaylistLocalScreen(
                                     ).show()
                                     coroutineScope.launch(Dispatchers.IO) {
                                         val directoryStructure = scanLocal(context, database).value
-                                        syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
+                                        syncDB(
+                                            database,
+                                            directoryStructure.toList(),
+                                            scannerSensitivity,
+                                            strictExtensions
+                                        )
 
                                         isScannerActive = false
                                         isScanFinished = true
@@ -271,15 +265,52 @@ fun AutoPlaylistLocalScreen(
                                     painter = painterResource(R.drawable.sync),
                                     contentDescription = null
                                 )
+                            }
+                            Button(
+                                onClick = {
+                                    playerConnection.addToQueue(
+                                        items = currDir.toList().map { it.toMediaItem() },
+                                    )
+                                },
+                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.queue_music),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                            }
+                        }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            Button(
+                                onClick = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = context.getString(R.string.local),
+                                            items = currDir
+                                                .toList()
+                                                .map { it.toMediaItem() })
+                                    )
+                                },
+                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.play),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text(stringResource(R.string.sync))
+                                Text(stringResource(R.string.play))
                             }
                             Button(
                                 onClick = {
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = context.getString(R.string.queue_all_songs),
-                                            items = currDir.toList().shuffled().map { it.toMediaItem() }
+                                            title = context.getString(R.string.local),
+                                            items = currDir.toList().shuffled()
+                                                .map { it.toMediaItem() }
                                         )
                                     )
                                 },

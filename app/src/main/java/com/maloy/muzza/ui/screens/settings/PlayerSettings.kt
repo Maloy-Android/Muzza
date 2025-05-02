@@ -124,17 +124,16 @@ fun PlayerSettings(
                 }
             }
         )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.lyrics_settings_title)) },
+            icon = { Icon(Icons.Rounded.Lyrics, null) },
+            onClick = { navController.navigate("settings/player/lyrics") }
+        )
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.local_player_settings_title)) },
             icon = { Icon(Icons.Rounded.SdCard, null) },
             onClick = { navController.navigate("player/local") }
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.lyrics_settings_title)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
-            onClick = { navController.navigate("settings/player/lyrics") }
         )
 
         PreferenceEntry(

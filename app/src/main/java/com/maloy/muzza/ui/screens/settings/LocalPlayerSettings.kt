@@ -87,17 +87,17 @@ fun LocalPlayerSettings(
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
             )
-            SwitchPreference(
-                title = { Text(stringResource(R.string.auto_scanner_title)) },
-                icon = { Icon(painterResource(R.drawable.sync), null) },
-                checked = autoSyncLocalSongs,
-                onCheckedChange = onAutoSyncLocalSongs
-            )
         }
-
 
         PreferenceGroupTitle(
             title = stringResource(R.string.scanner_settings_title)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.auto_scanner_title)) },
+            icon = { Icon(painterResource(R.drawable.sync), null) },
+            checked = autoSyncLocalSongs,
+            onCheckedChange = onAutoSyncLocalSongs
         )
 
         // scanner sensitivity
@@ -138,7 +138,7 @@ fun LocalPlayerSettings(
         )
     }
     TopAppBar(
-        title = { Text(stringResource(R.string.experimental_settings_title)) },
+        title = { Text(stringResource(R.string.local_player_settings_title)) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp,

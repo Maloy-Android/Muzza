@@ -400,12 +400,15 @@ fun AutoPlaylistLocalScreen(
                 contentType = { _, _ -> CONTENT_TYPE_SONG }
             ) { _, folder ->
                 SongFolderItem(
-                    folderTitle = folder.currentDir,
+                    folder = folder,
+                    subtitle = "${folder.toList().size} Song${if (folder.toList().size > 1) "" else "s"}",
                     modifier = Modifier
                         .combinedClickable {
                             currDir = folderStack.push(folder)
                         }
-                        .animateItem()
+                        .animateItem(),
+                    menuState = menuState,
+                    navController = navController
                 )
             }
             if (currDir.subdirs.size > 0 && currDir.files.size > 0) {

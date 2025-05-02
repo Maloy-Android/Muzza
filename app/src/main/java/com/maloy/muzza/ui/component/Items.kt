@@ -32,6 +32,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -497,7 +498,7 @@ fun SongFolderItem(
     folderTitle: String,
     modifier: Modifier = Modifier,
 ) = ListItem( title = folderTitle, thumbnailContent = { Icon(
-    Icons.Rounded.MusicNote,
+    Icons.Rounded.FolderCopy,
     contentDescription = null,
     modifier = modifier.size(48.dp)
 )

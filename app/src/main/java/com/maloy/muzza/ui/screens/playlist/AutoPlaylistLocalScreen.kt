@@ -86,6 +86,7 @@ fun AutoPlaylistLocalScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val folderStack = remember { viewModel.folderPositionStack }
+    val (flatSubfolders) = rememberPreference(FlatSubfoldersKey, defaultValue = true)
     val coroutineScope = rememberCoroutineScope()
     var isScannerActive by remember { mutableStateOf(false) }
     var isScanFinished by remember { mutableStateOf(false) }
@@ -108,7 +109,9 @@ fun AutoPlaylistLocalScreen(
 
         folderStack.push(viewModel.localSongDirectoryTree.value)
     }
-    var currDir by remember { mutableStateOf(folderStack.peek()) }
+    var currDir by remember { mutableStateOf(
+        if (flatSubfolders) folderStack.peek().toFlattenedTree() else folderStack.peek()
+    )}
 
     if (autoSyncLocalSongs) {
         LaunchedEffect(Unit) {
@@ -233,12 +236,12 @@ fun AutoPlaylistLocalScreen(
                 items = currDir.subdirs,
                 key = { _, item -> item.uid },
                 contentType = { _, _ -> CONTENT_TYPE_SONG }
-            ) { _, song ->
+            ) { _, folder ->
                 SongFolderItem(
-                    folderTitle = song.currentDir,
+                    folderTitle = folder.currentDir,
                     modifier = Modifier
                         .combinedClickable {
-                            currDir = folderStack.push(song)
+                            currDir = folderStack.push(folder)
                         }
                         .animateItem()
                 )

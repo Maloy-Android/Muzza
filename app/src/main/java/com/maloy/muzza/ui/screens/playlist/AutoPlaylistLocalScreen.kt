@@ -172,7 +172,7 @@ fun AutoPlaylistLocalScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Button(
                                 onClick = {
-                                    playerConnection.playQueue(ListQueue(title = context.getString(R.string.queue_all_songs),
+                                    playerConnection.playQueue(ListQueue(title = context.getString(R.string.local),
                                         items = currDir
                                             .toList()
                                             .map { it.toMediaItem() }))
@@ -303,7 +303,7 @@ fun AutoPlaylistLocalScreen(
                                 } else {
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = context.getString(R.string.queue_all_songs),
+                                            title = context.getString(R.string.local),
                                             items = currDir
                                                 .toList()
                                                 .map { it.toMediaItem() },

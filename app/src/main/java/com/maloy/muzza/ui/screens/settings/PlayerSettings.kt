@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Lyrics
+import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -122,6 +123,12 @@ fun PlayerSettings(
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                 }
             }
+        )
+
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.local_player_settings_title)) },
+            icon = { Icon(Icons.Rounded.SdCard, null) },
+            onClick = { navController.navigate("player/local") }
         )
 
         PreferenceEntry(

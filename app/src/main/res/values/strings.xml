@@ -382,6 +382,7 @@
     <string name="equalizer">Equalizer</string>
     <string name="lyrics">Lyrics</string>
     <string name="lyrics_settings_title">Lyrics</string>
+    <string name="local_player_settings_title">Local player settings</string>
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
     <string name="image_cache">Image Cache</string>

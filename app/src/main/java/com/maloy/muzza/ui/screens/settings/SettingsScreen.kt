@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -179,11 +177,6 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.about)) },
             icon = { Icon(painterResource(R.drawable.info), null) },
             onClick = { navController.navigate("settings/about") }
-        )
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.experimental_settings_title)) },
-            icon = { Icon(Icons.Rounded.WarningAmber, null) },
-            onClick = { navController.navigate("settings/experimental")}
         )
 
         UpdateCard(uriHandler)

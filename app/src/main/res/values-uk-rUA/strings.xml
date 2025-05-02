@@ -424,6 +424,7 @@
     <string name="equalizer">Еквалайзер</string>
     <string name="lyrics">Текст пісні</string>
     <string name="lyrics_settings_title">Налаштування текстів</string>
+    <string name="local_player_settings_title">Налаштування локального плеєра</string>
 
     <string name="storage">Сховище</string>
     <string name="cache">Кеш</string>

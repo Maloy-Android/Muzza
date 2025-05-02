@@ -444,6 +444,8 @@ fun AutoPlaylistLocalScreen(
                 SongListItem(
                     song = song,
                     isActive = song.id == mediaMetadata?.id,
+                    showLikedIcon = true,
+                    showInLibraryIcon = true,
                     isPlaying = isPlaying,
                     trailingContent = {
                         IconButton(

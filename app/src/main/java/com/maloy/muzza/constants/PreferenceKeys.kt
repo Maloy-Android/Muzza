@@ -219,6 +219,7 @@ val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 
 val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
+val AutoSyncLocalSongsKey = booleanPreferencesKey("autosynclocalsongs")
 
 /**
  * Specify how strict the metadata scanner should be

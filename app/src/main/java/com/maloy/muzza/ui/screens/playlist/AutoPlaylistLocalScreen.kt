@@ -26,7 +26,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -91,6 +90,9 @@ fun AutoPlaylistLocalScreen(
     var isScannerActive by remember { mutableStateOf(false) }
     var isScanFinished by remember { mutableStateOf(false) }
 
+    val (autoSyncLocalSongs) = rememberPreference(
+        key = AutoSyncLocalSongsKey,
+        defaultValue = true)
     val (scannerSensitivity) = rememberEnumPreference(
         key = ScannerSensitivityKey,
         defaultValue = ScannerSensitivity.LEVEL_2
@@ -108,18 +110,20 @@ fun AutoPlaylistLocalScreen(
     }
     var currDir by remember { mutableStateOf(folderStack.peek()) }
 
-    LaunchedEffect(Unit) {
-        if (isScannerActive) {
-            return@LaunchedEffect
-        }
-        isScanFinished = false
-        isScannerActive = true
-        coroutineScope.launch(Dispatchers.IO) {
-            val directoryStructure = scanLocal(context, database).value
-            syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
+    if (autoSyncLocalSongs) {
+        LaunchedEffect(Unit) {
+            if (isScannerActive) {
+                return@LaunchedEffect
+            }
+            isScanFinished = false
+            isScannerActive = true
+            coroutineScope.launch(Dispatchers.IO) {
+                val directoryStructure = scanLocal(context, database).value
+                syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
 
-            isScannerActive = false
-            isScanFinished = true
+                isScannerActive = false
+                isScanFinished = true
+            }
         }
     }
 

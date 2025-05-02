@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
@@ -43,6 +44,9 @@ fun ExperimentalSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val (autoSyncLocalSongs, onAutoSyncLocalSongs) = rememberPreference(
+        key = AutoSyncLocalSongsKey,
+        defaultValue = true)
     val (scannerSensitivity, onScannerSensitivityChange) = rememberEnumPreference(
         key = ScannerSensitivityKey,
         defaultValue = ScannerSensitivity.LEVEL_2
@@ -73,6 +77,12 @@ fun ExperimentalSettings(
                 fontSize = 12.sp,
                 modifier = Modifier
                     .padding(horizontal = 15.dp)
+            )
+            SwitchPreference(
+                title = { Text(stringResource(R.string.auto_scanner_title)) },
+                icon = { Icon(painterResource(R.drawable.sync), null) },
+                checked = autoSyncLocalSongs,
+                onCheckedChange = onAutoSyncLocalSongs
             )
         }
 

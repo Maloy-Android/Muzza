@@ -402,14 +402,16 @@ fun SongListItem(
                                 image = { imageCache.getLocalThumbnail(it.localPath, false) },
                                 contentDescription = null,
                                 contentScale = contentScale,
-                                modifier = Modifier.size(ListThumbnailSize)
+                                modifier = Modifier
+                                    .size(ListThumbnailSize)
                                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
                             )
                             PlayingIndicatorBox(
                                 isActive = isActive,
                                 playWhenReady = isPlaying,
                                 color = Color.White,
-                                modifier = Modifier.size(ListThumbnailSize)
+                                modifier = Modifier
+                                    .size(ListThumbnailSize)
                                     .align(alignment = Alignment.CenterVertically)
                                     .background(
                                         color = Color.Black.copy(alpha = ActiveBoxAlpha),
@@ -448,7 +450,8 @@ fun SongListItem(
                             image = { imageCache.getLocalThumbnail(it.localPath, false) },
                             contentDescription = null,
                             contentScale = contentScale,
-                            modifier = Modifier.size(ListThumbnailSize)
+                            modifier = Modifier
+                                .size(ListThumbnailSize)
                                 .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         )
                         PlayingIndicatorBox(
@@ -470,7 +473,8 @@ fun SongListItem(
                         isActive = isActive,
                         isPlaying = isPlaying,
                         shape = RoundedCornerShape(ThumbnailCornerRadius),
-                        modifier = Modifier.size(ListThumbnailSize)
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
                             .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     )
                 }
@@ -541,7 +545,8 @@ fun SongGridItem(
                     image = { imageCache.getLocalThumbnail(it.localPath, false) },
                     contentDescription = null,
                     contentScale = contentScale,
-                    modifier = Modifier.size(GridThumbnailHeight)
+                    modifier = Modifier
+                        .size(GridThumbnailHeight)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                 )
                 PlayingIndicatorBox(
@@ -562,7 +567,8 @@ fun SongGridItem(
                 isActive = isActive,
                 isPlaying = isPlaying,
                 shape = RoundedCornerShape(ThumbnailCornerRadius),
-                modifier = Modifier.size(GridThumbnailHeight)
+                modifier = Modifier
+                    .size(GridThumbnailHeight)
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
             )
         }
@@ -882,13 +888,15 @@ fun MediaMetadataListItem(
         if (song?.song?.inLibrary != null) {
             Icon.Library()
         }
-        val download by LocalDownloadUtil.current.getDownload(song?.id).collectAsState(initial = null)
+        val download by LocalDownloadUtil.current.getDownload(song?.id)
+            .collectAsState(initial = null)
         Icon.Download(download?.state)
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
-) = ListItem(
+    contentScale: ContentScale = ContentScale.Fit,
+    ) = ListItem(
     title = mediaMetadata.title,
     subtitle = joinByBullet(
         mediaMetadata.artists.joinToString { it.name },
@@ -896,13 +904,40 @@ fun MediaMetadataListItem(
     ),
     badges = badges,
     thumbnailContent = {
-        ItemThumbnail(
-            thumbnailUrl = mediaMetadata.thumbnailUrl,
-            isActive = isActive,
-            isPlaying = isPlaying,
-            shape = RoundedCornerShape(ThumbnailCornerRadius),
-            modifier = Modifier.size(ListThumbnailSize)
-        )
+        Box {
+            if (mediaMetadata.isLocal == true) {
+                mediaMetadata.let {
+                    AsyncLocalImage(
+                        image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                        contentDescription = null,
+                        contentScale = contentScale,
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
+                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    )
+                    PlayingIndicatorBox(
+                        isActive = isActive,
+                        playWhenReady = isPlaying,
+                        color = Color.White,
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
+                            .align(alignment = Alignment.Center)
+                            .background(
+                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                            )
+                    )
+                }
+            } else {
+                ItemThumbnail(
+                    thumbnailUrl = mediaMetadata.thumbnailUrl,
+                    isActive = isActive,
+                    isPlaying = isPlaying,
+                    shape = RoundedCornerShape(ThumbnailCornerRadius),
+                    modifier = Modifier.size(ListThumbnailSize)
+                )
+            }
+        }
     },
     trailingContent = trailingContent,
     modifier = modifier,

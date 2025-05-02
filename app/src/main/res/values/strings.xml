@@ -382,6 +382,7 @@
     <string name="equalizer">Equalizer</string>
     <string name="lyrics">Lyrics</string>
     <string name="lyrics_settings_title">Lyrics</string>
+    <string name="local_player_settings_title">Local player settings</string>
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
     <string name="image_cache">Image Cache</string>
@@ -460,9 +461,6 @@
     <string name="internet_required">It looks like you have no Internet connection. Please check your network.</string>
     <string name="downloadspage">Go to downloads</string>
 
-
-    <string name="experimental_settings_title">Experimental</string>
-
     <!--scanner page settings-->
     <string name="local_scanner_title">Local scanner</string>
 
@@ -480,6 +478,11 @@
     <string name="scanner_sensitivity_L1">Match title</string>
     <string name="scanner_sensitivity_L2">Match title and artists</string>
     <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
+
+    <!--Folders-->
+    <string name="folders_settings_title">Folders</string>
+    <string name="flat_subfolders_title">Flatten subfolders</string>
+    <string name="flat_subfolders_description">Disable to preserve the file structure as on disk</string>
 
     <!-- Spotify import settings -->
     <string name="select_all">Select All</string>

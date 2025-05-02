@@ -428,6 +428,7 @@
     <string name="equalizer">Эквалайзер</string>
     <string name="lyrics">Текст песни</string>
     <string name="lyrics_settings_title">Настройки текстов</string>
+    <string name="local_player_settings_title">Настройки локального плеера</string>
 
     <string name="storage">Хранилище</string>
     <string name="cache">Кэш</string>

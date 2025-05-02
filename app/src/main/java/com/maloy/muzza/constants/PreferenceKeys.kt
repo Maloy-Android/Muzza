@@ -102,7 +102,6 @@ val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")
 val PlaylistViewTypeKey = stringPreferencesKey("playlistViewType")
-val HistoryDuration = floatPreferencesKey("historyDuration")
 val PreferredLyricsProviderKey = stringPreferencesKey("lyricsProvider")
 
 val FirstSetupPassed = booleanPreferencesKey("firstSetupPassed")
@@ -220,6 +219,8 @@ val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 
 val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
+val AutoSyncLocalSongsKey = booleanPreferencesKey("autosynclocalsongs")
+val FlatSubfoldersKey = booleanPreferencesKey("flatSubfolders")
 
 /**
  * Specify how strict the metadata scanner should be

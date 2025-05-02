@@ -1,6 +1,10 @@
 package com.maloy.muzza.ui.screens.playlist
 
+import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -44,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
@@ -90,6 +95,9 @@ fun AutoPlaylistLocalScreen(
     val coroutineScope = rememberCoroutineScope()
     var isScannerActive by remember { mutableStateOf(false) }
     var isScanFinished by remember { mutableStateOf(false) }
+    var mediaPermission by remember { mutableStateOf(true) }
+    val mediaPermissionLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
+    else Manifest.permission.READ_EXTERNAL_STORAGE
 
     val (autoSyncLocalSongs) = rememberPreference(
         key = AutoSyncLocalSongsKey,
@@ -117,6 +125,25 @@ fun AutoPlaylistLocalScreen(
         LaunchedEffect(Unit) {
             if (isScannerActive) {
                 return@LaunchedEffect
+            }
+            if (context.checkSelfPermission(mediaPermissionLevel)
+                != PackageManager.PERMISSION_GRANTED) {
+
+                Toast.makeText(
+                    context,
+                    "The scanner requires storage permissions",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                requestPermissions(context as Activity,
+                    arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
+                )
+
+                mediaPermission = false
+                return@LaunchedEffect
+            } else if (context.checkSelfPermission(mediaPermissionLevel)
+                == PackageManager.PERMISSION_GRANTED) {
+                mediaPermission = true
             }
             isScanFinished = false
             isScannerActive = true
@@ -199,6 +226,25 @@ fun AutoPlaylistLocalScreen(
                                 onClick = {
                                     if (isScannerActive) {
                                         return@Button
+                                    }
+                                    if (context.checkSelfPermission(mediaPermissionLevel)
+                                        != PackageManager.PERMISSION_GRANTED) {
+
+                                        Toast.makeText(
+                                            context,
+                                            "The scanner requires storage permissions",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+
+                                        requestPermissions(context as Activity,
+                                            arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
+                                        )
+
+                                        mediaPermission = false
+                                        return@Button
+                                    } else if (context.checkSelfPermission(mediaPermissionLevel)
+                                        == PackageManager.PERMISSION_GRANTED) {
+                                        mediaPermission = true
                                     }
                                     isScanFinished = false
                                     isScannerActive = true

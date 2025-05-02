@@ -116,6 +116,7 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.AppDesignVariantKey
 import com.maloy.muzza.constants.AppDesignVariantType
+import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
@@ -215,7 +216,11 @@ class MainActivity : ComponentActivity() {
     }
 
 
-    private val permissionLauncher =
+    // storage permission helpers
+    private val mediaPermissionLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
+    else Manifest.permission.READ_EXTERNAL_STORAGE
+
+    val permissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
             if (isGranted) {
             } else {
@@ -255,12 +260,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-        // Check if the permission is not granted
-        // i have no idea is this will explode under API 33
-        if (checkSelfPermission(Manifest.permission.READ_MEDIA_AUDIO) != PackageManager.PERMISSION_GRANTED) {
-            // Request the permission using the permission launcher
-            permissionLauncher.launch(Manifest.permission.READ_MEDIA_AUDIO)
-        }
 
         lifecycleScope.launch {
             dataStore.data
@@ -329,6 +328,19 @@ class MainActivity : ComponentActivity() {
                         }
                     } else DefaultThemeColor
                 }
+            }
+
+            // Check if the permissions for local media access
+            // i have no idea is this will explode under API 33
+            if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_GRANTED) {
+                val (autoSyncLocalSongs) = rememberPreference(AutoSyncLocalSongsKey, defaultValue = false)
+                if (autoSyncLocalSongs == true) {
+                    //                    Not implemented
+                }
+            }
+            else if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_DENIED) {
+                // Request the permission using the permission launcher
+                permissionLauncher.launch(mediaPermissionLevel)
             }
 
             MuzzaTheme(

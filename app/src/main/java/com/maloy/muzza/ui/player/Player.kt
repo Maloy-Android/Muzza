@@ -238,7 +238,7 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = when {
-            pureBlack && darkTheme == DarkMode.ON && isSystemInDarkTheme -> Color.Black
+            pureBlack  -> Color.Black
             useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
                 MaterialTheme.colorScheme.surfaceContainer
             else -> MaterialTheme.colorScheme.onSurfaceVariant

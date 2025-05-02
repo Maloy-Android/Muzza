@@ -32,7 +32,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
-import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.CircularProgressIndicator
@@ -95,7 +94,6 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
-import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.ui.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
@@ -480,7 +478,7 @@ fun SongListItem(
                 }
                 if (song.song.isLocal == true) {
                     Icon(
-                        Icons.Rounded.FolderCopy,
+                        Icons.Rounded.MusicNote,
                         contentDescription = null,
                         modifier = Modifier
                             .size(18.dp)
@@ -500,7 +498,7 @@ fun SongFolderItem(
     folderTitle: String,
     modifier: Modifier = Modifier,
 ) = ListItem( title = folderTitle, thumbnailContent = { Icon(
-    Icons.Rounded.Folder,
+    Icons.Rounded.FolderCopy,
     contentDescription = null,
     modifier = modifier.size(48.dp)
 )

@@ -57,6 +57,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastSumBy
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -79,6 +80,7 @@ import com.maloy.muzza.ui.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.utils.scanLocal
 import com.maloy.muzza.ui.utils.syncDB
+import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibrarySongsViewModel
@@ -133,6 +135,11 @@ fun AutoPlaylistLocalScreen(
         mutableStateOf(
             if (flatSubfolders) folderStack.peek().toFlattenedTree() else folderStack.peek()
         )
+    }
+
+    val songs = currDir.files
+    val likeLength = remember(songs) {
+        songs.fastSumBy { it.song.duration }
     }
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
@@ -252,6 +259,11 @@ fun AutoPlaylistLocalScreen(
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 fontSizeRange = FontSizeRange(16.sp, 22.sp)
+                            )
+                            Text(
+                                text = makeTimeString(likeLength * 1000L),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Normal
                             )
                             Spacer(Modifier.height(12.dp))
                             Row(

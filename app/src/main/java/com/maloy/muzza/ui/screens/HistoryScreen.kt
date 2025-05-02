@@ -392,6 +392,18 @@ fun HistoryScreen(
                                                 inSelectMode = true
                                                 onCheckedChange(true)
                                             }
+                                            else {
+                                                if (event.song.song.isLocal) {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = event.song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                }
+                                            }
                                         }
                                     )
                                     .animateItem()

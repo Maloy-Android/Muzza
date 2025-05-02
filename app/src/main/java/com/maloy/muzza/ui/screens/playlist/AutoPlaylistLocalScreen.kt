@@ -205,7 +205,7 @@ fun AutoPlaylistLocalScreen(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
-            if (filteredItems.toList().isEmpty()) {
+            if (filteredItems.toList().isEmpty() && !isSearching) {
                 item {
                     EmptyPlaceholder(
                         icon = R.drawable.music_note,

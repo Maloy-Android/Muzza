@@ -274,6 +274,26 @@ fun AutoPlaylistLocalScreen(
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                 Text(stringResource(R.string.sync))
                             }
+                            Button(
+                                onClick = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = context.getString(R.string.queue_all_songs),
+                                            items = currDir.toList().shuffled().map { it.toMediaItem() }
+                                        )
+                                    )
+                                },
+                                contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.shuffle),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(ButtonDefaults.IconSize)
+                                )
+                                Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                Text(stringResource(R.string.shuffle))
+                            }
                         }
                     }
                 }

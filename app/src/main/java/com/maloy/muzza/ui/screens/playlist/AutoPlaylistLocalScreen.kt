@@ -19,6 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -39,8 +40,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -63,6 +66,7 @@ import androidx.compose.ui.util.fastSumBy
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
@@ -78,10 +82,11 @@ import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
-import com.maloy.muzza.ui.screens.Screens
 import com.maloy.muzza.ui.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.component.SortHeader
+import com.maloy.muzza.ui.menu.LocalSongSelectionMenu
+import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.scanLocal
 import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.ItemWrapper
@@ -156,6 +161,27 @@ fun AutoPlaylistLocalScreen(
     val songs = currDir.files
     val likeLength = remember(songs) {
         songs.fastSumBy { it.song.duration }
+    }
+
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    var inSelectMode by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberSaveable(
+        saver = listSaver<MutableList<String>, String>(
+            save = { it.toList() },
+            restore = { it.toMutableStateList() }
+        )
+    ) { mutableStateListOf() }
+    val onExitSelectionMode = {
+        inSelectMode = false
+        selection.clear()
+    }
+    if (inSelectMode) {
+        BackHandler(onBack = onExitSelectionMode)
+    }
+
+
+    LaunchedEffect(inSelectMode) {
+        backStackEntry?.savedStateHandle?.set("inSelectMode", inSelectMode)
     }
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
@@ -496,6 +522,13 @@ fun AutoPlaylistLocalScreen(
                 key = { _, item -> item.id },
                 contentType = { _, _ -> CONTENT_TYPE_SONG }
             ) { index, song ->
+                val onCheckedChange: (Boolean) -> Unit = {
+                    if (it) {
+                        selection.add(song.id)
+                    } else {
+                        selection.remove(song.id)
+                    }
+                }
                 if (index == 0) {
                     Row(
                         modifier = Modifier
@@ -521,47 +554,58 @@ fun AutoPlaylistLocalScreen(
                     showInLibraryIcon = true,
                     isPlaying = isPlaying,
                     trailingContent = {
-                        IconButton(
-                            onClick = {
-                                menuState.show {
-                                    SongMenu(
-                                        originalSong = song,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss
-                                    )
+                        if (inSelectMode) {
+                            Checkbox(
+                                checked = selection.contains(song.id),
+                                onCheckedChange = { checked ->
+                                    if (checked) selection.add(song.id)
+                                    else selection.remove(song.id)
                                 }
-                            }
-                        ) {
-                            Icon(
-                                painterResource(R.drawable.more_vert),
-                                contentDescription = null
                             )
+                        } else {
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.more_vert),
+                                    contentDescription = null
+                                )
+                            }
                         }
                     },
                     modifier = Modifier
                         .fillMaxWidth()
                         .combinedClickable(
                             onClick = {
-                                if (song.id == mediaMetadata?.id) {
-                                    playerConnection.player.togglePlayPause()
+                                if (inSelectMode) {
+                                    onCheckedChange(song.id !in selection)
                                 } else {
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = context.getString(R.string.local),
-                                            items = songs.map { it.toMediaItem() },
-                                            startIndex = songs.indexOfFirst { it.song.id == song.id }
+                                    if (song.id == mediaMetadata?.id) {
+                                        playerConnection.player.togglePlayPause()
+                                    } else {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = context.getString(R.string.local),
+                                                items = songs.map { it.toMediaItem() },
+                                                startIndex = songs.indexOfFirst { it.song.id == song.id }
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             },
                             onLongClick = {
-                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                menuState.show {
-                                    SongMenu(
-                                        originalSong = song,
-                                        navController = navController,
-                                        onDismiss = menuState::dismiss
-                                    )
+                                if (!inSelectMode) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    inSelectMode = true
+                                    onCheckedChange(true)
                                 }
                             }
                         )
@@ -607,33 +651,91 @@ fun AutoPlaylistLocalScreen(
                             }
                         }
                     )
+                }
+                if (inSelectMode) {
+                    TopAppBar(
+                        title = {
+                            Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                        },
+                        navigationIcon = {
+                            IconButton(onClick = onExitSelectionMode) {
+                                Icon(
+                                    painter = painterResource(R.drawable.close),
+                                    contentDescription = null,
+                                )
+                            }
+                        },
+                        actions = {
+                            Checkbox(
+                                checked = selection.size == filteredItems.files.size && selection.isNotEmpty(),
+                                onCheckedChange = {
+                                    if (selection.size == filteredItems.files.size) {
+                                        selection.clear()
+                                    } else {
+                                        selection.clear()
+                                        selection.addAll(filteredItems.files.map { it.id })
+                                    }
+                                }
+                            )
+                            IconButton(
+                                enabled = selection.isNotEmpty(),
+                                onClick = {
+                                    menuState.show {
+                                        LocalSongSelectionMenu(
+                                            selection = selection.mapNotNull { songId ->
+                                                songs.find { it.id == songId }
+                                            },
+                                            onDismiss = menuState::dismiss,
+                                            onExitSelectionMode = onExitSelectionMode
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painterResource(R.drawable.more_vert),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    )
                 } else {
-                    Text(if (viewModel.folderPositionStack.size > 1) currDir.currentDir else "Internal Storage")
+                    Text(if (viewModel.folderPositionStack.size > 1 && !isSearching) currDir.currentDir else "Internal Storage")
                 }
             },
             navigationIcon = {
-                IconButton(
+                com.maloy.muzza.ui.component.IconButton(
                     onClick = {
                         if (isSearching) {
                             isSearching = false
                             searchQuery = TextFieldValue()
                         } else {
-                            if (folderStack.isEmpty()) navController.navigate(Screens.Library.route)
-                            else currDir = folderStack.pop()
+                            navController.navigateUp()
+                        }
+                    },
+                    onLongClick = {
+                        if (!isSearching) {
+                            navController.backToMain()
                         }
                     }
                 ) {
-                    Icon(painterResource(R.drawable.arrow_back), null)
+                    if (!inSelectMode) {
+                        Icon(
+                            painter = painterResource(
+                                R.drawable.arrow_back
+                            ),
+                            contentDescription = null
+                        )
+                    }
                 }
             },
             actions = {
-                if (!isSearching) {
+                if (!isSearching && !inSelectMode) {
                     IconButton(onClick = { isSearching = true }) {
                         Icon(painterResource(R.drawable.search), null)
                     }
                 }
             },
-            scrollBehavior = scrollBehavior
+            scrollBehavior = if (!isSearching) scrollBehavior else null
         )
     }
 }

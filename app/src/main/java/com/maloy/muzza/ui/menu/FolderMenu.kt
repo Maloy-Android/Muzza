@@ -12,8 +12,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.db.entities.Event
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
@@ -23,6 +25,8 @@ import com.maloy.muzza.ui.utils.DirectoryTree
 @Composable
 fun FolderMenu(
     folder: DirectoryTree,
+    event: Event? = null,
+    navController: NavController,
     onDismiss: () -> Unit,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return

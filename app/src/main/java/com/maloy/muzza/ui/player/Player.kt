@@ -288,7 +288,7 @@ fun BottomSheetPlayer(
                                 modifier =
                                 Modifier
                                     .basicMarquee()
-                                    .clickable(enabled = mediaMetadata.album != null && mediaMetadata.isLocal != true) {
+                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
                                         navController.navigate("album/${mediaMetadata.album!!.id}")
                                         state.collapseSoft()
                                     },
@@ -310,7 +310,7 @@ fun BottomSheetPlayer(
                                         color = onBackgroundColor,
                                         maxLines = 1,
                                         modifier =
-                                        Modifier.clickable(enabled = artist.id != null && mediaMetadata.isLocal != true) {
+                                        Modifier.clickable(enabled = artist.id != null && !mediaMetadata.isLocal) {
                                             navController.navigate("artist/${artist.id}")
                                             state.collapseSoft()
                                         },

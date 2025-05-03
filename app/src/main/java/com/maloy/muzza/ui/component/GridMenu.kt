@@ -41,7 +41,7 @@ val GridMenuItemHeight = 108.dp
 fun GridMenu(
     modifier: Modifier = Modifier,
     contentPadding: PaddingValues = PaddingValues(0.dp),
-    content: @Composable LazyGridScope.() -> Unit,
+    content: LazyGridScope.() -> Unit,
 ) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 120.dp),

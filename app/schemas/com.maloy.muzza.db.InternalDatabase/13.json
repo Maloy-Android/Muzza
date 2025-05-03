@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 13,
-    "identityHash": "0a30373adc99f009d30ed47001839c9f",
+    "identityHash": "74b46937f1d77a6f7276d8130fbcf6ff",
     "entities": [
       {
         "tableName": "song",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `liked` INTEGER NOT NULL, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, `dateDownload` INTEGER, `isLocal` INTEGER, `localPath` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `liked` INTEGER NOT NULL, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, `dateDownload` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, `localPath` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -66,7 +66,9 @@
           {
             "fieldPath": "isLocal",
             "columnName": "isLocal",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": true,
+            "defaultValue": "false"
           },
           {
             "fieldPath": "localPath",
@@ -94,7 +96,7 @@
       },
       {
         "tableName": "artist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `channelId` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, `isLocal` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `channelId` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -127,11 +129,6 @@
           {
             "fieldPath": "bookmarkedAt",
             "columnName": "bookmarkedAt",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
             "affinity": "INTEGER"
           }
         ],
@@ -886,7 +883,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '0a30373adc99f009d30ed47001839c9f')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '74b46937f1d77a6f7276d8130fbcf6ff')"
     ]
   }
 }

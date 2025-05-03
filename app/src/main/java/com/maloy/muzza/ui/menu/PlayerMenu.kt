@@ -314,7 +314,7 @@ fun PlayerMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (mediaMetadata.isLocal != true) {
+        if (!mediaMetadata.isLocal) {
             GridMenuItem(
                 icon = R.drawable.radio,
                 title = R.string.start_radio
@@ -376,7 +376,7 @@ fun PlayerMenu(
                 }
             }
         }
-        if (mediaMetadata.isLocal != true) {
+        if (!mediaMetadata.isLocal) {
             if (artists.isNotEmpty()) {
                 GridMenuItem(
                     icon = R.drawable.artist,

@@ -368,7 +368,7 @@ fun scanLocal(
                  */
                 fun advancedScan(): Song {
                     var artists = ArrayList<ArtistEntity>()
-                    artists.add(ArtistEntity(artistID, artist, isLocal = true))
+                    artists.add(ArtistEntity(artistID, artist))
 
                     return Song(
                         SongEntity(

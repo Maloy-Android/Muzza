@@ -225,7 +225,7 @@ fun SongMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (song.song.isLocal != true) {
+        if (!song.song.isLocal) {
             GridMenuItem(
                 icon = R.drawable.radio,
                 title = R.string.start_radio
@@ -248,7 +248,7 @@ fun SongMenu(
             onDismiss()
             playerConnection.addToQueue((song.toMediaItem()))
         }
-        if (song.song.isLocal != true) {
+        if (!song.song.isLocal) {
             GridMenuItem(
                 icon = R.drawable.edit,
                 title = R.string.edit

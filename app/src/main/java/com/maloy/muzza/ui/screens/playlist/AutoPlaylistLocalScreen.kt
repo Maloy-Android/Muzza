@@ -86,6 +86,7 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibrarySongsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Stack
 
 @SuppressLint("StateFlowValueCalledInComposition")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -123,18 +124,25 @@ fun AutoPlaylistLocalScreen(
     val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
+
+    flatSubfolders.let {
+        viewModel.folderPositionStack = Stack()
+    }
+
     if (folderStack.isEmpty()) {
         val cachedTree = getDirectorytree()
         if (cachedTree == null) {
             viewModel.getLocalSongs(context, viewModel.databseLink)
         }
 
-        folderStack.push(viewModel.localSongDirectoryTree.value)
+
+        folderStack.push(
+            if (flatSubfolders) viewModel.localSongDirectoryTree.value.toFlattenedTree()
+            else viewModel.localSongDirectoryTree.value
+        )
     }
     var currDir by remember {
-        mutableStateOf(
-            if (flatSubfolders) folderStack.peek().toFlattenedTree() else folderStack.peek()
-        )
+        mutableStateOf(folderStack.peek())
     }
 
     val songs = currDir.files

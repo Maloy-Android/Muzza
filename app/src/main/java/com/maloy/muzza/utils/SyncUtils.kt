@@ -30,9 +30,7 @@ class SyncUtils @Inject constructor(
         YouTube.playlist("LM").completed().onSuccess { page ->
             val songs = page.songs.reversed()
             database.likedSongsByNameAsc().first()
-                .filter {
-                    !it.song.isLocal!! && it.id !in songs.map(SongItem::id)
-                }
+                .filterNot { !it.song.isLocal && it.id !in songs.map(SongItem::id) }
                 .forEach { database.update(it.song.localToggleLike()) }
 
             songs.forEach { song ->
@@ -40,14 +38,14 @@ class SyncUtils @Inject constructor(
                 database.transaction {
                     when (dbSong) {
                         null -> insert(song.toMediaMetadata(), SongEntity::localToggleLike)
-                        else -> if (!dbSong.song.liked && !dbSong.song.isLocal!!) {
+                        else -> if (!dbSong.song.liked && !dbSong.song.isLocal) {
                             update(dbSong.song.localToggleLike())
                         }
                     }
                 }
                 val songs = database.likedSongsNotDownloaded()
                     .first()
-                    .filterNot { it.song.isLocal == true }
+                    .filterNot { !it.song.isLocal }
                     .map { it.song }
 
                 downloadUtil.autoDownloadIfLiked(songs)

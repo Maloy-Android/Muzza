@@ -144,8 +144,6 @@ fun AutoPlaylistLocalScreen(
         if (cachedTree == null) {
             viewModel.getLocalSongs(context, viewModel.databaseLink)
         }
-
-
         folderStack.push(
             if (flatSubfolders) viewModel.localSongDirectoryTree.value.toFlattenedTree()
             else viewModel.localSongDirectoryTree.value
@@ -270,7 +268,7 @@ fun AutoPlaylistLocalScreen(
                     )
                 }
             }
-            if (!isSearching) {
+            if (filteredItems.toList().isNotEmpty() && !isSearching) {
                 item {
                     Column(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -443,6 +441,29 @@ fun AutoPlaylistLocalScreen(
                     }
                 }
             }
+            if (filteredItems.toList().isNotEmpty()) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp)
+                    ) {
+                        SortHeader(
+                            sortType = sortType,
+                            sortDescending = sortDescending,
+                            onSortTypeChange = onSortTypeChange,
+                            onSortDescendingChange = onSortDescendingChange,
+                            sortTypeText = { sortType ->
+                                when (sortType) {
+                                    SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    SongSortType.NAME -> R.string.sort_by_name
+                                    SongSortType.ARTIST -> R.string.sort_by_artist
+                                    SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                }
+                            }
+                        )
+                    }
+                }
+            }
             itemsIndexed(
                 items = filteredItems.subdirs,
                 key = { _, item -> item.uid },
@@ -468,29 +489,6 @@ fun AutoPlaylistLocalScreen(
                         thickness = DividerDefaults.Thickness,
                         modifier = Modifier.padding(20.dp)
                     )
-                }
-            }
-            if (filteredItems.toList().isNotEmpty()) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp)
-                    ) {
-                        SortHeader(
-                            sortType = sortType,
-                            sortDescending = sortDescending,
-                            onSortTypeChange = onSortTypeChange,
-                            onSortDescendingChange = onSortDescendingChange,
-                            sortTypeText = { sortType ->
-                                when (sortType) {
-                                    SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                    SongSortType.NAME -> R.string.sort_by_name
-                                    SongSortType.ARTIST -> R.string.sort_by_artist
-                                    SongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                }
-                            }
-                        )
-                    }
                 }
             }
             itemsIndexed(

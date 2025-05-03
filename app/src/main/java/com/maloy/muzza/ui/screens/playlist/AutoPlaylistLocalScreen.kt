@@ -6,6 +6,7 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -34,6 +35,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -66,6 +68,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.*
+import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
@@ -78,14 +81,17 @@ import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.screens.Screens
 import com.maloy.muzza.ui.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
+import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.utils.scanLocal
 import com.maloy.muzza.ui.utils.syncDB
+import com.maloy.muzza.utils.ItemWrapper
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibrarySongsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.ZoneOffset
 import java.util.Stack
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -106,6 +112,7 @@ fun AutoPlaylistLocalScreen(
     val folderStack = remember { viewModel.folderPositionStack }
     val (flatSubfolders) = rememberPreference(FlatSubfoldersKey, defaultValue = true)
     val coroutineScope = rememberCoroutineScope()
+    var inLocal by viewModel.inLocal
     var isScannerActive by remember { mutableStateOf(false) }
     var isScanFinished by remember { mutableStateOf(false) }
     var mediaPermission by remember { mutableStateOf(true) }
@@ -113,8 +120,8 @@ fun AutoPlaylistLocalScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
 
-    val (sortType) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
-    val (sortDescending) = rememberPreference(SongSortDescendingKey, true)
+    val (sortType,onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
+    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
     val (autoSyncLocalSongs) = rememberPreference(
         key = AutoSyncLocalSongsKey,
@@ -168,6 +175,37 @@ fun AutoPlaylistLocalScreen(
                         song.artists.joinToString("").contains(searchQueryStr, ignoreCase = true)
             }
         )
+    }
+
+    val wrappedSongs = remember {
+        mutableStateListOf<ItemWrapper<Song>>()
+    }
+    if (sortDescending) {
+        songs.reverse()
+    }
+    LaunchedEffect(sortType, sortDescending, currDir) {
+        val tempList = currDir.files.map { item -> ItemWrapper(item) }.toMutableList()
+        tempList.sortBy {
+            when (sortType) {
+                SongSortType.CREATE_DATE -> it.item.song.inLibrary?.toEpochSecond(ZoneOffset.UTC).toString()
+                SongSortType.NAME -> it.item.song.title
+                SongSortType.ARTIST -> it.item.artists.firstOrNull()?.name
+                SongSortType.PLAY_TIME -> it.item.song.totalPlayTime.toString()
+            }
+        }
+        currDir.subdirs.sortBy { it.currentDir }
+        if (sortDescending) {
+            currDir.subdirs.reverse()
+            tempList.reverse()
+        }
+        wrappedSongs.clear()
+        wrappedSongs.addAll(tempList)
+    }
+    BackHandler {
+        if (folderStack.size > 1) {
+            folderStack.pop()
+            currDir = folderStack.peek()
+        } else inLocal = false
     }
 
     if (autoSyncLocalSongs) {
@@ -438,7 +476,12 @@ fun AutoPlaylistLocalScreen(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(start = 16.dp)
                     ) {
-                        songs.sortBy {
+                        SortHeader(
+                            sortType = sortType,
+                            sortDescending = sortDescending,
+                            onSortTypeChange = onSortTypeChange,
+                            onSortDescendingChange = onSortDescendingChange,
+                            sortTypeText = { sortType ->
                                 when (sortType) {
                                     SongSortType.CREATE_DATE -> R.string.sort_by_create_date
                                     SongSortType.NAME -> R.string.sort_by_name
@@ -446,15 +489,9 @@ fun AutoPlaylistLocalScreen(
                                     SongSortType.PLAY_TIME -> R.string.sort_by_play_time
                                 }
                             }
+                        )
                     }
                 }
-            }
-            if (sortDescending) {
-                songs.reverse()
-            }
-            currDir.subdirs.sortBy { it.currentDir }
-            if (sortDescending) {
-                currDir.subdirs.reverse()
             }
             itemsIndexed(
                 items = filteredItems.files,

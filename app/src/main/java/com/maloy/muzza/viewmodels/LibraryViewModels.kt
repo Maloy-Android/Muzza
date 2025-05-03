@@ -3,6 +3,7 @@
 package com.maloy.muzza.viewmodels
 
 import android.content.Context
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -71,6 +72,8 @@ class LibrarySongsViewModel @Inject constructor(
      */
     var folderPositionStack = Stack<DirectoryTree>()
     val databaseLink = database
+
+    val inLocal = mutableStateOf(false)
 
     val allSongs = syncAllSongs(context, database, downloadUtil)
     val localSongDirectoryTree = refreshLocal(context, database)

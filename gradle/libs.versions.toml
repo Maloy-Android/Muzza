@@ -88,7 +88,7 @@ firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "
 
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
-newpipe-extractor = { group = "com.github.TeamNewPipe", name = "NewPipeExtractor", version = "v0.24.4" }
+newpipe-extractor = { group = "com.github.libre-tube", name = "NewPipeExtractor", version = "bc9a5a220e" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -58,16 +58,6 @@ data class YouTubeClient(
             supportsLogin = true,
         )
 
-        val WEB_CREATOR = YouTubeClient(
-            clientName = "WEB_CREATOR",
-            clientVersion = "1.20250312.03.01",
-            clientId = "62",
-            userAgent = USER_AGENT_WEB,
-            loginSupported = true,
-            loginRequired = true,
-            useSignatureTimestamp = true,
-        )
-
         val TVHTML5_SIMPLY_EMBEDDED_PLAYER = YouTubeClient(
             clientName = "TVHTML5_SIMPLY_EMBEDDED_PLAYER",
             clientVersion = "2.0",
@@ -82,6 +72,14 @@ data class YouTubeClient(
             clientId = "85",
             userAgent = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
             osVersion = "18.3.2.22D82",
+        )
+        val MOBILE = YouTubeClient(
+            clientName = "ANDROID",
+            clientVersion = "18.13.37",
+            clientId = "3",
+            userAgent = "com.google.android.youtube/18.13.37 (Linux; U; Android 13; Pixel 6)",
+            loginSupported = true,
+            useSignatureTimestamp = true
         )
     }
 }

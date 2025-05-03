@@ -238,7 +238,7 @@ fun AutoPlaylistLocalScreen(
             isScanFinished = false
             isScannerActive = true
             coroutineScope.launch(Dispatchers.IO) {
-                val directoryStructure = scanLocal(context, database).value
+                val directoryStructure = scanLocal(context).value
                 syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
 
                 isScannerActive = false
@@ -357,7 +357,7 @@ fun AutoPlaylistLocalScreen(
                                         ).show()
                                         coroutineScope.launch(Dispatchers.IO) {
                                             val directoryStructure =
-                                                scanLocal(context, database).value
+                                                scanLocal(context).value
                                             syncDB(
                                                 database,
                                                 directoryStructure.toList(),

@@ -49,7 +49,6 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
-import com.maloy.muzza.ui.utils.getLocalThumbnail
 import com.maloy.muzza.ui.utils.imageCache
 
 @Composable

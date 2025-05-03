@@ -1,14 +1,12 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.utils
 
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
 import android.provider.MediaStore
-import android.util.Log
 import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.AlbumEntity
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongEntity
@@ -18,6 +16,7 @@ import com.maloy.muzza.utils.LmImageCacheMgr
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -26,17 +25,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 
-const val TAG = "LocalMediaUtils"
-
-// stuff to make this work
 const val sdcardRoot = "/storage/emulated/0/"
 val testScanPaths = arrayListOf("Music")
 var directoryUID = 0
 var cachedDirectoryTree: DirectoryTree? = null
 var imageCache: LmImageCacheMgr = LmImageCacheMgr()
 
-
-// useful metadata
 val projection = arrayOf(
     MediaStore.Audio.Media._ID,
     MediaStore.Audio.Media.DISPLAY_NAME,
@@ -49,54 +43,32 @@ val projection = arrayOf(
     MediaStore.Audio.Media.RELATIVE_PATH,
 )
 
-
-/**
- * A tree representation of local audio files
- *
- * @param path root directory start
- */
 class DirectoryTree(path: String) {
-    var currentDir = path // file name
+    var currentDir = path
     var parent: String = ""
-
-    // folder contents
     var subdirs = ArrayList<DirectoryTree>()
     var files = ArrayList<Song>()
-
     val uid = directoryUID
 
     init {
-        // increment uid
         directoryUID++
     }
 
-    /**
-     * Instantiate a directory tree directly
-     */
     constructor(path: String, files: ArrayList<Song>) : this(path) {
         this.files = files
     }
 
     fun insert(path: String, song: Song) {
-//        println("curr path =" + path)
-
-        // add a file
         if (path.indexOf('/') == -1) {
             files.add(song)
-            println("add A MUSIC FILE AAAAAAHHH " + path)
+            println(path)
             return
         }
-
-        // there is still subdirs to process
         var tmppath = path
         if (path[path.length - 1] == '/') {
             tmppath = path.substring(0, path.length - 1)
         }
-
-        // the first directory before the .
         val subdirPath = tmppath.substringBefore('/')
-
-        // create subdirs if they do not exist, then insert
         var existingSubdir: DirectoryTree? = null
         subdirs.forEach { subdir ->
             if (subdir.currentDir == subdirPath) {
@@ -104,10 +76,9 @@ class DirectoryTree(path: String) {
                 return@forEach
             }
         }
-
         if (existingSubdir == null) {
             val tree = DirectoryTree(subdirPath)
-            tree.parent = parent + "/$currentDir"
+            tree.parent = "$parent/$currentDir"
             tree.insert(tmppath.substringAfter('/'), song)
             subdirs.add(tree)
 
@@ -116,89 +87,22 @@ class DirectoryTree(path: String) {
         }
     }
 
-    /**
-     * Get the name of the file from full path, without any extensions
-     */
-    private fun getFileName(path: String?): String? {
-        if (path == null) {
-            return null
-        }
-        return path.substringAfterLast('/').substringBefore('.')
-    }
-
-    /**
-     * Retrieves song object at path
-     *
-     * @return song at path, or null if it does not exist
-     */
-    fun getSong(path: String): Song? {
-        Log.d(TAG, "Searching for song, at path --> $path")
-
-        // search for song in current dir
-        if (path.indexOf('/') == -1) {
-            val foundSong: Song = files.first { getFileName(it.song.localPath) == getFileName(path) }
-            Log.d(TAG, "Searching for song, found? --> " + foundSong?.id + " name: " + foundSong?.song?.title)
-            return foundSong
-        }
-
-        // there is still subdirs to process
-        var tmppath = path
-        if (path[path.length - 1] == '/') {
-            tmppath = path.substring(0, path.length - 1)
-        }
-
-        // the first directory before the .
-        val subdirPath = tmppath.substringBefore('/')
-
-        // scan for matching subdirectory
-        var existingSubdir: DirectoryTree? = null
-        subdirs.forEach { subdir ->
-            if (subdir.currentDir == subdirPath) {
-                existingSubdir = subdir
-                return@forEach
-            }
-        }
-
-        // explore the subdirectory if it exists in
-        if (existingSubdir == null) {
-            return null
-        } else {
-            return existingSubdir!!.getSong(tmppath.substringAfter('/'))
-        }
-    }
-
-
-    /**
-     * Retrieve a list of all the songs
-     */
     fun toList(): List<Song> {
         val songs = ArrayList<Song>()
-
         fun traverseHELPME(tree: DirectoryTree, result: ArrayList<Song>) {
             result.addAll(tree.files)
             tree.subdirs.forEach { traverseHELPME(it, result) }
         }
-
         traverseHELPME(this, songs)
-
         return songs
     }
 
-    /**
-     * Retrieves a modified version of this DirectoryTree.
-     * All folders are recognized to be top level folders
-     */
     fun toFlattenedTree(): DirectoryTree {
         val result = DirectoryTree(sdcardRoot)
         getSubdirsRecursive(this, result.subdirs)
         return result
     }
 
-    /**
-     * Crawl the directory tree, add the subdirectories with songs to the list
-     * @param it
-     * @param result
-     */
     private fun getSubdirsRecursive(it: DirectoryTree, result: ArrayList<DirectoryTree>) {
         if (it.files.size > 0) {
             result.add(DirectoryTree(it.currentDir, it.files))
@@ -208,6 +112,7 @@ class DirectoryTree(path: String) {
             it.subdirs.forEach { getSubdirsRecursive(it, result) }
         }
     }
+
     fun copy(
         currentDir: String = this.currentDir,
         subdirs: List<DirectoryTree> = this.subdirs,
@@ -220,71 +125,36 @@ class DirectoryTree(path: String) {
     }
 }
 
-/**
- * A wrapper containing extra raw metadata that MediaStore fails to read properly
- */
-data class ExtraMetadataWrapper(val artists: String, val genres: String, val date: String)
-
-/**
- * ==========================
- * Actual local scanner utils
- * ==========================
- */
-
-
-/**
- * Dev uses
- */
 fun refreshLocal(context: Context, database: MusicDatabase) =
     refreshLocal(context, database, testScanPaths)
 
-
-// so here is the thing right, if your files move around, that's on you to re run the full scanner.
-// so here is the other other thing right, if the metadata changes, that's also on you to re run the full scanner.
-/**
- * Quickly rebuild a skeleton directory tree of local files based on the database
- *
- * @param context Context
- * @param scanPaths List of whitelist paths to scan under. This assumes
- * the current directory is /storage/emulated/0/ a.k.a, /sdcard.
- * For example, to scan under Music and Documents/songs --> ("Music", Documents/songs)
- */
 fun refreshLocal(
     context: Context,
     database: MusicDatabase,
     scanPaths: ArrayList<String>
 ): MutableStateFlow<DirectoryTree> {
     val newDirectoryStructure = DirectoryTree(sdcardRoot)
-
-    // get songs from db
     var existingSongs: List<Song>
     runBlocking(Dispatchers.IO) {
         existingSongs = database.allLocalSongsData().first()
     }
-
-    // Query for audio files
     val contentResolver: ContentResolver = context.contentResolver
     val cursor = contentResolver.query(
         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         projection,
         "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?",
-        scanPaths.map { "$sdcardRoot$it%" }.toTypedArray(), // whitelist paths
+        scanPaths.map { "$sdcardRoot$it%" }.toTypedArray(),
         null
     )
-    Log.d(TAG, "------------------------------------------")
     cursor?.use { cursor ->
-        // Columns indices
         val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
         val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH)
 
         while (cursor.moveToNext()) {
-            val name = cursor.getString(nameColumn) // file name
+            val name = cursor.getString(nameColumn)
             val path = cursor.getString(pathColumn)
-
-            Log.d(TAG, "Quick scanner: PATH: $path")
-
-            // Build directory tree with existing files
-            val possibleMatch = existingSongs.firstOrNull() { it.song.localPath == "$sdcardRoot$path$name" }
+            val possibleMatch =
+                existingSongs.firstOrNull { it.song.localPath == "$sdcardRoot$path$name" }
 
             if (possibleMatch != null) {
                 newDirectoryStructure.insert("$path$name", possibleMatch)
@@ -297,44 +167,28 @@ fun refreshLocal(
     return MutableStateFlow(newDirectoryStructure)
 }
 
-/**
- * Dev uses
- */
-fun scanLocal(context: Context, database: MusicDatabase) =
-    scanLocal(context, database, testScanPaths)
+fun scanLocal(context: Context) =
+    scanLocal(context, testScanPaths)
 
-/**
- * Scan MediaStore for songs given a list of paths to scan for.
- * This will replace all data in the database for a given song.
- *
- * @param context Context
- * @param scanPaths List of whitelist paths to scan under. This assumes
- * the current directory is /storage/emulated/0/ a.k.a, /sdcard.
- * For example, to scan under Music and Documents/songs --> ("Music", Documents/songs)
- */
+
+@OptIn(ExperimentalCoroutinesApi::class)
 fun scanLocal(
     context: Context,
-    database: MusicDatabase,
     scanPaths: ArrayList<String>
 ): MutableStateFlow<DirectoryTree> {
     val newDirectoryStructure = DirectoryTree(sdcardRoot)
     val contentResolver: ContentResolver = context.contentResolver
-
-    // Query for audio files
     val cursor = contentResolver.query(
         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
         projection,
         "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?",
-        scanPaths.map { "$sdcardRoot$it%" }.toTypedArray(), // whitelist paths
+        scanPaths.map { "$sdcardRoot$it%" }.toTypedArray(),
         null
     )
-    Log.d("WTF", "------------------------------------------")
 
     val scannerJobs = ArrayList<Deferred<Song>>()
     runBlocking {
-        // MediaStore is our "basic" scanner
         cursor?.use { cursor ->
-            // Columns indices
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
             val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
@@ -347,34 +201,22 @@ fun scanLocal(
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
-                val name = cursor.getString(nameColumn) // file name
-                val title = cursor.getString(titleColumn) // song title
+                val name = cursor.getString(nameColumn)
+                val title = cursor.getString(titleColumn)
                 val duration = cursor.getInt(durationColumn)
                 val artist = cursor.getString(artistColumn)
                 val artistID = cursor.getString(artistIdColumn)
                 val albumID = cursor.getString(albumIDColumn)
                 val album = cursor.getString(albumColumn)
                 val path = cursor.getString(pathColumn)
-
-                Log.d("WTF", "ID: $id, Name: $name, ARTITST: $artist\" , PATH: $path")
-
-                // append song to list
-                // media store doesn't support multi artists...
-                // do not link album (and whatever song id) with youtube yet, figure that out later
-
-                /**
-                 * Compiles a song with all it's necessary metadata. Unlike MediaStore,
-                 * this also supports, multiple genres (TBD), and a few extra details (TBD).
-                 */
                 fun advancedScan(): Song {
-                    var artists = ArrayList<ArtistEntity>()
+                    val artists = ArrayList<ArtistEntity>()
                     artists.add(ArtistEntity(artistID, artist))
-
                     return Song(
                         SongEntity(
                             id.toString(),
                             title,
-                            (duration / 1000), // we use seconds for duration
+                            (duration / 1000),
                             albumId = albumID,
                             albumName = album,
                             isLocal = true,
@@ -382,8 +224,6 @@ fun scanLocal(
                             localPath = "$sdcardRoot$path$name"
                         ),
                         artists,
-                        // album not working
-                        AlbumEntity(albumID, title = album, duration = 0, songCount = 1)
                     )
                 }
 
@@ -393,12 +233,9 @@ fun scanLocal(
 
         scannerJobs.awaitAll()
     }
-
-    // build the tree
-    scannerJobs.forEach {
+    scannerJobs.forEach { it ->
         val song = it.getCompleted()
-
-        song.song.localPath?.let { it ->
+        song.song.localPath?.let {
             newDirectoryStructure.insert(
                 it.substringAfter(sdcardRoot), song
             )
@@ -408,35 +245,20 @@ fun scanLocal(
     cachedDirectoryTree = newDirectoryStructure
     return MutableStateFlow(newDirectoryStructure)
 }
-/**
- * Update the Database with local files
- *
- * @param database
- * @param directoryStructure
- * @param matchStrength How lax should the scanner be
- * @param strictFileNames Whether to consider file names
- *
- * inserts a song if not found
- * updates a song information depending
- */
+
 fun syncDB(
     database: MusicDatabase,
     directoryStructure: List<Song>,
     matchStrength: ScannerSensitivity,
     strictFileNames: Boolean
 ) {
-    println("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA" + directoryStructure.size)
+    println(directoryStructure.size)
 
     database.transaction {
         directoryStructure.forEach { song ->
-//            println("search for " + song.song.title.substringBeforeLast('.'))
             val querySong = database.searchSongs(song.song.title.substringBeforeLast('.'))
-
             CoroutineScope(Dispatchers.IO).launch {
-
-                // check if this song is known to the library
                 val songMatch = querySong.first().filter {
-                    // match file names
                     if (strictFileNames &&
                         (it.song.localPath?.substringBeforeLast('/') !=
                                 song.song.localPath?.substringBeforeLast('/'))
@@ -445,55 +267,37 @@ fun syncDB(
                     }
                     return@filter compareSong(it, song, matchStrength, strictFileNames)
                 }
-
-
-                /**
-                 * TODO: update specific fields instead of whole object
-                 */
-                if (songMatch.isNotEmpty()) { // known song, update the song info in the database
-                    println("WE HAVE THIS WANKER: " + song.song.title)
+                if (songMatch.isNotEmpty()) {
+                    println(song.song.title)
                     database.update(song.song)
-                } else { // new song
-                    println("WE inserrttt WANKER   " + song.song.title + song.artists.first().name + song.artists.first().id)
+                } else {
+                    println(song.song.title + song.artists.first().name + song.artists.first().id)
                     println(database.insert(song.toMediaMetadata()))
                 }
-                // do not delete songs from database automatically
             }
         }
     }
 
 }
-/**
- * Check if artists are the same
- *
- *  * Both null == same artists
- *  * Either null == different artists
- */
-fun compareArtist(a: List<ArtistEntity>?, b: List<ArtistEntity>?): Boolean {
 
+fun compareArtist(a: List<ArtistEntity>?, b: List<ArtistEntity>?): Boolean {
     if (a == null && b == null) {
         return true
     } else if (a == null || b == null) {
         return false
     }
-
-    // compare entries
     val matchingArtists = a.filter { artist ->
         b.any { it.name == artist.name }
     }
-
     return matchingArtists.size == a.size
 }
 
-/**
- * Check the similarity of a song
- *
- * @param a
- * @param b
- * @param matchStrength How lax should the scanner be
- * @param strictFileNames Whether to consider file names
- */
-fun compareSong(a: Song, b: Song, matchStrength: ScannerSensitivity, strictFileNames: Boolean): Boolean {
+fun compareSong(
+    a: Song,
+    b: Song,
+    matchStrength: ScannerSensitivity,
+    strictFileNames: Boolean
+): Boolean {
     if (strictFileNames &&
         (a.song.localPath?.substringBeforeLast('/') !=
                 b.song.localPath?.substringBeforeLast('/'))
@@ -503,21 +307,21 @@ fun compareSong(a: Song, b: Song, matchStrength: ScannerSensitivity, strictFileN
 
     return when (matchStrength) {
         ScannerSensitivity.LEVEL_1 -> a.song.title == b.song.title
-        ScannerSensitivity.LEVEL_2 -> a.song.title == b.song.title &&
-                compareArtist(a.artists, b.artists)
+        ScannerSensitivity.LEVEL_2 -> a.song.title == b.song.title && compareArtist(
+            a.artists,
+            b.artists
+        )
 
-        ScannerSensitivity.LEVEL_3 -> a.song.title == b.song.title &&
-                compareArtist(a.artists, b.artists) && true // album compare go here
+        ScannerSensitivity.LEVEL_3 -> a.song.title == b.song.title && compareArtist(
+            a.artists,
+            b.artists
+        )
     }
 }
 
 object CachedBitmap {
     var path: String? = null
     var image: Bitmap? = null
-
-    /**
-     * Adds an image to the cache
-     */
     fun cache(path: String, image: Bitmap?) {
         if (image == null) {
             return
@@ -528,58 +332,9 @@ object CachedBitmap {
         bitmapCache.add(this)
     }
 
-    /**
-     * Retrieves an image from the cache
-     */
-    fun retrieveImage(path: String): Bitmap? {
-        return bitmapCache.first { it.path == path }.image
-    }
 }
 
-/**
- * TODO: Fix the root cause of the miniplayer constantly needing reloading
- * TODO: Clear the cache on library re-scan
- */
-// memory leak? who cares? speed is king!
 var bitmapCache = ArrayList<CachedBitmap>()
-
-/**
- * Extract the album art from the audio file
- *
- * @param path Full path of audio file
- */
-fun getLocalThumbnail(path: String?): Deferred<Bitmap?> {
-    return CoroutineScope(Dispatchers.IO).async {
-        if (path == null) {
-            return@async null
-        }
-
-        // get cached image
-        try {
-            return@async CachedBitmap.retrieveImage(path)
-        } catch (_: NoSuchElementException) {
-        }
-
-
-        val mData = MediaMetadataRetriever()
-        mData.setDataSource(path)
-
-        val image: Bitmap? = try {
-            val art = mData.embeddedPicture
-            BitmapFactory.decodeByteArray(art, 0, art!!.size)
-        } catch (e: Exception) {
-            null
-        }
-
-        CachedBitmap.cache(path, image)
-        return@async image
-    }
-}
-
-
-/**
- * Get cached directory tree
- */
 fun getDirectorytree(): DirectoryTree? {
     if (cachedDirectoryTree == null) {
         return null

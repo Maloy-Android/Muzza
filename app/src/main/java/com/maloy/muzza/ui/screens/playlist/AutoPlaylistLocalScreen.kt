@@ -132,7 +132,7 @@ fun AutoPlaylistLocalScreen(
     if (folderStack.isEmpty()) {
         val cachedTree = getDirectorytree()
         if (cachedTree == null) {
-            viewModel.getLocalSongs(context, viewModel.databseLink)
+            viewModel.getLocalSongs(context, viewModel.databaseLink)
         }
 
 

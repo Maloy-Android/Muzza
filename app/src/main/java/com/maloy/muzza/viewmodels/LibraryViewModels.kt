@@ -90,6 +90,7 @@ class LibrarySongsViewModel @Inject constructor(
      */
     fun getLocalSongs(context: Context, database: MusicDatabase): MutableStateFlow<DirectoryTree> {
         val directoryStructure = refreshLocal(context, database).value
+        localSongDirectoryTree.value = directoryStructure
         return MutableStateFlow(directoryStructure)
     }
 

@@ -113,6 +113,9 @@ fun AutoPlaylistLocalScreen(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
 
+    val (sortType) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
+    val (sortDescending) = rememberPreference(SongSortDescendingKey, true)
+
     val (autoSyncLocalSongs) = rememberPreference(
         key = AutoSyncLocalSongsKey,
         defaultValue = true
@@ -428,6 +431,30 @@ fun AutoPlaylistLocalScreen(
                         modifier = Modifier.padding(20.dp)
                     )
                 }
+            }
+            if (filteredItems.toList().isNotEmpty()) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp)
+                    ) {
+                        songs.sortBy {
+                                when (sortType) {
+                                    SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    SongSortType.NAME -> R.string.sort_by_name
+                                    SongSortType.ARTIST -> R.string.sort_by_artist
+                                    SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                }
+                            }
+                    }
+                }
+            }
+            if (sortDescending) {
+                songs.reverse()
+            }
+            currDir.subdirs.sortBy { it.currentDir }
+            if (sortDescending) {
+                currDir.subdirs.reverse()
             }
             itemsIndexed(
                 items = filteredItems.files,

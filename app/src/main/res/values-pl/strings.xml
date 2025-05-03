@@ -299,7 +299,7 @@
     <string name="add_anyway">Dodaj mimo wszystko</string>
     <string name="duplicates_description_multiple">%d utwory są już obecne w Twojej playliście</string>
     <string name="player">Odtwarzacz</string>
-    <string name="player_slider_style">Styl suwaka odtwarzacza</string>
+    <string name="slider_style">Styl suwaka</string>
     <string name="misc">Różne</string>
     <string name="grid_cell_size">Rozmiar komórki siatki</string>
     <string name="not_logged_in">Nie zalogowano</string>

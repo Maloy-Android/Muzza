@@ -221,7 +221,7 @@
     <string name="left">Izquierda</string>
     <string name="center">Centro</string>
     <string name="right">Derecha</string>
-    <string name="player_slider_style">Estilo de la barra del reproductor</string>
+    <string name="slider_style">Estilo de la barra</string>
     <string name="default_">Por defecto</string>
     <string name="squiggly">Ondulado</string>
     <string name="misc">Otros</string>

@@ -71,6 +71,8 @@ import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
+import com.maloy.muzza.constants.SliderStyle
+import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.BigSeekBar
@@ -81,10 +83,12 @@ import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.SleepTimerGridMenu
+import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import me.saket.squiggles.SquigglySlider
 import java.time.LocalDateTime
 import kotlin.math.log2
 import kotlin.math.pow
@@ -150,6 +154,8 @@ fun PlayerMenu(
         mutableFloatStateOf(30f)
     }
 
+    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
+
     if (showSleepTimerDialog) {
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -184,19 +190,38 @@ fun PlayerMenu(
                         style = MaterialTheme.typography.bodyLarge
                     )
 
-                    Slider(
-                        value = sleepTimerValue,
-                        onValueChange = { sleepTimerValue = it },
-                        valueRange = 5f..120f,
-                        steps = (120 - 5) / 5 - 1,
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
+                    when (sliderStyle) {
+                        SliderStyle.DEFAULT -> {
+                            Slider(
+                                value = sleepTimerValue,
+                                onValueChange = { sleepTimerValue = it },
+                                valueRange = 5f..120f,
+                                steps = (120 - 5) / 5 - 1,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                },
                             )
-                        },
-                    )
+                        }
+                        SliderStyle.SQUIGGLY -> {
+                            SquigglySlider(
+                                value = sleepTimerValue,
+                                onValueChange = { sleepTimerValue = it },
+                                valueRange = 5f..120f,
+                            )
+                        }
+                        SliderStyle.COMPOSE -> {
+                            Slider(
+                                value = sleepTimerValue,
+                                onValueChange = { sleepTimerValue = it },
+                                valueRange = 5f..120f,
+                                steps = (120 - 5) / 5 - 1,
+                            )
+                        }
+                    }
 
                     OutlinedButton(
                         onClick = {

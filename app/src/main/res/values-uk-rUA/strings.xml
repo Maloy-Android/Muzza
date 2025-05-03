@@ -307,7 +307,7 @@
     <string name="left">Ліворуч</string>
     <string name="center">По центру</string>
     <string name="right">Праворуч</string>
-    <string name="player_slider_style">Стиль повзунка плеєра</string>
+    <string name="slider_style">Стиль повзунка</string>
     <string name="default_">Стандартний</string>
     <string name="thumbnail_corner_radius">Радіус заокруглення обкладинки</string>
     <string name="squiggly">Хвилястий</string>

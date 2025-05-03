@@ -184,7 +184,7 @@
     <string name="left">يسار</string>
     <string name="center">المنتصف</string>
     <string name="right">يمين</string>
-    <string name="player_slider_style">طراز شريط تمرير المشغل</string>
+    <string name="slider_style">نموذج المنزلق</string>
     <string name="default_">الافتراضي</string>
     <plurals name="minute">
         <item quantity="zero">%d دقيقة</item>

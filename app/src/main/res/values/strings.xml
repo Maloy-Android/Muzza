@@ -296,7 +296,7 @@
     <string name="blurmv">Blur (Motion)</string>
     <string name="player_background_style">Player background style</string>
     <string name="right">Right</string>
-    <string name="player_slider_style">Player slider style</string>
+    <string name="slider_style">Slider style</string>
     <string name="default_">Default</string>
     <string name="squiggly">Squiggly</string>
     <string name="compose">Compose</string>

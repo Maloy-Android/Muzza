@@ -217,7 +217,7 @@
     <string name="left">左</string>
     <string name="center">中央</string>
     <string name="right">右</string>
-    <string name="player_slider_style">プレーヤーのスライダーの形</string>
+    <string name="slider_style">スライダーの形</string>
     <string name="default_">標準</string>
     <string name="squiggly">くねくね</string>
     <string name="misc">ほか</string>

@@ -262,7 +262,7 @@
     <string name="library_song_empty">媒体库歌曲将显示在此处</string>
     <string name="duplicates_description_single">这首歌曲已在您的播放列表中</string>
     <string name="dismiss">关闭</string>
-    <string name="player_slider_style">播放器滑块样式</string>
+    <string name="slider_style">タイプの滑走</string>
     <string name="keep_listening">继续听</string>
     <string name="add_all_to_library">全部加入媒体库</string>
     <string name="remove_all_from_library">全部从媒体库中移除</string>

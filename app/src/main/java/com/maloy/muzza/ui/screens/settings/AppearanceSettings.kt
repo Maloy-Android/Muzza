@@ -329,6 +329,19 @@ fun AppearanceSettings(
             }
         )
 
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.slider_style)) },
+            description = when (sliderStyle) {
+                SliderStyle.DEFAULT -> stringResource(R.string.default_)
+                SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
+                SliderStyle.COMPOSE -> stringResource(R.string.compose)
+            },
+            icon = { Icon(painterResource(R.drawable.sliders), null) },
+            onClick = {
+                showSliderOptionDialog = true
+            }
+        )
+
         PreferenceGroupTitle(
             title = stringResource(R.string.player)
         )
@@ -375,19 +388,6 @@ fun AppearanceSettings(
             description = "$thumbnailCornerRadius" + "0%",
             icon = { Icon(Icons.Rounded.Image, null) },
             onClick = { showCornerRadiusDialog = true }
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.player_slider_style)) },
-            description = when (sliderStyle) {
-                SliderStyle.DEFAULT -> stringResource(R.string.default_)
-                SliderStyle.SQUIGGLY -> stringResource(R.string.squiggly)
-                SliderStyle.COMPOSE -> stringResource(R.string.compose)
-            },
-            icon = { Icon(painterResource(R.drawable.sliders), null) },
-            onClick = {
-                showSliderOptionDialog = true
-            }
         )
 
         PreferenceGroupTitle(

@@ -208,7 +208,7 @@
     <string name="left">靠左</string>
     <string name="center">置中</string>
     <string name="right">靠右</string>
-    <string name="player_slider_style">播放器滑桿樣式</string>
+    <string name="slider_style">播放器滑桿樣式</string>
     <string name="default_">預設</string>
     <string name="squiggly">波浪</string>
     <string name="misc">其他</string>

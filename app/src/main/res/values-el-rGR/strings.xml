@@ -233,7 +233,7 @@
     <string name="left">Αριστερά</string>
     <string name="center">Κέντρο</string>
     <string name="right">Δεξιά</string>
-    <string name="player_slider_style">Στυλ ρυθμιστικού αναπαραγωγέα</string>
+    <string name="slider_style">Στυλ Ολισθητήρα</string>
     <string name="default_">Προεπιλογή</string>
     <string name="squiggly">Στριφογυριστό</string>
     <string name="misc">Διάφορα</string>

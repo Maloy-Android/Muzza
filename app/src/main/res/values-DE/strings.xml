@@ -261,7 +261,7 @@
     <string name="preview">Vorschau</string>
     <string name="misc">Sonstiges</string>
     <string name="add_anyway">Trotzdem hinzufügen</string>
-    <string name="player_slider_style">Spieler-Schieberegler-Stil</string>
+    <string name="slider_style">Schieberegler-Stil</string>
     <string name="duplicates_description_multiple">%d Titel sind bereits in Ihrer Wiedergabeliste</string>
     <string name="enable_discord_rpc">Reichhaltige Anwesenheit aktivieren</string>
     <string name="auto_skip_next_on_error_desc">Sichern Sie Ihr kontinuierliches Wiedergabeerlebnis</string>

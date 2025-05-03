@@ -258,7 +258,7 @@
     <string name="your_youtube_playlists">YouTube çalma listeleriniz</string>
     <string name="remove_from_playlist">Çalma listesinden kaldır</string>
     <string name="player_text_alignment">Oynatıcı metin hizalaması</string>
-    <string name="player_slider_style">Oynatıcı kaydırma biçimi</string>
+    <string name="slider_style">Kaydırma biçimi</string>
     <string name="queue">Sıra</string>
     <string name="persistent_queue_desc">Uygulama başladığında son şarkı sırasını geri getirir</string>
     <string name="auto_skip_next_on_error">Hata oluştuğunda sonraki şarkıya otomatik atla</string>

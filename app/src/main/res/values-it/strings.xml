@@ -255,7 +255,7 @@
     <string name="library_album_empty">Gli album della libreria verranno visualizzati qui</string>
     <string name="library_playlist_empty">Le tue playlist verranno visualizzate qui</string>
     <string name="remove_from_queue">Rimuovi dalla coda</string>
-    <string name="player_slider_style">Stile slider del player</string>
+    <string name="slider_style">Stile slider</string>
     <string name="keep_listening">Continua ad ascoltare</string>
     <string name="your_youtube_playlists">Le tue playlist di YouTube</string>
     <string name="duplicates_description_multiple">La canzone %d è già nella tua playlist</string>

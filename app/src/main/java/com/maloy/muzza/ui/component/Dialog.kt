@@ -36,6 +36,7 @@ import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -53,7 +54,11 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DialogCornerRadius
+import com.maloy.muzza.constants.SliderStyle
+import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.delay
+import me.saket.squiggles.SquigglySlider
 
 @Composable
 fun DefaultDialog(
@@ -261,6 +266,7 @@ fun CounterDialog(
         val tempValue = rememberSaveable {
             mutableIntStateOf(initialValue)
         }
+        val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
         Column(
             modifier = Modifier
                 .background(
@@ -293,18 +299,36 @@ fun CounterDialog(
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(horizontal = 8.dp)
                     )
-                    Slider(
-                        value = tempValue.intValue.toFloat(),
-                        onValueChange = { tempValue.intValue = it.toInt() },
-                        valueRange = lowerBound.toFloat()..upperBound.toFloat(),
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
+                    when (sliderStyle) {
+                        SliderStyle.DEFAULT -> {
+                            Slider(
+                                value = tempValue.intValue.toFloat(),
+                                onValueChange = { tempValue.intValue = it.toInt() },
+                                valueRange = lowerBound.toFloat()..upperBound.toFloat(),
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                }
                             )
                         }
-                    )
+                        SliderStyle.SQUIGGLY -> {
+                            SquigglySlider(
+                                value = tempValue.intValue.toFloat(),
+                                onValueChange = { tempValue.intValue = it.toInt() },
+                                valueRange = lowerBound.toFloat()..upperBound.toFloat(),
+                            )
+                        }
+                        SliderStyle.COMPOSE -> {
+                            Slider(
+                                value = tempValue.intValue.toFloat(),
+                                onValueChange = { tempValue.intValue = it.toInt() },
+                                valueRange = lowerBound.toFloat()..upperBound.toFloat(),
+                            )
+                        }
+                    }
                 }
                 Row(
                     horizontalArrangement = Arrangement.End,

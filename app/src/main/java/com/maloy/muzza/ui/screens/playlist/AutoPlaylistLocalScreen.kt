@@ -276,6 +276,12 @@ fun AutoPlaylistLocalScreen(
         }
     }
 
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            focusRequester.requestFocus()
+        }
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {

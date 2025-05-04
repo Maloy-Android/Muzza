@@ -232,7 +232,7 @@ fun CachePlaylistScreen(
                     )
                 }
             } else {
-                if (!isSearching) {
+                if (filteredSongs.isNotEmpty() && !isSearching) {
                     item {
                         Column(
                             verticalArrangement = Arrangement.spacedBy(12.dp),

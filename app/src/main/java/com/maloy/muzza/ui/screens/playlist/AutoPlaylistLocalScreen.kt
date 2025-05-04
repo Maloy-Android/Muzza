@@ -228,11 +228,13 @@ fun AutoPlaylistLocalScreen(
         wrappedSongs.clear()
         wrappedSongs.addAll(tempList)
     }
-    BackHandler {
-        if (folderStack.size > 1) {
-            folderStack.pop()
-            currDir = folderStack.peek()
-        } else inLocal = false
+    if (inLocal) {
+        BackHandler {
+            if (folderStack.size > 1) {
+                folderStack.pop()
+                currDir = folderStack.peek()
+            } else inLocal = false
+        }
     }
 
     if (autoSyncLocalSongs) {

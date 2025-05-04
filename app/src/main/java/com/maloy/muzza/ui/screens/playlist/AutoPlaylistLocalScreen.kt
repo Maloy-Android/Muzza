@@ -478,7 +478,7 @@ fun AutoPlaylistLocalScreen(
                     }
                 }
             }
-            if (filteredItems.toList().isNotEmpty()) {
+            if (filteredItems.toList().isNotEmpty() && !isSearching) {
                 item {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,

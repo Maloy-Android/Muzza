@@ -141,6 +141,8 @@ fun HomeScreen(
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
+    val topSize = 50
+
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
             lazylistState.animateScrollToItem(0)
@@ -347,6 +349,7 @@ fun HomeScreen(
                             Pair("stats", stringResource(R.string.stats)),
                             Pair("liked", stringResource(R.string.liked)),
                             Pair("downloads", stringResource(R.string.offline)),
+                            Pair("MyTop", stringResource(R.string.my_top)),
                             Pair("cached", stringResource(R.string.cached)),
                             Pair("local", stringResource(R.string.local))
                         ),
@@ -357,6 +360,7 @@ fun HomeScreen(
                                 "stats" -> navController.navigate("stats")
                                 "liked" -> navController.navigate("auto_playlist/liked")
                                 "downloads" -> navController.navigate("auto_playlist/downloaded")
+                                "MyTop" -> navController.navigate("top_playlist/$topSize")
                                 "cached" -> navController.navigate("CachedPlaylist")
                                 "local" -> navController.navigate("AutoPlaylistLocal")
                             }

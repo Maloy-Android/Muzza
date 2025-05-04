@@ -38,6 +38,7 @@ import com.maloy.muzza.ui.screens.library.LibrarySongsScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLocalScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.CachePlaylistScreen
+import com.maloy.muzza.ui.screens.playlist.TopPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
 import com.maloy.muzza.ui.screens.settings.ContentSettings
@@ -210,6 +211,16 @@ fun NavGraphBuilder.navigationBuilder(
         )
     ) {
         AutoPlaylistScreen(navController, scrollBehavior)
+    }
+    composable(
+        route = "top_playlist/{top}",
+        arguments = listOf(
+            navArgument("top") {
+                type = NavType.StringType
+            }
+        )
+    ) {
+        TopPlaylistScreen(navController, scrollBehavior)
     }
     composable("CachedPlaylist") {
         CachePlaylistScreen(navController,scrollBehavior)

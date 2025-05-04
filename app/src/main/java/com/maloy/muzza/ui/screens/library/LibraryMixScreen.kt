@@ -131,6 +131,8 @@ fun LibraryMixScreen(
 
     val likedSongs by viewModel.likedSongs.collectAsState()
     val downloadSongs by viewModel.downloadSongs.collectAsState(initial = null)
+    val topSongs by viewModel.topSongs.collectAsState(initial = null)
+    val topSize = 50
     val likedPlaylist = Playlist(
         playlist = PlaylistEntity(
             id = UUID.randomUUID().toString(),
@@ -145,6 +147,18 @@ fun LibraryMixScreen(
             name = stringResource(R.string.offline)
         ),
         songCount = if (downloadSongs != null) downloadSongs!!.size else 0,
+        thumbnails = emptyList()
+    )
+    val topSizeInt = topSize.toString().toInt()
+    if (topSongs != null)
+        println(topSongs?.size)
+
+    val topPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = UUID.randomUUID().toString(),
+            name = stringResource(R.string.my_top)
+        ),
+        songCount = topSongs?.let { minOf(it.size, topSizeInt) } ?: 0,
         thumbnails = emptyList()
     )
     val localPlaylist = Playlist(
@@ -330,6 +344,22 @@ fun LibraryMixScreen(
                     )
                 }
                 item(
+                    key = "topPlaylist",
+                    contentType = { CONTENT_TYPE_PLAYLIST }
+                ) {
+                    PlaylistListItem(
+                        playlist = topPlaylist,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable (
+                                onClick = {
+                                    navController.navigate("top_playlist/$topSize")
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
+                item(
                     key = "cachedPlaylist",
                     contentType = { CONTENT_TYPE_PLAYLIST }
                 ) {
@@ -498,6 +528,23 @@ fun LibraryMixScreen(
                             .combinedClickable(
                                 onClick = {
                                     navController.navigate("auto_playlist/downloaded")
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
+                item(
+                    key = "topPlaylist",
+                    contentType = { CONTENT_TYPE_PLAYLIST }
+                ) {
+                    PlaylistGridItem(
+                        playlist = topPlaylist,
+                        fillMaxWidth = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("top_playlist/$topSize")
                                 }
                             )
                             .animateItem()

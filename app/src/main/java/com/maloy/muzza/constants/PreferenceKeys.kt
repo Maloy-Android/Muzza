@@ -4,6 +4,8 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import java.time.LocalDateTime
+import java.time.ZoneOffset
 
 val AppDesignVariantKey = stringPreferencesKey("appDesignVariant")
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
@@ -174,6 +176,44 @@ enum class AlbumFilter {
 
 enum class LibraryFilter {
     SONGS, ARTISTS, ALBUMS, PLAYLISTS , LIBRARY
+}
+
+enum class MyTopFilter {
+    ALL_TIME,
+    DAY,
+    WEEK,
+    MONTH,
+    YEAR,
+    ;
+
+    fun toTimeMillis(): Long =
+        when (this) {
+            DAY ->
+                LocalDateTime
+                    .now()
+                    .minusDays(1)
+                    .toInstant(ZoneOffset.UTC)
+                    .toEpochMilli()
+            WEEK ->
+                LocalDateTime
+                    .now()
+                    .minusWeeks(1)
+                    .toInstant(ZoneOffset.UTC)
+                    .toEpochMilli()
+            MONTH ->
+                LocalDateTime
+                    .now()
+                    .minusMonths(1)
+                    .toInstant(ZoneOffset.UTC)
+                    .toEpochMilli()
+            YEAR ->
+                LocalDateTime
+                    .now()
+                    .minusMonths(12)
+                    .toInstant(ZoneOffset.UTC)
+                    .toEpochMilli()
+            ALL_TIME -> 0
+        }
 }
 
 enum class PlayerStyle {

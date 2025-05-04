@@ -21,8 +21,16 @@
 
     <string name="liked">Liked music</string>
     <string name="offline">Offline music</string>
+    <string name="my_top">My top music</string>
     <string name="cached">Cached music</string>
     <string name="local">Local music</string>
+
+    <!-- My top -->
+    <string name="all_time">All time</string>
+    <string name="past_24_hours">Past 24 hours</string>
+    <string name="past_week">Past week</string>
+    <string name="past_month">Past month</string>
+    <string name="past_year">Past year</string>
 
     <!-- Top bar -->
     <plurals name="n_selected">

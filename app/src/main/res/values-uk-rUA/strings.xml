@@ -96,11 +96,19 @@
     <!-- Playlist -->
     <string name="liked_songs">Улюблені треки</string>
     <string name="downloaded_songs">Завантажена музика</string>
+    <string name="my_top">Мій топ музики</string>
     <string name="playlist_is_empty">Плейлист порожній</string>
     <string name="remove_download_playlist_confirm">Ви впевнені, що хочете видалити всі пісні з плейлиста «%s» зі сховища завантаженої музики?</string>
     <string name="delete_playlist_confirm">Ви впевнені, що хочете видалити плейлист «%s»?</string>
 
     <string name="off">Вимкнути</string>
+
+    <!-- My top -->
+    <string name="all_time">За весь час</string>
+    <string name="past_24_hours">За останні 24 години</string>
+    <string name="past_week">За минулий тиждень</string>
+    <string name="past_month">За минулий місяць</string>
+    <string name="past_year">За минулий рік</string>
 
     <!-- Button -->
     <string name="retry">Повторювати</string>

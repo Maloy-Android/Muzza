@@ -97,11 +97,19 @@
     <!-- Playlist -->
     <string name="liked_songs">Любимые треки</string>
     <string name="downloaded_songs">Загруженная музыка</string>
+    <string name="my_top">Мой топ музыки</string>
     <string name="playlist_is_empty">Плейлист пуст</string>
     <string name="remove_download_playlist_confirm">Вы уверены, что хотите удалить все песни из плейлиста «%s» из хранилища загруженной музыки?</string>
     <string name="delete_playlist_confirm">Вы уверены, что хотите удалить плейлист «%s»?</string>
 
     <string name="off">Выключить</string>
+
+    <!-- My top -->
+    <string name="all_time">За всё время</string>
+    <string name="past_24_hours">За последние 24 часа</string>
+    <string name="past_week">За прошедшую неделю</string>
+    <string name="past_month">За прошедший месяц</string>
+    <string name="past_year">За прошедший год</string>
 
     <!-- Button -->
     <string name="retry">Повторить</string>

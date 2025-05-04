@@ -249,6 +249,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
                     }
                 }
         }
+    val topSongs = database.mostPlayedSongs(0, 100)
     fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
     val allPlaylists = context.dataStore.data
         .map {
@@ -318,4 +319,5 @@ class LibraryMixViewModel @Inject constructor(
                     }
                 }
         }
+    val topSongs = database.mostPlayedSongs(0, 100)
 }

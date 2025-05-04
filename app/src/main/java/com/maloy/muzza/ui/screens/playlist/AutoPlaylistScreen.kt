@@ -301,7 +301,7 @@ fun AutoPlaylistScreen(
                 }
             }
             if (songs != null) {
-                if (songs!!.isEmpty()) {
+                if (songs!!.isEmpty() && !isSearching) {
                     item {
                         EmptyPlaceholder(
                             icon = R.drawable.music_note,
@@ -475,7 +475,7 @@ fun AutoPlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = "Auto Playlist",
+                                                    title = context.getString(R.string.liked),
                                                     items = songs!!.map { it.toMediaItem() }
                                                 )
                                             )

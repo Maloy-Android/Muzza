@@ -21,8 +21,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ShowChart
+import androidx.compose.material.icons.rounded.Cached
+import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DesignServices
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +57,12 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppDesignVariantKey
 import com.maloy.muzza.constants.AppDesignVariantType
+import com.maloy.muzza.constants.AutoPlaylistCachedPlaylistShowKey
+import com.maloy.muzza.constants.AutoPlaylistDownloadShowKey
+import com.maloy.muzza.constants.AutoPlaylistLikedShowKey
+import com.maloy.muzza.constants.AutoPlaylistLocalPlaylistShowKey
+import com.maloy.muzza.constants.AutoPlaylistTopPlaylistShowKey
+import com.maloy.muzza.constants.AutoPlaylistsCustomizationKey
 import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
@@ -95,6 +107,17 @@ fun AppearanceSettings(
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
+    val (autoPlaylistsCustomization, onAutoPlaylistsCustomizationChange) = rememberPreference(
+        AutoPlaylistsCustomizationKey, defaultValue = false)
+    val (autoPlaylistLiked, onAutoPlaylistLikedChange) = rememberPreference(AutoPlaylistLikedShowKey, defaultValue = true)
+    val (autoPlaylistDownload, onAutoPlaylistDownloadChange) = rememberPreference(
+        AutoPlaylistDownloadShowKey, defaultValue = true)
+    val (autoPlaylistTopPlaylist, onAutoPlaylistTopPlaylistChange) = rememberPreference(
+        AutoPlaylistTopPlaylistShowKey, defaultValue = true)
+    val (autoPlaylistCached, onAutoPlaylistCachedChange) = rememberPreference(
+        AutoPlaylistCachedPlaylistShowKey, defaultValue = true)
+    val (autoPlaylistLocal, onAutoPlaylistLocalChange) = rememberPreference(
+        AutoPlaylistLocalPlaylistShowKey, defaultValue = true)
     val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTabOld, onDefaultOpenTabOldChange) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
@@ -395,6 +418,47 @@ fun AppearanceSettings(
             title = stringResource(R.string.misc)
         )
 
+        SwitchPreference(
+            title = { Text(stringResource(R.string.auto_playlists_customization)) },
+            icon = { Icon(painterResource(R.drawable.playlist_play), null) },
+            checked = autoPlaylistsCustomization,
+            onCheckedChange = onAutoPlaylistsCustomizationChange
+        )
+
+        Column {
+            AnimatedVisibility(autoPlaylistsCustomization) {
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.show_liked_auto_playlist)) },
+                    icon = { Icon(Icons.Rounded.Favorite, null) },
+                    checked = autoPlaylistLiked,
+                    onCheckedChange = onAutoPlaylistLikedChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.show_download_auto_playlist)) },
+                    icon = { Icon(Icons.Rounded.CloudDownload, null) },
+                    checked = autoPlaylistDownload,
+                    onCheckedChange = onAutoPlaylistDownloadChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.show_top_auto_playlist)) },
+                    icon = { Icon(Icons.AutoMirrored.Rounded.ShowChart, null) },
+                    checked = autoPlaylistTopPlaylist,
+                    onCheckedChange = onAutoPlaylistTopPlaylistChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.show_cached_auto_playlist)) },
+                    icon = { Icon(Icons.Rounded.Cached, null) },
+                    checked = autoPlaylistCached,
+                    onCheckedChange = onAutoPlaylistCachedChange
+                )
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.show_local_auto_playlist)) },
+                    icon = { Icon(Icons.Rounded.MusicNote, null) },
+                    checked = autoPlaylistLocal,
+                    onCheckedChange = onAutoPlaylistLocalChange
+                )
+            }
+        }
         SwitchPreference(
             title = { Text(stringResource(R.string.swipe_song_to_dismiss)) },
             icon = { Icon(painterResource(R.drawable.queue_music), null) },

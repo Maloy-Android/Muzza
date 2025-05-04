@@ -26,6 +26,12 @@ enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE
 }
 
+val AutoPlaylistsCustomizationKey = booleanPreferencesKey("autoPlaylistsCustomization")
+val AutoPlaylistLikedShowKey = booleanPreferencesKey("autoPlaylistLikedShow")
+val AutoPlaylistDownloadShowKey = booleanPreferencesKey("autoPlaylistLikedShow")
+val AutoPlaylistTopPlaylistShowKey = booleanPreferencesKey("autoPlaylistTopPlaylistShow")
+val AutoPlaylistCachedPlaylistShowKey = booleanPreferencesKey("autoPlaylistCachedPlaylistShow")
+val AutoPlaylistLocalPlaylistShowKey = booleanPreferencesKey("autoPlaylistLocalPlaylistShow")
 val SwipeSongToDismissKey = booleanPreferencesKey("swipe_song_to_dismiss")
 val DefaultOpenTabOldKey = stringPreferencesKey("defaultOpenTabOld")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")

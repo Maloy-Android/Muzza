@@ -30,7 +30,7 @@ class SyncUtils @Inject constructor(
         YouTube.playlist("LM").completed().onSuccess { page ->
             val songs = page.songs.reversed()
             database.likedSongsByNameAsc().first()
-                .filterNot { !it.song.isLocal && it.id !in songs.map(SongItem::id) }
+                .filter { !it.song.isLocal && it.id !in songs.map(SongItem::id) }
                 .forEach { database.update(it.song.localToggleLike()) }
 
             songs.forEach { song ->
@@ -45,7 +45,7 @@ class SyncUtils @Inject constructor(
                 }
                 val songs = database.likedSongsNotDownloaded()
                     .first()
-                    .filterNot { !it.song.isLocal }
+                    .filter { !it.song.isLocal }
                     .map { it.song }
 
                 downloadUtil.autoDownloadIfLiked(songs)

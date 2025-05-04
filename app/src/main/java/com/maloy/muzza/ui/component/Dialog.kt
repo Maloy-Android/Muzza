@@ -255,6 +255,7 @@ fun CounterDialog(
     initialValue: Int,
     upperBound: Int = 100,
     lowerBound: Int = 0,
+    resetValue: Int,
     unitDisplay: String = "",
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
@@ -337,7 +338,7 @@ fun CounterDialog(
                     if (onReset != null) {
                         Row(modifier = Modifier.weight(1f)) {
                             TextButton(
-                                onClick = { onReset() },
+                                onClick = { tempValue.intValue = resetValue },
                             ) {
                                 Text(stringResource(R.string.reset))
                             }
@@ -352,7 +353,7 @@ fun CounterDialog(
 
                     if (onCancel != null)
                         TextButton(
-                            onClick = { onCancel() }
+                            onClick = { onCancel.invoke() }
                         ) {
                             Text(stringResource(android.R.string.cancel))
                         }

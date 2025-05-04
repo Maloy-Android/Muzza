@@ -86,6 +86,7 @@ fun PlayerSettings(
             initialValue = minPlaybackDur,
             upperBound = 100,
             lowerBound = 0,
+            resetValue = 30,
             unitDisplay = "%",
             onDismiss = { showMinPlaybackDur = false },
             onConfirm = {

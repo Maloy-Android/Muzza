@@ -347,6 +347,7 @@ fun HomeScreen(
                             Pair("stats", stringResource(R.string.stats)),
                             Pair("liked", stringResource(R.string.liked)),
                             Pair("downloads", stringResource(R.string.offline)),
+                            Pair("cached", stringResource(R.string.cached)),
                             Pair("local", stringResource(R.string.local))
                         ),
                         currentValue = "",
@@ -356,6 +357,7 @@ fun HomeScreen(
                                 "stats" -> navController.navigate("stats")
                                 "liked" -> navController.navigate("auto_playlist/liked")
                                 "downloads" -> navController.navigate("auto_playlist/downloaded")
+                                "cached" -> navController.navigate("CachedPlaylist")
                                 "local" -> navController.navigate("AutoPlaylistLocal")
                             }
                         },

@@ -425,39 +425,45 @@ fun AppearanceSettings(
             onCheckedChange = onAutoPlaylistsCustomizationChange
         )
 
-        Column {
-            AnimatedVisibility(autoPlaylistsCustomization) {
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.show_liked_auto_playlist)) },
-                    icon = { Icon(Icons.Rounded.Favorite, null) },
-                    checked = autoPlaylistLiked,
-                    onCheckedChange = onAutoPlaylistLikedChange
-                )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.show_download_auto_playlist)) },
-                    icon = { Icon(Icons.Rounded.CloudDownload, null) },
-                    checked = autoPlaylistDownload,
-                    onCheckedChange = onAutoPlaylistDownloadChange
-                )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.show_top_auto_playlist)) },
-                    icon = { Icon(Icons.AutoMirrored.Rounded.ShowChart, null) },
-                    checked = autoPlaylistTopPlaylist,
-                    onCheckedChange = onAutoPlaylistTopPlaylistChange
-                )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.show_cached_auto_playlist)) },
-                    icon = { Icon(Icons.Rounded.Cached, null) },
-                    checked = autoPlaylistCached,
-                    onCheckedChange = onAutoPlaylistCachedChange
-                )
-                SwitchPreference(
-                    title = { Text(stringResource(R.string.show_local_auto_playlist)) },
-                    icon = { Icon(Icons.Rounded.MusicNote, null) },
-                    checked = autoPlaylistLocal,
-                    onCheckedChange = onAutoPlaylistLocalChange
-                )
-            }
+        AnimatedVisibility(autoPlaylistsCustomization) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_liked_auto_playlist)) },
+                icon = { Icon(Icons.Rounded.Favorite, null) },
+                checked = autoPlaylistLiked,
+                onCheckedChange = onAutoPlaylistLikedChange
+            )
+        }
+        AnimatedVisibility(autoPlaylistsCustomization) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_download_auto_playlist)) },
+                icon = { Icon(Icons.Rounded.CloudDownload, null) },
+                checked = autoPlaylistDownload,
+                onCheckedChange = onAutoPlaylistDownloadChange
+            )
+        }
+        AnimatedVisibility(autoPlaylistsCustomization) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_top_auto_playlist)) },
+                icon = { Icon(Icons.AutoMirrored.Rounded.ShowChart, null) },
+                checked = autoPlaylistTopPlaylist,
+                onCheckedChange = onAutoPlaylistTopPlaylistChange
+            )
+        }
+        AnimatedVisibility(autoPlaylistsCustomization) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_cached_auto_playlist)) },
+                icon = { Icon(Icons.Rounded.Cached, null) },
+                checked = autoPlaylistCached,
+                onCheckedChange = onAutoPlaylistCachedChange
+            )
+        }
+        AnimatedVisibility(autoPlaylistsCustomization) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.show_local_auto_playlist)) },
+                icon = { Icon(Icons.Rounded.MusicNote, null) },
+                checked = autoPlaylistLocal,
+                onCheckedChange = onAutoPlaylistLocalChange
+            )
         }
         SwitchPreference(
             title = { Text(stringResource(R.string.swipe_song_to_dismiss)) },

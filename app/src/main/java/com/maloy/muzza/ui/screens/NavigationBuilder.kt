@@ -8,6 +8,7 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -36,6 +37,7 @@ import com.maloy.muzza.ui.screens.library.LibraryScreen
 import com.maloy.muzza.ui.screens.library.LibrarySongsScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLocalScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
+import com.maloy.muzza.ui.screens.playlist.CachePlaylistScreen
 import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
 import com.maloy.muzza.ui.screens.settings.ContentSettings
@@ -208,6 +210,9 @@ fun NavGraphBuilder.navigationBuilder(
         )
     ) {
         AutoPlaylistScreen(navController, scrollBehavior)
+    }
+    composable("CachedPlaylist") {
+        CachePlaylistScreen(navController,scrollBehavior)
     }
     composable("AutoPlaylistLocal") {
         AutoPlaylistLocalScreen(navController,scrollBehavior)

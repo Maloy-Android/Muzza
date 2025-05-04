@@ -30,6 +30,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Folder
@@ -852,6 +853,7 @@ fun PlaylistListItem(
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
             stringResource(R.string.local) -> Icons.Rounded.MusicNote
+            stringResource(R.string.cached) -> Icons.Rounded.Cached
             else -> Icons.AutoMirrored.Rounded.QueueMusic
         }
         Box(
@@ -902,6 +904,7 @@ fun PlaylistGridItem(
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
             stringResource(R.string.local) -> Icons.Rounded.MusicNote
+            stringResource(R.string.cached) -> Icons.Rounded.Cached
             else -> Icons.AutoMirrored.Rounded.QueueMusic
         }
         val width = maxWidth

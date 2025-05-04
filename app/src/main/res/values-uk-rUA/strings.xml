@@ -19,6 +19,7 @@
     <string name="playlists">Плейлисти</string>
     <string name="liked">Улюблена музика</string>
     <string name="offline">Завантажена музика</string>
+    <string name="cached">Кешована музика</string>
     <string name="local">Локальна музика</string>
 
     <!-- Top bar -->
@@ -131,6 +132,7 @@
     <string name="remove_from_history">Видалити з історії</string>
     <string name="remove_from_playlist">Видалити з плейлиста</string>
     <string name="remove_from_queue">Видалити з черги</string>
+    <string name="remove_from_cache">Видалити з кешу</string>
     <string name="search_online">Пошук в Інтернеті</string>
     <string name="sync">Синхронізувати</string>
     <string name="advanced">Контроль аудіо</string>

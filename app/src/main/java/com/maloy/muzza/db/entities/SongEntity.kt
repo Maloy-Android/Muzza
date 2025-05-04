@@ -33,6 +33,7 @@ data class SongEntity(
     val totalPlayTime: Long = 0,
     val inLibrary: LocalDateTime? = null,
     val dateDownload: LocalDateTime? = null,
+    val artistName: String? = null,
     @ColumnInfo(name = "isLocal", defaultValue = "false") val isLocal: Boolean = false,
     val localPath: String?,
 ) {

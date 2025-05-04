@@ -156,6 +156,15 @@ fun LibraryMixScreen(
         thumbnails = emptyList()
     )
 
+    val cachedPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = UUID.randomUUID().toString(),
+            name = stringResource(R.string.cached)
+        ),
+        songCount = 0,
+        thumbnails = emptyList()
+    )
+
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -321,6 +330,22 @@ fun LibraryMixScreen(
                     )
                 }
                 item(
+                    key = "cachedPlaylist",
+                    contentType = { CONTENT_TYPE_PLAYLIST }
+                ) {
+                    PlaylistListItem(
+                        playlist = cachedPlaylist,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("CachedPlaylist")
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
+                item(
                     key = "localPlaylist",
                     contentType = { CONTENT_TYPE_PLAYLIST }
                 ) {
@@ -473,6 +498,23 @@ fun LibraryMixScreen(
                             .combinedClickable(
                                 onClick = {
                                     navController.navigate("auto_playlist/downloaded")
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
+                item(
+                    key = "cachedPlaylist",
+                    contentType = { CONTENT_TYPE_PLAYLIST }
+                ) {
+                    PlaylistGridItem(
+                        playlist = cachedPlaylist,
+                        fillMaxWidth = true,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("CachedPlaylist")
                                 }
                             )
                             .animateItem()

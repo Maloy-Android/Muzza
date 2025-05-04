@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
@@ -69,6 +70,7 @@ import com.maloy.muzza.ui.component.GridMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -80,6 +82,7 @@ fun SongMenu(
     playlistSong: PlaylistSong? = null,
     playlistBrowseId: String? = null,
     onDismiss: () -> Unit,
+    isFromCache: Boolean = false,
 ) {
     val downloadUtil = LocalDownloadUtil.current
     val context = LocalContext.current
@@ -93,6 +96,8 @@ fun SongMenu(
 
     val scope = rememberCoroutineScope()
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
+
+    val cacheViewModel = viewModel<CachePlaylistViewModel>()
 
     val rotationAnimation by animateFloatAsState(
         targetValue = refetchIconDegree,
@@ -283,6 +288,15 @@ fun SongMenu(
                     }
 
                     onDismiss()
+                }
+            }
+            if (isFromCache) {
+                GridMenuItem(
+                    icon = R.drawable.cached,
+                    title = R.string.remove_from_cache
+                ) {
+                    onDismiss()
+                    cacheViewModel.removeSongFromCache(song.id)
                 }
             }
             DownloadGridMenu(

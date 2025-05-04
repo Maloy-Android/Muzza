@@ -71,6 +71,7 @@ fun LocalSearchScreen(
     query: String,
     navController: NavController,
     onDismiss: () -> Unit,
+    isFromCache: Boolean = false,
     viewModel: LocalSearchViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
@@ -172,11 +173,13 @@ fun LocalSearchScreen(
                                         menuState.show {
                                             SongMenu(
                                                 originalSong = item,
-                                                navController = navController
-                                            ) {
-                                                onDismiss()
-                                                menuState.dismiss()
-                                            }
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                },
+                                                isFromCache = isFromCache
+                                            )
                                         }
                                     }
                                 ) {
@@ -207,11 +210,13 @@ fun LocalSearchScreen(
                                         menuState.show {
                                             SongMenu(
                                                 originalSong = item,
-                                                navController = navController
-                                            ) {
-                                                onDismiss()
-                                                menuState.dismiss()
-                                            }
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                },
+                                                isFromCache = isFromCache
+                                            )
                                         }
                                     }
                                 )

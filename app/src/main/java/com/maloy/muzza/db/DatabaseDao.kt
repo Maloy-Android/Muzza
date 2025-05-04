@@ -276,6 +276,10 @@ interface DatabaseDao {
     fun songArtistMap(songId: String): List<SongArtistMap>
 
     @Transaction
+    @Query("SELECT * FROM song WHERE id IN (:songIds)")
+    suspend fun getSongsByIds(songIds: List<String>): List<Song>
+
+    @Transaction
     @Query("SELECT * FROM song WHERE liked AND dateDownload IS NULL")
     fun likedSongsNotDownloaded(): Flow<List<Song>>
 
@@ -291,6 +295,7 @@ interface DatabaseDao {
     @Query("SELECT * FROM set_video_id WHERE videoId = :videoId")
     suspend fun getSetVideoId(videoId: String): SetVideoIdEntity?
 
+    @Transaction
     @Query("SELECT * FROM format WHERE id = :id")
     fun format(id: String?): Flow<FormatEntity?>
 

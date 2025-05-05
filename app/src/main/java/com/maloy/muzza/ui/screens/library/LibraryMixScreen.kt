@@ -316,6 +316,13 @@ fun LibraryMixScreen(
                     columns = GridCells.Fixed(1),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                 ) {
+                    item(
+                        key = "filter",
+                        span = { GridItemSpan(maxLineSpan) },
+                        contentType = CONTENT_TYPE_HEADER,
+                    ) {
+                        filterContent()
+                    }
                     item {
                         EmptyPlaceholder(
                             icon = R.drawable.library_music_outlined,
@@ -535,6 +542,13 @@ fun LibraryMixScreen(
                     columns = GridCells.Fixed(1),
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                 ) {
+                    item(
+                        key = "filter",
+                        span = { GridItemSpan(maxLineSpan) },
+                        contentType = CONTENT_TYPE_HEADER
+                    ) {
+                        filterContent()
+                    }
                     item {
                         EmptyPlaceholder(
                             icon = R.drawable.library_music_outlined,

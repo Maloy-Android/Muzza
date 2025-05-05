@@ -17,6 +17,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
@@ -34,6 +35,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.DownloadGridMenu
 import com.maloy.muzza.ui.component.GridMenu
 import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -46,6 +48,7 @@ fun SongSelectionMenu(
     onExitSelectionMode: () -> Unit,
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromHistory: (() -> Unit)? = null,
+    isFromCache: Boolean = false,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -62,6 +65,8 @@ fun SongSelectionMenu(
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
     }
+
+    val cacheViewModel = viewModel<CachePlaylistViewModel>()
 
     LaunchedEffect(selection) {
         if (selection.isEmpty()) {
@@ -228,6 +233,17 @@ fun SongSelectionMenu(
                 onDismiss()
                 onRemoveFromQueue()
                 onExitSelectionMode()
+            }
+        }
+        if (isFromCache) {
+            GridMenuItem(
+                icon = R.drawable.cached,
+                title = R.string.remove_from_cache
+            ) {
+                selection.forEach { song ->
+                    onDismiss()
+                    cacheViewModel.removeSongFromCache(song.id)
+                }
             }
         }
         if (onRemoveFromHistory != null) {

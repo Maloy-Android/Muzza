@@ -46,9 +46,6 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
-import com.maloy.muzza.constants.SongSortDescendingKey
-import com.maloy.muzza.constants.SongSortType
-import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
@@ -60,8 +57,6 @@ import com.maloy.muzza.ui.menu.CacheSongSelectionMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
-import com.maloy.muzza.utils.rememberEnumPreference
-import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -91,12 +86,6 @@ fun CachePlaylistScreen(
     val likeLength = remember(cachedSongs) {
         cachedSongs.fastSumBy { it.song.duration }
     }
-
-    val (sortType, onSortTypeChange) = rememberEnumPreference(
-        SongSortTypeKey,
-        SongSortType.CREATE_DATE
-    )
-    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val backStackEntry by navController.currentBackStackEntryAsState()
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
@@ -413,30 +402,6 @@ fun CachePlaylistScreen(
                                         Text(stringResource(R.string.shuffle))
                                     }
                                 }
-                            }
-                        }
-                    }
-                    if (filteredSongs.isNotEmpty()) {
-                        item {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(start = 16.dp),
-                            ) {
-                                SortHeader(
-                                    sortType = sortType,
-                                    sortDescending = sortDescending,
-                                    onSortTypeChange = onSortTypeChange,
-                                    onSortDescendingChange = onSortDescendingChange,
-                                    sortTypeText = { sortType ->
-                                        when (sortType) {
-                                            SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                            SongSortType.NAME -> R.string.sort_by_name
-                                            SongSortType.ARTIST -> R.string.sort_by_artist
-                                            SongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                        }
-                                    },
-                                    modifier = Modifier.weight(1f),
-                                )
                             }
                         }
                     }

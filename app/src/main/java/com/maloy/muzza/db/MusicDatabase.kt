@@ -74,7 +74,13 @@ class MusicDatabase(
         AutoMigration(from = 9, to = 10, spec = Migration9To10::class),
         AutoMigration(from = 10, to = 11, spec = Migration10To11::class),
         AutoMigration(from = 11, to = 12, spec = Migration11To12::class),
-        AutoMigration(from = 12, to = 13)
+        AutoMigration(from = 12, to = 13, spec = Migration12To13::class),
+        AutoMigration(from = 13, to = 14, spec = Migration13To14::class),
+        AutoMigration(from = 14, to = 15),
+        AutoMigration(from = 15, to = 16),
+        AutoMigration(from = 16, to = 17, spec = Migration16To17::class),
+        AutoMigration(from = 17, to = 18),
+        AutoMigration(from = 18, to = 19, spec = Migration18To19::class),
     ]
 )
 @TypeConverters(Converters::class)
@@ -343,5 +349,63 @@ class Migration11To12 : AutoMigrationSpec {
             }
         }
         database.query("CREATE INDEX IF NOT EXISTS `index_song_albumId` ON `song` (`albumId`)")
+    }
+}
+
+class Migration12To13 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+    }
+}
+
+@DeleteTable.Entries(
+    DeleteTable(tableName = "set_video_id")
+)
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "song", columnName = "dateDownload"),
+    DeleteColumn(tableName = "song", columnName = "artistName"),
+    DeleteColumn(tableName = "song", columnName = "isLocal"),
+    DeleteColumn(tableName = "song", columnName = "localPath"),
+    DeleteColumn(tableName = "artist", columnName = "channelId"),
+    DeleteColumn(tableName = "album", columnName = "playlistId"),
+    DeleteColumn(tableName = "playlist", columnName = "isEditable"),
+    DeleteColumn(tableName = "playlist", columnName = "bookmarkedAt"),
+    DeleteColumn(tableName = "playlist", columnName = "remoteSongCount"),
+    DeleteColumn(tableName = "playlist", columnName = "playEndpointParams"),
+    DeleteColumn(tableName = "playlist", columnName = "shuffleEndpointParams"),
+    DeleteColumn(tableName = "playlist", columnName = "radioEndpointParams"),
+    DeleteColumn(tableName = "playlist_song_map" , columnName = "setVideoId"),
+    DeleteColumn(tableName = "format", columnName = "playbackUrl")
+)
+class Migration13To14 : AutoMigrationSpec {
+    @SuppressLint("Range")
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE playlist SET createdAt = '${Converters().dateToTimestamp(LocalDateTime.now())}'")
+        db.execSQL(
+            "UPDATE playlist SET lastUpdateTime = '${
+                Converters().dateToTimestamp(
+                    LocalDateTime.now()
+                )
+            }'"
+        )
+    }
+}
+
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "song", columnName = "isLocal"),
+    DeleteColumn(tableName = "song", columnName = "localPath"),
+    DeleteColumn(tableName = "artist", columnName = "isLocal"),
+    DeleteColumn(tableName = "playlist", columnName = "isLocal"),
+    DeleteColumn(tableName = "song", columnName = "dateDownload"),
+)
+class Migration16To17 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE playlist SET bookmarkedAt = lastUpdateTime")
+        db.execSQL("UPDATE playlist SET isEditable = 1 WHERE browseId IS NOT NULL")
+    }
+}
+
+class Migration18To19 : AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        db.execSQL("UPDATE song SET explicit = 0 WHERE explicit IS NULL")
     }
 }

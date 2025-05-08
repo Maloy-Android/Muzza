@@ -50,7 +50,6 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -223,7 +222,6 @@ fun LocalPlaylistScreen(
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
-    val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             if (to.index >= headerItems && from.index >= headerItems) {
@@ -289,12 +287,6 @@ fun LocalPlaylistScreen(
                 }
                 dragInfo = null
             }
-
-    val showTopBarTitle by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
 
     var dismissJob: Job? by remember { mutableStateOf(null) }
 
@@ -643,8 +635,6 @@ fun LocalPlaylistScreen(
                             }
                         }
                     )
-                } else {
-                    if (showTopBarTitle) Text(playlist?.playlist?.name.orEmpty())
                 }
             },
             navigationIcon = {

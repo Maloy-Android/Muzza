@@ -44,7 +44,6 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -173,12 +172,6 @@ fun AutoPlaylistScreen(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
-    val lazyListState = rememberLazyListState()
-    val showTopBarTitle by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
 
     val backStackEntry by navController.currentBackStackEntryAsState()
 
@@ -721,8 +714,6 @@ fun AutoPlaylistScreen(
                             }
                         }
                     )
-                } else {
-                    if (showTopBarTitle) Text(playlist)
                 }
             },
             navigationIcon = {

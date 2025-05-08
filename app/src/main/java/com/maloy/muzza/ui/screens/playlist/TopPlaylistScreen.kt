@@ -92,7 +92,6 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -158,13 +157,7 @@ fun TopPlaylistScreen(
         }
     }
 
-    val lazyListState = rememberLazyListState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val showTopBarTitle by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
 
     val sortType by viewModel.topPeriod.collectAsState()
 
@@ -660,8 +653,6 @@ fun TopPlaylistScreen(
                             }
                         }
                     )
-                } else {
-                    if (showTopBarTitle) Text(stringResource(R.string.my_top))
                 }
             },
             navigationIcon = {

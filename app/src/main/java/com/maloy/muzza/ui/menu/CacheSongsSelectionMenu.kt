@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 @Composable
-fun SongSelectionMenu(
+fun CacheSongSelectionMenu(
     selection: List<Song>,
     onDismiss: () -> Unit,
     onExitSelectionMode: () -> Unit,
@@ -101,12 +101,12 @@ fun SongSelectionMenu(
 
     GridMenu(
         contentPadding =
-        PaddingValues(
-            start = 8.dp,
-            top = 8.dp,
-            end = 8.dp,
-            bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
-        ),
+            PaddingValues(
+                start = 8.dp,
+                top = 8.dp,
+                end = 8.dp,
+                bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
+            ),
     ) {
         GridMenuItem(
             icon = R.drawable.play,
@@ -232,6 +232,15 @@ fun SongSelectionMenu(
                 onDismiss()
                 onRemoveFromQueue()
                 onExitSelectionMode()
+            }
+        }
+        GridMenuItem(
+            icon = R.drawable.cached,
+            title = R.string.remove_from_cache
+        ) {
+            selection.forEach { song ->
+                onDismiss()
+                cacheViewModel.removeSongFromCache(song.id)
             }
         }
         if (onRemoveFromHistory != null) {

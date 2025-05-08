@@ -4,7 +4,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.maloy.muzza.ui.menu.SongSelectionMenu
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
@@ -57,6 +56,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.*
+import com.maloy.muzza.ui.menu.CacheSongSelectionMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
@@ -573,7 +573,7 @@ fun CachePlaylistScreen(
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
-                                SongSelectionMenu(
+                                CacheSongSelectionMenu(
                                     selection = selection.mapNotNull { songId ->
                                         cachedSongs.find { it.id == songId }
                                     },

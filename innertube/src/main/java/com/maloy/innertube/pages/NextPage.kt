@@ -29,9 +29,9 @@ object NextPage {
             artists = longByLineRuns.firstOrNull()?.oddElements()?.map {
                 Artist(
                     name = it.text,
-                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                    id = it.navigationEndpoint?.browseEndpoint?.browseId
                 )
-            } ?: emptyList(),
+            } ?: return null,
             album = longByLineRuns.getOrNull(1)?.firstOrNull()?.takeIf {
                 it.navigationEndpoint?.browseEndpoint != null
             }?.let {

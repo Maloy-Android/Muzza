@@ -41,7 +41,7 @@ data class LibraryPage(
                     author = renderer.subtitle?.runs?.getOrNull(2)?.let {
                         Artist(
                             name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                         )
                     },
                     songCountText = renderer.subtitle?.runs?.lastOrNull()?.text,
@@ -82,7 +82,7 @@ data class LibraryPage(
                     val artists = artistRuns.map {
                         Artist(
                             name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                         )
                     }.takeIf { it.isNotEmpty() } ?: return null
 
@@ -124,7 +124,7 @@ data class LibraryPage(
                         ?.map {
                             Artist(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                             )
                         } ?: emptyList(),
                     album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
@@ -162,7 +162,7 @@ data class LibraryPage(
             }
         }
 
-        private fun parseArtists(runs: List<Run>?): List<Artist> {
+        private fun parseArtists(runs: List<Run>?): MutableList<Artist>? {
             val artists = mutableListOf<Artist>()
 
             if (runs != null) {
@@ -170,7 +170,7 @@ data class LibraryPage(
                     if (run.navigationEndpoint != null) {
                         artists.add(
                             Artist(
-                                id = run.navigationEndpoint.browseEndpoint?.browseId!!,
+                                id = run.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                                 name = run.text
                             )
                         )

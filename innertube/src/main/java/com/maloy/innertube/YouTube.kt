@@ -202,30 +202,24 @@ object YouTube {
         val songs = response.contents?.twoColumnBrowseResultsRenderer
             ?.secondaryContents?.sectionListRenderer
             ?.contents?.firstOrNull()
-            ?.musicPlaylistShelfRenderer?.contents
+            ?.musicPlaylistShelfRenderer?.contents?.getItems()
             ?.mapNotNull {
-                it.musicResponsiveListItemRenderer?.let { it1 ->
-                    AlbumPage.fromMusicResponsiveListItemRenderer(
-                        it1
-                    )
-                }
+                AlbumPage.getSong(it)
             }!!
             .toMutableList()
         var continuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
-            ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.continuations?.getContinuation()
+            ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getContinuation()
         while (continuation != null) {
             response = innerTube.browse(
                 client = WEB_REMIX,
                 continuation = continuation,
             ).body<BrowseResponse>()
-            songs += response.continuationContents?.musicPlaylistShelfContinuation?.contents?.mapNotNull {
-                it.musicResponsiveListItemRenderer?.let { it1 ->
-                    AlbumPage.fromMusicResponsiveListItemRenderer(
-                        it1
-                    )
-                }
-            }.orEmpty()
-            continuation = response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
+            songs += response.continuationContents?.musicPlaylistShelfContinuation?.contents?.getItems()
+                ?.mapNotNull {
+                    AlbumPage.getSong(it)
+                }.orEmpty()
+            continuation =
+                response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
         }
         songs
     }
@@ -619,7 +613,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     }
     suspend fun getChannelId(browseId: String): String {
         artist(browseId).onSuccess {
-            return it.artist.channelId!!
+            return it.artist.channelId ?: ""
         }
         return ""
     }

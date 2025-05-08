@@ -83,7 +83,7 @@ fun BackupAndRestore(
 
         CardItemBackupRestore(
             icon = R.drawable.restore,
-            title = stringResource(R.string.backup_restore),
+            title = stringResource(R.string.restore),
             onClick = { restoreLauncher.launch(arrayOf("application/octet-stream")) }
         )
 

@@ -57,9 +57,11 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.SearchBarDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.contentColorFor
@@ -80,6 +82,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
@@ -351,7 +354,9 @@ class MainActivity : ComponentActivity() {
                 BoxWithConstraints(
                     modifier = Modifier
                         .fillMaxSize()
-                        .background(MaterialTheme.colorScheme.surface)
+                        .background(
+                            if (pureBlack) Color.Black else MaterialTheme.colorScheme.surface
+                        )
                 ) {
                     val focusManager = LocalFocusManager.current
                     val density = LocalDensity.current
@@ -604,7 +609,7 @@ class MainActivity : ComponentActivity() {
 
                     CompositionLocalProvider(
                         LocalDatabase provides database,
-                        LocalContentColor provides contentColorFor(MaterialTheme.colorScheme.surface),
+                        LocalContentColor provides if (pureBlack) Color.White else contentColorFor(MaterialTheme.colorScheme.surface),
                         LocalPlayerConnection provides playerConnection,
                         LocalPlayerAwareWindowInsets provides playerAwareWindowInsets,
                         LocalDownloadUtil provides downloadUtil,
@@ -874,7 +879,26 @@ class MainActivity : ComponentActivity() {
                                 Modifier
                                     .focusRequester(searchBarFocusRequester)
                                     .align(Alignment.TopCenter),
-                                focusRequester = searchBarFocusRequester
+                                focusRequester = searchBarFocusRequester,
+                                colors = if (pureBlack && active) {
+                                    SearchBarDefaults.colors(
+                                        containerColor = Color.Black,
+                                        dividerColor = Color.DarkGray,
+                                        inputFieldColors = TextFieldDefaults.colors(
+                                            focusedTextColor = Color.White,
+                                            unfocusedTextColor = Color.Gray,
+                                            focusedContainerColor = Color.Transparent,
+                                            unfocusedContainerColor = Color.Transparent,
+                                            cursorColor = Color.White,
+                                            focusedIndicatorColor = Color.Transparent,
+                                            unfocusedIndicatorColor = Color.Transparent,
+                                        )
+                                    )
+                                } else {
+                                    SearchBarDefaults.colors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                                    )
+                                }
                             ) {
                                 Crossfade(
                                     targetState = searchSource,
@@ -940,7 +964,9 @@ class MainActivity : ComponentActivity() {
                                             y = (slideOffset + hideOffset).roundToPx(),
                                         )
                                     }
-                                }
+                                },
+                            containerColor = if (pureBlack) Color.Black else MaterialTheme.colorScheme.surfaceContainer,
+                            contentColor = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         ) {
                             navigationItems.fastForEach { screen ->
                                 val isSelected = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true

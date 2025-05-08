@@ -420,13 +420,14 @@ fun AutoPlaylistLocalScreen(
                                             items = currDir.toList().map { it.toMediaItem() },
                                         )
                                     },
-                                    contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
-                                        contentDescription = null,
-                                        modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        contentDescription = null
                                     )
                                 }
                             }

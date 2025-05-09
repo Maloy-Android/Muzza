@@ -26,6 +26,7 @@ import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DesignServices
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material.icons.rounded.ShowChart
@@ -76,6 +77,7 @@ import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
+import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SlimNavBarKey
@@ -127,6 +129,7 @@ fun AppearanceSettings(
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
+    val (showContentFilter, onShowContentFilterChange) = rememberPreference(ShowContentFilterKey, defaultValue = true)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
@@ -364,6 +367,17 @@ fun AppearanceSettings(
             onClick = {
                 showSliderOptionDialog = true
             }
+        )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.home)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.show_content_filter)) },
+            icon = { Icon(Icons.Rounded.FilterList, null) },
+            checked = showContentFilter,
+            onCheckedChange = onShowContentFilterChange
         )
 
         PreferenceGroupTitle(

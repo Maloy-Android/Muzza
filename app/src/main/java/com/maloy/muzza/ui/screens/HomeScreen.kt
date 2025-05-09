@@ -70,6 +70,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
+import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
@@ -340,6 +341,8 @@ fun HomeScreen(
             )
         }
 
+        val (showContentFilter) = rememberPreference(ShowContentFilterKey, defaultValue = true)
+
         LazyColumn(
             state = lazylistState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
@@ -380,18 +383,20 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
-                 PreferenceGroupTitle(
-                     title = stringResource(R.string.content_filter)
-                 )
-                ChipsRow(
-                    chips = homePage?.chips?.mapNotNull { chip ->
-                        chip?.let { it to it.title }
-                    } ?: emptyList(),
-                    currentValue = selectedChip,
-                    onValueUpdate = {
-                        viewModel.toggleChip(it)
-                    }
-                )
+                if (showContentFilter) {
+                    PreferenceGroupTitle(
+                        title = stringResource(R.string.content_filter)
+                    )
+                    ChipsRow(
+                        chips = homePage?.chips?.mapNotNull { chip ->
+                            chip?.let { it to it.title }
+                        } ?: emptyList(),
+                        currentValue = selectedChip,
+                        onValueUpdate = {
+                            viewModel.toggleChip(it)
+                        }
+                    )
+                }
             }
 
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->

@@ -18,6 +18,8 @@ val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 
+val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
+
 enum class AppDesignVariantType {
     NEW, OLD
 }

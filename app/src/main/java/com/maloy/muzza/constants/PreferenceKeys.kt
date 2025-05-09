@@ -28,7 +28,7 @@ enum class SliderStyle {
 
 val AutoPlaylistsCustomizationKey = booleanPreferencesKey("autoPlaylistsCustomization")
 val AutoPlaylistLikedShowKey = booleanPreferencesKey("autoPlaylistLikedShow")
-val AutoPlaylistDownloadShowKey = booleanPreferencesKey("autoPlaylistLikedShow")
+val AutoPlaylistDownloadShowKey = booleanPreferencesKey("autoPlaylistDownloadShow")
 val AutoPlaylistTopPlaylistShowKey = booleanPreferencesKey("autoPlaylistTopPlaylistShow")
 val AutoPlaylistCachedPlaylistShowKey = booleanPreferencesKey("autoPlaylistCachedPlaylistShow")
 val AutoPlaylistLocalPlaylistShowKey = booleanPreferencesKey("autoPlaylistLocalPlaylistShow")

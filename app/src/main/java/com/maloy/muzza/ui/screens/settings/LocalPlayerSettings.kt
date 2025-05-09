@@ -95,6 +95,7 @@ fun LocalPlayerSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.auto_scanner_title)) },
+            description = stringResource(R.string.auto_scanner_description) ,
             icon = { Icon(painterResource(R.drawable.sync), null) },
             checked = autoSyncLocalSongs,
             onCheckedChange = onAutoSyncLocalSongs

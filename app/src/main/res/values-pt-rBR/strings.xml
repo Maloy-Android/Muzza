@@ -199,10 +199,16 @@
 <string name="dark_theme">Tema escuro</string>
 <string name="dark_theme_on">Ativado</string>
 <string name="dark_theme_off">Desativado</string>
-<string name="dark_theme_follow_system">Seguir o sistema</string>
+<string name="dark_theme_follow_system">Automático (sistema)</string>
 <string name="pure_black">Preto puro</string>
 <string name="default_open_tab">Aba padrão ao abrir o app</string>
 <string name="customize_navigation_tabs">Customizar abas de navegação</string>
+<string name="auto_playlists_customization">Personalização da playlists</string>
+<string name="show_liked_auto_playlist">Mostrar músicas curtidas</string>
+<string name="show_download_auto_playlist">Mostrar lista de download</string>
+<string name="show_top_auto_playlist">Mostrar músicas favoritas</string>
+<string name="show_cached_auto_playlist">Mostrar músicas em cache</string>
+<string name="show_local_auto_playlist">Mostrar música local</string>
 <string name="lyrics_text_position">Posição do texto das letras</string>
 <string name="left">Esquerda</string>
 <string name="center">Centro</string>
@@ -210,14 +216,19 @@
 <string name="content">Conteúdo</string>
 <string name="default_lib_chips">Lista padrão da biblioteca</string>
 <string name="login">Login</string>
-<string name="content_language">Idioma padrão do conteúdo</string>
-<string name="content_country">País padrão do conteúdo</string>
+<string name="content_language">Idioma padrão</string>
+<string name="content_country">País padrão de Origem</string>
 <string name="system_default">Padrão do sistema</string>
 <string name="enable_proxy">Ativar proxy</string>
 <string name="proxy_type">Tipo de proxy</string>
 <string name="proxy_url">URL da proxy</string>
 <string name="restart_to_take_effect">Reinicie para fazer efeito</string>
 <string name="player_and_audio">Reprodutor e áudio</string>
+<string name="clear_all_cache_dialog">Tem certeza de que deseja limpar todo o cache?</string>
+<string name="clear_all_downloads_dialog">Tem certeza de que deseja limpar todos os downloads?</string>
+<string name="clear_song_cache_dialog">Tem certeza de que deseja limpar todas as músicas armazenadas em cache?</string>
+<string name="clear_images_cache_dialog">Tem certeza de que deseja limpar todas as imagens armazenadas em cache?</string>
+<string name="local_player_settings_title">Configurações do player local</string>
 <string name="audio_quality">Qualidade do áudio</string>
 <string name="audio_quality_auto">Automática</string>
 <string name="audio_quality_high">Alta</string>
@@ -248,6 +259,11 @@
 <string name="clear_search_history">Limpar histórico de pesquisa</string>
 <string name="clear_search_history_confirm">Tem certeza que deseja limpar todo o seu histórico de pesquisa?</string>
 <string name="enable_kugou">Ativar o fornecedor de letras KuGou</string>
+<string name="default_lyrics_provider">Seletor de letras padrão</string>
+<string name="lyrics_multiline_title">Ler letras de Músicas</string>
+<string name="lyrics_multiline_description">Tratar todas as linhas entre os pontos de sincronização como um texto lyrics</string>
+<string name="lyrics_trim_title">Remover espaços ao redor das letras</string>
+<string name="lyrics_font_size">Tamanho da fonte</string>
 <string name="backup_restore">Backup e restauração</string>
 <string name="backup">Fazer backup</string>
 <string name="restore">Restaurar</string>
@@ -312,7 +328,7 @@
 <string name="slider_style">Estilo do slider</string>
 <string name="default_">Padrão</string>
 <string name="squiggly">Cobrinha</string>
-<string name="Hi">Olá Novamente!! 3</string>
+<string name="Hi">Bem-vindo de volta!</string>
 <string name="your_youtube_playlists">Suas playlists do YouTube</string>
 <string name="action_like_all">Curtir tudo</string>
 <string name="action_remove_like_all">Remover todos os likes</string>
@@ -358,6 +374,26 @@
 <string name="history_duration">Duração da história</string>
 <string name="audio_offload">Habilitar descarregamento</string>
 <string name="audio_offload_description">Use o caminho de áudio offload para reprodução de áudio. Desabilitar isso pode aumentar o uso de energia, mas pode ser útil se você tiver problemas com reprodução de áudio ou pós-processamento</string>
+<!--scanner page settings-->
+<string name="local_scanner_title">Local scanner</string>
+
+<string name="auto_scanner_title">Scan automatically</string>
+<string name="auto_scanner_description">Procurar músicas automaticamente ao abrir o aplicativo</string>
+
+<string name="manual_scanner_title">Manual scanner</string>
+<string name="scanner_warning">Dependendo do tamanho da sua biblioteca, pode demorar um pouco. É altamente recomendável esperar o scanner terminar antes de prosseguir. Depois não diga que não avisei!</string>
+<!--scanner additional settings-->
+<string name="scanner_settings_title">Definições adicionais do scanner</string>
+<string name="scanner_strict_file_name_title">Nomes de arquivo</string>
+<string name="scanner_strict_file_name_description">Quando ativadas, as extensões NÃO serão ignoradas. Ex. "Song.ogg" será uma música diferente de "Song.flac".</string>
+<string name="scanner_sensitivity_title">Configurar a sensibilidade do scanner</string>
+<string name="scanner_sensitivity_L1">Combinar Título</string>
+<string name="scanner_sensitivity_L2">Combinar Título e Artista</string>
+<string name="scanner_sensitivity_L3">Combinar Título, Artista e Álbuns</string>
+<!--Folders-->
+<string name="folders_settings_title">Pastas</string>
+<string name="flat_subfolders_title">Comprimir subpastas</string>
+<string name="flat_subfolders_description">Desabilitar para preservar a estrutura do arquivo como no disco</string>
 <!--   Spotify import settings   -->
 <string name="select_all">Selecionar tudo</string>
 <string name="fetching_all_playlists">Buscando todas as playlists…</string>

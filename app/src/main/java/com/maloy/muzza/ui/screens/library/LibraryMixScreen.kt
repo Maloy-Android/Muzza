@@ -1,5 +1,10 @@
 package com.maloy.muzza.ui.screens.library
 
+import android.Manifest
+import android.app.Activity
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -21,6 +26,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -32,10 +38,12 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -44,7 +52,7 @@ import com.maloy.muzza.constants.AutoPlaylistDownloadShowKey
 import com.maloy.muzza.constants.AutoPlaylistLikedShowKey
 import com.maloy.muzza.constants.AutoPlaylistLocalPlaylistShowKey
 import com.maloy.muzza.constants.AutoPlaylistTopPlaylistShowKey
-import com.maloy.muzza.constants.AutoPlaylistsCustomizationKey
+import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
 import com.maloy.muzza.constants.ChipSortTypeKey
@@ -56,6 +64,9 @@ import com.maloy.muzza.constants.MixSortType
 import com.maloy.muzza.constants.MixSortTypeKey
 import com.maloy.muzza.constants.MixViewType
 import com.maloy.muzza.constants.MixViewTypeKey
+import com.maloy.muzza.constants.ScannerSensitivity
+import com.maloy.muzza.constants.ScannerSensitivityKey
+import com.maloy.muzza.constants.ScannerStrictExtKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
@@ -75,11 +86,14 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.ui.menu.PlaylistMenu
+import com.maloy.muzza.ui.utils.scanLocal
+import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryMixViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.text.Collator
 import java.time.LocalDateTime
@@ -200,6 +214,24 @@ fun LibraryMixScreen(
         thumbnails = emptyList()
     )
 
+    val database = LocalDatabase.current
+    val coroutineScope = rememberCoroutineScope()
+    var isScannerActive by remember { mutableStateOf(false) }
+    var isScanFinished by remember { mutableStateOf(false) }
+    var mediaPermission by remember { mutableStateOf(true) }
+    val mediaPermissionLevel =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
+        else Manifest.permission.READ_EXTERNAL_STORAGE
+    val (autoSyncLocalSongs) = rememberPreference(
+        key = AutoSyncLocalSongsKey,
+        defaultValue = true
+    )
+    val (scannerSensitivity) = rememberEnumPreference(
+        key = ScannerSensitivityKey,
+        defaultValue = ScannerSensitivity.LEVEL_2
+    )
+    val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
+
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -220,6 +252,45 @@ fun LibraryMixScreen(
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             withContext(Dispatchers.IO) {
                 viewModel.syncAllLibrary()
+            }
+        }
+    }
+
+    if (autoSyncLocalSongs) {
+        LaunchedEffect(Unit) {
+            if (isScannerActive) {
+                return@LaunchedEffect
+            }
+            if (context.checkSelfPermission(mediaPermissionLevel)
+                != PackageManager.PERMISSION_GRANTED
+            ) {
+
+                Toast.makeText(
+                    context,
+                    "The scanner requires storage permissions",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+                requestPermissions(
+                    context as Activity,
+                    arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
+                )
+
+                mediaPermission = false
+                return@LaunchedEffect
+            } else if (context.checkSelfPermission(mediaPermissionLevel)
+                == PackageManager.PERMISSION_GRANTED
+            ) {
+                mediaPermission = true
+            }
+            isScanFinished = false
+            isScannerActive = true
+            coroutineScope.launch(Dispatchers.IO) {
+                val directoryStructure = scanLocal(context).value
+                syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
+
+                isScannerActive = false
+                isScanFinished = true
             }
         }
     }
@@ -266,7 +337,6 @@ fun LibraryMixScreen(
                 }
         }.reversed(sortDescending)
 
-    val coroutineScope = rememberCoroutineScope()
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,

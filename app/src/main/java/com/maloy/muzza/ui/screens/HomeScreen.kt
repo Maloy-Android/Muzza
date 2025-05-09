@@ -383,7 +383,7 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
-                if (showContentFilter) {
+                if (!homePage?.chips.isNullOrEmpty() && showContentFilter) {
                     PreferenceGroupTitle(
                         title = stringResource(R.string.content_filter)
                     )

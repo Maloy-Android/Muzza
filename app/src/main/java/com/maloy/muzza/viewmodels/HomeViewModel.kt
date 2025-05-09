@@ -45,18 +45,27 @@ class HomeViewModel @Inject constructor(
     val accountPlaylists = MutableStateFlow<List<PlaylistItem>?>(null)
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
+    val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
+    private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
     private val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
     private val allYtItems = MutableStateFlow<List<YTItem>>(emptyList())
 
+    private val _isLoadingMore = MutableStateFlow(false)
     fun loadMoreYouTubeItems(continuation: String?) {
-        if (continuation == null) return
+        if (continuation == null || _isLoadingMore.value) return
 
         viewModelScope.launch(Dispatchers.IO) {
-            val nextSections = YouTube.home().getOrNull() ?: return@launch
+            _isLoadingMore.value = true
+            val nextSections = YouTube.home(continuation).getOrNull() ?: run {
+                _isLoadingMore.value = false
+                return@launch
+            }
             homePage.value = nextSections.copy(
-                homePage.value?.sections.orEmpty() + nextSections.sections
+                chips = homePage.value?.chips,
+                sections = homePage.value?.sections.orEmpty() + nextSections.sections
             )
+            _isLoadingMore.value = false
         }
     }
 
@@ -172,6 +181,26 @@ class HomeViewModel @Inject constructor(
             isRefreshing.value = true
             load()
             isRefreshing.value = false
+        }
+    }
+
+    fun toggleChip(chip: HomePage.Chip?) {
+        if (chip == null || chip == selectedChip.value && previousHomePage.value != null) {
+            homePage.value = previousHomePage.value
+            previousHomePage.value = null
+            selectedChip.value = null
+            return
+        }
+        if (selectedChip.value == null) {
+            previousHomePage.value = homePage.value
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
+            homePage.value = nextSections.copy(
+                chips = homePage.value?.chips,
+                sections = nextSections.sections
+            )
+            selectedChip.value = chip
         }
     }
 

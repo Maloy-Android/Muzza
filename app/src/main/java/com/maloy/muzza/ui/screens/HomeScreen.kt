@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
@@ -130,6 +131,7 @@ fun HomeScreen(
 
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val selectedChip by viewModel.selectedChip.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
 
     val quickPicksLazyGridState = rememberLazyGridState()
@@ -158,6 +160,12 @@ fun HomeScreen(
                     viewModel.loadMoreYouTubeItems(homePage?.continuation)
                 }
             }
+    }
+
+    if (selectedChip != null) {
+        BackHandler {
+            viewModel.toggleChip(selectedChip)
+        }
     }
 
     val localGridItem: @Composable (LocalItem) -> Unit = {
@@ -371,6 +379,15 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
+                ChipsRow(
+                    chips = homePage?.chips?.mapNotNull { chip ->
+                        chip?.let { it to it.title }
+                    } ?: emptyList(),
+                    currentValue = selectedChip,
+                    onValueUpdate = {
+                        viewModel.toggleChip(it)
+                    }
+                )
             }
 
             quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->

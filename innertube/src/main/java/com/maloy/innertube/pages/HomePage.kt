@@ -9,14 +9,32 @@ import com.maloy.innertube.models.MusicCarouselShelfRenderer
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicTwoRowItemRenderer
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
 
 data class HomePage(
+    val chips: List<Chip?>?,
     val sections: List<Section>,
     val continuation: String? = null,
 ) {
+    data class Chip(
+        val title: String,
+        val endpoint: BrowseEndpoint?,
+        val deselectEndPoint: BrowseEndpoint?,
+    ) {
+        companion object {
+            fun fromChipCloudChipRenderer(renderer: SectionListRenderer.Header.ChipCloudRenderer.Chip): Chip? {
+                return Chip(
+                    title = renderer.chipCloudChipRenderer.text?.runs?.firstOrNull()?.text
+                        ?: return null,
+                    endpoint = renderer.chipCloudChipRenderer.navigationEndpoint.browseEndpoint,
+                    deselectEndPoint = renderer.chipCloudChipRenderer.onDeselectedCommand.browseEndpoint,
+                )
+            }
+        }
+    }
     data class Section(
         val title: String,
         val label: String?,

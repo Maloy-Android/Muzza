@@ -389,12 +389,13 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         innerTube.addPlaylistToPlaylist(WEB_REMIX, playlistId, addPlaylistId)
     }
 
-    suspend fun home(): Result<HomePage> = runCatching {
-        var response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_home").body<BrowseResponse>()
+    suspend fun home(params: String? = null): Result<HomePage> = runCatching {
+        var response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_home", params = params).body<BrowseResponse>()
         var continuation = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
             ?.tabRenderer?.content?.sectionListRenderer?.continuations?.getContinuation()
-        val sections = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
-            ?.tabRenderer?.content?.sectionListRenderer?.contents!!
+        val sectionListRender = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer
+        val sections = sectionListRender?.contents!!
             .mapNotNull { it.musicCarouselShelfRenderer }
             .mapNotNull {
                 HomePage.Section.fromMusicCarouselShelfRenderer(it)
@@ -408,7 +409,8 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     HomePage.Section.fromMusicCarouselShelfRenderer(it)
                 }.orEmpty()
         }
-        HomePage(sections)
+        val chips = sectionListRender.header?.chipCloudRenderer?.chips?.map { HomePage.Chip.fromChipCloudChipRenderer(it) }
+        HomePage(chips, sections)
     }
 
     suspend fun explore(): Result<ExplorePage> = runCatching {

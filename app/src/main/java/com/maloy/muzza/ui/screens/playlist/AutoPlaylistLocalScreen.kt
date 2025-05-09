@@ -245,18 +245,10 @@ fun AutoPlaylistLocalScreen(
             if (context.checkSelfPermission(mediaPermissionLevel)
                 != PackageManager.PERMISSION_GRANTED
             ) {
-
-                Toast.makeText(
-                    context,
-                    "The scanner requires storage permissions",
-                    Toast.LENGTH_SHORT
-                ).show()
-
                 requestPermissions(
                     context as Activity,
                     arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
                 )
-
                 mediaPermission = false
                 return@LaunchedEffect
             } else if (context.checkSelfPermission(mediaPermissionLevel)
@@ -269,7 +261,6 @@ fun AutoPlaylistLocalScreen(
             coroutineScope.launch(Dispatchers.IO) {
                 val directoryStructure = scanLocal(context).value
                 syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
-
                 isScannerActive = false
                 isScanFinished = true
             }
@@ -362,19 +353,11 @@ fun AutoPlaylistLocalScreen(
                                         if (context.checkSelfPermission(mediaPermissionLevel)
                                             != PackageManager.PERMISSION_GRANTED
                                         ) {
-
-                                            Toast.makeText(
-                                                context,
-                                                "The scanner requires storage permissions",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-
                                             requestPermissions(
                                                 context as Activity,
                                                 arrayOf(mediaPermissionLevel),
                                                 PackageManager.PERMISSION_GRANTED
                                             )
-
                                             mediaPermission = false
                                             return@Button
                                         } else if (context.checkSelfPermission(mediaPermissionLevel)
@@ -384,10 +367,10 @@ fun AutoPlaylistLocalScreen(
                                         }
                                         isScanFinished = false
                                         isScannerActive = true
-
+                                        val text = context.getString(R.string.sync_local_songs_toast)
                                         Toast.makeText(
                                             context,
-                                            "Starting full library scan this may take a while...",
+                                            text,
                                             Toast.LENGTH_SHORT
                                         ).show()
                                         coroutineScope.launch(Dispatchers.IO) {
@@ -399,7 +382,6 @@ fun AutoPlaylistLocalScreen(
                                                 scannerSensitivity,
                                                 strictExtensions
                                             )
-
                                             isScannerActive = false
                                             isScanFinished = true
                                         }

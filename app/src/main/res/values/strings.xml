@@ -479,6 +479,7 @@
     <string name="downloadspage">Go to downloads</string>
 
     <!--scanner page settings-->
+    <string name="sync_local_songs_toast">Sync local songs successfully</string>
     <string name="local_scanner_title">Local scanner</string>
 
     <string name="auto_scanner_title">Scan automatically</string>

@@ -4,7 +4,6 @@ import android.Manifest
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
@@ -264,18 +263,10 @@ fun LibraryMixScreen(
             if (context.checkSelfPermission(mediaPermissionLevel)
                 != PackageManager.PERMISSION_GRANTED
             ) {
-
-                Toast.makeText(
-                    context,
-                    "The scanner requires storage permissions",
-                    Toast.LENGTH_SHORT
-                ).show()
-
                 requestPermissions(
                     context as Activity,
                     arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
                 )
-
                 mediaPermission = false
                 return@LaunchedEffect
             } else if (context.checkSelfPermission(mediaPermissionLevel)
@@ -288,7 +279,6 @@ fun LibraryMixScreen(
             coroutineScope.launch(Dispatchers.IO) {
                 val directoryStructure = scanLocal(context).value
                 syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
-
                 isScannerActive = false
                 isScanFinished = true
             }

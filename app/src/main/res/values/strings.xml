@@ -25,6 +25,8 @@
     <string name="cached">Cached music</string>
     <string name="local">Local music</string>
 
+    <string name="content_filter">Content filter</string>
+
     <!-- My top -->
     <string name="all_time">All time</string>
     <string name="past_24_hours">Past 24 hours</string>

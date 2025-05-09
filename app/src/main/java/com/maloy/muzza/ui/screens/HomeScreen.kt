@@ -87,6 +87,7 @@ import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
+import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
@@ -379,6 +380,9 @@ fun HomeScreen(
                         containerColor = MaterialTheme.colorScheme.surfaceContainer
                     )
                 }
+                 PreferenceGroupTitle(
+                     title = stringResource(R.string.content_filter)
+                 )
                 ChipsRow(
                     chips = homePage?.chips?.mapNotNull { chip ->
                         chip?.let { it to it.title }

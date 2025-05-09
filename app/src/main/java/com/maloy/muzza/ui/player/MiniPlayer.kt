@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.player
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -39,6 +40,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.offset
+import androidx.compose.runtime.*
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
@@ -50,7 +56,9 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.utils.imageCache
+import kotlin.math.abs
 
+@SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
 fun MiniPlayer(
     position: Long,
@@ -62,13 +70,35 @@ fun MiniPlayer(
     val playbackState by playerConnection.playbackState.collectAsState()
     val error by playerConnection.error.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val canSkipNext by playerConnection.canSkipNext.collectAsState()
+
+    var offsetX by remember { mutableStateOf(0f) }
+    val swipeThreshold = 100.dp
+    val animatedOffset by animateDpAsState(targetValue = offsetX.dp, label = "")
+
+    LaunchedEffect(offsetX) {
+        if (abs(offsetX) > swipeThreshold.value) {
+            when {
+                offsetX > 0 -> playerConnection.seekToPrevious()
+                else -> playerConnection.seekToNext()
+            }
+            offsetX = 0f
+        }
+    }
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(MiniPlayerHeight)
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+            .offset(x = animatedOffset)
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onDragEnd = { offsetX = 0f },
+                    onHorizontalDrag = { _, dragAmount ->
+                        offsetX += dragAmount
+                    }
+                )
+            }
     ) {
         LinearProgressIndicator(
             progress = { (position.toFloat() / duration).coerceIn(0f, 1f) },
@@ -92,19 +122,6 @@ fun MiniPlayer(
                     )
                 }
             }
-
-            IconButton(
-                enabled = canSkipNext,
-                onClick = playerConnection::seekToPrevious
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.skip_previous),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(26.dp)
-                )
-            }
-
             IconButton(
                 onClick = {
                     if (playbackState == Player.STATE_ENDED) {
@@ -118,18 +135,6 @@ fun MiniPlayer(
                 Icon(
                     painter = painterResource(if (playbackState == Player.STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
                     contentDescription = null
-                )
-            }
-
-            IconButton(
-                enabled = canSkipNext,
-                onClick = playerConnection::seekToNext
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.skip_next),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(26.dp)
                 )
             }
         }

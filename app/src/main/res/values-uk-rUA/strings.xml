@@ -22,6 +22,8 @@
     <string name="cached">Кешована музика</string>
     <string name="local">Локальна музика</string>
 
+    <string name="content_filter">Фільтр контенту</string>
+
     <!-- Top bar -->
     <plurals name="n_selected">
         <item quantity="one">%d вибрано</item>
@@ -321,6 +323,7 @@
     <string name="slider_style">Стиль повзунка</string>
     <string name="default_">Стандартний</string>
     <string name="thumbnail_corner_radius">Радіус заокруглення обкладинки</string>
+    <string name="show_content_filter">Фільтр контенту</string>
     <string name="squiggly">Хвилястий</string>
     <string name="misc">Різне</string>
     <string name="main">Основні</string>
@@ -514,4 +517,27 @@
         <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
         <item quantity="other">%d секунд</item>
     </plurals>
+
+    <!-- Сканер -->
+    <string name="local_scanner_title">Локальний сканер</string>
+
+    <string name="auto_scanner_title">Автосканування</string>
+    <string name="auto_scanner_description">Автоматично сканувати пісні з пристрою при відкритті додатку</string>
+
+    <string name="manual_scanner_title">Ручне сканування</string>
+    <string name="scanner_warning">Залежно від розміру бібліотеки, процес може зайняти деякий час. Настійно рекомендовано дочекатися завершення сканування. Не кажіть, що я вас не попереджав!</string>
+
+    <!-- Додаткові налаштування -->
+    <string name="scanner_settings_title">Додаткові налаштування сканера</string>
+    <string name="scanner_strict_file_name_title">Суворі назви файлів</string>
+    <string name="scanner_strict_file_name_description">При ввімкненні розширення файлів НЕ ігноруються. Наприклад: «Song.ogg» та «Song.flac» вважатимуться різними піснями</string>
+
+    <string name="scanner_sensitivity_title">Налаштування чутливості</string>
+    <string name="scanner_sensitivity_L1">Збіг за назвою</string>
+    <string name="scanner_sensitivity_L2">Збіг за назвою та виконавцями</string>
+    <string name="scanner_sensitivity_L3">Збіг за назвою, виконавцями та альбомами</string>
+    <string name="folders_settings_title">Папки</string>
+    <string name="flat_subfolders_title">Об\'єднання підпапок</string>
+    <string name="flat_subfolders_description">Вимкніть, щоб зберегти структуру файлів як на диску</string>
+    <string name="sync_local_songs_toast">Локальні пісні успішно синхронізовано</string>
 </resources>

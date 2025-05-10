@@ -23,6 +23,8 @@
     <string name="cached">Кэшированная музыка</string>
     <string name="local">Локальная музыка</string>
 
+    <string name="content_filter">Фильтр контента</string>
+
     <!-- Top bar -->
     <plurals name="n_selected">
         <item quantity="one">%d выбрано</item>
@@ -323,6 +325,7 @@
     <string name="default_">По умолчанию</string>
     <string name="squiggly">Волнистый</string>
     <string name="thumbnail_corner_radius">Радиус скругления обложки</string>
+    <string name="show_content_filter">фильтр контента</string>
     <string name="misc">Разное</string>
     <string name="main">Основное</string>
     <string name="auto_playlists_customization">Настройка автоматических плейлистов</string>
@@ -518,4 +521,27 @@
         <item quantity="one" tools:ignore="ImpliedQuantity">1 секунда</item>
         <item quantity="other">%d секунд</item>
     </plurals>
+
+    <!-- Сканер -->
+    <string name="local_scanner_title">Локальный сканер</string>
+
+    <string name="auto_scanner_title">Автосканирование</string>
+    <string name="auto_scanner_description">Автоматически сканировать песни с устройства при открытии приложения</string>
+
+    <string name="manual_scanner_title">Ручное сканирование</string>
+    <string name="scanner_warning">В зависимости от размера библиотеки, процесс может занять некоторое время. Настоятельно рекомендуется дождаться завершения сканирования. Не говорите, что я вас не предупреждал!</string>
+
+    <!-- Дополнительные настройки -->
+    <string name="scanner_settings_title">Дополнительные настройки сканера</string>
+    <string name="scanner_strict_file_name_title">Строгие имена файлов</string>
+    <string name="scanner_strict_file_name_description">При включении расширения файлов НЕ игнорируются. Например: «Song.ogg» и «Song.flac» будут считаться разными песнями</string>
+
+    <string name="scanner_sensitivity_title">Настройка чувствительности</string>
+    <string name="scanner_sensitivity_L1">Совпадение по названию</string>
+    <string name="scanner_sensitivity_L2">Совпадение по названию и исполнителям</string>
+    <string name="scanner_sensitivity_L3">Совпадение по названию, исполнителям и альбомам</string>
+    <string name="folders_settings_title">Папки</string>
+    <string name="flat_subfolders_title">Объединение подпапок</string>
+    <string name="flat_subfolders_description">Отключите, чтобы сохранить структуру файлов как на диске</string>
+    <string name="sync_local_songs_toast">Локальные песни успешно синхронизированы</string>
 </resources>

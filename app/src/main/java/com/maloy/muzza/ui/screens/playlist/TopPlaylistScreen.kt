@@ -97,13 +97,9 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
-import com.maloy.muzza.constants.SongSortDescendingKey
-import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
-import com.maloy.muzza.utils.rememberEnumPreference
-import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.TopPlaylistViewModel
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -120,8 +116,6 @@ fun TopPlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val focusRequester = remember { FocusRequester() }
-    val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, MyTopFilter.ALL_TIME)
-    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
     val songs by viewModel.topSongs.collectAsState(null)
     val mutableSongs =
@@ -164,6 +158,8 @@ fun TopPlaylistScreen(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val sortType by viewModel.topPeriod.collectAsState()
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
@@ -455,9 +451,11 @@ fun TopPlaylistScreen(
                             ) {
                                 SortHeader(
                                     sortType = sortType,
-                                    sortDescending = sortDescending,
-                                    onSortTypeChange = onSortTypeChange,
-                                    onSortDescendingChange = onSortDescendingChange,
+                                    sortDescending = false,
+                                    onSortTypeChange = {
+                                        viewModel.topPeriod.value = it
+                                    },
+                                    onSortDescendingChange = {},
                                     sortTypeText = { sortType ->
                                         when (sortType) {
                                             MyTopFilter.ALL_TIME -> R.string.all_time
@@ -467,7 +465,8 @@ fun TopPlaylistScreen(
                                             MyTopFilter.YEAR -> R.string.past_year
                                         }
                                     },
-                                    modifier = Modifier.weight(1f)
+                                    modifier = Modifier.weight(1f),
+                                    showDescending = false,
                                 )
                             }
                         }

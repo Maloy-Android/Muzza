@@ -116,13 +116,15 @@ fun OnlineSearchScreen(
             .only(WindowInsetsSides.Bottom)
             .asPaddingValues(),
     ) {
-        item {
-            Text(
-                text = (stringResource(R.string.SearchHistory)),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-            )
+        if (viewState.history.isNotEmpty()) {
+            item {
+                Text(
+                    text = (stringResource(R.string.SearchHistory)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
         }
 
         items(

@@ -2,7 +2,7 @@
 <resources>
 <!-- Setup wizard -->
 <string name="welcome_to_muzza">Bem-vindo ao Muzza</string>
-<string name="yt_music_fingertips">YouTube Music na ponta de seus dedos</string>
+<string name="yt_music_fingertips">YouTube Music na ponta dos seus dedos</string>
 <string name="ytm_account_sync">Sincronização de conta do YouTube-Music</string>
 <string name="ad_free_playback">Suas músicas livres de anúncios</string>
 <string name="fos_info">Aplicativo open source</string>

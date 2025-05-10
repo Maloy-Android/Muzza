@@ -13,6 +13,7 @@ import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
+import com.maloy.innertube.models.oddElements
 
 data class HomePage(
     val chips: List<Chip?>?,
@@ -30,7 +31,7 @@ data class HomePage(
                     title = renderer.chipCloudChipRenderer.text?.runs?.firstOrNull()?.text
                         ?: return null,
                     endpoint = renderer.chipCloudChipRenderer.navigationEndpoint.browseEndpoint,
-                    deselectEndPoint = renderer.chipCloudChipRenderer.onDeselectedCommand.browseEndpoint,
+                    deselectEndPoint = renderer.chipCloudChipRenderer.onDeselectedCommand?.browseEndpoint,
                 )
             }
         }
@@ -110,19 +111,13 @@ data class HomePage(
                                 ?.musicPlayButtonRenderer?.playNavigationEndpoint
                                 ?.watchPlaylistEndpoint?.playlistId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                            artists = renderer.subtitle?.runs
-                                ?.filterNot { it.text == "•" }
-                                ?.filter { run ->
-                                    run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
-                                }?.map {
-                                    Artist(
-                                        name = it.text,
-                                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                                    )
-                                },
-                            year = renderer.subtitle?.runs
-                                ?.lastOrNull()
-                                ?.text?.toIntOrNull(),
+                            artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
+                                Artist(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                )
+                            },
+                            year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                             explicit = renderer.subtitleBadges?.find {

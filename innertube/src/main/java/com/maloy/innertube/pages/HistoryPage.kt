@@ -30,7 +30,7 @@ data class HistoryPage(
                 artists = listOfNotNull(renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
                     Artist(
                         name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                        id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
                 }),
                 album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()

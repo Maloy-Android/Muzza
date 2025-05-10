@@ -78,7 +78,7 @@ data class HomePage(
                         val artists = artistRuns.map {
                             Artist(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         }
                         SongItem(

@@ -139,13 +139,12 @@ data class SearchSummaryPage(
                         title = renderer.flexColumns.firstOrNull()
                             ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
                             ?.firstOrNull()?.text ?: return null,
-                        artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()
-                            ?.map {
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
-                                )
-                            } ?: emptyList(),
+                        artists = listRun.getOrNull(0)?.oddElements()?.map {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        } ?: return null,
                         album = listRun.getOrNull(1)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
                             Album(
                                 name = it.text,

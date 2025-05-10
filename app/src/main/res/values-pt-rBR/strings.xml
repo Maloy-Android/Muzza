@@ -6,6 +6,13 @@
 <string name="artists">Artistas</string>
 <string name="albums">Álbuns</string>
 <string name="playlists">Playlists</string>
+<string name="content_filter">Filtro de conteúdo</string>
+<!-- My top -->
+<string name="all_time">Todo o tempo</string>
+<string name="past_24_hours">Últimas 24 horas</string>
+<string name="past_week">Semana passada</string>
+<string name="past_month">Mês passado</string>
+<string name="past_year">Ano passado</string>
 <!--  Top bar  -->
 <plurals name="n_selected">
 <item quantity="one">%d selecionado</item>
@@ -33,6 +40,7 @@
 <string name="search">Pesquisar</string>
 <string name="search_yt_music">Pesquisar no Muzza</string>
 <string name="search_library">Pesquisar na biblioteca…</string>
+<string name="SearchHistory">Histórico de pesquisa</string>
 <string name="filter_library">Biblioteca</string>
 <string name="filter_liked">Curtidos</string>
 <string name="filter_downloaded">Baixados</string>
@@ -202,6 +210,10 @@
 <string name="dark_theme_follow_system">Automático (sistema)</string>
 <string name="pure_black">Preto puro</string>
 <string name="default_open_tab">Aba padrão ao abrir o app</string>
+<string name="listen_youtube_music">Ouça no YouTube Music</string>
+<string name="visit_muzza">Visite Muzza</string>
+<string name="artist">Artista</string>
+<string name="listen_to_muzza">Ouça no Muzza</string>
 <string name="customize_navigation_tabs">Customizar abas de navegação</string>
 <string name="auto_playlists_customization">Personalização da playlists</string>
 <string name="show_liked_auto_playlist">Mostrar músicas curtidas</string>
@@ -217,7 +229,7 @@
 <string name="default_lib_chips">Lista padrão da biblioteca</string>
 <string name="login">Login</string>
 <string name="content_language">Idioma padrão</string>
-<string name="content_country">País padrão de Origem</string>
+<string name="content_country">País de Origem</string>
 <string name="system_default">Padrão do sistema</string>
 <string name="enable_proxy">Ativar proxy</string>
 <string name="proxy_type">Tipo de proxy</string>
@@ -259,6 +271,7 @@
 <string name="clear_search_history">Limpar histórico de pesquisa</string>
 <string name="clear_search_history_confirm">Tem certeza que deseja limpar todo o seu histórico de pesquisa?</string>
 <string name="enable_kugou">Ativar o fornecedor de letras KuGou</string>
+<string name="main">Principal</string>
 <string name="default_lyrics_provider">Seletor de letras padrão</string>
 <string name="lyrics_multiline_title">Ler letras de Músicas</string>
 <string name="lyrics_multiline_description">Tratar todas as linhas entre os pontos de sincronização como um texto lyrics</string>
@@ -298,7 +311,7 @@
 <string name="not_logged_in">Não logado</string>
 <string name="discord_information">O Muzza usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco. \n \nO Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
 <string name="my_channel">Canal do Telegram</string>
-<string name="my_channel_info">Um canal sobre minha vida ❯</string>
+<string name="my_channel_info">Um canal sobre mim ❯</string>
 <string name="player_style">Estilo do Player</string>
 <string name="player_style_old">Antigo</string>
 <string name="player_style_new">Novo</string>
@@ -352,6 +365,7 @@
 <string name="queue">Fila</string>
 <string name="persistent_queue_desc">Restaurar sua última fila ao iniciar o app</string>
 <string name="auto_load_more">Tocar mais músicas automaticamente</string>
+<string name="adding_played_songs_to_ytm_history">Adicionar músicas tocadas ao histórico do YouTube Music</string>
 <string name="auto_skip_next_on_error">Pular automaticamente para a próxima música quando um erro ocorre</string>
 <string name="auto_skip_next_on_error_desc">Garanta uma experiência de reprodução contínua</string>
 <string name="stop_music_on_task_clear">Parar música ao remover dos apps recentes</string>
@@ -377,7 +391,7 @@
 <!--scanner page settings-->
 <string name="local_scanner_title">Local scanner</string>
 
-<string name="auto_scanner_title">Scan automatically</string>
+<string name="auto_scanner_title">Scan automático</string>
 <string name="auto_scanner_description">Procurar músicas automaticamente ao abrir o aplicativo</string>
 
 <string name="manual_scanner_title">Manual scanner</string>

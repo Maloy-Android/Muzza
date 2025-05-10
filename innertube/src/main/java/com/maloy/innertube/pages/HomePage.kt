@@ -78,22 +78,21 @@ data class HomePage(
                         val artists = artistRuns.map {
                             Artist(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                             )
                         }
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                             artists = artists,
-                            album = albumRuns.firstOrNull {
-                                it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+                            album = albumRuns.firstOrNull { run ->
+                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true
                             }?.let { run ->
-                                run.navigationEndpoint?.browseEndpoint?.let { endpoint ->
-                                    Album(
-                                        name = run.text,
-                                        id = endpoint.browseId
-                                    )
-                                }
+                                val endpoint = run.navigationEndpoint?.browseEndpoint ?: return null
+                                Album(
+                                    name = run.text,
+                                    id = endpoint.browseId
+                                )
                             },
                             duration = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()

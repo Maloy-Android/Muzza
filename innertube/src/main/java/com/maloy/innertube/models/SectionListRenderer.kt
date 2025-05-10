@@ -27,7 +27,7 @@ data class SectionListRenderer(
                 data class ChipCloudChipRenderer(
                     val isSelected: Boolean,
                     val navigationEndpoint: NavigationEndpoint,
-                    val onDeselectedCommand: NavigationEndpoint,
+                    val onDeselectedCommand: NavigationEndpoint ? = null,
                     val text: Runs?,
                     val uniqueId: String?,
                 )

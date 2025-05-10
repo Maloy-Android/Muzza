@@ -120,8 +120,8 @@ fun TopPlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val focusRequester = remember { FocusRequester() }
-    val (sortType) = rememberEnumPreference(SongSortTypeKey, MyTopFilter.ALL_TIME)
-    val (sortDescending) = rememberPreference(SongSortDescendingKey, true)
+    val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, MyTopFilter.ALL_TIME)
+    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
     val songs by viewModel.topSongs.collectAsState(null)
     val mutableSongs =
@@ -456,10 +456,8 @@ fun TopPlaylistScreen(
                                 SortHeader(
                                     sortType = sortType,
                                     sortDescending = sortDescending,
-                                    onSortTypeChange = {
-                                        viewModel.topPeriod.value = it
-                                    },
-                                    onSortDescendingChange = {},
+                                    onSortTypeChange = onSortTypeChange,
+                                    onSortDescendingChange = onSortDescendingChange,
                                     sortTypeText = { sortType ->
                                         when (sortType) {
                                             MyTopFilter.ALL_TIME -> R.string.all_time

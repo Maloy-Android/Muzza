@@ -27,12 +27,18 @@ data class HistoryPage(
             return SongItem(
                 id = renderer.playlistItemData?.videoId ?: return null,
                 title = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text?: return null,
-                artists = listOfNotNull(renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                }),
+                artists = renderer.flexColumns.getOrNull(1)
+                    ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+                    ?.mapNotNull { it ->
+                        it.takeIf { run ->
+                            run.navigationEndpoint?.browseEndpoint?.browseId != null
+                        }?.let {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        }
+                    } ?: emptyList(),
                 album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.takeIf {
                         it.navigationEndpoint?.browseEndpoint?.browseId != null

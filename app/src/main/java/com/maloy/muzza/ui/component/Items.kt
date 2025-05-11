@@ -31,6 +31,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.ShowChart
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
@@ -853,7 +854,7 @@ fun PlaylistListItem(
         val painter = when (playlist.playlist.name) {
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
-            stringResource(R.string.my_top) -> Icons.AutoMirrored.Rounded.ShowChart
+            stringResource(R.string.my_top) -> Icons.AutoMirrored.Rounded.TrendingUp
             stringResource(R.string.local) -> Icons.Rounded.MusicNote
             stringResource(R.string.cached) -> Icons.Rounded.Cached
             else -> Icons.AutoMirrored.Rounded.QueueMusic
@@ -905,7 +906,7 @@ fun PlaylistGridItem(
         val painter = when (playlist.playlist.name) {
             stringResource(R.string.liked) -> Icons.Rounded.Favorite
             stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
-            stringResource(R.string.my_top) -> Icons.AutoMirrored.Rounded.ShowChart
+            stringResource(R.string.my_top) -> Icons.AutoMirrored.Rounded.TrendingUp
             stringResource(R.string.local) -> Icons.Rounded.MusicNote
             stringResource(R.string.cached) -> Icons.Rounded.Cached
             else -> Icons.AutoMirrored.Rounded.QueueMusic

@@ -89,9 +89,9 @@ import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.LocalSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.numberToAlpha
 import com.maloy.muzza.ui.utils.scanLocal
 import com.maloy.muzza.ui.utils.syncDB
-import com.maloy.muzza.utils.ItemWrapper
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -130,6 +130,9 @@ fun AutoPlaylistLocalScreen(
     val (sortType,onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+
     val (autoSyncLocalSongs) = rememberPreference(
         key = AutoSyncLocalSongsKey,
         defaultValue = true
@@ -165,8 +168,9 @@ fun AutoPlaylistLocalScreen(
     val likeLength = remember(songs) {
         songs.fastSumBy { it.song.duration }
     }
-
-    val backStackEntry by navController.currentBackStackEntryAsState()
+    val mutableSongs = remember {
+        mutableStateListOf<Song>()
+    }
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
         saver = listSaver<MutableList<String>, String>(
@@ -203,30 +207,29 @@ fun AutoPlaylistLocalScreen(
             }
         )
     }
-
-    val wrappedSongs = remember {
-        mutableStateListOf<ItemWrapper<Song>>()
-    }
-    if (sortDescending) {
-        songs.reverse()
+    LaunchedEffect(scrollToTop?.value) {
+        if (scrollToTop?.value == true) {
+            lazyListState.animateScrollToItem(0)
+            backStackEntry?.savedStateHandle?.set("scrollToTop", false)
+        }
     }
     LaunchedEffect(sortType, sortDescending, currDir) {
-        val tempList = currDir.files.map { item -> ItemWrapper(item) }.toMutableList()
+        val tempList = currDir.files.map { it }.toMutableList()
         tempList.sortBy {
             when (sortType) {
-                SongSortType.CREATE_DATE -> it.item.song.inLibrary?.toEpochSecond(ZoneOffset.UTC).toString()
-                SongSortType.NAME -> it.item.song.title
-                SongSortType.ARTIST -> it.item.artists.firstOrNull()?.name
-                SongSortType.PLAY_TIME -> it.item.song.totalPlayTime.toString()
+                SongSortType.CREATE_DATE -> numberToAlpha(it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC) ?: -1L)
+                SongSortType.NAME -> it.song.title.lowercase()
+                SongSortType.ARTIST -> it.artists.joinToString { artist -> artist.name }.lowercase()
+                SongSortType.PLAY_TIME -> numberToAlpha(it.song.totalPlayTime)
             }
         }
-        currDir.subdirs.sortBy { it.currentDir }
+        currDir.subdirs.sortBy { it.currentDir.lowercase() }
         if (sortDescending) {
             currDir.subdirs.reverse()
             tempList.reverse()
         }
-        wrappedSongs.clear()
-        wrappedSongs.addAll(tempList)
+        mutableSongs.clear()
+        mutableSongs.addAll(tempList)
     }
     if (inLocal) {
         BackHandler {

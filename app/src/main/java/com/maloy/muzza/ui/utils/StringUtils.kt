@@ -28,3 +28,21 @@ fun formatFileSize(sizeBytes: Long): String {
     }
     return "$prefix$result $suffix"
 }
+
+fun numberToAlpha(l: Long): String {
+    val alphabetMap = ('A'..'J').toList()
+    val weh = if (l < 0) "0" else l.toString()
+    val lengthStr = if (weh.length.toInt() < 10) {
+        "0" + weh.length.toInt()
+    } else {
+        weh.length.toInt().toString()
+    }
+
+    return (lengthStr + weh + "\u0000").map {
+        if (it == '\u0000') {
+            "0"
+        } else {
+            alphabetMap[it.digitToInt()]
+        }
+    }.joinToString("")
+}

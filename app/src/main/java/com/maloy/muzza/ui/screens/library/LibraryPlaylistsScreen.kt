@@ -141,6 +141,8 @@ fun LibraryPlaylistsScreen(
 
     val likedSongs by viewModel.likedSongs.collectAsState()
     val downloadSongs by viewModel.downloadSongs.collectAsState(initial = null)
+    val localSongsCount by viewModel.localSongsCount.collectAsState()
+    val cachedSongs by viewModel.cachedSongs.collectAsState()
     val topSongs by viewModel.topSongs.collectAsState(initial = null)
     val topSize = 50
     val likedPlaylist = Playlist(
@@ -176,7 +178,7 @@ fun LibraryPlaylistsScreen(
             id = UUID.randomUUID().toString(),
             name = stringResource(R.string.local)
         ),
-        songCount = 0,
+        songCount = localSongsCount,
         thumbnails = emptyList()
     )
 
@@ -185,7 +187,7 @@ fun LibraryPlaylistsScreen(
             id = UUID.randomUUID().toString(),
             name = stringResource(R.string.cached)
         ),
-        songCount = 0,
+        songCount = cachedSongs.size,
         thumbnails = emptyList()
     )
 

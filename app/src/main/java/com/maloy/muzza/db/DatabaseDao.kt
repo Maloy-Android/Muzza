@@ -876,4 +876,6 @@ interface DatabaseDao {
     fun checkpoint() {
         raw("PRAGMA wal_checkpoint(FULL)".toSQLiteQuery())
     }
+    @Query("SELECT COUNT(*) FROM song WHERE isLocal = 1")
+    fun localSongsCount(): Flow<Int>
 }

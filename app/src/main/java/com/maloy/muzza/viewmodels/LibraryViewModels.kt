@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.constants.AlbumFilter
@@ -32,6 +33,8 @@ import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.di.DownloadCache
+import com.maloy.muzza.di.PlayerCache
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
@@ -44,6 +47,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -235,8 +239,49 @@ class LibraryPlaylistsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     downloadUtil: DownloadUtil,
     database: MusicDatabase,
+    @PlayerCache private val playerCache: SimpleCache,
+    @DownloadCache private val downloadCache: SimpleCache,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
+    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                val cachedIds = playerCache.keys.map { it }.toSet()
+                val downloadedIds = downloadCache.keys.map { it }.toSet()
+                val pureCacheIds = cachedIds.subtract(downloadedIds)
+
+                val songs = if (pureCacheIds.isNotEmpty()) {
+                    database.getSongsByIds(pureCacheIds.toList())
+                } else {
+                    emptyList()
+                }
+
+                val completeSongs = songs.filter {
+                    val contentLength = it.format?.contentLength
+                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
+                }
+
+                if (completeSongs.isNotEmpty()) {
+                    database.query {
+                        completeSongs.forEach {
+                            if (it.song.dateDownload == null) {
+                                update(it.song.copy(dateDownload = LocalDateTime.now()))
+                            }
+                        }
+                    }
+                }
+
+                _cachedSongs.value = completeSongs
+                    .filter { it.song.dateDownload != null }
+                    .sortedByDescending { it.song.dateDownload }
+
+                delay(1000)
+            }
+        }
+    }
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
     val downloadSongs =
@@ -250,6 +295,8 @@ class LibraryPlaylistsViewModel @Inject constructor(
                 }
         }
     val topSongs = database.mostPlayedSongs(0, 100)
+    val localSongsCount = database.localSongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
     fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
     val allPlaylists = context.dataStore.data
         .map {
@@ -288,7 +335,48 @@ class LibraryMixViewModel @Inject constructor(
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
+    @PlayerCache private val playerCache: SimpleCache,
+    @DownloadCache private val downloadCache: SimpleCache,
 ) : ViewModel() {
+    private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
+    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                val cachedIds = playerCache.keys.map { it }.toSet()
+                val downloadedIds = downloadCache.keys.map { it }.toSet()
+                val pureCacheIds = cachedIds.subtract(downloadedIds)
+
+                val songs = if (pureCacheIds.isNotEmpty()) {
+                    database.getSongsByIds(pureCacheIds.toList())
+                } else {
+                    emptyList()
+                }
+
+                val completeSongs = songs.filter {
+                    val contentLength = it.format?.contentLength
+                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
+                }
+
+                if (completeSongs.isNotEmpty()) {
+                    database.query {
+                        completeSongs.forEach {
+                            if (it.song.dateDownload == null) {
+                                update(it.song.copy(dateDownload = LocalDateTime.now()))
+                            }
+                        }
+                    }
+                }
+
+                _cachedSongs.value = completeSongs
+                    .filter { it.song.dateDownload != null }
+                    .sortedByDescending { it.song.dateDownload }
+
+                delay(1000)
+            }
+        }
+    }
     val syncAllLibrary = {
         viewModelScope.launch(Dispatchers.IO) {
             syncUtils.syncLikedSongs()
@@ -320,4 +408,6 @@ class LibraryMixViewModel @Inject constructor(
                 }
         }
     val topSongs = database.mostPlayedSongs(0, 100)
+    val localSongsCount = database.localSongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 }

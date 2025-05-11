@@ -300,6 +300,7 @@
     <string name="sided">Sided</string>
     <string name="left">Left</string>
     <string name="center">Center</string>
+    <string name="mini_player_style">Mini player style</string>
     <string name="player_style">Player style</string>
     <string name="player_style_old">Old</string>
     <string name="player_style_new">New</string>

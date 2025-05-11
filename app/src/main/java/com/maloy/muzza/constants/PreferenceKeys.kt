@@ -229,6 +229,11 @@ enum class PlayerStyle {
     NEW,
 }
 
+enum class MiniPlayerStyle {
+    OLD,
+    NEW,
+}
+
 enum class PlayerBackgroundStyle {
     DEFAULT,
     GRADIENT,
@@ -238,6 +243,7 @@ enum class PlayerBackgroundStyle {
 
 val PlayerBackgroundStyleKey = stringPreferencesKey("playerBackgroundStyle")
 val PlayerStyleKey = stringPreferencesKey("playerStyle")
+val MiniPlayerStyleKey = stringPreferencesKey("miniPlayerStyle")
 val ShowLyricsKey = booleanPreferencesKey("showLyrics")
 val TranslateLyricsKey = booleanPreferencesKey("translateLyrics")
 val LockQueueKey = booleanPreferencesKey("lockQueue")

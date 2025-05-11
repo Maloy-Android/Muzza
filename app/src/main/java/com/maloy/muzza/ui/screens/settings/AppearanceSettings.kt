@@ -72,6 +72,8 @@ import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.LibraryFilter
+import com.maloy.muzza.constants.MiniPlayerStyle
+import com.maloy.muzza.constants.MiniPlayerStyleKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerStyle
@@ -131,6 +133,7 @@ fun AppearanceSettings(
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
     val (showContentFilter, onShowContentFilterChange) = rememberPreference(ShowContentFilterKey, defaultValue = true)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
+    val (miniPlayerStyle, onMiniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -398,6 +401,19 @@ fun AppearanceSettings(
             onValueSelected = onPlayerStyle
         )
 
+        ListPreference(
+            title = { Text(stringResource(R.string.mini_player_style)) },
+            icon = { Icon(painterResource(R.drawable.play), null) },
+            selectedValue = miniPlayerStyle,
+            values = listOf(MiniPlayerStyle.OLD, MiniPlayerStyle.NEW),
+            valueText = {
+                when (it) {
+                    MiniPlayerStyle.OLD -> stringResource(R.string.player_style_old)
+                    MiniPlayerStyle.NEW -> stringResource(R.string.player_style_new)
+                }
+            },
+            onValueSelected = onMiniPlayerStyle
+        )
 
         EnumListPreference(
             title = { Text(stringResource(R.string.player_background_style)) },

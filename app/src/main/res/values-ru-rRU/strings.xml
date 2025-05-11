@@ -304,6 +304,7 @@
     <string name="visit_muzza">Посетить Muzza</string>
     <string name="artist">Исполнитель</string>
     <string name="listen_to_muzza">Слушать в Muzza</string>
+    <string name="mini_player_style">Стиль мини плеера</string>
     <string name="player_style">Стиль плеера</string>
     <string name="player_style_old">Старый</string>
     <string name="player_style_new">Новый</string>

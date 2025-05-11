@@ -51,11 +51,14 @@ import coil.compose.AsyncImage
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.MiniPlayerHeight
+import com.maloy.muzza.constants.MiniPlayerStyle
+import com.maloy.muzza.constants.MiniPlayerStyleKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.rememberEnumPreference
 import kotlin.math.abs
 
 @SuppressLint("UseOfNonLambdaOffsetOverload")
@@ -70,72 +73,150 @@ fun MiniPlayer(
     val playbackState by playerConnection.playbackState.collectAsState()
     val error by playerConnection.error.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
     var offsetX by remember { mutableStateOf(0f) }
     val swipeThreshold = 100.dp
     val animatedOffset by animateDpAsState(targetValue = offsetX.dp, label = "")
 
-    LaunchedEffect(offsetX) {
-        if (abs(offsetX) > swipeThreshold.value) {
-            when {
-                offsetX > 0 -> playerConnection.seekToPrevious()
-                else -> playerConnection.seekToNext()
+    val (miniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
+
+    if (miniPlayerStyle == MiniPlayerStyle.NEW) {
+        LaunchedEffect(offsetX) {
+            if (abs(offsetX) > swipeThreshold.value) {
+                when {
+                    offsetX > 0 -> playerConnection.seekToPrevious()
+                    else -> playerConnection.seekToNext()
+                }
+                offsetX = 0f
             }
-            offsetX = 0f
         }
     }
 
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(MiniPlayerHeight)
-            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-            .offset(x = animatedOffset)
-            .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onDragEnd = { offsetX = 0f },
-                    onHorizontalDrag = { _, dragAmount ->
-                        offsetX += dragAmount
-                    }
-                )
-            }
-    ) {
-        LinearProgressIndicator(
-            progress = { (position.toFloat() / duration).coerceIn(0f, 1f) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(3.dp)
-                .align(Alignment.BottomCenter),
-        )
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
+    if (miniPlayerStyle == MiniPlayerStyle.NEW) {
+        Box(
             modifier = modifier
-                .fillMaxSize()
-                .padding(end = 6.dp),
+                .fillMaxWidth()
+                .height(MiniPlayerHeight)
+                .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                .offset(x = animatedOffset)
+                .pointerInput(Unit) {
+                    detectHorizontalDragGestures(
+                        onDragEnd = { offsetX = 0f },
+                        onHorizontalDrag = { _, dragAmount ->
+                            offsetX += dragAmount
+                        }
+                    )
+                }
         ) {
-            Box(Modifier.weight(1f)) {
-                mediaMetadata?.let {
-                    MiniMediaInfo(
-                        mediaMetadata = it,
-                        error = error,
-                        modifier = Modifier.padding(horizontal = 6.dp)
+            LinearProgressIndicator(
+                progress = { (position.toFloat() / duration).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .align(Alignment.BottomCenter),
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(end = 6.dp),
+            ) {
+                Box(Modifier.weight(1f)) {
+                    mediaMetadata?.let {
+                        MiniMediaInfo(
+                            mediaMetadata = it,
+                            error = error,
+                            modifier = Modifier.padding(horizontal = 6.dp)
+                        )
+                    }
+                }
+                IconButton(
+                    onClick = {
+                        if (playbackState == Player.STATE_ENDED) {
+                            playerConnection.player.seekTo(0, 0)
+                            playerConnection.player.playWhenReady = true
+                        } else {
+                            playerConnection.player.togglePlayPause()
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(if (playbackState == Player.STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = null
                     )
                 }
             }
-            IconButton(
-                onClick = {
-                    if (playbackState == Player.STATE_ENDED) {
-                        playerConnection.player.seekTo(0, 0)
-                        playerConnection.player.playWhenReady = true
-                    } else {
-                        playerConnection.player.togglePlayPause()
+        }
+    } else {
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .height(MiniPlayerHeight)
+                .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+        ) {
+            LinearProgressIndicator(
+                progress = { (position.toFloat() / duration).coerceIn(0f, 1f) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(3.dp)
+                    .align(Alignment.BottomCenter),
+            )
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(end = 6.dp),
+            ) {
+                Box(Modifier.weight(1f)) {
+                    mediaMetadata?.let {
+                        MiniMediaInfo(
+                            mediaMetadata = it,
+                            error = error,
+                            modifier = Modifier.padding(horizontal = 6.dp)
+                        )
                     }
                 }
-            ) {
-                Icon(
-                    painter = painterResource(if (playbackState == Player.STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
-                    contentDescription = null
-                )
+
+                IconButton(
+                    enabled = canSkipNext,
+                    onClick = playerConnection::seekToPrevious
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_previous),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(26.dp)
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        if (playbackState == Player.STATE_ENDED) {
+                            playerConnection.player.seekTo(0, 0)
+                            playerConnection.player.playWhenReady = true
+                        } else {
+                            playerConnection.player.togglePlayPause()
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(if (playbackState == Player.STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = null
+                    )
+                }
+
+                IconButton(
+                    enabled = canSkipNext,
+                    onClick = playerConnection::seekToNext
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.skip_next),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(26.dp)
+                    )
+                }
             }
         }
     }

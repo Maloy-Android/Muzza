@@ -29,7 +29,6 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
-import androidx.compose.material.icons.rounded.ShowChart
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -40,6 +39,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -149,6 +149,12 @@ fun AppearanceSettings(
 
     var showCornerRadiusDialog by remember {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(useDarkTheme) {
+        if (!useDarkTheme && pureBlack) {
+            onPureBlackChange(false)
+        }
     }
 
     Column(
@@ -342,7 +348,11 @@ fun AppearanceSettings(
                 title = { Text(stringResource(R.string.pure_black)) },
                 icon = { Icon(painterResource(R.drawable.contrast), null) },
                 checked = pureBlack,
-                onCheckedChange = onPureBlackChange
+                onCheckedChange = { checked ->
+                    if (useDarkTheme) {
+                        onPureBlackChange(checked)
+                    }
+                }
             )
         }
 

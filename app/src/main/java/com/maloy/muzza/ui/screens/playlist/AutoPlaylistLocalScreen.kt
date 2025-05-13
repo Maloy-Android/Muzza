@@ -74,7 +74,6 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.*
-import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
@@ -86,10 +85,8 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
-import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.LocalSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.ui.utils.numberToAlpha
 import com.maloy.muzza.ui.utils.scanLocal
 import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.makeTimeString
@@ -98,7 +95,6 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibrarySongsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.ZoneOffset
 import java.util.Stack
 
 @SuppressLint("StateFlowValueCalledInComposition")
@@ -126,9 +122,6 @@ fun AutoPlaylistLocalScreen(
     val mediaPermissionLevel =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
-
-    val (sortType,onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
-    val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
@@ -167,9 +160,6 @@ fun AutoPlaylistLocalScreen(
     val songs = currDir.files
     val likeLength = remember(songs) {
         songs.fastSumBy { it.song.duration }
-    }
-    val mutableSongs = remember {
-        mutableStateListOf<Song>()
     }
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
@@ -212,24 +202,6 @@ fun AutoPlaylistLocalScreen(
             lazyListState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
         }
-    }
-    LaunchedEffect(sortType, sortDescending, currDir) {
-        val tempList = currDir.files.map { it }.toMutableList()
-        tempList.sortBy {
-            when (sortType) {
-                SongSortType.CREATE_DATE -> numberToAlpha(it.song.inLibrary?.toEpochSecond(ZoneOffset.UTC) ?: -1L)
-                SongSortType.NAME -> it.song.title.lowercase()
-                SongSortType.ARTIST -> it.artists.joinToString { artist -> artist.name }.lowercase()
-                SongSortType.PLAY_TIME -> numberToAlpha(it.song.totalPlayTime)
-            }
-        }
-        currDir.subdirs.sortBy { it.currentDir.lowercase() }
-        if (sortDescending) {
-            currDir.subdirs.reverse()
-            tempList.reverse()
-        }
-        mutableSongs.clear()
-        mutableSongs.addAll(tempList)
     }
     if (inLocal) {
         BackHandler {
@@ -461,29 +433,6 @@ fun AutoPlaylistLocalScreen(
                                 }
                             }
                         }
-                    }
-                }
-            }
-            if (filteredItems.toList().isNotEmpty() && !isSearching) {
-                item {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.padding(start = 16.dp)
-                    ) {
-                        SortHeader(
-                            sortType = sortType,
-                            sortDescending = sortDescending,
-                            onSortTypeChange = onSortTypeChange,
-                            onSortDescendingChange = onSortDescendingChange,
-                            sortTypeText = { sortType ->
-                                when (sortType) {
-                                    SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                    SongSortType.NAME -> R.string.sort_by_name
-                                    SongSortType.ARTIST -> R.string.sort_by_artist
-                                    SongSortType.PLAY_TIME -> R.string.sort_by_play_time
-                                }
-                            }
-                        )
                     }
                 }
             }

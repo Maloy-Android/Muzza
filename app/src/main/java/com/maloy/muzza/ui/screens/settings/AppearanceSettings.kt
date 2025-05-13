@@ -21,7 +21,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.ShowChart
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DesignServices
@@ -484,7 +484,7 @@ fun AppearanceSettings(
         AnimatedVisibility(autoPlaylistsCustomization) {
             SwitchPreference(
                 title = { Text(stringResource(R.string.show_top_auto_playlist)) },
-                icon = { Icon(Icons.AutoMirrored.Rounded.ShowChart, null) },
+                icon = { Icon(Icons.AutoMirrored.Rounded.TrendingUp, null) },
                 checked = autoPlaylistTopPlaylist,
                 onCheckedChange = onAutoPlaylistTopPlaylistChange
             )

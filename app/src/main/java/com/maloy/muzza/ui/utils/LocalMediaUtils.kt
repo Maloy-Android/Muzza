@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
+import java.util.Locale
 
 const val sdcardRoot = "/storage/emulated/0/"
 val testScanPaths = arrayListOf("Music")
@@ -280,45 +281,44 @@ fun syncDB(
 
 }
 
-fun compareArtist(a: List<ArtistEntity>?, b: List<ArtistEntity>?): Boolean {
-    if (a == null && b == null) {
+fun compareArtist(a: List<ArtistEntity>, b: List<ArtistEntity>): Boolean {
+    if (a.isEmpty() && b.isEmpty()) {
         return true
-    } else if (a == null || b == null) {
+    } else if (a.isEmpty() || b.isEmpty()) {
+        return false
+    }
+    if (a.size != b.size) {
         return false
     }
     val matchingArtists = a.filter { artist ->
-        b.any { it.name == artist.name }
+        b.any { it.name.lowercase(Locale.getDefault()) == artist.name.lowercase(Locale.getDefault()) }
     }
     return matchingArtists.size == a.size
 }
-
 fun compareSong(
     a: Song,
     b: Song,
-    matchStrength: ScannerSensitivity,
-    strictFileNames: Boolean
+    matchStrength: ScannerSensitivity = ScannerSensitivity.LEVEL_2,
+    strictFileNames: Boolean = false
 ): Boolean {
     if (strictFileNames &&
-        (a.song.localPath?.substringBeforeLast('/') !=
-                b.song.localPath?.substringBeforeLast('/'))
+        (a.song.localPath?.substringAfterLast('/') !=
+                b.song.localPath?.substringAfterLast('/'))
     ) {
         return false
     }
-
+    fun closeEnough(): Boolean {
+        return a.song.localPath == b.song.localPath
+    }
     return when (matchStrength) {
         ScannerSensitivity.LEVEL_1 -> a.song.title == b.song.title
-        ScannerSensitivity.LEVEL_2 -> a.song.title == b.song.title && compareArtist(
-            a.artists,
-            b.artists
-        )
+        ScannerSensitivity.LEVEL_2 -> closeEnough() || (a.song.title == b.song.title &&
+                compareArtist(a.artists, b.artists))
 
-        ScannerSensitivity.LEVEL_3 -> a.song.title == b.song.title && compareArtist(
-            a.artists,
-            b.artists
-        )
+        ScannerSensitivity.LEVEL_3 -> closeEnough() || (a.song.title == b.song.title &&
+                compareArtist(a.artists, b.artists))
     }
 }
-
 object CachedBitmap {
     var path: String? = null
     var image: Bitmap? = null

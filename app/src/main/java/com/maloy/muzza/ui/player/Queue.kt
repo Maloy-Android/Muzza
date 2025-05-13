@@ -509,10 +509,12 @@ fun Queue(
                             isPlaying = isPlaying,
                             trailingContent = {
                                 if (inSelectMode) {
-                                    Checkbox(
-                                        checked = window.uid.hashCode() in selection,
-                                        onCheckedChange = onCheckedChange
-                                    )
+                                    if (!window.mediaItem.metadata!!.isLocal) {
+                                        Checkbox(
+                                            checked = window.uid.hashCode() in selection,
+                                            onCheckedChange = onCheckedChange
+                                        )
+                                    }
                                 } else {
                                     IconButton(
                                         onClick = {
@@ -550,7 +552,9 @@ fun Queue(
                                 .combinedClickable(
                                     onClick = {
                                         if (inSelectMode) {
-                                            onCheckedChange(window.uid.hashCode() !in selection)
+                                            if (!window.mediaItem.metadata!!.isLocal) {
+                                                onCheckedChange(window.uid.hashCode() !in selection)
+                                            }
                                         } else {
                                             coroutineScope.launch(Dispatchers.Main) {
                                                 if (index == currentWindowIndex) {
@@ -566,9 +570,24 @@ fun Queue(
                                     },
                                     onLongClick = {
                                         if (!inSelectMode) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            inSelectMode = true
-                                            onCheckedChange(true)
+                                            if (!window.mediaItem.metadata!!.isLocal) {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                inSelectMode = true
+                                                onCheckedChange(true)
+                                            }
+                                        }
+                                        else {
+                                            if (!window.mediaItem.metadata!!.isLocal) {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    MediaMetadataMenu(
+                                                        mediaMetadata = window.mediaItem.metadata!!,
+                                                        navController = navController,
+                                                        bottomSheetState = state,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 )
@@ -624,7 +643,11 @@ fun Queue(
                                 selection.clear()
                             } else {
                                 selection.clear()
-                                selection.addAll(queueWindows.map { it.uid.hashCode() })
+                                selection.addAll(
+                                    queueWindows
+                                        .filter { !it.mediaItem.metadata!!.isLocal }
+                                        .map { it.uid.hashCode() }
+                                )
                             }
                         }
                     )

@@ -46,10 +46,42 @@ data class RelatedPage(
 
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
+                renderer.isSong -> {
+                    val subtitleRuns = renderer.subtitle?.runs ?: return null
+                    val (artistRuns, albumRuns) = subtitleRuns.partition { run ->
+                        run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
+                    }
+                    val artists = artistRuns.map {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                        )
+                    }
+                    SongItem(
+                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        artists = artists,
+                        album = albumRuns.firstOrNull { run ->
+                            run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+                        }?.let { run ->
+                            val endpoint = run.navigationEndpoint?.browseEndpoint ?: return null
+                            Album(
+                                name = run.text,
+                                id = endpoint.browseId
+                            )
+                        } ?:return null ,
+                        duration = null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
+                        explicit = renderer.subtitleBadges?.any {
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                        } == true
+                    )
+                }
                 renderer.isAlbum -> AlbumItem(
                     browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
-                    playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer
-                        ?.content?.musicPlayButtonRenderer?.playNavigationEndpoint
+                    playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
+                        ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                     artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
@@ -57,9 +89,10 @@ data class RelatedPage(
                             name = it.text,
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
-                    },
-                    year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
-                    thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                    }?:return null,
+                    year = renderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
+                    thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                        ?: return null,
                     explicit = renderer.subtitleBadges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null

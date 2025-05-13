@@ -26,8 +26,13 @@ data class LibraryPage(
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    artists = parseArtists(renderer.subtitle?.runs),
-                    year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
+                    artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }?:return null,
+                    year = renderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
                     explicit = renderer.subtitleBadges?.find {
@@ -160,24 +165,6 @@ data class LibraryPage(
 
                 else -> null
             }
-        }
-
-        private fun parseArtists(runs: List<Run>?): List<Artist> {
-            val artists = mutableListOf<Artist>()
-
-            if (runs != null) {
-                for (run in runs) {
-                    if (run.navigationEndpoint != null) {
-                        artists.add(
-                            Artist(
-                                id = run.navigationEndpoint.browseEndpoint?.browseId!!,
-                                name = run.text
-                            )
-                        )
-                    }
-                }
-            }
-            return artists
         }
     }
 }

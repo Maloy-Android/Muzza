@@ -37,8 +37,12 @@ class ArtistViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             YouTube.artist(artistId)
-                .onSuccess {
-                    artistPage = it.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                .onSuccess { page ->
+                    val filteredSections = page.sections.filterNot { section ->
+                        section.title.equals("From your library", ignoreCase = true)
+                    }
+                    artistPage = page.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                    artistPage = page.copy(sections = filteredSections)
                 }.onFailure {
                     reportException(it)
                 }

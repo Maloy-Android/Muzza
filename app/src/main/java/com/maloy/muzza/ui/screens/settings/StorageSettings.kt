@@ -67,6 +67,7 @@ import com.maloy.muzza.ui.utils.formatFileSize
 import com.maloy.muzza.utils.TranslationHelper
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @SuppressLint("PrivateResource")
@@ -91,6 +92,10 @@ fun StorageSettings(
         defaultValue = 1024
     )
 
+    var imageCacheSize by remember { mutableLongStateOf(imageDiskCache.size) }
+    var playerCacheSize by remember { mutableLongStateOf(tryOrNull { playerCache.cacheSpace } ?: 0) }
+    var downloadCacheSize by remember { mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0) }
+
     LaunchedEffect(maxImageCacheSize) {
         if (maxImageCacheSize == 0) {
             coroutineScope.launch(Dispatchers.IO) {
@@ -107,15 +112,11 @@ fun StorageSettings(
             }
         }
     }
-
-    val imageCacheSize by remember {
-        mutableLongStateOf(imageDiskCache.size)
-    }
-    val playerCacheSize by remember {
-        mutableLongStateOf(tryOrNull { playerCache.cacheSpace } ?: 0)
-    }
-    val downloadCacheSize by remember {
-        mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0)
+    LaunchedEffect(Unit) {
+        imageCacheSize = imageDiskCache.size
+        playerCacheSize = tryOrNull { playerCache.cacheSpace } ?: 0
+        downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
+        delay(500)
     }
 
     var showClearAllDownloadsDialog by remember {
@@ -247,9 +248,7 @@ fun StorageSettings(
             onConfirm = {
                 showClearImagesCacheDialog = false
                 coroutineScope.launch(Dispatchers.IO) {
-                    downloadCache.keys.forEach { key ->
-                        downloadCache.removeResource(key)
-                    }
+                    imageDiskCache.clear()
                 }
             }
         )
@@ -262,8 +261,8 @@ fun StorageSettings(
             onConfirm = {
                 showClearSongCacheDialog = false
                 coroutineScope.launch(Dispatchers.IO) {
-                    downloadCache.keys.forEach { key ->
-                        downloadCache.removeResource(key)
+                    playerCache.keys.forEach { key ->
+                        playerCache.removeResource(key)
                     }
                 }
             }
@@ -340,6 +339,7 @@ private fun CacheSizeSelector(
         TextField(
             modifier = Modifier
                 .fillMaxWidth()
+                .menuAnchor()
                 .padding(horizontal = 16.dp),
             readOnly = true,
             value = when (selectedValue) {
@@ -447,7 +447,7 @@ private fun ConfirmationDialog(
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.clear_all_downloads))
+                Text(stringResource(android.R.string.cancel))
             }
         }
     )

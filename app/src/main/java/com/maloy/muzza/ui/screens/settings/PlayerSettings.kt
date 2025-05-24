@@ -9,6 +9,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.SdCard
@@ -39,6 +40,7 @@ import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PersistentQueueKey
+import com.maloy.muzza.constants.PlaySongWhenConnectBluetoothDeviceKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.minPlaybackDurKey
@@ -69,6 +71,8 @@ fun PlayerSettings(
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
     val (addingPlayedSongsToYtmHistory, onAddingPlayedSongsToYtmHistoryChange) = rememberPreference(
         AddingPlayedSongsToYTMHistoryKey, defaultValue = true)
+    val (playSongWhenBluetoothDeviceConnected, onPlaySongWhenBluetoothDeviceConnectedChange) = rememberPreference(
+        PlaySongWhenConnectBluetoothDeviceKey, defaultValue = true)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -159,6 +163,13 @@ fun PlayerSettings(
                 onCheckedChange = onAddingPlayedSongsToYtmHistoryChange
             )
         }
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.play_song_when_bluetooth_device_connected)) },
+            icon = { Icon(Icons.Rounded.BluetoothConnected, null) },
+            checked = playSongWhenBluetoothDeviceConnected,
+            onCheckedChange = onPlaySongWhenBluetoothDeviceConnectedChange
+        )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.audio_normalization)) },

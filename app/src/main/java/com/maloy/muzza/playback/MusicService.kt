@@ -1,9 +1,12 @@
 package com.maloy.muzza.playback
 
 import android.app.PendingIntent
+import android.bluetooth.BluetoothDevice
+import android.content.BroadcastReceiver
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.database.SQLException
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
@@ -12,6 +15,7 @@ import android.os.Binder
 import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -73,6 +77,7 @@ import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleShuffle
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PersistentQueueKey
+import com.maloy.muzza.constants.PlaySongWhenConnectBluetoothDeviceKey
 import com.maloy.muzza.constants.PlayerVolumeKey
 import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
@@ -204,6 +209,8 @@ class MusicService : MediaLibraryService(),
     private var isAudioEffectSessionOpened = false
 
     private var discordRpc: DiscordRPC? = null
+
+    private var bluetoothReceiver: BroadcastReceiver? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -376,6 +383,26 @@ class MusicService : MediaLibraryService(),
                 if (dataStore.get(PersistentQueueKey, true)) {
                     saveQueueToDisk()
                 }
+            }
+        }
+        if (dataStore.get(PlaySongWhenConnectBluetoothDeviceKey, true)) {
+            bluetoothReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context, intent: Intent) {
+                    when (intent.action) {
+                        BluetoothDevice.ACTION_ACL_CONNECTED -> {
+                            if (player.playbackState == Player.STATE_READY
+                                && !player.isPlaying
+                                && dataStore.get(PersistentQueueKey, true)
+                            ) {
+                                player.play()
+                            }
+                        }
+                    }
+                }
+            }.apply {
+                registerReceiver(this, IntentFilter().apply {
+                    addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+                })
             }
         }
     }
@@ -822,6 +849,9 @@ class MusicService : MediaLibraryService(),
         player.removeListener(this)
         player.removeListener(sleepTimer)
         player.release()
+        bluetoothReceiver?.let {
+            unregisterReceiver(it)
+        }
         super.onDestroy()
     }
 

@@ -221,13 +221,17 @@ class MainActivity : ComponentActivity() {
     private val mediaPermissionLevel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
     else Manifest.permission.READ_EXTERNAL_STORAGE
 
-    val permissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted ->
-            if (isGranted) {
-            } else {
-                Toast.makeText(this, "Permission denied", Toast.LENGTH_SHORT).show()
-            }
-        }
+    private val nearbyDevicesPermission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+        arrayOf(
+            Manifest.permission.BLUETOOTH_SCAN,
+            Manifest.permission.BLUETOOTH_ADVERTISE,
+            Manifest.permission.BLUETOOTH_CONNECT
+        )
+    } else {
+        arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
+    }
+    private val permissionsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {}
 
     private var latestVersionName by mutableStateOf(BuildConfig.VERSION_NAME)
 
@@ -256,7 +260,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "ObsoleteSdkInt")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -341,7 +345,19 @@ class MainActivity : ComponentActivity() {
             }
             else if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_DENIED) {
                 // Request the permission using the permission launcher
-                permissionLauncher.launch(mediaPermissionLevel)
+                permissionsLauncher.launch(arrayOf(mediaPermissionLevel))
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                if (nearbyDevicesPermission.any {
+                        checkSelfPermission(it) != PackageManager.PERMISSION_GRANTED
+                    }) {
+                    permissionsLauncher.launch(nearbyDevicesPermission)
+                }
+            } else {
+                if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+                    != PackageManager.PERMISSION_GRANTED) {
+                    permissionsLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
+                }
             }
 
             MuzzaTheme(

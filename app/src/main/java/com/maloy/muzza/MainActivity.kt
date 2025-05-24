@@ -71,6 +71,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -969,6 +970,8 @@ class MainActivity : ComponentActivity() {
                             contentColor = if (pureBlack) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
                         ) {
                             navigationItems.fastForEach { screen ->
+                                var lastExploreClickTime by remember { mutableLongStateOf(0L) }
+                                val doubleClickInterval = 300L
                                 val isSelected = navBackStackEntry?.destination?.hierarchy?.any { it.route == screen.route } == true
 
                                 NavigationBarItem(
@@ -991,6 +994,19 @@ class MainActivity : ComponentActivity() {
                                         }
                                     },
                                     onClick = {
+                                        if (screen.route == Screens.Explore.route) {
+                                            val currentTime = System.currentTimeMillis()
+                                            if (currentTime - lastExploreClickTime < doubleClickInterval) {
+                                                onActiveChange(true)
+                                                coroutineScope.launch {
+                                                    delay(100)
+                                                    searchBarFocusRequester.requestFocus()
+                                                }
+                                                lastExploreClickTime = 0
+                                                return@NavigationBarItem
+                                            }
+                                            lastExploreClickTime = currentTime
+                                        }
                                         if (isSelected) {
                                             navController.currentBackStackEntry?.savedStateHandle?.set("scrollToTop", true)
                                             coroutineScope.launch {

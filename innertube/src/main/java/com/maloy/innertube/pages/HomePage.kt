@@ -94,7 +94,7 @@ data class HomePage(
                                     name = run.text,
                                     id = endpoint.browseId
                                 )
-                            } ?:return null ,
+                            },
                             duration = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
@@ -116,8 +116,8 @@ data class HomePage(
                                     name = it.text,
                                     id = it.navigationEndpoint?.browseEndpoint?.browseId
                                 )
-                            }?:return null,
-                            year = renderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
+                            },
+                            year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                             explicit = renderer.subtitleBadges?.find {

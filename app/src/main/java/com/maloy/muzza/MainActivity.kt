@@ -771,6 +771,10 @@ class MainActivity : ComponentActivity() {
                                     IconButton(
                                         onClick = {
                                             onActiveChange(true)
+                                            coroutineScope.launch {
+                                                delay(100)
+                                                searchBarFocusRequester.requestFocus()
+                                            }
                                         }
                                     ) {
                                         Icon(

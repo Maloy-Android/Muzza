@@ -8,12 +8,14 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeMute
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.VolumeMute
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -43,6 +45,7 @@ import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.PlaySongWhenConnectBluetoothDeviceKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
+import com.maloy.muzza.constants.StopPlayingWhenSystemSoundFalseKey
 import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.EnumListPreference
@@ -73,6 +76,7 @@ fun PlayerSettings(
         AddingPlayedSongsToYTMHistoryKey, defaultValue = true)
     val (playSongWhenBluetoothDeviceConnected, onPlaySongWhenBluetoothDeviceConnectedChange) = rememberPreference(
         PlaySongWhenConnectBluetoothDeviceKey, defaultValue = true)
+    val (stopPlayingWhenSystemSoundFalse, onStopPlayingWhenSystemSoundFalseChange) = rememberPreference(StopPlayingWhenSystemSoundFalseKey , defaultValue = true)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -169,6 +173,13 @@ fun PlayerSettings(
             icon = { Icon(Icons.Rounded.BluetoothConnected, null) },
             checked = playSongWhenBluetoothDeviceConnected,
             onCheckedChange = onPlaySongWhenBluetoothDeviceConnectedChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.stop_playing_song_when_sound_slider_false)) },
+            icon = { Icon(Icons.AutoMirrored.Rounded.VolumeMute, null) },
+            checked = stopPlayingWhenSystemSoundFalse,
+            onCheckedChange = onStopPlayingWhenSystemSoundFalseChange
         )
 
         SwitchPreference(

@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.database.SQLException
+import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.Uri
@@ -82,6 +83,7 @@ import com.maloy.muzza.constants.PlayerVolumeKey
 import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
+import com.maloy.muzza.constants.StopPlayingWhenSystemSoundFalseKey
 import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
@@ -212,8 +214,48 @@ class MusicService : MediaLibraryService(),
 
     private var bluetoothReceiver: BroadcastReceiver? = null
 
+    private var wasPlayingBeforeMute = false
+
+    private var volumeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+
+                if (currentVolume == 0 && player.isPlaying) {
+                    wasPlayingBeforeMute = true
+                    player.pause()
+                    playerVolume.value = 0f
+                } else if (currentVolume > 0 && !player.isPlaying && wasPlayingBeforeMute) {
+                    player.play()
+                    wasPlayingBeforeMute = false
+                    playerVolume.value = currentVolume.toFloat() / audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                }
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
+        if (dataStore.get(StopPlayingWhenSystemSoundFalseKey, true)) {
+            registerReceiver(volumeReceiver, IntentFilter().apply {
+                addAction("android.media.VOLUME_CHANGED_ACTION")
+            })
+            playerVolume
+                .debounce(100)
+                .collectLatest(scope) { volume ->
+                    when {
+                        volume == 0f && player.isPlaying -> {
+                            wasPlayingBeforeMute = true
+                            player.pause()
+                        }
+                        volume > 0f && !player.isPlaying && wasPlayingBeforeMute -> {
+                            player.play()
+                            wasPlayingBeforeMute = false
+                        }
+                    }
+                }
+        }
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(this, { NOTIFICATION_ID }, CHANNEL_ID, R.string.music_player)
                 .apply {
@@ -838,6 +880,10 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onDestroy() {
+        if (dataStore.get(StopPlayingWhenSystemSoundFalseKey, true)) {
+            volumeReceiver?.let { unregisterReceiver(it) }
+            volumeReceiver = null
+        }
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }

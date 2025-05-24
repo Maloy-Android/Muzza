@@ -438,6 +438,7 @@
     <string name="auto_load_more_desc">Автоматично додавати більше пісень при досягненні кінця черги, якщо це можливо</string>
     <string name="skip_silence">Пропуск тиші в композиціях</string>
     <string name="audio_normalization">Нормалізація аудіо</string>
+    <string name="stop_playing_song_when_sound_slider_false">Зупиняти відтворення при нульовому значенні гучності</string>
     <string name="play_song_when_bluetooth_device_connected">Продовжити відтворення при підключенні bluetooth пристрою</string>
     <string name="adding_played_songs_to_ytm_history">Додавати програні пісні в історію YouTube-Music</string>
     <string name="auto_skip_next_on_error">Автоперехід до наступної пісні при помилці</string>

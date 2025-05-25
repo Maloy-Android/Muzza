@@ -42,10 +42,8 @@ import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PersistentQueueKey
-import com.maloy.muzza.constants.PlaySongWhenConnectBluetoothDeviceKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
-import com.maloy.muzza.constants.StopPlayingWhenSystemSoundFalseKey
 import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.EnumListPreference

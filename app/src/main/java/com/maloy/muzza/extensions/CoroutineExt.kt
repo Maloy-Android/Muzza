@@ -18,11 +18,10 @@ fun <T> Flow<T>.collect(scope: CoroutineScope, action: suspend (value: T) -> Uni
     }
 }
 
-fun <T> Flow<T>.collectLatest(scope: CoroutineScope, action: suspend (value: T) -> Unit): BroadcastReceiver? {
+fun <T> Flow<T>.collectLatest(scope: CoroutineScope, action: suspend (value: T) -> Unit) {
     scope.launch {
         collectLatest(action)
     }
-    return null
 }
 
 fun Context.getLikeAutoDownload(): LikedAutodownloadMode {

@@ -74,9 +74,6 @@ fun PlayerSettings(
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
     val (addingPlayedSongsToYtmHistory, onAddingPlayedSongsToYtmHistoryChange) = rememberPreference(
         AddingPlayedSongsToYTMHistoryKey, defaultValue = true)
-    val (playSongWhenBluetoothDeviceConnected, onPlaySongWhenBluetoothDeviceConnectedChange) = rememberPreference(
-        PlaySongWhenConnectBluetoothDeviceKey, defaultValue = true)
-    val (stopPlayingWhenSystemSoundFalse, onStopPlayingWhenSystemSoundFalseChange) = rememberPreference(StopPlayingWhenSystemSoundFalseKey , defaultValue = true)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -167,20 +164,6 @@ fun PlayerSettings(
                 onCheckedChange = onAddingPlayedSongsToYtmHistoryChange
             )
         }
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.play_song_when_bluetooth_device_connected)) },
-            icon = { Icon(Icons.Rounded.BluetoothConnected, null) },
-            checked = playSongWhenBluetoothDeviceConnected,
-            onCheckedChange = onPlaySongWhenBluetoothDeviceConnectedChange
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.stop_playing_song_when_sound_slider_false)) },
-            icon = { Icon(Icons.AutoMirrored.Rounded.VolumeMute, null) },
-            checked = stopPlayingWhenSystemSoundFalse,
-            onCheckedChange = onStopPlayingWhenSystemSoundFalseChange
-        )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.audio_normalization)) },

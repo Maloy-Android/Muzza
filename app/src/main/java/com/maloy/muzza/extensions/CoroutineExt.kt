@@ -1,5 +1,6 @@
 package com.maloy.muzza.extensions
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import com.maloy.muzza.constants.LikedAutoDownloadKey
 import com.maloy.muzza.constants.LikedAutodownloadMode
@@ -17,10 +18,11 @@ fun <T> Flow<T>.collect(scope: CoroutineScope, action: suspend (value: T) -> Uni
     }
 }
 
-fun <T> Flow<T>.collectLatest(scope: CoroutineScope, action: suspend (value: T) -> Unit) {
+fun <T> Flow<T>.collectLatest(scope: CoroutineScope, action: suspend (value: T) -> Unit): BroadcastReceiver? {
     scope.launch {
         collectLatest(action)
     }
+    return null
 }
 
 fun Context.getLikeAutoDownload(): LikedAutodownloadMode {

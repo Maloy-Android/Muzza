@@ -78,12 +78,10 @@ import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleShuffle
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleStartRadio
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PersistentQueueKey
-import com.maloy.muzza.constants.PlaySongWhenConnectBluetoothDeviceKey
 import com.maloy.muzza.constants.PlayerVolumeKey
 import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
-import com.maloy.muzza.constants.StopPlayingWhenSystemSoundFalseKey
 import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
@@ -237,25 +235,24 @@ class MusicService : MediaLibraryService(),
 
     override fun onCreate() {
         super.onCreate()
-        if (dataStore.get(StopPlayingWhenSystemSoundFalseKey, true)) {
-            registerReceiver(volumeReceiver, IntentFilter().apply {
-                addAction("android.media.VOLUME_CHANGED_ACTION")
-            })
-            playerVolume
-                .debounce(100)
-                .collectLatest(scope) { volume ->
-                    when {
-                        volume == 0f && player.isPlaying -> {
-                            wasPlayingBeforeMute = true
-                            player.pause()
-                        }
-                        volume > 0f && !player.isPlaying && wasPlayingBeforeMute -> {
-                            player.play()
-                            wasPlayingBeforeMute = false
-                        }
+        registerReceiver(volumeReceiver, IntentFilter().apply {
+            addAction("android.media.VOLUME_CHANGED_ACTION")
+        })
+        playerVolume
+            .debounce(100)
+            .collectLatest(scope) { volume ->
+                when {
+                    volume == 0f && player.isPlaying -> {
+                        wasPlayingBeforeMute = true
+                        player.pause()
+                    }
+
+                    volume > 0f && !player.isPlaying && wasPlayingBeforeMute -> {
+                        player.play()
+                        wasPlayingBeforeMute = false
                     }
                 }
-        }
+            }
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider(this, { NOTIFICATION_ID }, CHANNEL_ID, R.string.music_player)
                 .apply {
@@ -427,25 +424,23 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
-        if (dataStore.get(PlaySongWhenConnectBluetoothDeviceKey, true)) {
-            bluetoothReceiver = object : BroadcastReceiver() {
-                override fun onReceive(context: Context, intent: Intent) {
-                    when (intent.action) {
-                        BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                            if (player.playbackState == Player.STATE_READY
-                                && !player.isPlaying
-                                && dataStore.get(PersistentQueueKey, true)
-                            ) {
-                                player.play()
-                            }
+        bluetoothReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    BluetoothDevice.ACTION_ACL_CONNECTED -> {
+                        if (player.playbackState == Player.STATE_READY
+                            && !player.isPlaying
+                            && dataStore.get(PersistentQueueKey, true)
+                        ) {
+                            player.play()
                         }
                     }
                 }
-            }.apply {
-                registerReceiver(this, IntentFilter().apply {
-                    addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
-                })
             }
+        }.apply {
+            registerReceiver(this, IntentFilter().apply {
+                addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
+            })
         }
     }
 
@@ -880,10 +875,8 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onDestroy() {
-        if (dataStore.get(StopPlayingWhenSystemSoundFalseKey, true)) {
-            volumeReceiver?.let { unregisterReceiver(it) }
-            volumeReceiver = null
-        }
+        volumeReceiver?.let { unregisterReceiver(it) }
+        volumeReceiver = null
         if (dataStore.get(PersistentQueueKey, true)) {
             saveQueueToDisk()
         }

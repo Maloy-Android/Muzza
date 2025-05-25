@@ -24,6 +24,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
@@ -261,14 +262,26 @@ fun LibrarySongsScreen(
                         }
                     )
                     Spacer(Modifier.weight(1f))
-                    IconButton(
-                        onClick = { isSearching = true },
-                        Modifier.size(20.dp)
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = null
-                        )
+                    if (!isSearching) {
+                        OutlinedButton(
+                            onClick = { isSearching = true },
+                            Modifier.size(20.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
+                    } else {
+                        IconButton(
+                            onClick = { isSearching = false },
+                            Modifier.size(20.dp)
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
                     }
                     Spacer(Modifier.weight(1f))
                     Text(

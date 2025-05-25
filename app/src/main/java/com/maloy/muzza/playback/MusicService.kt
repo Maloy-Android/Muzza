@@ -216,19 +216,15 @@ class MusicService : MediaLibraryService(),
 
     private var volumeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            if (intent.action == "android.media.VOLUME_CHANGED_ACTION") {
-                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-                val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
-                if (currentVolume == 0 && player.isPlaying) {
-                    wasPlayingBeforeMute = true
-                    player.pause()
-                    playerVolume.value = 0f
-                } else if (currentVolume > 0 && !player.isPlaying && wasPlayingBeforeMute) {
-                    player.play()
-                    wasPlayingBeforeMute = false
-                    playerVolume.value = currentVolume.toFloat() / audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
-                }
+            if (currentVolume == 0 && player.isPlaying) {
+                wasPlayingBeforeMute = true
+                player.pause()
+            } else if (currentVolume > 0 && !player.isPlaying && wasPlayingBeforeMute) {
+                player.play()
+                wasPlayingBeforeMute = false
             }
         }
     }

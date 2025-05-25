@@ -40,6 +40,7 @@
     </plurals>
 
     <!-- Home -->
+    <string name="recent_activity">Recent activity</string>
     <string name="history">History</string>
     <string name="history_empty">Your history will show up here</string>
     <string name="stats_empty">Your stats will show up here</string>

@@ -19,6 +19,7 @@ val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 
 val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
+val ShowRecentActivityKey = booleanPreferencesKey("showRecentActivity")
 
 enum class AppDesignVariantType {
     NEW, OLD

@@ -34,6 +34,7 @@
     </plurals>
 
     <!-- Home -->
+    <string name="recent_activity">Недавняя активность</string>
     <string name="history">История</string>
     <string name="history_empty">Ваша история прослушиваний будет находится здесь</string>
     <string name="local_history">Локальная</string>

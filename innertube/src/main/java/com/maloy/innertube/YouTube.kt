@@ -686,6 +686,33 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         )
     }
 
+    suspend fun libraryRecentActivity(): Result<LibraryPage> = runCatching {
+        val continuation =
+            "4qmFsgIrEhdGRW11c2ljX2xpYnJhcnlfbGFuZGluZxoQZ2dNR0tnUUlCaEFCb0FZQg%3D%3D"
+        val response = innerTube.browse(
+            client = WEB_REMIX,
+            continuation = continuation,
+            setLogin = true
+        ).body<BrowseResponse>()
+
+        val items = response.continuationContents?.sectionListContinuation?.contents?.firstOrNull()
+            ?.gridRenderer?.items!!.mapNotNull {
+                it.musicTwoRowItemRenderer?.let { renderer ->
+                    LibraryPage.fromMusicTwoRowItemRenderer(renderer)
+                }
+            }.toMutableList()
+        items.forEachIndexed { index, item ->
+            if (item is ArtistItem)
+                items[index] =
+                    artist(item.id).getOrNull()?.artist!!.copy(thumbnail = item.thumbnail)
+        }
+
+        LibraryPage(
+            items = items,
+            continuation = null
+        )
+    }
+
     suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
         val response = innerTube.next(WEB_REMIX, endpoint.videoId, endpoint.playlistId, endpoint.playlistSetVideoId, endpoint.index, endpoint.params, continuation).body<NextResponse>()
         val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text

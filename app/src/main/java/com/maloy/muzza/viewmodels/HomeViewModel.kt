@@ -11,6 +11,7 @@ import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.pages.ExplorePage
 import com.maloy.innertube.pages.HomePage
 import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
@@ -25,7 +26,9 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -46,6 +49,11 @@ class HomeViewModel @Inject constructor(
     val homePage = MutableStateFlow<HomePage?>(null)
     val explorePage = MutableStateFlow<ExplorePage?>(null)
     val selectedChip = MutableStateFlow<HomePage.Chip?>(null)
+    val playlists = database.playlists(
+        PlaylistSortType.CREATE_DATE, descending = false
+    ).stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val recentActivity = database.recentActivity()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
     private val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
@@ -167,6 +175,8 @@ class HomeViewModel @Inject constructor(
         }.onFailure {
             reportException(it)
         }
+
+        syncUtils.syncRecentActivity()
 
         allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
                 homePage.value?.sections?.flatMap { it.items }.orEmpty() +

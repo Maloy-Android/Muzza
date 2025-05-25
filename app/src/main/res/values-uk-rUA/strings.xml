@@ -33,6 +33,7 @@
     </plurals>
 
     <!-- Home -->
+    <string name="recent_activity">Недавня активність</string>
     <string name="history">Історія</string>
     <string name="history_empty">Ваша історія прослуховувань буде знаходиться тут</string>
     <string name="stats">Статистика</string>

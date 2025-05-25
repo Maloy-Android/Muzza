@@ -63,20 +63,26 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.pages.HomePage
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ShowContentFilterKey
+import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
 import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.RecentActivityType.ALBUM
+import com.maloy.muzza.db.entities.RecentActivityType.ARTIST
+import com.maloy.muzza.db.entities.RecentActivityType.PLAYLIST
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
@@ -91,6 +97,7 @@ import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
+import com.maloy.muzza.ui.component.YouTubeCardItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
@@ -130,6 +137,14 @@ fun HomeScreen(
     val accountPlaylists by viewModel.accountPlaylists.collectAsState()
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
+    val playlists by viewModel.playlists.collectAsState()
+    val recentActivity by viewModel.recentActivity.collectAsState()
+
+    val (showRecentActivity) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
 
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -341,6 +356,8 @@ fun HomeScreen(
             )
         }
 
+        val recentActivityGridState = rememberLazyGridState()
+
         val (showContentFilter) = rememberPreference(ShowContentFilterKey, defaultValue = true)
 
         LazyColumn(
@@ -396,6 +413,54 @@ fun HomeScreen(
                             viewModel.toggleChip(it)
                         }
                     )
+                }
+            }
+
+            if (showRecentActivity && isLoggedIn && !recentActivity.isNullOrEmpty()) {
+                item {
+                    NavigationTitle(
+                        title = stringResource(R.string.recent_activity)
+                    )
+                }
+                item {
+                    LazyHorizontalGrid(
+                        state = recentActivityGridState,
+                        rows = GridCells.Fixed(4),
+                        flingBehavior = rememberSnapFlingBehavior(forgottenFavoritesLazyGridState),
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(60.dp * 4)
+                            .padding(6.dp)
+                    ) {
+                        items(
+                            items = recentActivity!!,
+                            key = { it.id }
+                        ) { item ->
+                            YouTubeCardItem(
+                                item,
+                                onClick = {
+                                    when (item.type) {
+                                        PLAYLIST -> {
+                                            val playlistDb = playlists
+                                                ?.firstOrNull { it.playlist.browseId == item.id }
+
+                                            if (playlistDb != null && playlistDb.songCount != 0)
+                                                navController.navigate("local_playlist/${playlistDb.id}")
+                                            else
+                                                navController.navigate("online_playlist/${item.id}")
+                                        }
+
+                                        ALBUM -> navController.navigate("album/${item.id}")
+
+                                        ARTIST -> navController.navigate("artist/${item.id}")
+                                    }
+                                },
+                            )
+                        }
+                    }
                 }
             }
 

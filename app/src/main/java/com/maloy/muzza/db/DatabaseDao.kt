@@ -10,8 +10,11 @@ import androidx.room.Transaction
 import androidx.room.Update
 import androidx.room.Upsert
 import androidx.sqlite.db.SupportSQLiteQuery
+import com.maloy.innertube.models.AlbumItem
+import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.pages.AlbumPage
 import com.maloy.innertube.pages.ArtistPage
 import com.maloy.muzza.constants.AlbumSortType
@@ -33,6 +36,8 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.PlaylistSongMap
+import com.maloy.muzza.db.entities.RecentActivityEntity
+import com.maloy.muzza.db.entities.RecentActivityType
 import com.maloy.muzza.db.entities.RelatedSongMap
 import com.maloy.muzza.db.entities.SearchHistory
 import com.maloy.muzza.db.entities.SetVideoIdEntity
@@ -878,4 +883,70 @@ interface DatabaseDao {
     }
     @Query("SELECT COUNT(*) FROM song WHERE isLocal = 1")
     fun localSongsCount(): Flow<Int>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    fun insert(item: RecentActivityEntity)
+
+    @Delete
+    fun delete(item: RecentActivityEntity)
+
+    @Query("DELETE FROM recent_activity")
+    fun clearRecentActivity()
+
+    @Transaction
+    fun insertRecentActivityItem(item: YTItem) {
+        when (item) {
+            is AlbumItem -> {
+                insert(
+                    RecentActivityEntity(
+                        id = item.browseId,
+                        title = item.title,
+                        thumbnail = item.thumbnail,
+                        explicit = item.explicit,
+                        shareLink = item.shareLink,
+                        type = RecentActivityType.ALBUM,
+                        playlistId = item.playlistId,
+                        radioPlaylistId = null,
+                        shufflePlaylistId = null
+                    )
+                )
+            }
+
+            is PlaylistItem -> {
+                insert(
+                    RecentActivityEntity(
+                        id = item.id,
+                        title = item.title,
+                        thumbnail = item.thumbnail,
+                        explicit = item.explicit,
+                        shareLink = item.shareLink,
+                        type = RecentActivityType.PLAYLIST,
+                        playlistId = item.id,
+                        radioPlaylistId = item.radioEndpoint?.playlistId,
+                        shufflePlaylistId = item.shuffleEndpoint.playlistId
+                    )
+                )
+            }
+
+            is ArtistItem -> {
+                insert(
+                    RecentActivityEntity(
+                        id = item.id,
+                        title = item.title,
+                        thumbnail = item.thumbnail,
+                        explicit = item.explicit,
+                        shareLink = item.shareLink,
+                        type = RecentActivityType.ARTIST,
+                        playlistId = item.playEndpoint?.playlistId,
+                        radioPlaylistId = item.radioEndpoint?.playlistId,
+                        shufflePlaylistId = item.shuffleEndpoint?.playlistId
+                    )
+                )
+            }
+            else -> {}
+        }
+    }
+
+    @Query("SELECT * FROM recent_activity ORDER BY date DESC")
+    fun recentActivity(): Flow<List<RecentActivityEntity>>
 }

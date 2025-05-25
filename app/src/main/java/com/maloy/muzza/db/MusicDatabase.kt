@@ -54,7 +54,8 @@ class MusicDatabase(
         LyricsEntity::class,
         Event::class,
         RelatedSongMap::class,
-        SetVideoIdEntity::class
+        SetVideoIdEntity::class,
+        RecentActivityEntity::class
     ],
     views = [
         SortedSongArtistMap::class,
@@ -358,7 +359,8 @@ class Migration12To13 : AutoMigrationSpec {
 }
 
 @DeleteTable.Entries(
-    DeleteTable(tableName = "set_video_id")
+    DeleteTable(tableName = "set_video_id"),
+    DeleteTable(tableName = "recent_activity")
 )
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "song", columnName = "dateDownload"),

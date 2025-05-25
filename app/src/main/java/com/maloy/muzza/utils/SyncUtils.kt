@@ -14,8 +14,11 @@ import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.DownloadUtil
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -157,6 +160,18 @@ class SyncUtils @Inject constructor(
                     )
                 }
                 .forEach(::insert)
+        }
+    }
+    suspend fun syncRecentActivity() {
+        YouTube.libraryRecentActivity().onSuccess { page ->
+            val recentActivity = page.items.take(9).drop(1)
+            coroutineScope {
+                launch(Dispatchers.IO) {
+                    database.clearRecentActivity()
+
+                    recentActivity.reversed().forEach { database.insertRecentActivityItem(it) }
+                }
+            }
         }
     }
 }

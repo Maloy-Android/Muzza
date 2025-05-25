@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.component
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -30,7 +31,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.automirrored.rounded.ShowChart
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
@@ -46,6 +46,7 @@ import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -60,6 +61,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -95,6 +97,7 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.RecentActivityEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
@@ -1009,6 +1012,65 @@ fun MediaMetadataListItem(
     modifier = modifier,
     isActive = isActive
 )
+
+@SuppressLint("ConfigurationScreenWidthHeight")
+@Composable
+fun YouTubeCardItem(
+    item: RecentActivityEntity,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val configuration = LocalConfiguration.current
+    val screenWidthDp = configuration.screenWidthDp
+
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .height(60.dp)
+            .width((screenWidthDp.dp - 12.dp) / 2)
+            .padding(6.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .background(MaterialTheme.colorScheme.surfaceColorAtElevation(6.dp))
+            .clickable(onClick = onClick)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier.size(ListThumbnailSize)
+            ) {
+                val thumbnailShape = RoundedCornerShape(ThumbnailCornerRadius)
+                val thumbnailRatio = 1f
+
+                AsyncImage(
+                    model = item.thumbnail,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .aspectRatio(thumbnailRatio)
+                        .clip(thumbnailShape)
+                )
+            }
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 8.dp)
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Start,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
 
 @Composable
 fun YouTubeListItem(

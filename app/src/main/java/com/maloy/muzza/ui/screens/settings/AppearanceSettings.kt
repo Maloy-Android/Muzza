@@ -29,6 +29,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +55,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppDesignVariantKey
@@ -71,6 +73,7 @@ import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MiniPlayerStyle
 import com.maloy.muzza.constants.MiniPlayerStyleKey
@@ -80,6 +83,7 @@ import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.ShowContentFilterKey
+import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SlimNavBarKey
@@ -132,8 +136,13 @@ fun AppearanceSettings(
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
     val (showContentFilter, onShowContentFilterChange) = rememberPreference(ShowContentFilterKey, defaultValue = true)
+    val (showRecentActivity,onShowRecentActivityChange) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
     val (miniPlayerStyle, onMiniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
 
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
@@ -392,6 +401,15 @@ fun AppearanceSettings(
             checked = showContentFilter,
             onCheckedChange = onShowContentFilterChange
         )
+
+        if (isLoggedIn) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.recent_activity)) },
+                icon = { Icon(Icons.Rounded.QueryStats, null) },
+                checked = showRecentActivity,
+                onCheckedChange = onShowRecentActivityChange
+            )
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.player)

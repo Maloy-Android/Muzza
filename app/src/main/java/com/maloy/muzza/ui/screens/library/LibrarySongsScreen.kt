@@ -83,6 +83,7 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
+import com.maloy.muzza.ui.menu.CacheSongSelectionMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.utils.isInternetAvailable
@@ -228,6 +229,7 @@ fun LibrarySongsScreen(
                                 SongFilter.LIKED to stringResource(R.string.filter_liked),
                                 SongFilter.LIBRARY to stringResource(R.string.filter_library),
                                 SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                                SongFilter.CACHED to stringResource(R.string.cached)
                             ),
                         currentValue = filter,
                         onValueUpdate = {
@@ -337,21 +339,41 @@ fun LibrarySongsScreen(
                                 onCheckedChange = onCheckedChange
                             )
                         } else {
-                            IconButton(
-                                onClick = {
-                                    menuState.show {
-                                        SongMenu(
-                                            originalSong = song,
-                                            navController = navController,
-                                            onDismiss = menuState::dismiss
-                                        )
+                            if (filter == SongFilter.CACHED) {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = song,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss,
+                                                isFromCache = true
+                                            )
+                                        }
                                     }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
                                 }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.more_vert),
-                                    contentDescription = null
-                                )
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = song,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
                     },
@@ -425,24 +447,46 @@ fun LibrarySongsScreen(
                         }
                     }
                 )
-                IconButton(
-                    enabled = selection.isNotEmpty(),
-                    onClick = {
-                        menuState.show {
-                            SongSelectionMenu(
-                                selection = selection.mapNotNull { songId ->
-                                    filteredSongs.find { it.id == songId }
-                                },
-                                onDismiss = menuState::dismiss,
-                                onExitSelectionMode = onExitSelectionMode
-                            )
+                if (filter == SongFilter.CACHED) {
+                    IconButton(
+                        enabled = selection.isNotEmpty(),
+                        onClick = {
+                            menuState.show {
+                                CacheSongSelectionMenu(
+                                    selection = selection.mapNotNull { songId ->
+                                        filteredSongs.find { it.id == songId }
+                                    },
+                                    onDismiss = menuState::dismiss,
+                                    onExitSelectionMode = onExitSelectionMode
+                                )
+                            }
                         }
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.more_vert),
+                            contentDescription = null
+                        )
                     }
-                ) {
-                    Icon(
-                        painterResource(R.drawable.more_vert),
-                        contentDescription = null
-                    )
+                } else {
+                    IconButton(
+                        enabled = selection.isNotEmpty(),
+                        onClick = {
+                            menuState.show {
+                                SongSelectionMenu(
+                                    selection = selection.mapNotNull { songId ->
+                                        filteredSongs.find { it.id == songId }
+                                    },
+                                    onDismiss = menuState::dismiss,
+                                    onExitSelectionMode = onExitSelectionMode
+                                )
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.more_vert),
+                            contentDescription = null
+                        )
+                    }
                 }
             }
         )

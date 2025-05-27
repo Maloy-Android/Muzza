@@ -23,6 +23,7 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
+import com.maloy.muzza.constants.MyTopFilter
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
@@ -68,7 +69,49 @@ class LibrarySongsViewModel @Inject constructor(
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
+    @PlayerCache private val playerCache: SimpleCache,
+    @DownloadCache private val downloadCache: SimpleCache
 ) : ViewModel() {
+
+    private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
+    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                val cachedIds = playerCache.keys.map { it }.toSet()
+                val downloadedIds = downloadCache.keys.map { it }.toSet()
+                val pureCacheIds = cachedIds.subtract(downloadedIds)
+
+                val songs = if (pureCacheIds.isNotEmpty()) {
+                    database.getSongsByIds(pureCacheIds.toList())
+                } else {
+                    emptyList()
+                }
+
+                val completeSongs = songs.filter {
+                    val contentLength = it.format?.contentLength
+                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
+                }
+
+                if (completeSongs.isNotEmpty()) {
+                    database.query {
+                        completeSongs.forEach {
+                            if (it.song.dateDownload == null) {
+                                update(it.song.copy(dateDownload = LocalDateTime.now()))
+                            }
+                        }
+                    }
+                }
+
+                _cachedSongs.value = completeSongs
+                    .filter { it.song.dateDownload != null }
+                    .sortedByDescending { it.song.dateDownload }
+
+                delay(1000)
+            }
+        }
+    }
 
     /**
      * The top of the stack is the folder that the page will render.
@@ -133,6 +176,7 @@ class LibrarySongsViewModel @Inject constructor(
                                 }.reversed(descending)
                             }
                     }
+                    SongFilter.CACHED -> cachedSongs
                 }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     }

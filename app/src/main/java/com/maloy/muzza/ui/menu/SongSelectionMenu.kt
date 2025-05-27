@@ -48,6 +48,7 @@ fun SongSelectionMenu(
     onExitSelectionMode: () -> Unit,
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromHistory: (() -> Unit)? = null,
+    isFromCache: Boolean = false,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -149,7 +150,6 @@ fun SongSelectionMenu(
         ) {
             showChoosePlaylistDialog = true
         }
-
         DownloadGridMenu(
             state = downloadState,
             onDownload = {
@@ -179,6 +179,18 @@ fun SongSelectionMenu(
                 }
             },
         )
+
+        if (isFromCache) {
+            GridMenuItem(
+                icon = R.drawable.cached,
+                title = R.string.remove_from_cache
+            ) {
+                selection.forEach { song ->
+                    onDismiss()
+                    cacheViewModel.removeSongFromCache(song.id)
+                }
+            }
+        }
 
         if (allInLibrary) {
             GridMenuItem(

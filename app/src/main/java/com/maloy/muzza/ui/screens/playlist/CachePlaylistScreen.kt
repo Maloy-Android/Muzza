@@ -53,8 +53,8 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.*
-import com.maloy.muzza.ui.menu.CacheSongSelectionMenu
 import com.maloy.muzza.ui.menu.SongMenu
+import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
@@ -533,10 +533,11 @@ fun CachePlaylistScreen(
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
-                                CacheSongSelectionMenu(
+                                SongSelectionMenu(
                                     selection = selection.mapNotNull { songId ->
                                         cachedSongs.find { it.id == songId }
                                     },
+                                    isFromCache = true,
                                     onDismiss = menuState::dismiss,
                                     onExitSelectionMode = onExitSelectionMode
                                 )

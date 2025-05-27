@@ -83,7 +83,6 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
-import com.maloy.muzza.ui.menu.CacheSongSelectionMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.utils.isInternetAvailable
@@ -452,10 +451,11 @@ fun LibrarySongsScreen(
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
-                                CacheSongSelectionMenu(
+                                SongSelectionMenu(
                                     selection = selection.mapNotNull { songId ->
                                         filteredSongs.find { it.id == songId }
                                     },
+                                    isFromCache = true,
                                     onDismiss = menuState::dismiss,
                                     onExitSelectionMode = onExitSelectionMode
                                 )

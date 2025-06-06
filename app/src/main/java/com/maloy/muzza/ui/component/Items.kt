@@ -444,62 +444,61 @@ fun SongListItem(
             )
         }
     } else {
-        ListItem(
-            title = song.song.title,
-            subtitle = joinByBullet(
-                song.artists.joinToString { it.name },
-                makeTimeString(song.song.duration * 1000L)
-            ),
-            badges = badges,
-            thumbnailContent = {
-                if (song.song.isLocal == true) {
-                    song.song.let {
-                        AsyncLocalImage(
-                            image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                            contentDescription = null,
-                            contentScale = contentScale,
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.Transparent)
+        ) {
+            ListItem(
+                title = song.song.title,
+                subtitle = joinByBullet(
+                    song.artists.joinToString { it.name },
+                    makeTimeString(song.song.duration * 1000L)
+                ),
+                badges = badges,
+                thumbnailContent = {
+                    if (song.song.isLocal == true) {
+                        song.song.let {
+                            AsyncLocalImage(
+                                image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                                contentDescription = null,
+                                contentScale = contentScale,
+                                modifier = Modifier
+                                    .size(ListThumbnailSize)
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                            )
+                            PlayingIndicatorBox(
+                                isActive = isActive,
+                                playWhenReady = isPlaying,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .size(ListThumbnailSize)
+                                    .align(Alignment.Center)
+                                    .align(Alignment.CenterStart)
+                                    .background(
+                                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                    )
+                            )
+                        }
+                    } else {
+                        ItemThumbnail(
+                            thumbnailUrl = song.song.thumbnailUrl,
+                            albumIndex = albumIndex,
+                            isActive = isActive,
+                            isPlaying = isPlaying,
+                            shape = RoundedCornerShape(ThumbnailCornerRadius),
                             modifier = Modifier
                                 .size(ListThumbnailSize)
                                 .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         )
-                        PlayingIndicatorBox(
-                            isActive = isActive,
-                            playWhenReady = isPlaying,
-                            color = Color.White,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                )
-                        )
                     }
-                } else {
-                    ItemThumbnail(
-                        thumbnailUrl = song.song.thumbnailUrl,
-                        albumIndex = albumIndex,
-                        isActive = isActive,
-                        isPlaying = isPlaying,
-                        shape = RoundedCornerShape(ThumbnailCornerRadius),
-                        modifier = Modifier
-                            .size(ListThumbnailSize)
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                    )
-                }
-                if (song.song.isLocal == true) {
-                    Icon(
-                        Icons.Rounded.MusicNote,
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(18.dp)
-                            .padding(end = 2.dp)
-                    )
-                }
-            },
-            trailingContent = trailingContent,
-            modifier = modifier,
-            isActive = isActive
-        )
+                },
+                trailingContent = trailingContent,
+                modifier = modifier,
+                isActive = isActive
+            )
+        }
     }
 }
 

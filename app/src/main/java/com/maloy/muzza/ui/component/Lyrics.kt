@@ -74,8 +74,6 @@ import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.BuildConfig
-import com.maloy.muzza.constants.PlayerStyle
-import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -108,8 +106,6 @@ fun Lyrics(
     val lyricTrim = rememberPreference(LyricTrimKey, defaultValue = false)
 
     val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
-
-    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
@@ -318,16 +314,14 @@ fun Lyrics(
                     .align(Alignment.BottomEnd)
                     .padding(end = 12.dp)
             ) {
-                if (playerStyle == PlayerStyle.OLD) {
-                    IconButton(
-                        onClick = { showLyrics = false }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = null,
-                            tint = textColor
-                        )
-                    }
+                IconButton(
+                    onClick = { showLyrics = false }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = null,
+                        tint = textColor
+                    )
                 }
                 if (BuildConfig.FLAVOR != "foss") {
                     IconButton(

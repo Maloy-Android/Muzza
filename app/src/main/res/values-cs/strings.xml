@@ -260,7 +260,7 @@
     <string name="clear_image_cache">Vymazat mezipaměť obrázků</string>
     <string name="max_song_cache_size">Maximální velikost mezipaměti skladeb</string>
     <string name="clear_song_cache">Vymazat mezipaměť skladeb</string>
-    <string name="size_used">Využito %s</string>
+    <string name="size_used">Využito</string>
 
     <string name="privacy">Soukromí</string>
     <string name="pause_listen_history">Pozastavit historii poslechu</string>

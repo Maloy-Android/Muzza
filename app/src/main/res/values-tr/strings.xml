@@ -218,7 +218,7 @@
     <string name="clear_image_cache">Görüntü önbelleğini temizle</string>
     <string name="max_song_cache_size">Maksimum şarkı önbellek boyutu</string>
     <string name="clear_song_cache">Şarkı önbelleğini temizle</string>
-    <string name="size_used">%s kullanıldı</string>
+    <string name="size_used">kullanıldı</string>
     <string name="privacy">Gizlilik</string>
     <string name="pause_listen_history">Dinleme geçmişini duraklat</string>
     <string name="clear_listen_history">Dinleme geçmişini temizle</string>

@@ -242,7 +242,7 @@
     <string name="clear_image_cache">Clear image cache</string>
     <string name="max_song_cache_size">Max song cache size</string>
     <string name="clear_song_cache">Clear song cache</string>
-    <string name="size_used">%s used</string>
+    <string name="size_used">used</string>
 
     <string name="privacy">Privacy</string>
     <string name="pause_listen_history">Pause listen history</string>

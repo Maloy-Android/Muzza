@@ -233,7 +233,7 @@
     <string name="clear_image_cache">Bersihkan gambar data sementara (cache)</string>
     <string name="max_song_cache_size">Ukuran lagu data sementara (cache) maksimum</string>
     <string name="clear_song_cache">Clear song cache</string>
-    <string name="size_used">%s digunakan</string>
+    <string name="size_used">digunakan</string>
 
     <string name="privacy">Privasi</string>
     <string name="pause_listen_history">Pause listen history</string>

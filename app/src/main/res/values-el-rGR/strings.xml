@@ -279,7 +279,7 @@
     <string name="clear_image_cache">Εκκαθάριση προσωρινής μνήμης εικόνας</string>
     <string name="max_song_cache_size">Μέγιστο μέγεθος κρυφής μνήμης τραγουδιού</string>
     <string name="clear_song_cache">Εκκαθάριση προσωρινής μνήμης τραγουδιών</string>
-    <string name="size_used">%s χρησιμοποιείται</string>
+    <string name="size_used">χρησιμοποιείται</string>
 
     <string name="privacy">Απόρρητο</string>
     <string name="pause_listen_history">Παύση ιστορικού ακρόασης</string>

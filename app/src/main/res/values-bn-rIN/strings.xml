@@ -242,7 +242,7 @@
     <string name="clear_image_cache">ইমেজ ক্যাশে সাফ করুন</string>
     <string name="max_song_cache_size">অডিও ক্যাশে সর্বোচ্চ আকার</string>
     <string name="clear_song_cache">অডিও ক্যাশে সাফ করুন</string>
-    <string name="size_used">%s ব্যবহৃত</string>
+    <string name="size_used">ব্যবহৃত</string>
 
     <string name="privacy">গোপনীয়তা</string>
     <string name="pause_listen_history">আপনার শোনার ইতিহাস থামান</string>

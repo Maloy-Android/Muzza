@@ -209,7 +209,7 @@
     <string name="clear_image_cache">清除图像缓存</string>
     <string name="max_song_cache_size">歌曲缓存大小</string>
     <string name="clear_song_cache">清除歌曲缓存</string>
-    <string name="size_used">已使用 %s</string>
+    <string name="size_used">已使用</string>
     <string name="privacy">隐私</string>
     <string name="pause_listen_history">暂停听歌历史</string>
     <string name="clear_listen_history">清除听歌历史</string>

@@ -222,7 +222,7 @@
     <string name="clear_image_cache">مسح ذاكرة تخزين الصور المؤقتة</string>
     <string name="max_song_cache_size">أقصى مساحة لذاكرة تخزين الأغاني المؤقتة</string>
     <string name="clear_song_cache">مسح ذاكرة تخزين الأغاني المؤقتة</string>
-    <string name="size_used">%s تم تخزينه</string>
+    <string name="size_used">تم تخزينه</string>
     <string name="pause_listen_history">اوقف تأريخ الاستماع مؤقتًا</string>
     <string name="clear_listen_history">مسح تاريخ الاستماع</string>
     <string name="enable_lrclib">فعل موفر الكلمات LrcLib</string>

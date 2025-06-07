@@ -242,7 +242,7 @@
     <string name="clear_image_cache">Kép gyorsítótár törlése</string>
     <string name="max_song_cache_size">Max. dal gyorsítótár</string>
     <string name="clear_song_cache">Dal gyorsítótár törlése</string>
-    <string name="size_used">%s használva</string>
+    <string name="size_used">használva</string>
 
     <string name="privacy">Adatvédelem</string>
     <string name="pause_listen_history">A hallgatási előzmények szüneteltetése</string>

@@ -229,7 +229,7 @@
     <string name="clear_image_cache">Pulisci la cache delle immagini</string>
     <string name="max_song_cache_size">Grandezza massima della cache dei brani</string>
     <string name="clear_song_cache">Pulisci la cache dei brani</string>
-    <string name="size_used">%s usati</string>
+    <string name="size_used">usati</string>
     <string name="privacy">Privacy</string>
     <string name="pause_listen_history">Sospendi la cronologia degli ascolti</string>
     <string name="clear_listen_history">Cancella la cronologia degli ascolti</string>

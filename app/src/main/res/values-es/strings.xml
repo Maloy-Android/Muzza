@@ -264,7 +264,7 @@
     <string name="clear_image_cache">Borrar la caché de imágenes</string>
     <string name="max_song_cache_size">Tamaño máximo de la caché de canciones</string>
     <string name="clear_song_cache">Borrar la caché de canciones</string>
-    <string name="size_used">%s usado</string>
+    <string name="size_used">usado</string>
     <string name="privacy">Privacidad</string>
     <string name="pause_listen_history">Pausar historial de escuchas</string>
     <string name="clear_listen_history">Borrar historial de escuchas</string>

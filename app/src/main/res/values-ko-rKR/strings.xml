@@ -233,7 +233,7 @@
     <string name="clear_image_cache">이미지 캐시 지우기</string>
     <string name="max_song_cache_size">노래 캐시 최대 크기</string>
     <string name="clear_song_cache">노래 캐시 지우기</string>
-    <string name="size_used">%s 사용됨</string>
+    <string name="size_used">사용됨</string>
 
     <string name="privacy">프라이버시</string>
     <string name="pause_listen_history">재생 기록 일시 중지</string>

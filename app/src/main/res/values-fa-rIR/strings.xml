@@ -242,7 +242,7 @@
     <string name="clear_image_cache">پاک‌کردن حافظه‌‌ی‌پنهان تصویر</string>
     <string name="max_song_cache_size">بیشترین اندازه‌ی حافظه‌ی‌پنهان ترانه</string>
     <string name="clear_song_cache">پاک‌کردن حافظه‌‌ی‌پنهان ترانه</string>
-    <string name="size_used">%s استفاده‌شده‌است</string>
+    <string name="size_used">استفاده‌شده‌است</string>
 
     <string name="privacy">حریم‌خصوصی</string>
     <string name="pause_listen_history">متوقف‌کردن تاریخچه‌ی گوش‌دادن</string>

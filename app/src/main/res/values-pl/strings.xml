@@ -236,7 +236,7 @@
     <string name="clear_image_cache">Wyczyść cache obrazów</string>
     <string name="max_song_cache_size">Maksymalny rozmiar cache utworów</string>
     <string name="clear_song_cache">Wyczyść cache utworów</string>
-    <string name="size_used">%s w użyciu</string>
+    <string name="size_used">w użyciu</string>
     <string name="privacy">Prywatność</string>
     <string name="pause_listen_history">Wstrzymaj historię odtwarzania</string>
     <string name="clear_listen_history">Wyczyść historię odtwarzania</string>

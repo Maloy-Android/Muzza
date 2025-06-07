@@ -260,7 +260,7 @@
     <string name="clear_image_cache">Ачысціць кэш выяў</string>
     <string name="max_song_cache_size">Максімальны памер кэшу песен</string>
     <string name="clear_song_cache">Ачысціць кэш песен</string>
-    <string name="size_used">%s выкарыстоўваецца</string>
+    <string name="size_used">выкарыстоўваецца</string>
 
     <string name="privacy">Прыватнасць</string>
     <string name="pause_listen_history">Прыпыніць гісторыю праслухоўвання</string>

@@ -265,7 +265,7 @@
     <string name="clear_image_cache">画像のキャッシュを消去</string>
     <string name="max_song_cache_size">曲の最大キャッシュサイズ</string>
     <string name="clear_song_cache">曲のキャッシュを消去</string>
-    <string name="size_used">%s 使用中</string>
+    <string name="size_used">使用中</string>
 
     <string name="privacy">プライバシー</string>
     <string name="listen_history">再生履歴</string>

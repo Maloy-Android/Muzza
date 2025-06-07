@@ -242,7 +242,7 @@
     <string name="clear_image_cache">ਚਿੱਤਰ ਕੈਸ਼ੇ ਸਾਫ਼ ਕਰੋ</string>
     <string name="max_song_cache_size">ਅਧਿਕਤਮ ਗੀਤ ਕੈਸ਼ੇ ਆਕਾਰ</string>
     <string name="clear_song_cache">ਗੀਤ ਕੈਸ਼ ਸਾਫ਼ ਕਰੋ</string>
-    <string name="size_used">%s ਵਰਤਿਆ ਗਿਆ</string>
+    <string name="size_used">ਵਰਤਿਆ ਗਿਆ</string>
 
     <string name="privacy">ਗੋਪਨੀਯਤਾ</string>
     <string name="pause_listen_history">ਸੁਣਨ ਦਾ ਅਤੀਤ ਰੋਕੋ</string>

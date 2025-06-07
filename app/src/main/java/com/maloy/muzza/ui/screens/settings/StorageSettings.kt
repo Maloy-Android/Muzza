@@ -166,11 +166,24 @@ fun StorageSettings(
                     icon = Icons.Outlined.CloudDownload,
                     color = MaterialTheme.colorScheme.surfaceContainer
                 )
-                StorageProgressCard(
-                    usedSpace = downloadCacheSize,
-                    totalSpace = -1,
-                    onClear = { showClearAllDownloadsDialog = true }
-                )
+                Card(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = formatFileSize(downloadCacheSize),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FilledTonalButton(
+                            onClick = { showClearAllDownloadsDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(text = stringResource(R.string.clear_all_downloads))
+                        }
+                    }
+                }
             }
 
             item {
@@ -307,7 +320,7 @@ private fun StorageProgressCard(
                     )
                     if (totalSpace > 0) {
                         Text(
-                            text = "${(usedSpace.toFloat() / totalSpace * 100).toInt()}% использовано",
+                            text = "${(usedSpace.toFloat() / totalSpace * 100).toInt()}%" + R.string.size_used,
                             style = MaterialTheme.typography.bodySmall
                         )
                     }

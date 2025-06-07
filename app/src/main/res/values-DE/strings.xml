@@ -218,7 +218,7 @@
     <string name="clear_image_cache">Bild-Cache löschen</string>
     <string name="max_song_cache_size">Maximale Größe des Song-Cache</string>
     <string name="clear_song_cache">Song-Cache löschen</string>
-    <string name="size_used">%s verwendet</string>
+    <string name="size_used">verwendet</string>
     <string name="privacy">Privatsphäre</string>
     <string name="pause_listen_history">Pausieren des Hörverlaufs</string>
     <string name="clear_listen_history">Hörverlauf löschen</string>

@@ -209,7 +209,7 @@
     <string name="clear_image_cache">Xóa bộ nhớ đệm hình ảnh</string>
     <string name="max_song_cache_size">Kích thước bộ nhớ đệm bài hát tối đa</string>
     <string name="clear_song_cache">Xóa bộ nhớ đệm bài hát</string>
-    <string name="size_used">Đã sử dụng %s</string>
+    <string name="size_used">Đã sử dụng</string>
     <string name="privacy">Riêng tư</string>
     <string name="pause_listen_history">Tạm dừng lịch sử nghe</string>
     <string name="clear_listen_history">Xóa lịch sử nghe</string>

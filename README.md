@@ -4,7 +4,7 @@
 
 A Material 3 YouTube Music client for Android
 
-- Website: https://maloy-android.github.io/Muzza-Website/
+- Website: https://muzza.infinityfreeapp.com
 - Telegram channel: https://t.me/appmuzzaupdatesnews
 - Downloads: https://t.me/muzzaapks
 

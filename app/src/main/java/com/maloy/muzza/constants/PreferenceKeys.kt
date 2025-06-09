@@ -18,6 +18,8 @@ val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 
+val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
+
 val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
 val ShowRecentActivityKey = booleanPreferencesKey("showRecentActivity")
 

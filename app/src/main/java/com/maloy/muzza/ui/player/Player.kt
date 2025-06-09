@@ -100,6 +100,7 @@ import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
@@ -149,6 +150,8 @@ fun BottomSheetPlayer(
     }
 
     val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+
+    val fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = false)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
@@ -262,7 +265,7 @@ fun BottomSheetPlayer(
                 label = "playPauseRoundness",
             )
 
-            if (!showLyrics) {
+            if (fullScreenLyrics) {
                 Row(
                     horizontalArrangement = Arrangement.Start,
                     modifier = Modifier
@@ -775,7 +778,7 @@ fun BottomSheetPlayer(
             }
         }
 
-        if (!showLyrics) {
+        if (fullScreenLyrics) {
             Queue(
                 state = queueSheetState,
                 backgroundColor =

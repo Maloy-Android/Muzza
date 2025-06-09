@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.component
 
 import android.content.res.Configuration
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
@@ -18,6 +19,8 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -75,6 +78,7 @@ import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.constants.PureBlackKey
+import com.maloy.muzza.constants.fullScreenLyricsKey
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlin.time.Duration.Companion.seconds
@@ -93,6 +97,8 @@ fun Lyrics(
     val lyricsFontSize by rememberPreference(LyricFontSizeKey, 20)
 
     val lyricsTextPosition by rememberEnumPreference(LyricsTextPositionKey, LyricsPosition.CENTER)
+
+    var fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = false)
 
     var translationEnabled by rememberPreference(TranslateLyricsKey, false)
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -315,7 +321,10 @@ fun Lyrics(
                     .padding(end = 12.dp)
             ) {
                 IconButton(
-                    onClick = { showLyrics = false }
+                    onClick = {
+                        showLyrics = false
+                        fullScreenLyrics = true
+                    }
                 ) {
                     Icon(
                         painter = painterResource(R.drawable.close),
@@ -333,6 +342,25 @@ fun Lyrics(
                             painter = painterResource(id = R.drawable.translate),
                             contentDescription = null,
                             tint = textColor.copy(alpha = if (translationEnabled) 1f else 0.3f)
+                        )
+                    }
+                }
+                if (fullScreenLyrics) {
+                    IconButton(
+                        onClick = { fullScreenLyrics = false }
+                    ) {
+                        Image(
+                            imageVector = Icons.Rounded.Fullscreen,
+                            contentDescription = null,
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { fullScreenLyrics = true }
+                    ) {
+                        Image(
+                            imageVector = Icons.Rounded.Fullscreen,
+                            contentDescription = null,
                         )
                     }
                 }

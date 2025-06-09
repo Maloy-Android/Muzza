@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.player
 
+import android.media.MediaMetadata
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -26,15 +27,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ChevronLeft
-import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -55,7 +51,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.res.stringResource
@@ -66,7 +61,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
-import androidx.media3.exoplayer.ExoPlayer
 import coil.compose.AsyncImage
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -97,7 +91,6 @@ fun Thumbnail(
 
     val error: PlaybackException? by playerConnection.error.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val player = playerConnection.player
 
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
@@ -315,9 +308,6 @@ fun Thumbnail(
                     }
                 }
             }
-            if (swipeThumbnail) {
-                TransitionIndicators(offsetX, player)
-            }
         }
 
         LaunchedEffect(showSeekEffect) {
@@ -416,44 +406,6 @@ fun PlaybackError(
             )
         ) {
             Text(text = stringResource(R.string.retry))
-        }
-    }
-}
-
-@Composable
-private fun TransitionIndicators(
-    offsetX: Float,
-    player: ExoPlayer
-) {
-    val iconSize = 48.dp
-    val color = MaterialTheme.colorScheme.onSurface
-    val density = LocalDensity.current
-
-    Box(modifier = Modifier.fillMaxSize()) {
-        val offsetXDp = with(density) { offsetX.toDp() }
-
-        if (player.hasPreviousMediaItem()) {
-            Icon(
-                imageVector = Icons.Filled.ChevronLeft,
-                contentDescription = null,
-                tint = color.copy(alpha = (offsetX / 300f).coerceIn(0f, 1f)),
-                modifier = Modifier
-                    .size(iconSize)
-                    .align(Alignment.CenterStart)
-                    .offset(x = offsetXDp - 50.dp)
-            )
-        }
-
-        if (player.hasNextMediaItem()) {
-            Icon(
-                imageVector = Icons.Filled.ChevronRight,
-                contentDescription = null,
-                tint = color.copy(alpha = (-offsetX / 300f).coerceIn(0f, 1f)),
-                modifier = Modifier
-                    .size(iconSize)
-                    .align(Alignment.CenterEnd)
-                    .offset(x = offsetXDp + 50.dp)
-            )
         }
     }
 }

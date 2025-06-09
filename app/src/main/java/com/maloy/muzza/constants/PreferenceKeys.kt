@@ -20,6 +20,8 @@ val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 
 val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
 
+val showNoInternetDialogKey = booleanPreferencesKey("showNoInternetDialog")
+
 val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
 val ShowRecentActivityKey = booleanPreferencesKey("showRecentActivity")
 

@@ -52,6 +52,8 @@
     <string name="your_youtube_playlists">Ваши плейлисты с YouTube</string>
     <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
+    <string name="not_internet">Нет подключения к Интернету</string>
+    <string name="internet_required">Похоже, у вас нет подключения к Интернету. Пожалуйста, проверьте свою сеть.</string>
 
     <!-- History -->
     <string name="today">Сегодня</string>

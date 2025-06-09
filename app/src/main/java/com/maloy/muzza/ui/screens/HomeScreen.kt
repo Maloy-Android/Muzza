@@ -7,6 +7,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -29,10 +30,13 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -42,11 +46,13 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -76,6 +82,7 @@ import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.showNoInternetDialogKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
@@ -110,6 +117,7 @@ import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
 import kotlin.math.min
@@ -159,6 +167,8 @@ fun HomeScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
+    val context = LocalContext.current
+    var showNoInternetDialog by rememberPreference(showNoInternetDialogKey,defaultValue = false)
 
     val topSize = 50
 
@@ -177,6 +187,12 @@ fun HomeScreen(
                     viewModel.loadMoreYouTubeItems(homePage?.continuation)
                 }
             }
+    }
+
+    if (!isInternetAvailable(context)) {
+        LaunchedEffect(Unit) {
+            showNoInternetDialog = true
+        }
     }
 
     if (selectedChip != null) {
@@ -359,6 +375,38 @@ fun HomeScreen(
         val recentActivityGridState = rememberLazyGridState()
 
         val (showContentFilter) = rememberPreference(ShowContentFilterKey, defaultValue = true)
+
+        if (showNoInternetDialog) {
+            AlertDialog(
+                onDismissRequest = { showNoInternetDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            painter = painterResource(R.drawable.signal_cellular_nodata),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.not_internet))
+                    }
+                },
+                text = { Text(stringResource(R.string.internet_required)) },
+                confirmButton = {
+                    Button(onClick = {
+                        showNoInternetDialog = false
+                    }) {
+                        Text(stringResource(android.R.string.cancel))
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = {
+                        navController.navigate("library")
+                    }) {
+                        Text(stringResource(R.string.filter_library))
+                    }
+                }
+            )
+        }
 
         LazyColumn(
             state = lazylistState,

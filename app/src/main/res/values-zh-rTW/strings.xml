@@ -253,7 +253,7 @@
     <string name="clear_image_cache">清除圖片快取</string>
     <string name="max_song_cache_size">歌曲快取大小</string>
     <string name="clear_song_cache">清除歌曲快取</string>
-    <string name="size_used">已使用 %s</string>
+    <string name="size_used">已使用</string>
     <string name="privacy">隱私</string>
     <string name="listen_history">觀看記錄</string>
     <string name="pause_listen_history">暫停觀看記錄</string>

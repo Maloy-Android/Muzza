@@ -463,7 +463,7 @@
     <string name="clear_image_cache">Очистити кеш зображень</string>
     <string name="max_song_cache_size">Макс. розмір кешу аудіо</string>
     <string name="clear_song_cache">Очистити кеш аудіо</string>
-    <string name="size_used">%s використано</string>
+    <string name="size_used">використано</string>
     <string name="clear_all_cache_dialog">Ви впевнені, що хочете очистити всі кешовані дані?</string>
     <string name="clear_all_downloads_dialog">Ви впевнені, що хочете очистити всі завантаження?</string>
     <string name="clear_song_cache_dialog">Ви впевнені, що хочете очистити всі кешовані пісні?</string>

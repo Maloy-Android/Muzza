@@ -192,12 +192,33 @@ fun StorageSettings(
                     icon = Icons.Rounded.MusicNote,
                     color = MaterialTheme.colorScheme.surfaceContainer
                 )
-                AnimatedVisibility(visible = maxSongCacheSize != 0) {
-                    StorageProgressCard(
-                        usedSpace = playerCacheSize,
-                        totalSpace = maxSongCacheSize * 1024 * 1024L,
-                        onClear = { showClearSongCacheDialog = true }
-                    )
+                if (maxSongCacheSize == -1) {
+                    Card(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = formatFileSize(playerCacheSize),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            FilledTonalButton(
+                                onClick = { showClearSongCacheDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(text = stringResource(R.string.clear_song_cache))
+                            }
+                        }
+                    }
+                } else {
+                    AnimatedVisibility(visible = maxSongCacheSize != 0) {
+                        StorageProgressCard(
+                            usedSpace = playerCacheSize,
+                            totalSpace = maxSongCacheSize * 1024 * 1024L,
+                            onClear = { showClearSongCacheDialog = true }
+                        )
+                    }
                 }
                 CacheSizeSelector(
                     selectedValue = maxSongCacheSize,
@@ -211,12 +232,33 @@ fun StorageSettings(
                     icon = Icons.Rounded.Image,
                     color = MaterialTheme.colorScheme.surfaceContainer
                 )
-                AnimatedVisibility(visible = maxImageCacheSize != 0) {
-                    StorageProgressCard(
-                        usedSpace = imageCacheSize,
-                        totalSpace = maxImageCacheSize * 1024 * 1024L,
-                        onClear = { showClearImagesCacheDialog = true }
-                    )
+                if (maxImageCacheSize == -1) {
+                    Card(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Text(
+                                text = formatFileSize(imageCacheSize),
+                                style = MaterialTheme.typography.titleMedium
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            FilledTonalButton(
+                                onClick = { showClearImagesCacheDialog = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = MaterialTheme.shapes.medium
+                            ) {
+                                Text(text = stringResource(R.string.clear_image_cache))
+                            }
+                        }
+                    }
+                } else {
+                    AnimatedVisibility(visible = maxImageCacheSize != 0) {
+                        StorageProgressCard(
+                            usedSpace = imageCacheSize,
+                            totalSpace = maxImageCacheSize * 1024 * 1024L,
+                            onClear = { showClearImagesCacheDialog = true }
+                        )
+                    }
                 }
                 CacheSizeSelector(
                     selectedValue = maxImageCacheSize,

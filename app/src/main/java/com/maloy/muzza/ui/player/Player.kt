@@ -151,7 +151,7 @@ fun BottomSheetPlayer(
 
     val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
-    val fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = false)
+    val fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = true)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 

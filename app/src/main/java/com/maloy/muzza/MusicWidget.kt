@@ -7,6 +7,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.widget.RemoteViews
 import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.Player
@@ -19,6 +21,8 @@ import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
 class MusicWidget : AppWidgetProvider() {
+    private val handler = Handler(Looper.getMainLooper())
+    private lateinit var runnable: Runnable
 
     override fun onUpdate(
         context: Context,
@@ -78,6 +82,18 @@ class MusicWidget : AppWidgetProvider() {
         }
     }
 
+    private fun startProgressUpdater(context: Context) {
+        runnable = Runnable {
+            updateAllWidgets(context)
+            handler.postDelayed(runnable, 1000)
+        }
+        handler.post(runnable)
+    }
+
+    private fun stopProgressUpdater() {
+        handler.removeCallbacks(runnable)
+    }
+
     companion object {
         const val ACTION_PLAY_PAUSE = "com.maloy.muzza.ACTION_PLAY_PAUSE"
         const val ACTION_PREV = "com.maloy.muzza.ACTION_PREV"
@@ -87,7 +103,6 @@ class MusicWidget : AppWidgetProvider() {
         const val ACTION_REPLAY = "com.maloy.muzza.ACTION_REPLAY"
         const val ACTION_STATE_CHANGED = "com.maloy.muzza.ACTION_STATE_CHANGED"
         const val ACTION_UPDATE_PROGRESS = "com.maloy.muzza.ACTION_UPDATE_PROGRESS"
-        private var isProgressUpdaterRunning = false
 
         fun updateAllWidgets(context: Context) {
             val appWidgetManager = AppWidgetManager.getInstance(context)
@@ -107,23 +122,18 @@ class MusicWidget : AppWidgetProvider() {
             val player = playerConnection?.player
 
             player?.let { it ->
-                views.setTextViewText(R.id.widget_track_title,
-                    it.mediaMetadata.title)
-                views.setTextViewText(R.id.widget_artist,
-                    it.mediaMetadata.artist)
+                views.setTextViewText(R.id.widget_track_title, it.mediaMetadata.title)
+                views.setTextViewText(R.id.widget_artist, it.mediaMetadata.artist)
                 val playPauseIcon = if (it.playWhenReady) R.drawable.pause else R.drawable.play
                 views.setImageViewResource(R.id.widget_play_pause, playPauseIcon)
-                val shuffleIcon = if (it.shuffleModeEnabled)
-                    R.drawable.shuffle_on else R.drawable.shuffle
+                val shuffleIcon = if (it.shuffleModeEnabled) R.drawable.shuffle_on else R.drawable.shuffle
                 views.setImageViewResource(R.id.widget_shuffle, shuffleIcon)
                 val likeIcon = R.drawable.favorite
                 views.setImageViewResource(R.id.widget_like, likeIcon)
                 if (it.repeatMode == Player.REPEAT_MODE_ONE) {
-                    views.setInt(R.id.widget_play_pause, "setColorFilter",
-                        context.getColor(R.color.light_blue_50))
+                    views.setInt(R.id.widget_play_pause, "setColorFilter", context.getColor(R.color.light_blue_50))
                 } else {
-                    views.setInt(R.id.widget_play_pause, "setColorFilter",
-                        context.getColor(android.R.color.transparent))
+                    views.setInt(R.id.widget_play_pause, "setColorFilter", context.getColor(android.R.color.transparent))
                 }
                 val currentPos = formatTime(it.currentPosition)
                 val duration = formatTime(it.duration)
@@ -154,21 +164,16 @@ class MusicWidget : AppWidgetProvider() {
                     views.setImageViewResource(R.id.widget_album_art, R.drawable.album)
                 }
             }
-            views.setOnClickPendingIntent(R.id.widget_play_pause,
-                getPendingIntent(context, ACTION_PLAY_PAUSE))
-            views.setOnClickPendingIntent(R.id.widget_prev,
-                getPendingIntent(context, ACTION_PREV))
-            views.setOnClickPendingIntent(R.id.widget_next,
-                getPendingIntent(context, ACTION_NEXT))
-            views.setOnClickPendingIntent(R.id.widget_shuffle,
-                getPendingIntent(context, ACTION_SHUFFLE))
-            views.setOnClickPendingIntent(R.id.widget_like,
-                getPendingIntent(context, ACTION_LIKE))
+
+            views.setOnClickPendingIntent(R.id.widget_play_pause, getBroadcastPendingIntent(context, ACTION_PLAY_PAUSE))
+            views.setOnClickPendingIntent(R.id.widget_prev, getBroadcastPendingIntent(context, ACTION_PREV))
+            views.setOnClickPendingIntent(R.id.widget_next, getBroadcastPendingIntent(context, ACTION_NEXT))
+            views.setOnClickPendingIntent(R.id.widget_shuffle, getBroadcastPendingIntent(context, ACTION_SHUFFLE))
+            views.setOnClickPendingIntent(R.id.widget_like, getBroadcastPendingIntent(context, ACTION_LIKE))
 
             appWidgetManager.updateAppWidget(appWidgetId, views)
         }
-
-        private fun getPendingIntent(context: Context, action: String): PendingIntent {
+        private fun getBroadcastPendingIntent(context: Context, action: String): PendingIntent {
             val intent = Intent(context, MusicWidget::class.java).apply {
                 this.action = action
                 flags = Intent.FLAG_RECEIVER_FOREGROUND
@@ -189,27 +194,6 @@ class MusicWidget : AppWidgetProvider() {
                 TimeUnit.MILLISECONDS.toSeconds(millis) -
                         TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(millis))
             )
-        }
-
-        fun startProgressUpdater(context: Context) {
-            if (isProgressUpdaterRunning) return
-
-            isProgressUpdaterRunning = true
-            CoroutineScope(Dispatchers.IO).launch {
-                while (isProgressUpdaterRunning) {
-                    try {
-                        Thread.sleep(1000)
-                        context.sendBroadcast(Intent(ACTION_UPDATE_PROGRESS).apply {
-                            setPackage(context.packageName)
-                        })
-                    } catch (e: InterruptedException) {
-                        break
-                    }
-                }
-            }
-        }
-        fun stopProgressUpdater() {
-            isProgressUpdaterRunning = false
         }
     }
 }

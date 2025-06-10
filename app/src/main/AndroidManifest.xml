@@ -37,16 +37,14 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Muzza"
         tools:targetApi="tiramisu">
-        <receiver
-            android:name=".Test"
+        <receiver android:name=".MusicWidget"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
-
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/test_info" />
+                android:resource="@xml/widget_info" />
         </receiver>
 
         <uses-library

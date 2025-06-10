@@ -148,6 +148,7 @@ dependencies {
     implementation(libs.media3.okhttp)
 
     implementation(libs.room.runtime)
+    implementation(libs.cardview)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 

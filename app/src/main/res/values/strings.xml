@@ -480,10 +480,7 @@
         <item quantity="one">1 second</item>
         <item quantity="other">%d seconds</item>
     </plurals>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">Add widget</string>
-    <string name="app_widget_description">Muzza</string>
-
+    <string name="widget_title">Music Widget</string>
     <!--scanner page settings-->
     <string name="sync_local_songs_toast">Sync local songs successfully</string>
     <string name="local_scanner_title">Local scanner</string>

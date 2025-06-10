@@ -12,6 +12,7 @@ hilt = "2.56.1"
 ktor = "3.1.2"
 ksp = "2.1.0-1.0.29"
 kotlinVersion = "2.0.20"
+cardview = "1.0.0"
 
 [libraries]
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
@@ -89,6 +90,7 @@ firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
 newpipe-extractor = { group = "com.github.libre-tube", name = "NewPipeExtractor", version = "bc9a5a220e" }
+cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

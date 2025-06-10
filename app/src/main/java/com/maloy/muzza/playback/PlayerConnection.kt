@@ -1,6 +1,7 @@
 package com.maloy.muzza.playback
 
 import android.content.Context
+import android.content.Intent
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
@@ -10,6 +11,7 @@ import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
+import com.maloy.muzza.MusicWidget.Companion.ACTION_STATE_CHANGED
 import com.maloy.muzza.constants.TranslateLyricsKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
@@ -189,7 +191,46 @@ class PlayerConnection(
         }
     }
 
+    fun togglePlayPause() {
+       instance?.player?.playWhenReady =
+            !instance?.player?.playWhenReady!!
+    }
+
+    fun toggleShuffle() {
+        player.shuffleModeEnabled = !(player.shuffleModeEnabled)
+    }
+
+    fun toggleReplayMode() {
+        player.repeatMode = if (player.repeatMode == Player.REPEAT_MODE_ONE)
+            REPEAT_MODE_OFF else Player.REPEAT_MODE_ONE
+    }
+
     fun dispose() {
+        instance = null
         player.removeListener(this)
+    }
+    companion object {
+        @Volatile
+        var instance: PlayerConnection? = null
+            private set
+    }
+    init {
+        instance = this
+        player.addListener(object : Player.Listener {
+            override fun onEvents(player: Player, events: Player.Events) {
+                if (events.containsAny(
+                        Player.EVENT_PLAYBACK_STATE_CHANGED,
+                        Player.EVENT_PLAY_WHEN_READY_CHANGED,
+                        Player.EVENT_MEDIA_ITEM_TRANSITION
+                    )) {
+                    sendStateChangedBroadcast(context)
+                }
+            }
+        })
+    }
+    private fun sendStateChangedBroadcast(context: Context) {
+        context.sendBroadcast(Intent(ACTION_STATE_CHANGED).apply {
+            setPackage(context.packageName)
+        })
     }
 }

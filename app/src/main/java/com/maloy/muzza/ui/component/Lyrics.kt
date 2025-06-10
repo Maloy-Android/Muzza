@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -349,18 +350,20 @@ fun Lyrics(
                     IconButton(
                         onClick = { fullScreenLyrics = false }
                     ) {
-                        Image(
+                        Icon(
                             imageVector = Icons.Rounded.Fullscreen,
                             contentDescription = null,
+                            tint = textColor
                         )
                     }
                 } else {
                     IconButton(
                         onClick = { fullScreenLyrics = true }
                     ) {
-                        Image(
+                        Icon(
                             imageVector = Icons.Rounded.Fullscreen,
                             contentDescription = null,
+                            tint = textColor
                         )
                     }
                 }

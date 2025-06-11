@@ -255,6 +255,7 @@
     <string name="undo">Скасувати</string>
 
     <!-- Player -->
+    <string name="now_playing">Зараз граю</string>
     <string name="lyrics_not_found">Текст пісні не знайдено</string>
     <string name="sleep_timer">Таймер сну</string>
     <string name="end_of_song">Кінець пісні</string>

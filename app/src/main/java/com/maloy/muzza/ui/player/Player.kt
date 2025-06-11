@@ -2,6 +2,7 @@
 
 package com.maloy.muzza.ui.player
 
+import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.AnimatedContent
@@ -73,6 +74,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -159,6 +161,7 @@ fun BottomSheetPlayer(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val queueTitle by playerConnection.queueTitle.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
     val context = LocalContext.current
@@ -713,6 +716,66 @@ fun BottomSheetPlayer(
                         .fillMaxSize()
                         .background(Color.Black.copy(alpha = 0.3f))
                 )
+            }
+        }
+
+        if (fullScreenLyrics) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PlayerHorizontalPadding)
+                        .padding(top = 35.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    ResizableIconButton(
+                        icon = R.drawable.arrow_downward,
+                        modifier = Modifier.size(25.dp),
+                        color = onBackgroundColor,
+                        onClick = {
+                            state.collapseSoft()
+                        }
+                    )
+
+                    if (!queueTitle.isNullOrEmpty()) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.now_playing),
+                                style = MaterialTheme.typography.titleMedium,
+                                overflow = TextOverflow.Ellipsis,
+                                color = onBackgroundColor
+                            )
+                            Text(
+                                text = queueTitle.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                overflow = TextOverflow.Ellipsis,
+                                color = onBackgroundColor
+                            )
+                        }
+                    }
+
+                    ResizableIconButton(
+                        icon = R.drawable.share,
+                        modifier = Modifier.size(25.dp),
+                        color = onBackgroundColor,
+                        onClick = {
+                            val intent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                )
+                            }
+                            context.startActivity(Intent.createChooser(intent, null))
+                        }
+                    )
+                }
             }
         }
 

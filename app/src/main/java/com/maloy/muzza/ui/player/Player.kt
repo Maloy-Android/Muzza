@@ -718,67 +718,6 @@ fun BottomSheetPlayer(
                 )
             }
         }
-
-        if (fullScreenLyrics) {
-            Column(
-                modifier = Modifier.fillMaxSize(),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PlayerHorizontalPadding)
-                        .padding(top = 35.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                ) {
-                    ResizableIconButton(
-                        icon = R.drawable.arrow_downward,
-                        modifier = Modifier.size(25.dp),
-                        color = onBackgroundColor,
-                        onClick = {
-                            state.collapseSoft()
-                        }
-                    )
-
-                    if (!queueTitle.isNullOrEmpty()) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = stringResource(R.string.now_playing),
-                                style = MaterialTheme.typography.titleMedium,
-                                overflow = TextOverflow.Ellipsis,
-                                color = onBackgroundColor
-                            )
-                            Text(
-                                text = queueTitle.orEmpty(),
-                                style = MaterialTheme.typography.bodyMedium,
-                                overflow = TextOverflow.Ellipsis,
-                                color = onBackgroundColor
-                            )
-                        }
-                    }
-
-                    ResizableIconButton(
-                        icon = R.drawable.share,
-                        modifier = Modifier.size(25.dp),
-                        color = onBackgroundColor,
-                        onClick = {
-                            val intent = Intent().apply {
-                                action = Intent.ACTION_SEND
-                                type = "text/plain"
-                                putExtra(
-                                    Intent.EXTRA_TEXT,
-                                    "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
-                                )
-                            }
-                            context.startActivity(Intent.createChooser(intent, null))
-                        }
-                    )
-                }
-            }
-        }
-
         when (LocalConfiguration.current.orientation) {
             Configuration.ORIENTATION_LANDSCAPE -> {
                 Row(
@@ -837,6 +776,66 @@ fun BottomSheetPlayer(
                     }
 
                     Spacer(Modifier.height(32.dp))
+                }
+            }
+        }
+
+        if (fullScreenLyrics) {
+            Column(
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = PlayerHorizontalPadding)
+                        .padding(top = 35.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    ResizableIconButton(
+                        icon = R.drawable.arrow_downward,
+                        modifier = Modifier.size(25.dp),
+                        color = onBackgroundColor,
+                        onClick = {
+                            state.collapseSoft()
+                        }
+                    )
+
+                    if (!queueTitle.isNullOrEmpty()) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = stringResource(R.string.now_playing),
+                                style = MaterialTheme.typography.titleMedium,
+                                overflow = TextOverflow.Ellipsis,
+                                color = onBackgroundColor
+                            )
+                            Text(
+                                text = queueTitle.orEmpty(),
+                                style = MaterialTheme.typography.bodyMedium,
+                                overflow = TextOverflow.Ellipsis,
+                                color = onBackgroundColor
+                            )
+                        }
+                    }
+
+                    ResizableIconButton(
+                        icon = R.drawable.share,
+                        modifier = Modifier.size(25.dp),
+                        color = onBackgroundColor,
+                        onClick = {
+                            val intent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                )
+                            }
+                            context.startActivity(Intent.createChooser(intent, null))
+                        }
+                    )
                 }
             }
         }

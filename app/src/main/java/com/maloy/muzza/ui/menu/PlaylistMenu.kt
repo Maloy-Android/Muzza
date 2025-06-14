@@ -210,7 +210,6 @@ fun PlaylistMenu(
 
     PlaylistListItem(
         playlist = playlist,
-        showLikedIcon = false,
         trailingContent = {
             if (!playlist.playlist.isEditable) {
                 IconButton(

@@ -24,6 +24,7 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -269,6 +270,14 @@ fun PreferenceEntryCard(
                 icon()
             }
             Spacer(Modifier.width(12.dp))
+        }
+        Column(
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
+        ) {
+            ProvideTextStyle(MaterialTheme.typography.titleMedium) {
+                title()
+            }
         }
     }
 }

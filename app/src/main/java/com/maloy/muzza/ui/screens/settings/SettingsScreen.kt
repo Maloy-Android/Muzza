@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -34,6 +36,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -100,7 +103,7 @@ fun SettingsScreen(
                     .fillMaxSize()
                     .blur(0.5.dp)
                 )
-                PreferenceEntry(
+                PreferenceEntryCard(
                     title = {
                         Column(
                             modifier = Modifier.padding(16.dp),
@@ -132,7 +135,6 @@ fun SettingsScreen(
                             }
                         }
                     },
-                    description = null,
                     onClick = { changeBackgroundImage() }
                 )
         }
@@ -237,6 +239,36 @@ fun VersionCard(uriHandler: UriHandler) {
 
 
                 )
+        }
+    }
+}
+
+@Composable
+fun PreferenceEntryCard(
+    modifier: Modifier = Modifier,
+    title: @Composable () -> Unit,
+    icon: (@Composable () -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
+    isEnabled: Boolean = true,
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(
+                enabled = isEnabled && onClick != null,
+                onClick = onClick ?: {}
+            )
+            .alpha(if (isEnabled) 1f else 0.5f)
+            .padding(horizontal = 16.dp, vertical = 16.dp)
+    ) {
+        if (icon != null) {
+            Box(
+                modifier = Modifier.padding(horizontal = 4.dp)
+            ) {
+                icon()
+            }
+            Spacer(Modifier.width(12.dp))
         }
     }
 }

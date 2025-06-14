@@ -291,7 +291,7 @@ fun AboutScreen(
             icon = R.drawable.language,
             title = stringResource(R.string.web_site),
             subtitle = stringResource(R.string.web_site_info),
-            onClick = { uriHandler.openUri("https://maloy-android.github.io/Muzza-Website/") }
+            onClick = { uriHandler.openUri("https://muzza.infinityfreeapp.com") }
         )
 
         Spacer(Modifier.height(20.dp))

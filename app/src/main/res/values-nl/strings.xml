@@ -242,7 +242,7 @@
     <string name="clear_image_cache">Wis afbeeldingen cache</string>
     <string name="max_song_cache_size">Max. grootte cache voor nummers</string>
     <string name="clear_song_cache">Wis nummer cache</string>
-    <string name="size_used">%s gebruikt</string>
+    <string name="size_used">gebruikt</string>
 
     <string name="privacy">Privacy</string>
     <string name="pause_listen_history">Pauzeer luistergeschiedenis</string>

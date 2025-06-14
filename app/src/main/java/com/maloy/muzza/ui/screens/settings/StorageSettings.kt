@@ -357,15 +357,9 @@ private fun StorageProgressCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(
-                        text = formatFileSize(usedSpace),
+                        text = "${(usedSpace.toFloat() / totalSpace * 100).toInt()}%" + stringResource(R.string.size_used),
                         style = MaterialTheme.typography.titleMedium
                     )
-                    if (totalSpace > 0) {
-                        Text(
-                            text = "${(usedSpace.toFloat() / totalSpace * 100).toInt()}%" + R.string.size_used,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                    }
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))

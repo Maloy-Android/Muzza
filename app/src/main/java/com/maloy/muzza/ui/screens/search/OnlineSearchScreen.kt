@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -344,49 +345,56 @@ fun SuggestionItem(
     onDelete: () -> Unit = {},
     onFillTextField: () -> Unit,
 ) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
+    Card(
         modifier = modifier
             .fillMaxWidth()
-            .height(SuggestionItemHeight)
-            .clickable(onClick = onClick)
-            .padding(end = SearchBarIconOffsetX)
+            .padding(horizontal = 16.dp, vertical = 4.dp),
+        shape = MaterialTheme.shapes.medium
     ) {
-        Icon(
-            painterResource(if (online) R.drawable.search else R.drawable.history),
-            contentDescription = null,
-            modifier = Modifier
-                .padding(horizontal = 16.dp)
-                .alpha(0.5f)
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = modifier
+                .fillMaxWidth()
+                .height(SuggestionItemHeight)
+                .clickable(onClick = onClick)
+                .padding(end = SearchBarIconOffsetX)
+        ) {
+            Icon(
+                painterResource(if (online) R.drawable.search else R.drawable.history),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(horizontal = 16.dp)
+                    .alpha(0.5f)
+            )
 
-        Text(
-            text = query,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
-            modifier = Modifier.weight(1f)
-        )
+            Text(
+                text = query,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
 
-        if (!online) {
+            if (!online) {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier.alpha(0.5f)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = null
+                    )
+                }
+            }
+
             IconButton(
-                onClick = onDelete,
+                onClick = onFillTextField,
                 modifier = Modifier.alpha(0.5f)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.close),
+                    painter = painterResource(R.drawable.arrow_top_left),
                     contentDescription = null
                 )
             }
-        }
-
-        IconButton(
-            onClick = onFillTextField,
-            modifier = Modifier.alpha(0.5f)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.arrow_top_left),
-                contentDescription = null
-            )
         }
     }
 }

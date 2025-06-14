@@ -221,10 +221,11 @@ fun scanLocal(
                             albumId = albumID,
                             albumName = album,
                             isLocal = true,
+                            liked = false,
                             inLibrary = LocalDateTime.now(),
                             localPath = "$sdcardRoot$path$name"
                         ),
-                        artists,
+                        artists
                     )
                 }
 
@@ -278,7 +279,25 @@ fun syncDB(
             }
         }
     }
-
+    runBlocking(Dispatchers.IO) {
+        val existingSongs = database.allLocalSongsData().first()
+            .associateBy { it.song.localPath }
+        directoryStructure.forEach { scannedSong ->
+            val localPath = scannedSong.song.localPath ?: return@forEach
+            val existingSong = existingSongs[localPath]
+            if (existingSong != null) {
+                val updatedSong = scannedSong.song.copy(
+                    id = existingSong.song.id,
+                    liked = existingSong.song.liked,
+                    inLibrary = existingSong.song.inLibrary,
+                    totalPlayTime = existingSong.song.totalPlayTime
+                )
+                database.update(updatedSong)
+            } else {
+                database.insert(scannedSong.toMediaMetadata())
+            }
+        }
+    }
 }
 
 fun compareArtist(a: List<ArtistEntity>, b: List<ArtistEntity>): Boolean {

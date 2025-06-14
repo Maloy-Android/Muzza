@@ -37,6 +37,15 @@ fun FolderMenu(
         mutableStateOf(false)
     }
 
+    AddToPlaylistDialog(
+        isVisible = showChoosePlaylistDialog,
+        onGetSong = {
+            if (allFolderSongs.isEmpty()) return@AddToPlaylistDialog emptyList()
+            allFolderSongs.map { it.id }
+        },
+        onDismiss = { showChoosePlaylistDialog = false }
+    )
+
     SongFolderItem(
         folderTitle = folder.currentDir,
         modifier = Modifier,

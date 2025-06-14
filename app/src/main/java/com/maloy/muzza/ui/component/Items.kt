@@ -290,15 +290,25 @@ fun SongListItem(
     showDownloadIcon: Boolean = true,
     isSwipeable: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (showLikedIcon && song.song.liked) {
-            Icon.Favorite()
-        }
-        if (showInLibraryIcon && song.song.inLibrary != null) {
-            Icon.Library()
-        }
-        if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
-            Icon.Download(download?.state)
+        if (!song.song.isLocal) {
+            if (showLikedIcon && song.song.liked) {
+                Icon.Favorite()
+            }
+            if (showInLibraryIcon && song.song.inLibrary != null) {
+                Icon.Library()
+            }
+            if (showDownloadIcon) {
+                val download by LocalDownloadUtil.current.getDownload(song.id)
+                    .collectAsState(initial = null)
+                Icon.Download(download?.state)
+            }
+        } else {
+            if (showLikedIcon && song.song.liked) {
+                Icon.Favorite()
+            }
+            if (showInLibraryIcon && song.song.inLibrary != null) {
+                Icon.Library()
+            }
         }
     },
     isActive: Boolean = false,
@@ -572,15 +582,25 @@ fun SongGridItem(
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (showLikedIcon && song.song.liked) {
-            Icon.Favorite()
-        }
-        if (showInLibraryIcon && song.song.inLibrary != null) {
-            Icon.Library()
-        }
-        if (showDownloadIcon) {
-            val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
-            Icon.Download(download?.state)
+        if (!song.song.isLocal) {
+            if (showLikedIcon && song.song.liked) {
+                Icon.Favorite()
+            }
+            if (showInLibraryIcon && song.song.inLibrary != null) {
+                Icon.Library()
+            }
+            if (showDownloadIcon) {
+                val download by LocalDownloadUtil.current.getDownload(song.id)
+                    .collectAsState(initial = null)
+                Icon.Download(download?.state)
+            }
+        } else {
+            if (showLikedIcon && song.song.liked) {
+                Icon.Favorite()
+            }
+            if (showInLibraryIcon && song.song.inLibrary != null) {
+                Icon.Library()
+            }
         }
     },
     isActive: Boolean = false,

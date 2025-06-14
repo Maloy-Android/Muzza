@@ -835,12 +835,7 @@ fun AlbumGridItem(
 fun PlaylistListItem(
     playlist: Playlist,
     modifier: Modifier = Modifier,
-    showLikedIcon: Boolean = true,
-    trailingContent: @Composable (RowScope.() -> Unit) = {
-        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
-            Icon.Favorite()
-        }
-    },
+    trailingContent: @Composable (RowScope.() -> Unit) = {},
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
@@ -885,13 +880,8 @@ fun PlaylistListItem(
 fun PlaylistGridItem(
     playlist: Playlist,
     modifier: Modifier = Modifier,
-    showLikedIcon: Boolean = true,
     fillMaxWidth: Boolean = false,
-    badges: @Composable (RowScope.() -> Unit) = {
-        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
-            Icon.Favorite()
-        }
-    },
+    badges: @Composable (RowScope.() -> Unit) = {},
 ) = GridItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
@@ -1073,11 +1063,9 @@ fun YouTubeListItem(
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
-        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null ||
-            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }
@@ -1254,11 +1242,9 @@ fun YouTubeGridItem(
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
-        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null ||
-            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }

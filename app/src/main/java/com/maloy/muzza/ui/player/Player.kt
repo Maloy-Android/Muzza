@@ -780,7 +780,7 @@ fun BottomSheetPlayer(
             }
         }
 
-        if (fullScreenLyrics) {
+        if (!showLyrics) {
             Column(
                 modifier = Modifier.fillMaxSize(),
             ) {

@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -20,13 +22,19 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
+import androidx.core.content.PermissionChecker
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
-import com.maloy.muzza.NotificationPermissionPreference
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.KeepAliveKey
 import com.maloy.muzza.playback.KeepAlive
@@ -45,6 +53,22 @@ fun NotificationSettings(
 ) {
     val context = LocalContext.current
     val (keepAlive, onKeepAliveChange) = rememberPreference(key = KeepAliveKey, defaultValue = false)
+    var permissionGranted by remember { mutableStateOf(false) }
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        permissionGranted = isGranted
+    }
+    val checkNotificationPermission = {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PermissionChecker.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
 
     fun toggleKeepAlive(newValue: Boolean) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
@@ -84,6 +108,9 @@ fun NotificationSettings(
             onKeepAliveChange(false)
         }
     }
+    LaunchedEffect(Unit) {
+        permissionGranted = checkNotificationPermission()
+    }
 
     Column(
         Modifier
@@ -95,7 +122,23 @@ fun NotificationSettings(
             title = stringResource(R.string.notifications)
         )
 
-        NotificationPermissionPreference()
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_notifications)) },
+            icon = {
+                Icon(
+                    painter = painterResource(id = if (permissionGranted) R.drawable.notification_on else R.drawable.notifications_off),
+                    contentDescription = null
+                )
+            },
+            checked = permissionGranted,
+            onCheckedChange = { checked ->
+                if (checked && !permissionGranted) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    }
+                }
+            }
+        )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.keep_alive_title)) },

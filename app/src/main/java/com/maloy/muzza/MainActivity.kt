@@ -12,10 +12,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
 import android.view.WindowManager
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.animation.Crossfade
@@ -84,7 +82,6 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
@@ -96,8 +93,6 @@ import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEach
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
-import androidx.core.content.ContextCompat
-import androidx.core.content.PermissionChecker
 import androidx.core.net.toUri
 import androidx.core.util.Consumer
 import androidx.core.view.WindowCompat
@@ -1089,47 +1084,6 @@ val LocalPlayerConnection = staticCompositionLocalOf<PlayerConnection?> { error(
 val LocalPlayerAwareWindowInsets = compositionLocalOf<WindowInsets> { error("No WindowInsets provided") }
 val LocalDownloadUtil = staticCompositionLocalOf<DownloadUtil> { error("No DownloadUtil provided") }
 val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils provided") }
-
-@Composable
-fun NotificationPermissionPreference() {
-    val context = LocalContext.current
-    var permissionGranted by remember { mutableStateOf(false) }
-    val notificationPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { isGranted ->
-        permissionGranted = isGranted
-    }
-    val checkNotificationPermission = {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            ContextCompat.checkSelfPermission(
-                context,
-                Manifest.permission.POST_NOTIFICATIONS
-            ) == PermissionChecker.PERMISSION_GRANTED
-        } else {
-            true
-        }
-    }
-    LaunchedEffect(Unit) {
-        permissionGranted = checkNotificationPermission()
-    }
-    SwitchPreference(
-        title = { Text(stringResource(R.string.enable_notifications)) },
-        icon = {
-            Icon(
-                painter = painterResource(id = if (permissionGranted) R.drawable.notification_on else R.drawable.notifications_off),
-                contentDescription = null
-            )
-        },
-        checked = permissionGranted,
-        onCheckedChange = { checked ->
-            if (checked && !permissionGranted) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            }
-        }
-    )
-}
 @Composable
 fun SwitchPreference(
     title: @Composable () -> Unit,

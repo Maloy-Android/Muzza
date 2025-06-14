@@ -351,13 +351,13 @@ fun SongListItem(
                         SwipeToDismissBoxValue.Settled -> Color.Transparent
                         SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
                         SwipeToDismissBoxValue.EndToStart -> colorScheme.primary
-                        }, label = ""
-                    )
-                    val icon = when (target) {
-                        SwipeToDismissBoxValue.StartToEnd -> R.drawable.playlist_play
-                        SwipeToDismissBoxValue.EndToStart -> R.drawable.queue_music
-                        else -> null
-                    }
+                    }, label = ""
+                )
+                val icon = when (target) {
+                    SwipeToDismissBoxValue.StartToEnd -> R.drawable.playlist_play
+                    SwipeToDismissBoxValue.EndToStart -> R.drawable.queue_music
+                    else -> null
+                }
                 when (target) {
                     SwipeToDismissBoxValue.StartToEnd -> Arrangement.Start
                     SwipeToDismissBoxValue.EndToStart -> Arrangement.End
@@ -444,20 +444,15 @@ fun SongListItem(
             )
         }
     } else {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(Color.Transparent)
-        ) {
-            ListItem(
-                title = song.song.title,
-                subtitle = joinByBullet(
-                    song.artists.joinToString { it.name },
-                    makeTimeString(song.song.duration * 1000L)
-                ),
-                badges = badges,
-                thumbnailContent = {
-                    if (song.song.isLocal == true) {
+        ListItem(
+            title = song.song.title,
+            subtitle = joinByBullet(
+                song.artists.joinToString { it.name },
+                makeTimeString(song.song.duration * 1000L)
+            ),
+            badges = badges,
+            thumbnailContent = {
+                if (song.song.isLocal == true) {
                         song.song.let {
                             AsyncLocalImage(
                                 image = { imageCache.getLocalThumbnail(it.localPath, false) },
@@ -473,32 +468,29 @@ fun SongListItem(
                                 color = Color.White,
                                 modifier = Modifier
                                     .size(ListThumbnailSize)
-                                    .align(Alignment.Center)
-                                    .align(Alignment.CenterStart)
                                     .background(
                                         color = Color.Black.copy(alpha = ActiveBoxAlpha),
                                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                                     )
                             )
                         }
-                    } else {
-                        ItemThumbnail(
-                            thumbnailUrl = song.song.thumbnailUrl,
-                            albumIndex = albumIndex,
-                            isActive = isActive,
-                            isPlaying = isPlaying,
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
-                            modifier = Modifier
-                                .size(ListThumbnailSize)
-                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                        )
-                    }
-                },
-                trailingContent = trailingContent,
-                modifier = modifier,
-                isActive = isActive
-            )
-        }
+                } else {
+                    ItemThumbnail(
+                        thumbnailUrl = song.song.thumbnailUrl,
+                        albumIndex = albumIndex,
+                        isActive = isActive,
+                        isPlaying = isPlaying,
+                        shape = RoundedCornerShape(ThumbnailCornerRadius),
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
+                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    )
+                }
+            },
+            trailingContent = trailingContent,
+            modifier = modifier,
+            isActive = isActive
+        )
     }
 }
 

@@ -21,7 +21,14 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Cached
+import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -411,6 +418,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistListItem(
                                         playlist = likedPlaylist,
+                                        thumbnail = Icons.Rounded.Favorite,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
@@ -427,6 +435,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistListItem(
                                         playlist = downloadPlaylist,
+                                        thumbnail = Icons.Rounded.CloudDownload,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .clickable {
@@ -443,6 +452,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistListItem(
                                         playlist = topPlaylist,
+                                        thumbnail = Icons.AutoMirrored.Rounded.TrendingUp,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .combinedClickable(
@@ -461,6 +471,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistListItem(
                                         playlist = cachedPlaylist,
+                                        thumbnail = Icons.Rounded.Cached,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .combinedClickable(
@@ -479,6 +490,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistListItem(
                                         playlist = localPlaylist,
+                                        thumbnail = Icons.Rounded.MusicNote,
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .combinedClickable(
@@ -497,6 +509,7 @@ fun LibraryPlaylistsScreen(
                             ) { playlist ->
                                 PlaylistListItem(
                                     playlist = playlist,
+                                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
                                     trailingContent = {
                                         IconButton(
                                             onClick = {
@@ -594,6 +607,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistGridItem(
                                         playlist = likedPlaylist,
+                                        thumbnail = Icons.Rounded.Favorite,
                                         fillMaxWidth = true,
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -613,6 +627,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistGridItem(
                                         playlist = downloadPlaylist,
+                                        thumbnail = Icons.Rounded.CloudDownload,
                                         fillMaxWidth = true,
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -632,6 +647,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistGridItem(
                                         playlist = topPlaylist,
+                                        thumbnail = Icons.AutoMirrored.Rounded.TrendingUp,
                                         fillMaxWidth = true,
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -651,6 +667,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistGridItem(
                                         playlist = cachedPlaylist,
+                                        thumbnail = Icons.Rounded.Cached,
                                         fillMaxWidth = true,
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -670,6 +687,7 @@ fun LibraryPlaylistsScreen(
                                 ) {
                                     PlaylistGridItem(
                                         playlist = localPlaylist,
+                                        thumbnail = Icons.Rounded.MusicNote,
                                         fillMaxWidth = true,
                                         modifier = Modifier
                                             .fillMaxWidth()
@@ -689,6 +707,7 @@ fun LibraryPlaylistsScreen(
                             ) { playlist ->
                                 PlaylistGridItem(
                                     playlist = playlist,
+                                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
                                     fillMaxWidth = true,
                                     modifier = Modifier
                                         .fillMaxWidth()

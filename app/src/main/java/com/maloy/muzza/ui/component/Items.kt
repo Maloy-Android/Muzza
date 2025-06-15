@@ -60,6 +60,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -854,20 +855,13 @@ fun AlbumGridItem(
 @Composable
 fun PlaylistListItem(
     playlist: Playlist,
+    thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     trailingContent: @Composable (RowScope.() -> Unit) = {},
 ) = ListItem(
     title = playlist.playlist.name,
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     thumbnailContent = {
-        val painter = when (playlist.playlist.name) {
-            stringResource(R.string.liked) -> Icons.Rounded.Favorite
-            stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
-            stringResource(R.string.my_top) -> Icons.AutoMirrored.Rounded.TrendingUp
-            stringResource(R.string.local) -> Icons.Rounded.MusicNote
-            stringResource(R.string.cached) -> Icons.Rounded.Cached
-            else -> Icons.AutoMirrored.Rounded.QueueMusic
-        }
         Box(
             modifier = Modifier
                 .size(ListThumbnailSize)
@@ -880,7 +874,7 @@ fun PlaylistListItem(
                 size = ListThumbnailSize,
                 placeHolder = {
                     Icon(
-                        imageVector = painter,
+                        imageVector = thumbnail,
                         contentDescription = null,
                         tint = LocalContentColor.current.copy(alpha = 0.8f),
                         modifier = Modifier
@@ -899,6 +893,7 @@ fun PlaylistListItem(
 @Composable
 fun PlaylistGridItem(
     playlist: Playlist,
+    thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     fillMaxWidth: Boolean = false,
     badges: @Composable (RowScope.() -> Unit) = {},
@@ -907,14 +902,6 @@ fun PlaylistGridItem(
     subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
     badges = badges,
     thumbnailContent = {
-        val painter = when (playlist.playlist.name) {
-            stringResource(R.string.liked) -> Icons.Rounded.Favorite
-            stringResource(R.string.offline) -> Icons.Rounded.CloudDownload
-            stringResource(R.string.my_top) -> Icons.AutoMirrored.Rounded.TrendingUp
-            stringResource(R.string.local) -> Icons.Rounded.MusicNote
-            stringResource(R.string.cached) -> Icons.Rounded.Cached
-            else -> Icons.AutoMirrored.Rounded.QueueMusic
-        }
         val width = maxWidth
         val libcarditem = 25.dp
         Box(
@@ -928,7 +915,7 @@ fun PlaylistGridItem(
                 size = width,
                 placeHolder = {
                     Icon(
-                        imageVector = painter,
+                        imageVector = thumbnail,
                         contentDescription = null,
                         tint = LocalContentColor.current.copy(alpha = 0.8f),
                         modifier = Modifier

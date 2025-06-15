@@ -24,6 +24,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -57,12 +58,12 @@ import com.maloy.muzza.constants.EnableDiscordRPCKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import com.maloy.muzza.ui.component.PreferenceEntry
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -179,7 +180,7 @@ fun DiscordSettings(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                SwitchPreference(
+                SwitchPreferenceDiscord(
                     title = {
                         Text(
                             stringResource(R.string.enable_discord_rpc),
@@ -367,4 +368,30 @@ fun RichPresence(song: Song?) {
             }
         }
     }
+}
+
+@Composable
+fun SwitchPreferenceDiscord(
+    modifier: Modifier = Modifier,
+    title: @Composable () -> Unit,
+    description: String? = null,
+    icon: (@Composable () -> Unit)? = null,
+    checked: Boolean,
+    onCheckedChange: (Boolean) -> Unit,
+    isEnabled: Boolean = true,
+) {
+    PreferenceEntry(
+        modifier = modifier,
+        title = title,
+        description = description,
+        icon = icon,
+        trailingContent = {
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange
+            )
+        },
+        onClick = { onCheckedChange(!checked) },
+        isEnabled = isEnabled
+    )
 }

@@ -110,16 +110,21 @@ fun PlayerMenu(
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
-    val activityResultLauncher = rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
+    val activityResultLauncher =
+        rememberLauncherForActivityResult(ActivityResultContracts.StartActivityForResult()) { }
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
+        .collectAsState(initial = null)
 
     val artists = remember(mediaMetadata.artists) {
         mediaMetadata.artists.filter { it.id != null }
     }
 
-    val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
+    val sleepTimerEnabled = remember(
+        playerConnection.service.sleepTimer.triggerTime,
+        playerConnection.service.sleepTimer.pauseWhenSongEnd
+    ) {
         playerConnection.service.sleepTimer.isActive
     }
 
@@ -160,7 +165,12 @@ fun PlayerMenu(
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             onDismissRequest = { showSleepTimerDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.bedtime), contentDescription = null) },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.bedtime),
+                    contentDescription = null
+                )
+            },
             title = { Text(stringResource(R.string.sleep_timer)) },
             confirmButton = {
                 TextButton(
@@ -347,12 +357,14 @@ fun PlayerMenu(
                 playerConnection.service.startRadioSeamlessly()
                 onDismiss()
             }
-            GridMenuItem(
-                icon = R.drawable.playlist_add,
-                title = R.string.add_to_playlist
-            ) {
-                showChoosePlaylistDialog = true
-            }
+        }
+        GridMenuItem(
+            icon = R.drawable.playlist_add,
+            title = R.string.add_to_playlist
+        ) {
+            showChoosePlaylistDialog = true
+        }
+        if (!mediaMetadata.isLocal) {
             DownloadGridMenu(
                 state = download?.state,
                 onDownload = {
@@ -474,7 +486,10 @@ fun PlayerMenu(
                 title = R.string.equalizer
             ) {
                 val intent = Intent(AudioEffect.ACTION_DISPLAY_AUDIO_EFFECT_CONTROL_PANEL).apply {
-                    putExtra(AudioEffect.EXTRA_AUDIO_SESSION, playerConnection.player.audioSessionId)
+                    putExtra(
+                        AudioEffect.EXTRA_AUDIO_SESSION,
+                        playerConnection.player.audioSessionId
+                    )
                     putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
                     putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                 }
@@ -516,7 +531,8 @@ fun TempoPitchDialog(
         mutableIntStateOf(round(12 * log2(playerConnection.player.playbackParameters.pitch)).toInt())
     }
     val updatePlaybackParameters = {
-        playerConnection.player.playbackParameters = PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))
+        playerConnection.player.playbackParameters =
+            PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))
     }
 
     AlertDialog(

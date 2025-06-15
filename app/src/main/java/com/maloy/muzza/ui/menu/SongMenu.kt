@@ -260,36 +260,38 @@ fun SongMenu(
             ) {
                 showEditDialog = true
             }
+        }
+        GridMenuItem(
+            icon = R.drawable.playlist_add,
+            title = R.string.add_to_playlist
+        ) {
+            showChoosePlaylistDialog = true
+        }
+        if (playlistSong != null) {
             GridMenuItem(
-                icon = R.drawable.playlist_add,
-                title = R.string.add_to_playlist
+                icon = R.drawable.playlist_remove,
+                title = R.string.remove_from_playlist
             ) {
-                showChoosePlaylistDialog = true
-            }
-            if (playlistSong != null) {
-                GridMenuItem(
-                    icon = R.drawable.playlist_remove,
-                    title = R.string.remove_from_playlist
-                ) {
-                    database.transaction {
-                        coroutineScope.launch {
-                            playlistBrowseId?.let { playlistId ->
-                                if (playlistSong.map.setVideoId != null) {
-                                    YouTube.removeFromPlaylist(
-                                        playlistId,
-                                        playlistSong.map.songId,
-                                        playlistSong.map.setVideoId
-                                    )
-                                }
+                database.transaction {
+                    coroutineScope.launch {
+                        playlistBrowseId?.let { playlistId ->
+                            if (playlistSong.map.setVideoId != null) {
+                                YouTube.removeFromPlaylist(
+                                    playlistId,
+                                    playlistSong.map.songId,
+                                    playlistSong.map.setVideoId
+                                )
                             }
                         }
-                        move(playlistSong.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
-                        delete(playlistSong.map.copy(position = Int.MAX_VALUE))
                     }
-
-                    onDismiss()
+                    move(playlistSong.map.playlistId, playlistSong.map.position, Int.MAX_VALUE)
+                    delete(playlistSong.map.copy(position = Int.MAX_VALUE))
                 }
+
+                onDismiss()
             }
+        }
+        if (!song.song.isLocal) {
             if (isFromCache) {
                 GridMenuItem(
                     icon = R.drawable.cached,

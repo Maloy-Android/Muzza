@@ -154,11 +154,14 @@ fun Queue(
 
     var showLyrics by rememberPreference(ShowLyricsKey, false)
 
-    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
+    val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
 
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var sleepTimerValue by remember { mutableStateOf(30f) }
-    val sleepTimerEnabled = remember(playerConnection.service.sleepTimer.triggerTime, playerConnection.service.sleepTimer.pauseWhenSongEnd) {
+    val sleepTimerEnabled = remember(
+        playerConnection.service.sleepTimer.triggerTime,
+        playerConnection.service.sleepTimer.pauseWhenSongEnd
+    ) {
         playerConnection.service.sleepTimer.isActive
     }
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
@@ -184,7 +187,12 @@ fun Queue(
         AlertDialog(
             properties = DialogProperties(usePlatformDefaultWidth = false),
             onDismissRequest = { showSleepTimerDialog = false },
-            icon = { Icon(painter = painterResource(R.drawable.bedtime), contentDescription = null) },
+            icon = {
+                Icon(
+                    painter = painterResource(R.drawable.bedtime),
+                    contentDescription = null
+                )
+            },
             title = { Text(stringResource(R.string.sleep_timer)) },
             confirmButton = {
                 TextButton(
@@ -229,6 +237,7 @@ fun Queue(
                                 },
                             )
                         }
+
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = sleepTimerValue,
@@ -236,6 +245,7 @@ fun Queue(
                                 valueRange = 5f..120f,
                             )
                         }
+
                         SliderStyle.COMPOSE -> {
                             Slider(
                                 value = sleepTimerValue,
@@ -272,7 +282,7 @@ fun Queue(
                     .windowInsetsPadding(
                         WindowInsets.systemBars
                             .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
-                        )
+                    )
             ) {
                 if (playerStyle == PlayerStyle.NEW) {
                     Row(
@@ -429,7 +439,8 @@ fun Queue(
                     } else {
                         playerConnection.player.setShuffleOrder(
                             DefaultShuffleOrder(
-                                queueWindows.map { it.firstPeriodIndex }.toMutableList().move(from, to).toIntArray(),
+                                queueWindows.map { it.firstPeriodIndex }.toMutableList()
+                                    .move(from, to).toIntArray(),
                                 System.currentTimeMillis()
                             )
                         )
@@ -459,126 +470,63 @@ fun Queue(
 
         Box(
             modifier =
-            Modifier
-                .fillMaxSize()
-                .background(backgroundColor),
+                Modifier
+                    .fillMaxSize()
+                    .background(backgroundColor),
         ) {
-        LazyColumn(
-            state = lazyListState,
-            contentPadding = WindowInsets.systemBars
-                .add(
-                    WindowInsets(
-                        top = ListItemHeight,
-                        bottom = ListItemHeight
+            LazyColumn(
+                state = lazyListState,
+                contentPadding = WindowInsets.systemBars
+                    .add(
+                        WindowInsets(
+                            top = ListItemHeight,
+                            bottom = ListItemHeight
+                        )
                     )
-                )
-                .asPaddingValues(),
-            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
-        ) {
-            itemsIndexed(
-                items = mutableQueueWindows,
-                key = { _, item -> item.uid.hashCode() }
-            ) { index, window ->
-                ReorderableItem(
-                    state = reorderableState,
-                    key = window.uid.hashCode()
-                ) {
-                    val currentItem by rememberUpdatedState(window)
-                    val dismissState = rememberSwipeToDismissBoxState(
-                        positionalThreshold = { totalDistance -> totalDistance },
-                        confirmValueChange = { dismissValue ->
-                            if (dismissValue == SwipeToDismissBoxValue.StartToEnd || dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                    .asPaddingValues(),
+                modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
+            ) {
+                itemsIndexed(
+                    items = mutableQueueWindows,
+                    key = { _, item -> item.uid.hashCode() }
+                ) { index, window ->
+                    ReorderableItem(
+                        state = reorderableState,
+                        key = window.uid.hashCode()
+                    ) {
+                        val currentItem by rememberUpdatedState(window)
+                        val dismissState = rememberSwipeToDismissBoxState(
+                            positionalThreshold = { totalDistance -> totalDistance },
+                            confirmValueChange = { dismissValue ->
+                                if (dismissValue == SwipeToDismissBoxValue.StartToEnd || dismissValue == SwipeToDismissBoxValue.EndToStart) {
+                                    playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
+                                }
+                                true
                             }
-                            true
-                        }
-                    )
+                        )
 
-                    val onCheckedChange: (Boolean) -> Unit = {
-                        if (it) {
-                            selection.add(window.uid.hashCode())
-                        } else {
-                            selection.remove(window.uid.hashCode())
+                        val onCheckedChange: (Boolean) -> Unit = {
+                            if (it) {
+                                selection.add(window.uid.hashCode())
+                            } else {
+                                selection.remove(window.uid.hashCode())
+                            }
                         }
-                    }
 
-                    val content = @Composable {
-                        MediaMetadataListItem(
-                            mediaMetadata = window.mediaItem.metadata!!,
-                            isActive = index == currentWindowIndex,
-                            isPlaying = isPlaying,
-                            trailingContent = {
-                                if (inSelectMode) {
-                                    if (!window.mediaItem.metadata!!.isLocal) {
+                        val content = @Composable {
+                            MediaMetadataListItem(
+                                mediaMetadata = window.mediaItem.metadata!!,
+                                isActive = index == currentWindowIndex,
+                                isPlaying = isPlaying,
+                                trailingContent = {
+                                    if (inSelectMode) {
                                         Checkbox(
                                             checked = window.uid.hashCode() in selection,
                                             onCheckedChange = onCheckedChange
                                         )
-                                    }
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                MediaMetadataMenu(
-                                                    mediaMetadata = window.mediaItem.metadata!!,
-                                                    navController = navController,
-                                                    bottomSheetState = state,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null
-                                        )
-                                    }
-
-                                    if (!lockQueue) {
+                                    } else {
                                         IconButton(
-                                            onClick = { },
-                                            modifier = Modifier.draggableHandle()
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.drag_handle),
-                                                contentDescription = null
-                                            )
-                                        }
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        if (inSelectMode) {
-                                            if (!window.mediaItem.metadata!!.isLocal) {
-                                                onCheckedChange(window.uid.hashCode() !in selection)
-                                            }
-                                        } else {
-                                            coroutineScope.launch(Dispatchers.Main) {
-                                                if (index == currentWindowIndex) {
-                                                    playerConnection.player.togglePlayPause()
-                                                } else {
-                                                    playerConnection.player.seekToDefaultPosition(
-                                                        window.firstPeriodIndex
-                                                    )
-                                                    playerConnection.player.playWhenReady = true
-                                                }
-                                            }
-                                        }
-                                    },
-                                    onLongClick = {
-                                        if (!inSelectMode) {
-                                            if (!window.mediaItem.metadata!!.isLocal) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                inSelectMode = true
-                                                onCheckedChange(true)
-                                            }
-                                        }
-                                        else {
-                                            if (!window.mediaItem.metadata!!.isLocal) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            onClick = {
                                                 menuState.show {
                                                     MediaMetadataMenu(
                                                         mediaMetadata = window.mediaItem.metadata!!,
@@ -588,88 +536,138 @@ fun Queue(
                                                     )
                                                 }
                                             }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
+
+                                        if (!lockQueue) {
+                                            IconButton(
+                                                onClick = { },
+                                                modifier = Modifier.draggableHandle()
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.drag_handle),
+                                                    contentDescription = null
+                                                )
+                                            }
                                         }
                                     }
-                                )
-                        )
-                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (inSelectMode) {
+                                                onCheckedChange(window.uid.hashCode() !in selection)
+                                            } else {
+                                                coroutineScope.launch(Dispatchers.Main) {
+                                                    if (index == currentWindowIndex) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.player.seekToDefaultPosition(
+                                                            window.firstPeriodIndex
+                                                        )
+                                                        playerConnection.player.playWhenReady = true
+                                                    }
+                                                }
+                                            }
+                                        },
+                                        onLongClick = {
+                                            if (!inSelectMode) {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                inSelectMode = true
+                                                onCheckedChange(true)
+                                            }
+                                        }
+                                    )
+                            )
+                        }
 
-                    if (!lockQueue && !inSelectMode) {
-                        SwipeToDismissBox(
-                            state = dismissState,
-                            backgroundContent = {},
-                            content = { content() }
-                        )
-                    } else {
-                        content()
+                        if (!lockQueue && !inSelectMode) {
+                            SwipeToDismissBox(
+                                state = dismissState,
+                                backgroundContent = {},
+                                content = { content() }
+                            )
+                        } else {
+                            content()
+                        }
                     }
                 }
             }
-        }
 
-        Box(
-            modifier = Modifier
-                .background(
-                    MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.95f)
-                )
-                .windowInsetsPadding(
-                    WindowInsets.systemBars
-                        .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
-                )
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                verticalAlignment = Alignment.CenterVertically,
+            Box(
                 modifier = Modifier
-                    .height(ListItemHeight)
-                    .padding(horizontal = 6.dp)
-            ) {
-                if (inSelectMode) {
-                    IconButton(onClick = onExitSelectionMode) {
-                        Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = null,
-                        )
-                    }
-                    Text(
-                        text = pluralStringResource(R.plurals.n_selected, selection.size, selection.size),
-                        style = MaterialTheme.typography.titleMedium,
-                        modifier = Modifier.weight(1f)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.95f)
                     )
-                    Checkbox(
-                        checked = queueWindows.size == selection.size,
-                        onCheckedChange = {
-                            if (queueWindows.size == selection.size) {
-                                selection.clear()
-                            } else {
-                                selection.clear()
-                                selection.addAll(
-                                    queueWindows
-                                        .filter { !it.mediaItem.metadata!!.isLocal }
-                                        .map { it.uid.hashCode() }
+                    .windowInsetsPadding(
+                        WindowInsets.systemBars
+                            .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+                    )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .height(ListItemHeight)
+                        .padding(horizontal = 6.dp)
+                ) {
+                    if (inSelectMode) {
+                        IconButton(onClick = onExitSelectionMode) {
+                            Icon(
+                                painter = painterResource(R.drawable.close),
+                                contentDescription = null,
+                            )
+                        }
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_selected,
+                                selection.size,
+                                selection.size
+                            ),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Checkbox(
+                            checked = queueWindows.size == selection.size,
+                            onCheckedChange = {
+                                if (queueWindows.size == selection.size) {
+                                    selection.clear()
+                                } else {
+                                    selection.clear()
+                                    selection.addAll(queueWindows.map { it.uid.hashCode() })
+                                }
+                            }
+                        )
+                    } else {
+                        Column(
+                            modifier = Modifier
+                                .padding(horizontal = 6.dp)
+                                .weight(1f)
+                        ) {
+                            if (!queueTitle.isNullOrEmpty()) {
+                                Text(
+                                    text = queueTitle.orEmpty(),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             }
                         }
-                    )
-                } else {
-                    Column(
-                        modifier = Modifier
-                            .padding(horizontal = 6.dp)
-                            .weight(1f)
-                    ) {
-                        if (!queueTitle.isNullOrEmpty()) {
-                            Text(
-                                text = queueTitle.orEmpty(),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
-                        }
-                    }
 
                         Text(
-                            text = joinByBullet(pluralStringResource(R.plurals.n_song, queueWindows.size, queueWindows.size), makeTimeString(queueLength * 1000L)),
+                            text = joinByBullet(
+                                pluralStringResource(
+                                    R.plurals.n_song,
+                                    queueWindows.size,
+                                    queueWindows.size
+                                ), makeTimeString(queueLength * 1000L)
+                            ),
                             style = MaterialTheme.typography.bodyMedium,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis
@@ -710,7 +708,8 @@ fun Queue(
                             if (playerConnection.player.shuffleModeEnabled) playerConnection.player.currentMediaItemIndex else 0
                         )
                     }.invokeOnCompletion {
-                        playerConnection.player.shuffleModeEnabled = !playerConnection.player.shuffleModeEnabled
+                        playerConnection.player.shuffleModeEnabled =
+                            !playerConnection.player.shuffleModeEnabled
                     }
                 }
             ) {
@@ -756,7 +755,9 @@ fun Queue(
                     }
                 ) {
                     Icon(
-                        painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(R.drawable.lock_open),
+                        painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(
+                            R.drawable.lock_open
+                        ),
                         contentDescription = null,
                     )
                 }
@@ -807,7 +808,12 @@ fun DetailsDialog(
                     stringResource(R.string.sample_rate) to currentFormat?.sampleRate?.let { "$it Hz" },
                     stringResource(R.string.loudness) to currentFormat?.loudnessDb?.let { "$it dB" },
                     stringResource(R.string.volume) to "${(playerConnection.player.volume * 100).toInt()}%",
-                    stringResource(R.string.file_size) to currentFormat?.contentLength?.let { Formatter.formatShortFileSize(context, it) }
+                    stringResource(R.string.file_size) to currentFormat?.contentLength?.let {
+                        Formatter.formatShortFileSize(
+                            context,
+                            it
+                        )
+                    }
                 ).forEach { (label, text) ->
                     val displayText = text ?: stringResource(R.string.unknown)
                     Text(

@@ -13,7 +13,6 @@ import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.utils.LmImageCacheMgr
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -21,7 +20,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import java.util.Locale
@@ -254,31 +252,6 @@ fun syncDB(
     matchStrength: ScannerSensitivity,
     strictFileNames: Boolean
 ) {
-    println(directoryStructure.size)
-
-    database.transaction {
-        directoryStructure.forEach { song ->
-            val querySong = database.searchSongs(song.song.title.substringBeforeLast('.'))
-            CoroutineScope(Dispatchers.IO).launch {
-                val songMatch = querySong.first().filter {
-                    if (strictFileNames &&
-                        (it.song.localPath?.substringBeforeLast('/') !=
-                                song.song.localPath?.substringBeforeLast('/'))
-                    ) {
-                        return@filter false
-                    }
-                    return@filter compareSong(it, song, matchStrength, strictFileNames)
-                }
-                if (songMatch.isNotEmpty()) {
-                    println(song.song.title)
-                    database.update(song.song)
-                } else {
-                    println(song.song.title + song.artists.first().name + song.artists.first().id)
-                    println(database.insert(song.toMediaMetadata()))
-                }
-            }
-        }
-    }
     runBlocking(Dispatchers.IO) {
         val existingSongs = database.allLocalSongsData().first()
             .associateBy { it.song.localPath }
@@ -295,6 +268,12 @@ fun syncDB(
                 database.update(updatedSong)
             } else {
                 database.insert(scannedSong.toMediaMetadata())
+            }
+        }
+        val scannedPaths = directoryStructure.mapNotNull { it.song.localPath }.toSet()
+        existingSongs.keys.forEach { path ->
+            if (path != null && path !in scannedPaths) {
+                database.delete(existingSongs[path]!!.song)
             }
         }
     }

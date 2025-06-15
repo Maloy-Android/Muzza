@@ -1406,14 +1406,25 @@ fun PlaylistThumbnail(
     when (thumbnails.size) {
         0 -> placeHolder()
 
-        1 -> AsyncImage(
-            model = thumbnails[0],
-            contentDescription = null,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(size)
-                .clip(shape)
-        )
+        1 -> if (thumbnails[0].startsWith("/storage")) {
+            AsyncImage(
+                model = thumbnails[0],
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(size)
+                    .clip(shape)
+            )
+        } else {
+            AsyncImage(
+                model = thumbnails[0],
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(size)
+                    .clip(shape)
+            )
+        }
 
         else -> Box(
             modifier = Modifier
@@ -1431,14 +1442,25 @@ fun PlaylistThumbnail(
                     Alignment.BottomStart,
                     Alignment.BottomEnd
                 ).fastForEachIndexed { index, alignment ->
-                    AsyncImage(
-                        model = thumbnails.getOrNull(index),
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .align(alignment)
-                            .size(size / 2)
-                    )
+                    if (thumbnails.getOrNull(index)?.startsWith("/storage") == true) {
+                        AsyncLocalImage(
+                            image = { imageCache.getLocalThumbnail(thumbnails[index], true) },
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .align(alignment)
+                                .size(size / 2)
+                        )
+                    } else {
+                        AsyncImage(
+                            model = thumbnails.getOrNull(index),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .align(alignment)
+                                .size(size / 2)
+                        )
+                    }
                 }
             }
         }

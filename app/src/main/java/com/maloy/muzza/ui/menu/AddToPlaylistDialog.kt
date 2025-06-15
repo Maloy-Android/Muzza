@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -119,6 +120,7 @@ fun AddToPlaylistDialog(
             items(playlists) { playlist ->
                 PlaylistListItem(
                     playlist = playlist,
+                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
                     modifier = Modifier.clickable {
                         selectedPlaylist = playlist
                         coroutineScope.launch(Dispatchers.IO) {

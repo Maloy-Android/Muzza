@@ -140,6 +140,10 @@ fun PrivacySettings(
             onClick = { showClearListenHistoryDialog = true }
         )
 
+        PreferenceGroupTitle(
+            title = stringResource(R.string.search_history)
+        )
+
         SwitchPreference(
             title = { Text(stringResource(R.string.pause_search_history)) },
             icon = { Icon(painterResource(R.drawable.search_off), null) },

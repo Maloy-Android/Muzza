@@ -14,7 +14,7 @@
         android:layout_gravity="center"
         android:importantForAccessibility="no"
         android:scaleType="centerCrop"
-        android:src="@drawable/album" />
+        android:src="@drawable/music_note" />
 
     <TextView
         android:id="@+id/widget_track_title"

@@ -444,6 +444,8 @@
     <string name="audio_normalization">Нормалізація аудіо</string>
     <string name="play_song_when_bluetooth_device_connected">Продовжити відтворення при підключенні bluetooth пристрою</string>
     <string name="stop_playing_when_song_sound_minimum_volume">Зупиняти відтворення при мінімальному значенні гучності</string>
+    <string name="crossfade">Кроссфейд</string>
+    <string name="crossfade_description">Плавний перехід між треками</string>
     <string name="adding_played_songs_to_ytm_history">Додавати програні пісні в історію YouTube-Music</string>
     <string name="auto_skip_next_on_error">Автоперехід до наступної пісні при помилці</string>
     <string name="auto_skip_next_on_error_desc">Забезпечити безперервне відтворення</string>

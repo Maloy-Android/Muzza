@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.SdCard
+import androidx.compose.material.icons.rounded.SurroundSound
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -40,6 +42,8 @@ import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
+import com.maloy.muzza.constants.CrossfadeDurationKey
+import com.maloy.muzza.constants.CrossfadeEnabledKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
@@ -70,6 +74,8 @@ fun PlayerSettings(
         AutoPlaySongWhenBluetoothDeviceConnectedKey,defaultValue = true)
     val (stopPlayingSongWhenMinimumVolume,onStopPlayingSongWhenMinimumVolumeChange) = rememberPreference(
         StopPlayingSongWhenMinimumVolumeKey,defaultValue = true)
+    val (crossfadeEnabled,onCrossfadeEnabledChange) = rememberPreference(CrossfadeEnabledKey,defaultValue = true)
+    val (crossfadeDuration,onCrossfadeDurationChange) = rememberPreference(CrossfadeDurationKey, defaultValue = 3000)
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(AutoSkipNextOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
@@ -105,6 +111,29 @@ fun PlayerSettings(
                 showMinPlaybackDur = false
             },
             onReset = { onMinPlaybackDurChange(30) },
+        )
+    }
+
+    var showCrossFadeDur by remember {
+        mutableStateOf(false)
+    }
+
+    if (showCrossFadeDur) {
+        CounterDialog(
+            title = stringResource(R.string.crossfade),
+            initialValue = crossfadeDuration,
+            upperBound = 12000,
+            lowerBound = 0,
+            resetValue = 3000,
+            onDismiss = { showCrossFadeDur = false },
+            onConfirm = {
+                showCrossFadeDur = false
+                onCrossfadeDurationChange(it)
+            },
+            onCancel = {
+                showCrossFadeDur = false
+            },
+            onReset = { onCrossfadeDurationChange(3000) },
         )
     }
 
@@ -189,6 +218,23 @@ fun PlayerSettings(
             checked = stopPlayingSongWhenMinimumVolume,
             onCheckedChange = onStopPlayingSongWhenMinimumVolumeChange
         )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.crossfade)) },
+            description = stringResource(R.string.crossfade_description),
+            icon = { Icon(Icons.Rounded.SurroundSound,null) },
+            checked = crossfadeEnabled,
+            onCheckedChange = onCrossfadeEnabledChange
+        )
+
+        AnimatedVisibility(crossfadeEnabled) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.crossfade)) },
+                description = "$crossfadeDuration",
+                icon = { Icon(Icons.Rounded.SurroundSound, null) },
+                onClick = { showCrossFadeDur = true }
+            )
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.queue)

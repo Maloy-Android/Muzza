@@ -30,14 +30,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.Cached
-import androidx.compose.material.icons.rounded.CloudDownload
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderCopy
-import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -66,7 +60,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -415,7 +408,7 @@ fun SongListItem(
                 ),
                 badges = badges,
                 thumbnailContent = {
-                    if (song.song.isLocal == true) {
+                    if (song.song.isLocal) {
                         song.song.let {
                             AsyncLocalImage(
                                 image = { imageCache.getLocalThumbnail(it.localPath, false) },
@@ -463,7 +456,7 @@ fun SongListItem(
             ),
             badges = badges,
             thumbnailContent = {
-                if (song.song.isLocal == true) {
+                if (song.song.isLocal) {
                         song.song.let {
                             AsyncLocalImage(
                                 image = { imageCache.getLocalThumbnail(it.localPath, false) },
@@ -616,7 +609,7 @@ fun SongGridItem(
     ),
     badges = badges,
     thumbnailContent = {
-        if (song.song.isLocal == true) {
+        if (song.song.isLocal) {
             song.song.let {
                 AsyncLocalImage(
                     image = { imageCache.getLocalThumbnail(it.localPath, false) },
@@ -962,7 +955,7 @@ fun MediaMetadataListItem(
     badges = badges,
     thumbnailContent = {
         Box {
-            if (mediaMetadata.isLocal == true) {
+            if (mediaMetadata.isLocal) {
                 mediaMetadata.let {
                     AsyncLocalImage(
                         image = { imageCache.getLocalThumbnail(it.localPath, false) },

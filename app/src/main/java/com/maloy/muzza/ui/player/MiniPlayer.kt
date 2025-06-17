@@ -234,7 +234,7 @@ fun MiniMediaInfo(
         modifier = modifier
     ) {
         Box(modifier = Modifier.padding(6.dp)) {
-            if (mediaMetadata.isLocal == true) {
+            if (mediaMetadata.isLocal) {
                 mediaMetadata.let {
                     AsyncLocalImage(
                         image = { imageCache.getLocalThumbnail(it.localPath, false) },

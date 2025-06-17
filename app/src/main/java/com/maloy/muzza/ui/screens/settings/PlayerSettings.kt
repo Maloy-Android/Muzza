@@ -8,14 +8,13 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.VolumeMute
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Sync
-import androidx.compose.material.icons.rounded.VolumeMute
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -39,11 +38,13 @@ import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
+import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
+import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
 import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.EnumListPreference
@@ -65,6 +66,10 @@ fun PlayerSettings(
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(SkipSilenceKey, defaultValue = false)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(AudioNormalizationKey, defaultValue = true)
+    val (autoPlaySongWhenBluetoothDeviceConnected,onAutoPlaySongWhenBluetoothDeviceConnectedChange) = rememberPreference(
+        AutoPlaySongWhenBluetoothDeviceConnectedKey,defaultValue = true)
+    val (stopPlayingSongWhenMinimumVolume,onStopPlayingSongWhenMinimumVolumeChange) = rememberPreference(
+        StopPlayingSongWhenMinimumVolumeKey,defaultValue = true)
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(AutoSkipNextOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
@@ -168,6 +173,21 @@ fun PlayerSettings(
             icon = { Icon(Icons.AutoMirrored.Rounded.VolumeUp, null) },
             checked = audioNormalization,
             onCheckedChange = onAudioNormalizationChange
+        )
+
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.play_song_when_bluetooth_device_connected)) },
+            icon = { Icon(Icons.Rounded.BluetoothConnected, null) },
+            checked = autoPlaySongWhenBluetoothDeviceConnected,
+            onCheckedChange = onAutoPlaySongWhenBluetoothDeviceConnectedChange,
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.stop_playing_when_song_sound_minimum_volume)) },
+            icon = { Icon(Icons.AutoMirrored.Rounded.VolumeOff, null) },
+            checked = stopPlayingSongWhenMinimumVolume,
+            onCheckedChange = onStopPlayingSongWhenMinimumVolumeChange
         )
 
         PreferenceGroupTitle(

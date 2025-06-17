@@ -66,6 +66,7 @@ import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
+import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
@@ -82,6 +83,7 @@ import com.maloy.muzza.constants.PlayerVolumeKey
 import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
+import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
 import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
@@ -216,15 +218,17 @@ class MusicService : MediaLibraryService(),
 
     private var volumeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
+            if (dataStore.get(StopPlayingSongWhenMinimumVolumeKey, true)) {
+                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
-            if (currentVolume == 0 && player.isPlaying) {
-                wasPlayingBeforeMute = true
-                player.pause()
-            } else if (currentVolume > 0 && !player.isPlaying && wasPlayingBeforeMute) {
-                player.play()
-                wasPlayingBeforeMute = false
+                if (currentVolume == 0 && player.isPlaying) {
+                    wasPlayingBeforeMute = true
+                    player.pause()
+                } else if (currentVolume > 0 && !player.isPlaying && wasPlayingBeforeMute) {
+                    player.play()
+                    wasPlayingBeforeMute = false
+                }
             }
         }
     }
@@ -238,12 +242,18 @@ class MusicService : MediaLibraryService(),
             .debounce(100)
             .collectLatest(scope) { volume ->
                 when {
-                    volume == 0f && player.isPlaying -> {
+                    volume == 0f && player.isPlaying && dataStore.get(
+                        StopPlayingSongWhenMinimumVolumeKey,
+                        true
+                    ) -> {
                         wasPlayingBeforeMute = true
                         player.pause()
                     }
 
-                    volume > 0f && !player.isPlaying && wasPlayingBeforeMute -> {
+                    volume > 0f && !player.isPlaying && wasPlayingBeforeMute && dataStore.get(
+                        StopPlayingSongWhenMinimumVolumeKey,
+                        true
+                    ) -> {
                         player.play()
                         wasPlayingBeforeMute = false
                     }
@@ -422,13 +432,15 @@ class MusicService : MediaLibraryService(),
         }
         bluetoothReceiver = object : BroadcastReceiver() {
             override fun onReceive(context: Context, intent: Intent) {
-                when (intent.action) {
-                    BluetoothDevice.ACTION_ACL_CONNECTED -> {
-                        if (player.playbackState == Player.STATE_READY
-                            && !player.isPlaying
-                            && dataStore.get(PersistentQueueKey, true)
-                        ) {
-                            player.play()
+                if (dataStore.get(AutoPlaySongWhenBluetoothDeviceConnectedKey, true)) {
+                    when (intent.action) {
+                        BluetoothDevice.ACTION_ACL_CONNECTED -> {
+                            if (player.playbackState == Player.STATE_READY
+                                && !player.isPlaying
+                                && dataStore.get(PersistentQueueKey, true)
+                            ) {
+                                player.play()
+                            }
                         }
                     }
                 }

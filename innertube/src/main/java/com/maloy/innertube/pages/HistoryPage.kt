@@ -9,6 +9,7 @@ import com.maloy.innertube.models.getItems
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.utils.parseTime
 
+@Suppress("UNUSED_EXPRESSION")
 data class HistoryPage(
     val sections: List<HistorySection>?,
 ) {
@@ -31,12 +32,18 @@ data class HistoryPage(
                 title = renderer.flexColumns.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.text ?: return null,
-                artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                } ?: emptyList(),
+                artists = renderer.flexColumns.getOrNull(1)
+                    ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
+                    ?.mapNotNull { it
+                        it.takeIf { run ->
+                            run.navigationEndpoint?.browseEndpoint?.browseId != null
+                        }?.let {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        }
+                    } ?: emptyList(),
                 album = renderer.flexColumns.getOrNull(3)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {
                     Album(
                         name = it.text,

@@ -117,7 +117,7 @@ data class HomePage(
                                     id = it.navigationEndpoint?.browseEndpoint?.browseId
                                 )
                             },
-                            year = renderer.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
+                            year = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                             explicit = renderer.subtitleBadges?.find {

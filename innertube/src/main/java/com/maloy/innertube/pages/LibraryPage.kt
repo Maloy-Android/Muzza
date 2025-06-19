@@ -7,7 +7,6 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicTwoRowItemRenderer
 import com.maloy.innertube.models.PlaylistItem
-import com.maloy.innertube.models.Run
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.oddElements
@@ -32,7 +31,7 @@ data class LibraryPage(
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     }?:return null,
-                    year = renderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
+                    year = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
                     explicit = renderer.subtitleBadges?.find {

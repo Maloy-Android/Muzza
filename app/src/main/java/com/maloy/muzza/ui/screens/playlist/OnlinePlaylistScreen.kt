@@ -123,6 +123,7 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -323,7 +324,13 @@ fun OnlinePlaylistScreen(
                                                                 val playlistEntity = PlaylistEntity(
                                                                     name = playlist.title,
                                                                     browseId = playlist.id,
+                                                                    thumbnailUrl = playlist.thumbnail,
                                                                     isEditable = playlist.isEditable,
+                                                                    bookmarkedAt = LocalDateTime.now(),
+                                                                    remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
+                                                                    playEndpointParams = playlist.playEndpoint?.params,
+                                                                    shuffleEndpointParams = playlist.shuffleEndpoint.params,
+                                                                    radioEndpointParams = playlist.radioEndpoint?.params
                                                                 ).toggleLike()
                                                                 insert(playlistEntity)
                                                                 songs.map(SongItem::toMediaMetadata)

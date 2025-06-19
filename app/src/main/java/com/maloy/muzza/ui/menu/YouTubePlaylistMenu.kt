@@ -47,6 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
+import java.time.LocalDateTime
 
 @Composable
 fun YouTubePlaylistMenu(
@@ -133,12 +134,10 @@ fun YouTubePlaylistMenu(
                                 val playlistEntity = PlaylistEntity(
                                     name = playlist.title,
                                     browseId = playlist.id,
+                                    thumbnailUrl = playlist.thumbnail,
                                     isEditable = false,
-                                    remoteSongCount = playlist.songCountText?.let {
-                                        Regex("""\d+""").find(
-                                            it
-                                        )?.value?.toIntOrNull()
-                                    },
+                                    bookmarkedAt = LocalDateTime.now(),
+                                    remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                                     playEndpointParams = playlist.playEndpoint?.params,
                                     shuffleEndpointParams = playlist.shuffleEndpoint.params,
                                     radioEndpointParams = playlist.radioEndpoint?.params

@@ -56,6 +56,7 @@ import java.time.LocalDateTime
 fun AddToPlaylistDialog(
     isVisible: Boolean,
     initialTextFieldValue: String? = null,
+    noSyncing: Boolean = false,
     onGetSong: suspend (Playlist) -> List<String>,
     onDismiss: () -> Unit,
 ) {
@@ -158,7 +159,9 @@ fun AddToPlaylistDialog(
                             PlaylistEntity(
                                 name = playlistName,
                                 browseId = browseId,
-                                bookmarkedAt = LocalDateTime.now()
+                                bookmarkedAt = LocalDateTime.now(),
+                                isEditable = !syncedPlaylist,
+                                isLocal = !syncedPlaylist
                             )
                         )
                     }
@@ -185,6 +188,7 @@ fun AddToPlaylistDialog(
                             horizontalArrangement = Arrangement.End
                         ) {
                             Switch(
+                                enabled = !noSyncing,
                                 checked = syncedPlaylist,
                                 onCheckedChange = {
                                     syncedPlaylist = !syncedPlaylist

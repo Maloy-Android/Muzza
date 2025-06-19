@@ -120,6 +120,7 @@ class SyncUtils @Inject constructor(
 
             dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
                 .filterNot { it.playlist.browseId == null }
+                .filterNot { it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
             playlistList.onEach { playlist ->

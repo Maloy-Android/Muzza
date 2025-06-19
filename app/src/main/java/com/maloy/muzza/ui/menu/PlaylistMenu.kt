@@ -29,7 +29,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.util.fastCbrt
 import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
@@ -199,8 +198,10 @@ fun PlaylistMenu(
                             delete(playlist.playlist)
                         }
 
-                        coroutineScope.launch(Dispatchers.IO) {
-                            playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
+                        if (!playlist.playlist.isLocal) {
+                            coroutineScope.launch(Dispatchers.IO) {
+                                playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
+                            }
                         }
                     }
                 ) {

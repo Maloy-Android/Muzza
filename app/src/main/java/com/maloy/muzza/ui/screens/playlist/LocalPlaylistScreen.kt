@@ -5,6 +5,7 @@ package com.maloy.muzza.ui.screens.playlist
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -26,6 +27,9 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -33,6 +37,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
@@ -789,6 +794,29 @@ fun LocalPlaylistHeader(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier.padding(12.dp)
     ) {
+        if (playlist.thumbnails.isEmpty()) {
+            val libcarditem = 25.dp
+            Box(
+                modifier = Modifier
+                    .size(AlbumThumbnailSize)
+                    .clip(RoundedCornerShape(libcarditem))
+                    .align(alignment = Alignment.CenterHorizontally)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceContainer,
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                    contentDescription = null,
+                    tint = LocalContentColor.current.copy(alpha = 0.8f),
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        .align(Alignment.Center)
+                )
+            }
+        }
             if (playlist.thumbnails.size == 1) {
                 AsyncImage(
                     model = playlist.thumbnails[0],

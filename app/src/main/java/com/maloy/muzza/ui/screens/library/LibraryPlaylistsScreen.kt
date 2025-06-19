@@ -158,7 +158,7 @@ fun LibraryPlaylistsScreen(
             name = stringResource(R.string.liked)
         ),
         songCount = if (likedSongs != null) likedSongs!!.size else 0,
-        thumbnails = emptyList()
+        songThumbnails = emptyList()
     )
     val downloadPlaylist = Playlist(
         playlist = PlaylistEntity(
@@ -166,7 +166,7 @@ fun LibraryPlaylistsScreen(
             name = stringResource(R.string.offline)
         ),
         songCount = if (downloadSongs != null) downloadSongs!!.size else 0,
-        thumbnails = emptyList()
+        songThumbnails = emptyList()
     )
     val topSizeInt = topSize.toString().toInt()
     if (topSongs != null)
@@ -178,7 +178,7 @@ fun LibraryPlaylistsScreen(
             name = stringResource(R.string.my_top)
         ),
         songCount = topSongs?.let { minOf(it.size, topSizeInt) } ?: 0,
-        thumbnails = emptyList()
+        songThumbnails = emptyList()
     )
     val localPlaylist = Playlist(
         playlist = PlaylistEntity(
@@ -186,7 +186,7 @@ fun LibraryPlaylistsScreen(
             name = stringResource(R.string.local)
         ),
         songCount = localSongsCount,
-        thumbnails = emptyList()
+        songThumbnails = emptyList()
     )
 
     val cachedPlaylist = Playlist(
@@ -195,7 +195,7 @@ fun LibraryPlaylistsScreen(
             name = stringResource(R.string.cached)
         ),
         songCount = cachedSongs.size,
-        thumbnails = emptyList()
+        songThumbnails = emptyList()
     )
 
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)

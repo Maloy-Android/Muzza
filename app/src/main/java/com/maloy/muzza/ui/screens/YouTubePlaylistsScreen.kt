@@ -69,6 +69,7 @@ fun YouTubePlaylistsScreen(
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                             menuState.show {
                                 YouTubePlaylistMenu(
+                                    navController = navController,
                                     playlist = item,
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss

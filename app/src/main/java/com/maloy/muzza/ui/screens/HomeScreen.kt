@@ -324,6 +324,7 @@ fun HomeScreen(
                                 )
 
                                 is PlaylistItem -> YouTubePlaylistMenu(
+                                    navController = navController,
                                     playlist = item,
                                     coroutineScope = scope,
                                     onDismiss = menuState::dismiss

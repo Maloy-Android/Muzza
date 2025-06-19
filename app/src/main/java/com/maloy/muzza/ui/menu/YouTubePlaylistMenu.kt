@@ -47,10 +47,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
+import androidx.navigation.NavController
 import java.time.LocalDateTime
 
 @Composable
 fun YouTubePlaylistMenu(
+    navController: NavController,
     playlist: PlaylistItem,
     songs: List<SongItem> = emptyList(),
     coroutineScope: CoroutineScope,
@@ -66,6 +68,7 @@ fun YouTubePlaylistMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = { targetPlaylist ->
             val allSongs = songs

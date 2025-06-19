@@ -24,6 +24,7 @@ import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
@@ -43,6 +44,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun SongSelectionMenu(
+    navController: NavController,
     selection: List<Song>,
     onDismiss: () -> Unit,
     onExitSelectionMode: () -> Unit,
@@ -87,6 +89,7 @@ fun SongSelectionMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
             selection.map {

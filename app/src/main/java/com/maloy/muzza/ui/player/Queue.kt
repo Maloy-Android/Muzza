@@ -732,6 +732,7 @@ fun Queue(
                     onClick = {
                         menuState.show {
                             QueueSelectionMenu(
+                                navController = navController,
                                 selection = selection.mapNotNull { uidHash ->
                                     mutableQueueWindows.find { it.uid.hashCode() == uidHash }
                                 },

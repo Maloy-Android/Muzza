@@ -33,6 +33,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListThumbnailSize
@@ -54,6 +55,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun AddToPlaylistDialog(
+    navController: NavController,
     isVisible: Boolean,
     initialTextFieldValue: String? = null,
     noSyncing: Boolean = false,
@@ -160,7 +162,7 @@ fun AddToPlaylistDialog(
                                 name = playlistName,
                                 browseId = browseId,
                                 bookmarkedAt = LocalDateTime.now(),
-                                isEditable = !syncedPlaylist,
+                                isEditable = true,
                                 isLocal = !syncedPlaylist
                             )
                         )

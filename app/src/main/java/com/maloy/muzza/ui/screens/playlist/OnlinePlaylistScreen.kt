@@ -768,6 +768,7 @@ fun OnlinePlaylistScreen(
                         onClick = {
                             menuState.show {
                                 YouTubeSongSelectionMenu(
+                                    navController = navController,
                                     selection = selection.mapNotNull { songs.getOrNull(it) },
                                     onDismiss = menuState::dismiss,
                                     onExitSelectionMode = onExitSelectionMode
@@ -795,6 +796,7 @@ fun OnlinePlaylistScreen(
                         onClick = {
                             menuState.show {
                                 YouTubePlaylistMenu(
+                                    navController = navController,
                                     playlist = playlist!!,
                                     songs = songs,
                                     coroutineScope = coroutineScope,

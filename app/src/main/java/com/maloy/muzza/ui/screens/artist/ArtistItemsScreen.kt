@@ -277,6 +277,7 @@ fun ArtistItemsScreen(
                                         )
 
                                         is PlaylistItem -> YouTubePlaylistMenu(
+                                            navController = navController,
                                             playlist = item,
                                             coroutineScope = coroutineScope,
                                             onDismiss = menuState::dismiss
@@ -344,6 +345,7 @@ fun ArtistItemsScreen(
                     onClick = {
                         menuState.show {
                             YouTubeSongSelectionMenu(
+                                navController = navController,
                                 selection = selection.mapNotNull { songId ->
                                     songIndex[songId]
                                 },

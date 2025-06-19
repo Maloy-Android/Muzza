@@ -616,6 +616,7 @@ fun AlbumScreen(
                     onClick = {
                         menuState.show {
                             SongSelectionMenu(
+                                navController = navController,
                                 selection = selection.mapNotNull { index ->
                                     albumWithSongs?.songs?.getOrNull(index)
                                 },

@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
@@ -23,6 +24,7 @@ import java.time.LocalDateTime
 
 @Composable
 fun YouTubeSongSelectionMenu(
+    navController: NavController,
     selection: List<SongItem>,
     onDismiss: () -> Unit,
     onExitSelectionMode: () -> Unit,
@@ -35,6 +37,7 @@ fun YouTubeSongSelectionMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
             val mediaMetadata = selection.map {

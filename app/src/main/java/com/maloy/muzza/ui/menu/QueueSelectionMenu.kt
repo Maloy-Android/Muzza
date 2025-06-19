@@ -22,6 +22,7 @@ import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
@@ -35,6 +36,7 @@ import com.maloy.muzza.ui.component.GridMenuItem
 
 @Composable
 fun QueueSelectionMenu(
+    navController: NavController,
     selection: List<Timeline.Window>,
     onExitSelectionMode: () -> Unit,
     onDismiss: () -> Unit,
@@ -63,6 +65,7 @@ fun QueueSelectionMenu(
     }
 
     AddToPlaylistDialog(
+        navController = navController,
         isVisible = showChoosePlaylistDialog,
         onGetSong = {
             database.transaction {

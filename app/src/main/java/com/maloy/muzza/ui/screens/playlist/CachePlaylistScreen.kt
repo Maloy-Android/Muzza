@@ -534,6 +534,7 @@ fun CachePlaylistScreen(
                         onClick = {
                             menuState.show {
                                 SongSelectionMenu(
+                                    navController = navController,
                                     selection = selection.mapNotNull { songId ->
                                         cachedSongs.find { it.id == songId }
                                     },

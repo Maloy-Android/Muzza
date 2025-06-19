@@ -273,6 +273,7 @@ fun ArtistSongsScreen(
                         onClick = {
                             menuState.show {
                                 SongSelectionMenu(
+                                    navController = navController,
                                     selection = selection.mapNotNull { songId ->
                                         songIndex[songId]
                                     },

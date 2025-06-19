@@ -141,6 +141,7 @@ fun BackupAndRestore(
             }
         )
         AddToPlaylistDialog(
+            navController = navController,
             isVisible = showChoosePlaylistDialog,
             initialTextFieldValue = importedTitle,
             onGetSong = { importedSongs.map { it.id } },

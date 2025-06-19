@@ -691,6 +691,7 @@ fun LocalPlaylistScreen(
                         onClick = {
                             menuState.show {
                                 SongSelectionMenu(
+                                    navController = navController,
                                     selection = selection.mapNotNull { mapId ->
                                         songs.find { it.map.id == mapId }?.song
                                     },

@@ -528,6 +528,7 @@ fun HistoryScreen(
                     onClick = {
                         menuState.show {
                             SongSelectionMenu(
+                                navController = navController,
                                 selection = selection.mapNotNull { eventId ->
                                     filteredEventIndex[eventId]?.song
                                 },

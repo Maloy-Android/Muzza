@@ -659,6 +659,7 @@ fun AutoPlaylistScreen(
                     onClick = {
                         menuState.show {
                             SongSelectionMenu(
+                                navController = navController,
                                 selection = selection.mapNotNull { songId ->
                                     songs?.find { it.id == songId }
                                 },

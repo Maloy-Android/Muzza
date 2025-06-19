@@ -452,6 +452,7 @@ fun LibrarySongsScreen(
                         onClick = {
                             menuState.show {
                                 SongSelectionMenu(
+                                    navController = navController,
                                     selection = selection.mapNotNull { songId ->
                                         filteredSongs.find { it.id == songId }
                                     },
@@ -473,6 +474,7 @@ fun LibrarySongsScreen(
                         onClick = {
                             menuState.show {
                                 SongSelectionMenu(
+                                    navController = navController,
                                     selection = selection.mapNotNull { songId ->
                                         filteredSongs.find { it.id == songId }
                                     },

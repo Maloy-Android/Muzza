@@ -156,12 +156,12 @@ class MusicWidget : AppWidgetProvider() {
                                 appWidgetManager.updateAppWidget(appWidgetId, views)
                             }
                         } catch (e: Exception) {
-                            views.setImageViewResource(R.id.widget_album_art, R.drawable.album)
+                            views.setImageViewResource(R.id.widget_album_art, R.drawable.music_note)
                             appWidgetManager.updateAppWidget(appWidgetId, views)
                         }
                     }
                 } else {
-                    views.setImageViewResource(R.id.widget_album_art, R.drawable.album)
+                    views.setImageViewResource(R.id.widget_album_art, R.drawable.music_note)
                 }
             }
 

@@ -94,6 +94,9 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountChannelHandleKey
+import com.maloy.muzza.constants.AccountEmailKey
+import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
@@ -150,6 +153,8 @@ fun OnlinePlaylistScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val syncUtils = LocalSyncUtils.current
+
+    val accountName by rememberPreference(AccountNameKey, "")
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
@@ -291,26 +296,37 @@ fun OnlinePlaylistScreen(
                                             fontSizeRange = FontSizeRange(16.sp, 22.sp)
                                         )
 
-                                        playlist.author?.let { artist ->
-                                            Text(buildAnnotatedString {
-                                                withStyle(
-                                                    style = MaterialTheme.typography.titleMedium.copy(
-                                                        fontWeight = FontWeight.Normal,
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    ).toSpanStyle()
-                                                ) {
-                                                    if (artist.id != null) {
-                                                        val link = LinkAnnotation.Clickable(artist.id!!) {
-                                                            navController.navigate("artist/${artist.id!!}")
-                                                        }
-                                                        withLink(link) {
+                                        if (playlist.id != "LM") {
+                                            playlist.author?.let { artist ->
+                                                Text(buildAnnotatedString {
+                                                    withStyle(
+                                                        style = MaterialTheme.typography.titleMedium.copy(
+                                                            fontWeight = FontWeight.Normal,
+                                                            color = MaterialTheme.colorScheme.onBackground
+                                                        ).toSpanStyle()
+                                                    ) {
+                                                        if (artist.id != null) {
+                                                            val link =
+                                                                LinkAnnotation.Clickable(artist.id!!) {
+                                                                    navController.navigate("artist/${artist.id!!}")
+                                                                }
+                                                            withLink(link) {
+                                                                append(artist.name)
+                                                            }
+                                                        } else {
                                                             append(artist.name)
                                                         }
-                                                    } else {
-                                                        append(artist.name)
                                                     }
-                                                }
-                                            })
+                                                })
+                                            }
+                                        } else {
+                                            Text(
+                                                text = accountName,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Normal,
+                                                    color = MaterialTheme.colorScheme.onBackground
+                                                )
+                                            )
                                         }
 
                                         Spacer(Modifier.height(12.dp))

@@ -294,6 +294,7 @@ fun LibraryMixScreen(
                 syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
                 isScannerActive = false
                 isScanFinished = true
+                database.localSongsCount()
             }
         }
     }

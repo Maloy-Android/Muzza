@@ -136,7 +136,6 @@ fun YouTubePlaylistMenu(
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
                                     isEditable = false,
-                                    bookmarkedAt = LocalDateTime.now(),
                                     remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                                     playEndpointParams = playlist.playEndpoint?.params,
                                     shuffleEndpointParams = playlist.shuffleEndpoint.params,

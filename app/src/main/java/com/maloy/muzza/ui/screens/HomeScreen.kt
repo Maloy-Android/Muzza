@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -74,6 +75,7 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
@@ -120,6 +122,7 @@ import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
+import java.util.Calendar
 import kotlin.math.min
 import kotlin.random.Random
 
@@ -465,17 +468,39 @@ fun HomeScreen(
                 }
             }
 
-            if (showRecentActivity && isLoggedIn && !recentActivity.isNullOrEmpty()) {
+            if (isLoggedIn) {
                 item {
-                    NavigationTitle(
-                        title = stringResource(R.string.recent_activity)
-                    )
+                    val accountName by rememberPreference(AccountNameKey, "")
+                    val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
+                    val greeting = when (currentHour) {
+                        in 6..11 -> stringResource(R.string.good_morning)
+                        in 12..17 -> stringResource(R.string.good_afternoon)
+                        in 18..23 -> stringResource(R.string.good_evening)
+                        else -> stringResource(R.string.good_night)
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = greeting
+                        )
+                        Text(
+                            text = accountName
+                        )
+                    }
                 }
+            }
+            if (showRecentActivity && isLoggedIn && !recentActivity.isNullOrEmpty()) {
                 item {
                     LazyHorizontalGrid(
                         state = recentActivityGridState,
                         rows = GridCells.Fixed(4),
-                        flingBehavior = rememberSnapFlingBehavior(forgottenFavoritesLazyGridState),
+                        flingBehavior = rememberSnapFlingBehavior(
+                            forgottenFavoritesLazyGridState
+                        ),
                         contentPadding = WindowInsets.systemBars
                             .only(WindowInsetsSides.Horizontal)
                             .asPaddingValues(),

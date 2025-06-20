@@ -33,6 +33,10 @@
     </plurals>
 
     <!-- Home -->
+    <string name="good_morning">Доброго ранку</string>
+    <string name="good_afternoon">Добридень</string>
+    <string name="good_evening">Добрий вечір</string>
+    <string name="good_night">Надобраніч</string>
     <string name="recent_activity">Недавня активність</string>
     <string name="history">Історія</string>
     <string name="history_empty">Ваша історія прослуховувань буде знаходиться тут</string>

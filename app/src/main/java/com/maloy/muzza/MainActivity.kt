@@ -335,17 +335,7 @@ class MainActivity : ComponentActivity() {
                     } else DefaultThemeColor
                 }
             }
-
-            // Check if the permissions for local media access
-            // i have no idea is this will explode under API 33
-            if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_GRANTED) {
-                val (autoSyncLocalSongs) = rememberPreference(AutoSyncLocalSongsKey, defaultValue = false)
-                if (autoSyncLocalSongs == true) {
-                    //                    Not implemented
-                }
-            }
-            else if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_DENIED) {
-                // Request the permission using the permission launcher
+            if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_DENIED) {
                 permissionsLauncher.launch(arrayOf(mediaPermissionLevel))
             }
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {

@@ -1,5 +1,6 @@
 package com.maloy.muzza
 
+import android.annotation.SuppressLint
 import android.app.Application
 import android.os.Build
 import android.widget.Toast
@@ -36,6 +37,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import timber.log.Timber
+import java.lang.Double.min
 import java.net.Proxy
 import java.util.Locale
 
@@ -110,6 +112,7 @@ class App : Application(), ImageLoaderFactory {
         }
     }
 
+    @SuppressLint("UsableSpace")
     override fun newImageLoader(): ImageLoader {
         val cacheSize = dataStore[MaxImageCacheSizeKey]
 
@@ -119,13 +122,19 @@ class App : Application(), ImageLoaderFactory {
                 .diskCachePolicy(CachePolicy.DISABLED).build()
         } else {
             val maxSize = when {
-                cacheSize == -1 -> Long.MAX_VALUE
+                cacheSize == -1 -> {
+                    val cacheDir = cacheDir.resolve("coil")
+                    val usableSpace = cacheDir.usableSpace
+                    min(usableSpace * 0.9, (2L * 1024 * 1024 * 1024).toDouble()).toLong()
+                }
                 else -> (cacheSize ?: 512) * 1024 * 1024L
             }
 
             ImageLoader.Builder(this).crossfade(true).respectCacheHeaders(false)
                 .allowHardware(Build.VERSION.SDK_INT >= Build.VERSION_CODES.P).diskCache(
-                    DiskCache.Builder().directory(cacheDir.resolve("coil")).maxSizeBytes(maxSize)
+                    DiskCache.Builder()
+                        .directory(cacheDir.resolve("coil"))
+                        .maxSizeBytes(maxSize)
                         .build()
                 ).build()
         }

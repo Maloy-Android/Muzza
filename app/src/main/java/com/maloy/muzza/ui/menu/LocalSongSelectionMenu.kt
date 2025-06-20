@@ -18,8 +18,8 @@ import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.ListMenuItem
+import com.maloy.muzza.ui.component.ListMenu
 import java.time.LocalDateTime
 
 @Composable
@@ -41,7 +41,7 @@ fun LocalSongSelectionMenu(
     }
 
 
-    GridMenu(
+    ListMenu(
         contentPadding =
             PaddingValues(
                 start = 8.dp,
@@ -50,7 +50,7 @@ fun LocalSongSelectionMenu(
                 bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
             ),
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.play,
             title = R.string.play,
         ) {
@@ -63,7 +63,7 @@ fun LocalSongSelectionMenu(
             onExitSelectionMode()
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle,
         ) {
@@ -76,7 +76,7 @@ fun LocalSongSelectionMenu(
             onExitSelectionMode()
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
         ) {
@@ -85,7 +85,7 @@ fun LocalSongSelectionMenu(
             onExitSelectionMode()
         }
         if (allInLibrary) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add_check,
                 title = R.string.remove_from_library,
             ) {
@@ -96,7 +96,7 @@ fun LocalSongSelectionMenu(
                 }
             }
         } else {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add,
                 title = R.string.add_to_library,
             ) {
@@ -108,7 +108,7 @@ fun LocalSongSelectionMenu(
             }
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
             tint = { if (allLiked) MaterialTheme.colorScheme.error else LocalContentColor.current },
             title = if (allLiked) R.string.action_remove_like_all else R.string.action_like_all,

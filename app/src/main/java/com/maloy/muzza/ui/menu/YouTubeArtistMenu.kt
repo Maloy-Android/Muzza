@@ -24,8 +24,8 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.playback.queues.YouTubeQueue
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
 import java.time.LocalDateTime
 import androidx.core.net.toUri
@@ -75,7 +75,7 @@ fun YouTubeArtistMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -84,7 +84,7 @@ fun YouTubeArtistMenu(
         )
     ) {
         artist.radioEndpoint?.let { watchEndpoint ->
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.radio,
                 title = R.string.start_radio
             ) {
@@ -93,7 +93,7 @@ fun YouTubeArtistMenu(
             }
         }
         artist.shuffleEndpoint?.let { watchEndpoint ->
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.shuffle,
                 title = R.string.shuffle
             ) {
@@ -101,14 +101,14 @@ fun YouTubeArtistMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, artist.shareLink.toUri())
             context.startActivity(intent)
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.share,
             title = R.string.share
         ) {

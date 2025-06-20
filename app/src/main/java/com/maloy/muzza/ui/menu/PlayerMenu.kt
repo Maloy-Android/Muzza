@@ -77,12 +77,12 @@ import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.BigSeekBar
 import com.maloy.muzza.ui.component.BottomSheetState
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.PlayerSliderTrack
-import com.maloy.muzza.ui.component.SleepTimerGridMenu
+import com.maloy.muzza.ui.component.SleepTimerListMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -342,7 +342,7 @@ fun PlayerMenu(
         )
     }
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -351,7 +351,7 @@ fun PlayerMenu(
         )
     ) {
         if (!mediaMetadata.isLocal) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.radio,
                 title = R.string.start_radio
             ) {
@@ -359,14 +359,14 @@ fun PlayerMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
         if (!mediaMetadata.isLocal) {
-            DownloadGridMenu(
+            DownloadListMenu(
                 state = download?.state,
                 onDownload = {
                     database.transaction {
@@ -395,7 +395,7 @@ fun PlayerMenu(
             )
         }
         if (librarySong?.song?.inLibrary != null) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add_check,
                 title = R.string.remove_from_library,
             ) {
@@ -404,7 +404,7 @@ fun PlayerMenu(
                 }
             }
         } else {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add,
                 title = R.string.add_to_library,
             ) {
@@ -416,7 +416,7 @@ fun PlayerMenu(
         }
         if (!mediaMetadata.isLocal) {
             if (artists.isNotEmpty()) {
-                GridMenuItem(
+                ListMenuItem(
                     icon = R.drawable.artist,
                     title = R.string.view_artist
                 ) {
@@ -430,7 +430,7 @@ fun PlayerMenu(
                 }
             }
             if (mediaMetadata.album != null) {
-                GridMenuItem(
+                ListMenuItem(
                     icon = R.drawable.album,
                     title = R.string.view_album
                 ) {
@@ -439,7 +439,7 @@ fun PlayerMenu(
                     onDismiss()
                 }
             }
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.music_note,
                 title = R.string.listen_youtube_music
             ) {
@@ -449,7 +449,7 @@ fun PlayerMenu(
                 )
                 context.startActivity(intent)
             }
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.share,
                 title = R.string.share
             ) {
@@ -466,14 +466,14 @@ fun PlayerMenu(
             }
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.info,
             title = R.string.details
         ) {
             onShowDetailsDialog()
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.equalizer,
             title = R.string.equalizer
         ) {
@@ -482,7 +482,7 @@ fun PlayerMenu(
                 putExtra(AudioEffect.EXTRA_PACKAGE_NAME, context.packageName)
                 putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
             }
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.equalizer,
                 title = R.string.equalizer
             ) {
@@ -504,14 +504,14 @@ fun PlayerMenu(
             }
             onDismiss()
         }
-        SleepTimerGridMenu(
+        SleepTimerListMenu(
             sleepTimerTimeLeft = sleepTimerTimeLeft,
             enabled = sleepTimerEnabled,
         ) {
             if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
             else showSleepTimerDialog = true
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.speed,
             title = R.string.tempo_and_pitch
         ) {

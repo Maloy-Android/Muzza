@@ -17,8 +17,8 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.Event
 import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.ListMenuItem
+import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.utils.DirectoryTree
 
@@ -55,7 +55,7 @@ fun FolderMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -63,7 +63,7 @@ fun FolderMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
@@ -72,7 +72,7 @@ fun FolderMenu(
                 playerConnection.playNext(it.toMediaItem())
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
@@ -81,7 +81,7 @@ fun FolderMenu(
                 playerConnection.addToQueue((it.toMediaItem()))
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {

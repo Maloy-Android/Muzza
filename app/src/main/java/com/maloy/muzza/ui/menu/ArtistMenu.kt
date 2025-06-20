@@ -23,14 +23,14 @@ import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ArtistListItem
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.ListMenuItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
+import com.maloy.muzza.ui.component.ListMenu
 
 @Composable
 fun ArtistMenu(
@@ -67,7 +67,7 @@ fun ArtistMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -76,7 +76,7 @@ fun ArtistMenu(
         )
     ) {
         if (artist.songCount > 0) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.play,
                 title = R.string.play
             ) {
@@ -94,7 +94,7 @@ fun ArtistMenu(
                 }
                 onDismiss()
             }
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.shuffle,
                 title = R.string.shuffle
             ) {
@@ -114,7 +114,7 @@ fun ArtistMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
@@ -123,7 +123,7 @@ fun ArtistMenu(
             context.startActivity(intent)
         }
         if (artist.artist.isYouTubeArtist) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.share,
                 title = R.string.share
             ) {

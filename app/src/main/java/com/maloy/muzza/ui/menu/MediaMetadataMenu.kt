@@ -48,10 +48,10 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.BottomSheetState
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -161,7 +161,7 @@ fun MediaMetadataMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -169,34 +169,34 @@ fun MediaMetadataMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.radio,
             title = R.string.start_radio
         ) {
             playerConnection.service.startRadioSeamlessly()
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
             onDismiss()
             playerConnection.playNext(mediaMetadata.toMediaItem())
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
             onDismiss()
             playerConnection.addToQueue(mediaMetadata.toMediaItem())
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
-        DownloadGridMenu(
+        DownloadListMenu(
             state = download?.state,
             onDownload = {
                 database.transaction {
@@ -223,7 +223,7 @@ fun MediaMetadataMenu(
             }
         )
         if (librarySong?.song?.inLibrary != null) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add_check,
                 title = R.string.remove_from_library,
             ) {
@@ -232,7 +232,7 @@ fun MediaMetadataMenu(
                 }
             }
         } else {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add,
                 title = R.string.add_to_library,
             ) {
@@ -243,7 +243,7 @@ fun MediaMetadataMenu(
             }
         }
         if (artists.isNotEmpty()) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_artist
             ) {
@@ -257,7 +257,7 @@ fun MediaMetadataMenu(
             }
         }
         if (mediaMetadata.album != null) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.album,
                 title = R.string.view_album
             ) {
@@ -266,7 +266,7 @@ fun MediaMetadataMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.share,
             title = R.string.share
         ) {

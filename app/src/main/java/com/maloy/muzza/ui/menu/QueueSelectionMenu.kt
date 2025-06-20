@@ -30,9 +30,9 @@ import com.maloy.muzza.R
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 
 @Composable
 fun QueueSelectionMenu(
@@ -82,7 +82,7 @@ fun QueueSelectionMenu(
         }
     )
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -90,7 +90,7 @@ fun QueueSelectionMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.play,
             title = R.string.play,
         ) {
@@ -103,7 +103,7 @@ fun QueueSelectionMenu(
             onExitSelectionMode()
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle,
         ) {
@@ -116,7 +116,7 @@ fun QueueSelectionMenu(
             onExitSelectionMode()
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next,
         ) {
@@ -125,7 +125,7 @@ fun QueueSelectionMenu(
             onExitSelectionMode()
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
         ) {
@@ -134,14 +134,14 @@ fun QueueSelectionMenu(
             onExitSelectionMode()
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
 
-        DownloadGridMenu(
+        DownloadListMenu(
             state = downloadState,
             onDownload = {
                 selection.forEach {
@@ -173,7 +173,7 @@ fun QueueSelectionMenu(
             }
         )
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_remove,
             title = R.string.remove_from_queue
         ) {

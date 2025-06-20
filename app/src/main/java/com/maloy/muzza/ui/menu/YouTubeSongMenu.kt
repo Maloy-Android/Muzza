@@ -57,9 +57,9 @@ import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.YouTubeQueue
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.utils.joinByBullet
@@ -203,7 +203,7 @@ fun YouTubeSongMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -211,21 +211,21 @@ fun YouTubeSongMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.radio,
             title = R.string.start_radio
         ) {
             playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
             playerConnection.playNext(song.toMediaItem())
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
@@ -233,7 +233,7 @@ fun YouTubeSongMenu(
             onDismiss()
         }
         if (librarySong?.song?.inLibrary != null) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add_check,
                 title = R.string.remove_from_library
             ) {
@@ -242,7 +242,7 @@ fun YouTubeSongMenu(
                 }
             }
         } else {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add,
                 title = R.string.add_to_library
             ) {
@@ -252,13 +252,13 @@ fun YouTubeSongMenu(
                 }
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
-        DownloadGridMenu(
+        DownloadListMenu(
             state = download?.state,
             onDownload = {
                 database.transaction {
@@ -285,7 +285,7 @@ fun YouTubeSongMenu(
             }
         )
         if (artists.isNotEmpty()) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_artist
             ) {
@@ -298,7 +298,7 @@ fun YouTubeSongMenu(
             }
         }
         song.album?.let { album ->
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.album,
                 title = R.string.view_album
             ) {
@@ -306,14 +306,14 @@ fun YouTubeSongMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, song.shareLink.toUri())
             context.startActivity(intent)
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.share,
             title = R.string.share
         ) {

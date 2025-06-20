@@ -49,9 +49,9 @@ import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.DefaultDialog
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
 import kotlinx.coroutines.CoroutineScope
@@ -235,7 +235,7 @@ fun PlaylistMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -243,7 +243,7 @@ fun PlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.play,
             title = R.string.play
         ) {
@@ -254,7 +254,7 @@ fun PlaylistMenu(
             ))
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle
         ) {
@@ -265,7 +265,7 @@ fun PlaylistMenu(
             ))
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
@@ -273,14 +273,14 @@ fun PlaylistMenu(
             playerConnection.addToQueue(songs.map { it.toMediaItem() })
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.edit,
             title = R.string.edit
         ) {
             showEditDialog = true
         }
 
-        DownloadGridMenu(
+        DownloadListMenu(
             state = downloadState,
             onDownload = {
                 songs.forEach { song ->
@@ -301,7 +301,7 @@ fun PlaylistMenu(
             }
         )
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.delete,
             title = R.string.delete
         ) {
@@ -309,7 +309,7 @@ fun PlaylistMenu(
         }
 
         if (playlist.playlist.browseId != null) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.sync,
                 title = R.string.sync
             ) {

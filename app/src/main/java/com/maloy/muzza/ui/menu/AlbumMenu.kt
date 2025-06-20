@@ -63,10 +63,10 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.AlbumListItem
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.ListMenu
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -224,7 +224,7 @@ fun AlbumMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu (
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -232,7 +232,7 @@ fun AlbumMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
@@ -240,7 +240,7 @@ fun AlbumMenu(
             playerConnection.playNext(songs.map { it.toMediaItem() })
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
@@ -248,7 +248,7 @@ fun AlbumMenu(
             playerConnection.addToQueue(songs.map { it.toMediaItem() })
         }
 
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
@@ -256,7 +256,7 @@ fun AlbumMenu(
         }
 
         if (allInLibrary) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add_check,
                 title = R.string.remove_all_from_library
             ) {
@@ -267,7 +267,7 @@ fun AlbumMenu(
                 }
             }
         } else {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.library_add,
                 title = R.string.add_all_to_library
             ) {
@@ -279,7 +279,7 @@ fun AlbumMenu(
             }
         }
 
-        DownloadGridMenu(
+        DownloadListMenu(
             state = downloadState,
             onDownload = {
                 songs.forEach { song ->
@@ -306,7 +306,7 @@ fun AlbumMenu(
                 }
             }
         )
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.artist,
             title = R.string.view_artist
         ) {
@@ -317,7 +317,7 @@ fun AlbumMenu(
                 showSelectArtistDialog = true
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = {
                 Icon(
                     painter = painterResource(R.drawable.sync),
@@ -336,7 +336,7 @@ fun AlbumMenu(
                 }
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
@@ -344,7 +344,7 @@ fun AlbumMenu(
                 "https://music.youtube.com/browse/${album.album.id}".toUri())
             context.startActivity(intent)
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.share,
             title = R.string.share
         ) {

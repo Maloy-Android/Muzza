@@ -50,9 +50,9 @@ import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
-import com.maloy.muzza.ui.component.DownloadGridMenu
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.DownloadListMenu
+import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.utils.reportException
@@ -197,7 +197,7 @@ fun YouTubeAlbumMenu(
 
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -205,14 +205,14 @@ fun YouTubeAlbumMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.radio,
             title = R.string.start_radio
         ) {
             playerConnection.playQueue(YouTubeAlbumRadio(albumItem.playlistId))
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
@@ -221,7 +221,7 @@ fun YouTubeAlbumMenu(
                 ?.let(playerConnection::playNext)
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
@@ -230,13 +230,13 @@ fun YouTubeAlbumMenu(
                 ?.let(playerConnection::addToQueue)
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
-        DownloadGridMenu(
+        DownloadListMenu(
             state = downloadState,
             onDownload = {
                 album?.songs?.forEach { song ->
@@ -264,7 +264,7 @@ fun YouTubeAlbumMenu(
             }
         )
         albumItem.artists?.let { artists ->
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_artist
             ) {
@@ -276,14 +276,14 @@ fun YouTubeAlbumMenu(
                 }
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, albumItem.shareLink.toUri())
             context.startActivity(intent)
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.share,
             title = R.string.share
         ) {

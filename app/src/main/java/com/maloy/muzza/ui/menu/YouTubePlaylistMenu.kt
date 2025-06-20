@@ -39,8 +39,8 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.DefaultDialog
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -48,7 +48,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import java.time.LocalDateTime
 
 @Composable
 fun YouTubePlaylistMenu(
@@ -179,7 +178,7 @@ fun YouTubePlaylistMenu(
     )
     HorizontalDivider()
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -188,7 +187,7 @@ fun YouTubePlaylistMenu(
         )
     ) {
         playlist.playEndpoint?.let {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.play,
                 title = R.string.play
             ) {
@@ -196,7 +195,7 @@ fun YouTubePlaylistMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle
         ) {
@@ -204,7 +203,7 @@ fun YouTubePlaylistMenu(
             onDismiss()
         }
         playlist.radioEndpoint?.let { radioEndpoint ->
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.radio,
                 title = R.string.start_radio
             ) {
@@ -212,7 +211,7 @@ fun YouTubePlaylistMenu(
                 onDismiss()
             }
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
@@ -227,7 +226,7 @@ fun YouTubePlaylistMenu(
             }
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
@@ -242,13 +241,13 @@ fun YouTubePlaylistMenu(
             }
             onDismiss()
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
@@ -256,7 +255,7 @@ fun YouTubePlaylistMenu(
             context.startActivity(intent)
         }
         if (playlist.id != "LM") {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.share,
                 title = R.string.share
             ) {

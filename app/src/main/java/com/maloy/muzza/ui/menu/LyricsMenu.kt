@@ -50,9 +50,9 @@ import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.LyricsEntity
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.DefaultDialog
-import com.maloy.muzza.ui.component.GridMenu
-import com.maloy.muzza.ui.component.GridMenuItem
+import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.viewmodels.LyricsMenuViewModel
 
@@ -324,7 +324,7 @@ fun LyricsMenu(
         }
     }
 
-    GridMenu(
+    ListMenu(
         contentPadding = PaddingValues(
             start = 8.dp,
             top = 8.dp,
@@ -332,27 +332,27 @@ fun LyricsMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.edit,
             title = R.string.edit
         ) {
             showEditDialog = true
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.cached,
             title = R.string.refetch
         ) {
             onDismiss()
             viewModel.refetchLyrics(mediaMetadataProvider(), lyricsProvider())
         }
-        GridMenuItem(
+        ListMenuItem(
             icon = R.drawable.search,
             title = R.string.search,
         ) {
             showSearchDialog = true
         }
         if (lyricsProvider() != null) {
-            GridMenuItem(
+            ListMenuItem(
                 icon = R.drawable.delete,
                 title = R.string.delete,
             ) {

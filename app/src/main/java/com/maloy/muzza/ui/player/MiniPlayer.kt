@@ -40,11 +40,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
@@ -59,7 +62,8 @@ import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
-import kotlin.math.abs
+import kotlin.math.absoluteValue
+import kotlin.math.roundToInt
 
 @SuppressLint("UseOfNonLambdaOffsetOverload")
 @Composable
@@ -74,24 +78,16 @@ fun MiniPlayer(
     val error by playerConnection.error.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
+    val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
 
-    var offsetX by remember { mutableStateOf(0f) }
-    val swipeThreshold = 100.dp
-    val animatedOffset by animateDpAsState(targetValue = offsetX.dp, label = "")
+    val currentView = LocalView.current
+    val layoutDirection = LocalLayoutDirection.current
+    var offsetX by remember { mutableFloatStateOf(0f) }
 
-    val (miniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
-
-    if (miniPlayerStyle == MiniPlayerStyle.NEW) {
-        LaunchedEffect(offsetX) {
-            if (abs(offsetX) > swipeThreshold.value) {
-                when {
-                    offsetX > 0 -> playerConnection.seekToPrevious()
-                    else -> playerConnection.seekToNext()
-                }
-                offsetX = 0f
-            }
-        }
-    }
+    val (miniPlayerStyle) = rememberEnumPreference(
+        MiniPlayerStyleKey,
+        defaultValue = MiniPlayerStyle.NEW
+    )
 
     if (miniPlayerStyle == MiniPlayerStyle.NEW) {
         Box(
@@ -99,12 +95,30 @@ fun MiniPlayer(
                 .fillMaxWidth()
                 .height(MiniPlayerHeight)
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                .offset(x = animatedOffset)
                 .pointerInput(Unit) {
                     detectHorizontalDragGestures(
-                        onDragEnd = { offsetX = 0f },
+                        onDragStart = {},
+                        onDragCancel = {
+                            offsetX = 0f
+                        },
                         onHorizontalDrag = { _, dragAmount ->
-                            offsetX += dragAmount
+                            val adjustedDragAmount =
+                                if (layoutDirection == LayoutDirection.Rtl) -dragAmount else dragAmount
+                            offsetX += adjustedDragAmount
+                        },
+                        onDragEnd = {
+                            val threshold = 0.15f * currentView.width
+
+                            when {
+                                offsetX > threshold && canSkipPrevious -> {
+                                    playerConnection.player.seekToPreviousMediaItem()
+                                }
+
+                                offsetX < -threshold && canSkipNext -> {
+                                    playerConnection.player.seekToNext()
+                                }
+                            }
+                            offsetX = 0f
                         }
                     )
                 }
@@ -118,9 +132,10 @@ fun MiniPlayer(
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = modifier
+                modifier = Modifier
                     .fillMaxSize()
-                    .padding(end = 6.dp),
+                    .offset { IntOffset(offsetX.roundToInt(), 0) }
+                    .padding(end = 12.dp)
             ) {
                 Box(Modifier.weight(1f)) {
                     mediaMetadata?.let {
@@ -139,11 +154,37 @@ fun MiniPlayer(
                         } else {
                             playerConnection.player.togglePlayPause()
                         }
-                    }
+                    },
                 ) {
                     Icon(
-                        painter = painterResource(if (playbackState == Player.STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
-                        contentDescription = null
+                        painter = painterResource(
+                            if (playbackState == Player.STATE_ENDED) {
+                                R.drawable.replay
+                            } else if (isPlaying) {
+                                R.drawable.pause
+                            } else {
+                                R.drawable.play
+                            },
+                        ),
+                        contentDescription = null,
+                    )
+                }
+            }
+            if (offsetX.absoluteValue > 50f) {
+                Box(
+                    modifier = Modifier
+                        .align(if (offsetX > 0) Alignment.CenterStart else Alignment.CenterEnd)
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            if (offsetX > 0) R.drawable.skip_previous else R.drawable.skip_next
+                        ),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary.copy(
+                            alpha = (offsetX.absoluteValue / 200f).coerceIn(0f, 1f)
+                        ),
+                        modifier = Modifier.size(24.dp)
                     )
                 }
             }

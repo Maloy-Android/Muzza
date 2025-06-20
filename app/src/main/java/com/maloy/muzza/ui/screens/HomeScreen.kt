@@ -29,7 +29,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -741,7 +740,7 @@ fun HomeScreen(
                         title = it.title.title,
                         thumbnail = it.title.thumbnailUrl?.let { thumbnailUrl ->
                             {
-                                val shape = if (it.title is Artist) CircleShape else RoundedCornerShape(ThumbnailCornerRadius)
+                                val shape = RoundedCornerShape(ThumbnailCornerRadius)
                                 AsyncImage(
                                     model = thumbnailUrl,
                                     contentDescription = null,
@@ -784,7 +783,7 @@ fun HomeScreen(
                         label = it.label,
                         thumbnail = it.thumbnail?.let { thumbnailUrl ->
                             {
-                                val shape = if (it.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(ThumbnailCornerRadius)
+                                val shape = RoundedCornerShape(ThumbnailCornerRadius)
                                 AsyncImage(
                                     model = thumbnailUrl,
                                     contentDescription = null,

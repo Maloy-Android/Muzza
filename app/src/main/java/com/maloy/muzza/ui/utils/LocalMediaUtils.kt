@@ -122,6 +122,7 @@ class DirectoryTree(path: String) {
             this.files = files.toMutableList() as ArrayList<Song>
         }
     }
+    fun getFullPath(): String = "$parent/$currentDir"
 }
 
 fun refreshLocal(context: Context, database: MusicDatabase) =

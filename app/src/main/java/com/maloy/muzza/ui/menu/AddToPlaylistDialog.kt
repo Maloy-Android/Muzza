@@ -189,13 +189,15 @@ fun AddToPlaylistDialog(
                             modifier = Modifier.weight(1f),
                             horizontalArrangement = Arrangement.End
                         ) {
-                            Switch(
-                                enabled = !noSyncing,
-                                checked = syncedPlaylist,
-                                onCheckedChange = {
-                                    syncedPlaylist = !syncedPlaylist
-                                },
-                            )
+                            if (isInternetAvailable(context)) {
+                                Switch(
+                                    enabled = !noSyncing,
+                                    checked = syncedPlaylist,
+                                    onCheckedChange = {
+                                        syncedPlaylist = !syncedPlaylist
+                                    },
+                                )
+                            }
                         }
                     }
                 }

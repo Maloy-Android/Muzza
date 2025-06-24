@@ -181,9 +181,6 @@ fun MiniPlayer(
                             if (offsetX > 0) R.drawable.skip_previous else R.drawable.skip_next
                         ),
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary.copy(
-                            alpha = (offsetX.absoluteValue / 200f).coerceIn(0f, 1f)
-                        ),
                         modifier = Modifier.size(24.dp)
                     )
                 }

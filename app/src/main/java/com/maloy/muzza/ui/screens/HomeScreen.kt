@@ -467,7 +467,7 @@ fun HomeScreen(
                 }
             }
 
-            if (isLoggedIn) {
+            if (showRecentActivity && isLoggedIn && !recentActivity.isNullOrEmpty()) {
                 item {
                     val accountName by rememberPreference(AccountNameKey, "")
                     val currentHour = Calendar.getInstance().get(Calendar.HOUR_OF_DAY)
@@ -491,8 +491,6 @@ fun HomeScreen(
                         )
                     }
                 }
-            }
-            if (showRecentActivity && isLoggedIn && !recentActivity.isNullOrEmpty()) {
                 item {
                     LazyHorizontalGrid(
                         state = recentActivityGridState,

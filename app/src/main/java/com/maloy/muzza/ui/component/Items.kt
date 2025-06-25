@@ -30,6 +30,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderCopy
@@ -884,6 +885,14 @@ fun PlaylistListItem(
         if (playlist.playlist.isLocal) {
             Icon(
                 imageVector = Icons.Rounded.CloudOff,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(18.dp)
+                    .padding(end = 2.dp)
+            )
+        } else {
+            Icon(
+                imageVector = Icons.Rounded.Cloud,
                 contentDescription = null,
                 modifier = Modifier
                     .size(18.dp)

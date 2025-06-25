@@ -124,7 +124,7 @@ fun PlayerSettings(
             initialValue = crossfadeDuration,
             upperBound = 12000,
             lowerBound = 0,
-            resetValue = 3000,
+            resetValue = 12000,
             onDismiss = { showCrossFadeDur = false },
             onConfirm = {
                 showCrossFadeDur = false

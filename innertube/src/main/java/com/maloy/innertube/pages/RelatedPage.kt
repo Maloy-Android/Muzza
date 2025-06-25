@@ -90,7 +90,7 @@ data class RelatedPage(
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     }?:return null,
-                    year = renderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
+                    year = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
                     explicit = renderer.subtitleBadges?.find {

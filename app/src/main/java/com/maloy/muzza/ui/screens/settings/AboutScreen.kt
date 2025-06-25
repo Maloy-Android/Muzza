@@ -329,6 +329,10 @@ fun AboutScreen(
             )
         }
 
+        if (showDonateCard) {
+            Spacer(Modifier.height(20.dp))
+        }
+
         AnimatedVisibility(showDonateCard) {
             CardItem(
                 icon = R.drawable.boosty,
@@ -338,7 +342,9 @@ fun AboutScreen(
             )
         }
 
-        Spacer(Modifier.height(20.dp))
+        if (showDonateCard) {
+            Spacer(Modifier.height(20.dp))
+        }
 
         AnimatedVisibility(showDonateCard) {
             CardItem(

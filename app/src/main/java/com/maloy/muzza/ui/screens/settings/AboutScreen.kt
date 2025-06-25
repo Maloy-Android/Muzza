@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
@@ -41,6 +42,10 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -64,7 +69,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
-
+import com.maloy.muzza.utils.rememberPreference
 
 
 @Composable
@@ -180,6 +185,9 @@ fun AboutScreen(
     ) {
     val uriHandler = LocalUriHandler.current
     val shimmerBrush = shimmerEffect()
+    var showDonateCard by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     Column(
         modifier = Modifier
@@ -305,12 +313,41 @@ fun AboutScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        CardItem(
-            icon = R.drawable.donate,
-            title = stringResource(R.string.Donate),
-            subtitle = stringResource(R.string.donate_help),
-            onClick = { uriHandler.openUri("https://www.tbank.ru/cf/HsHAuwTNf6") }
-        )
+        if (showDonateCard) {
+            CardItem(
+                icon = R.drawable.donate,
+                title = stringResource(R.string.Donate),
+                subtitle = stringResource(R.string.donate_help),
+                onClick = { showDonateCard = false }
+            )
+        } else {
+            CardItem(
+                icon = R.drawable.donate,
+                title = stringResource(R.string.Donate),
+                subtitle = stringResource(R.string.donate_help),
+                onClick = { showDonateCard = true }
+            )
+        }
+
+        AnimatedVisibility(showDonateCard) {
+            CardItem(
+                icon = R.drawable.boosty,
+                title = stringResource(R.string.boosty_title),
+                subtitle = stringResource(R.string.donate_help),
+                onClick = { uriHandler.openUri("https://boosty.to/maloybegonia/donate") }
+            )
+        }
+
+        Spacer(Modifier.height(20.dp))
+
+        AnimatedVisibility(showDonateCard) {
+            CardItem(
+                icon = R.drawable.tinkoff,
+                title = stringResource(R.string.t_bank_title),
+                subtitle = stringResource(R.string.donate_help),
+                onClick = { uriHandler.openUri("https://www.tbank.ru/cf/1WDQfqCFiNn") }
+            )
+        }
 
         Spacer(Modifier.height(20.dp))
 

@@ -64,6 +64,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -245,6 +246,14 @@ fun AutoPlaylistLocalScreen(
     LaunchedEffect(isSearching) {
         if (isSearching) {
             focusRequester.requestFocus()
+        }
+    }
+
+    LaunchedEffect(songs) {
+        selection.fastForEachReversed { songId ->
+            if (songs.find { it.id == songId } == null) {
+                selection.remove(songId)
+            }
         }
     }
 

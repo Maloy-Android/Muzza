@@ -485,7 +485,6 @@ fun AutoPlaylistLocalScreen(
                     ) {
                         Text(
                             text = pluralStringResource(
-                                R.plurals.n_song,
                                 R.plurals.n_song, filteredItems.toList().size, filteredItems.toList().size
                             ),
                             style = MaterialTheme.typography.bodyMedium,

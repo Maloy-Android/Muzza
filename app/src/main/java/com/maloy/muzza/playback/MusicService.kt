@@ -68,8 +68,6 @@ import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
-import com.maloy.muzza.constants.CrossfadeDurationKey
-import com.maloy.muzza.constants.CrossfadeEnabledKey
 import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
 import com.maloy.muzza.constants.HideExplicitKey
@@ -217,10 +215,6 @@ class MusicService : MediaLibraryService(),
     private var bluetoothReceiver: BroadcastReceiver? = null
 
     private var wasPlayingBeforeMute = false
-
-    private val crossfadeEnabled = MutableStateFlow(false)
-    private val crossfadeDuration = MutableStateFlow(3000L)
-    private var crossfadeJob: Job? = null
 
     private var volumeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -456,16 +450,6 @@ class MusicService : MediaLibraryService(),
                 addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             })
         }
-        scope.launch {
-            combine(
-                dataStore.data.map { it[CrossfadeEnabledKey] ?: false },
-                dataStore.data.map { it[CrossfadeDurationKey]?.toLong() ?: 3000L }
-            ) { enabled, duration -> Pair(enabled, duration) }
-                .collect { (enabled, duration) ->
-                    crossfadeEnabled.value = enabled
-                    crossfadeDuration.value = duration
-                }
-        }
     }
 
     private fun updateNotification() {
@@ -673,32 +657,6 @@ class MusicService : MediaLibraryService(),
                 if (player.playbackState != STATE_IDLE) {
                     player.addMediaItems(mediaItems.drop(1))
                 }
-            }
-        }
-        if (dataStore.get(CrossfadeEnabledKey,true) && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO &&
-            crossfadeEnabled.value &&
-            player.playbackState == Player.STATE_READY) {
-            startCrossfade()
-        }
-    }
-
-    private fun startCrossfade() {
-        crossfadeJob?.cancel()
-        crossfadeJob = scope.launch {
-            val duration = crossfadeDuration.value
-            val steps = 20
-            val stepDuration = duration / steps
-            for (i in 0..steps) {
-                val volume = 1f - (i.toFloat() / steps)
-                player.volume = volume
-                delay(stepDuration)
-            }
-            player.seekToNext()
-            player.volume = 0f
-            for (i in 0..steps) {
-                val volume = i.toFloat() / steps
-                player.volume = volume
-                delay(stepDuration)
             }
         }
     }
@@ -941,7 +899,6 @@ class MusicService : MediaLibraryService(),
         bluetoothReceiver?.let {
             unregisterReceiver(it)
         }
-        crossfadeJob?.cancel()
         super.onDestroy()
     }
 

@@ -406,8 +406,6 @@
     <string name="audio_normalization">Audio normalization</string>
     <string name="play_song_when_bluetooth_device_connected">Continue playback when the bluetooth device is connected</string>
     <string name="stop_playing_when_song_sound_minimum_volume">Stop playing song when sound minimum volume</string>
-    <string name="crossfade">Crossfade</string>
-    <string name="crossfade_description">Smooth transition between songs</string>
     <string name="adding_played_songs_to_ytm_history">Adding played songs to YouTube-Music history</string>
     <string name="auto_skip_next_on_error">Auto skip to next song when error occurs</string>
     <string name="auto_skip_next_on_error_desc">Ensure your continuous playback experience</string>

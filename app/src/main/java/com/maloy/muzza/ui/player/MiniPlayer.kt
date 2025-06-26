@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
@@ -79,6 +80,7 @@ fun MiniPlayer(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
+    val currentSong by playerConnection.currentSong.collectAsState(initial = null)
 
     val currentView = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
@@ -145,6 +147,17 @@ fun MiniPlayer(
                             modifier = Modifier.padding(horizontal = 6.dp)
                         )
                     }
+                }
+                IconButton(
+                    onClick = {
+                        playerConnection.toggleLike()
+                    }
+                ) {
+                    Icon(
+                        painter = if (currentSong?.song?.liked == true) painterResource(R.drawable.favorite) else painterResource(R.drawable.favorite_border),
+                        tint = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else LocalContentColor.current,
+                        contentDescription = null
+                    )
                 }
                 IconButton(
                     onClick = {

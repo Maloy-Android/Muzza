@@ -452,7 +452,11 @@ fun AutoPlaylistLocalScreen(
             ) { _, folder ->
                 SongFolderItem(
                     folder = folder,
-                    subtitle = "${folder.toList().size} Song${if (folder.toList().size > 1) "" else "s"}",
+                    subtitle = pluralStringResource(
+                        R.plurals.n_song,
+                        folder.toList().size,
+                        folder.toList().size
+                    ),
                     modifier = Modifier
                         .combinedClickable {
                             currDir = folderStack.push(folder)

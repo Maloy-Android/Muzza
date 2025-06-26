@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerConnection
@@ -50,7 +51,11 @@ fun FolderMenu(
     SongFolderItem(
         folderTitle = folder.currentDir,
         modifier = Modifier,
-        subtitle = "${folder.toList().size} Song${if (folder.toList().size > 1) "" else "s"}",
+        subtitle = pluralStringResource(
+            R.plurals.n_song,
+            folder.toList().size,
+            folder.toList().size
+        ),
     )
 
     HorizontalDivider()

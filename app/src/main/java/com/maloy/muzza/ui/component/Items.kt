@@ -890,14 +890,6 @@ fun PlaylistListItem(
                     .size(18.dp)
                     .padding(end = 2.dp)
             )
-        } else {
-            Icon(
-                imageVector = Icons.Rounded.Cloud,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(18.dp)
-                    .padding(end = 2.dp)
-            )
         }
     },
     trailingContent = trailingContent,

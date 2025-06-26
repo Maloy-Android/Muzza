@@ -16,6 +16,7 @@ import android.os.Binder
 import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -217,8 +218,8 @@ class MusicService : MediaLibraryService(),
 
     private var wasPlayingBeforeMute = false
 
-    private var crossfadeDuration = MutableStateFlow(dataStore.get(CrossfadeDurationKey, 12000))
-    private var isCrossfadeEnabled = MutableStateFlow(dataStore.get(CrossfadeEnabledKey, false))
+    private val crossfadeEnabled = MutableStateFlow(false)
+    private val crossfadeDuration = MutableStateFlow(3000L)
     private var crossfadeJob: Job? = null
 
     private var volumeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
@@ -455,22 +456,16 @@ class MusicService : MediaLibraryService(),
                 addAction(BluetoothDevice.ACTION_ACL_CONNECTED)
             })
         }
-        dataStore.data
-            .map { it[CrossfadeEnabledKey] ?: false }
-            .distinctUntilChanged()
-            .collectLatest(scope) { enabled ->
-                isCrossfadeEnabled.value = enabled
-                if (!enabled) {
-                    crossfadeJob?.cancel()
+        scope.launch {
+            combine(
+                dataStore.data.map { it[CrossfadeEnabledKey] ?: false },
+                dataStore.data.map { it[CrossfadeDurationKey]?.toLong() ?: 3000L }
+            ) { enabled, duration -> Pair(enabled, duration) }
+                .collect { (enabled, duration) ->
+                    crossfadeEnabled.value = enabled
+                    crossfadeDuration.value = duration
                 }
-            }
-
-        dataStore.data
-            .map { it[CrossfadeDurationKey] ?: 12000 }
-            .distinctUntilChanged()
-            .collectLatest(scope) { duration ->
-                crossfadeDuration.value = duration
-            }
+        }
     }
 
     private fun updateNotification() {
@@ -660,10 +655,6 @@ class MusicService : MediaLibraryService(),
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
-        crossfadeJob?.cancel()
-        if (isCrossfadeEnabled.value && reason != Player.MEDIA_ITEM_TRANSITION_REASON_REPEAT) {
-            startCrossfade()
-        }
         if (consecutivePlaybackErr > 0) {
             consecutivePlaybackErr --
         }
@@ -684,31 +675,33 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
-    }
-
-    private fun startCrossfade() {
-        if (!isCrossfadeEnabled.value || player.mediaItemCount <= 1) return
-        val durationMs = crossfadeDuration.value * 1000L
-        val currentPosition = player.currentPosition
-        val duration = player.duration
-        if (duration - currentPosition <= durationMs) {
-            crossfadeJob = scope.launch {
-                val remainingTime = duration - currentPosition
-                if (remainingTime > 0) {
-                    delay(remainingTime)
-                }
-                val steps = 10
-                val stepDuration = durationMs / steps
-                val volumeStep = player.volume / steps
-                repeat(steps) {
-                    player.volume -= volumeStep
-                    delay(stepDuration)
-                }
-                player.volume = playerVolume.value * normalizeFactor.value
-            }
+        if (dataStore.get(CrossfadeEnabledKey,true) && reason == Player.MEDIA_ITEM_TRANSITION_REASON_AUTO &&
+            crossfadeEnabled.value &&
+            player.playbackState == Player.STATE_READY) {
+            startCrossfade()
         }
     }
 
+    private fun startCrossfade() {
+        crossfadeJob?.cancel()
+        crossfadeJob = scope.launch {
+            val duration = crossfadeDuration.value
+            val steps = 20
+            val stepDuration = duration / steps
+            for (i in 0..steps) {
+                val volume = 1f - (i.toFloat() / steps)
+                player.volume = volume
+                delay(stepDuration)
+            }
+            player.seekToNext()
+            player.volume = 0f
+            for (i in 0..steps) {
+                val volume = i.toFloat() / steps
+                player.volume = volume
+                delay(stepDuration)
+            }
+        }
+    }
 
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
         if (playbackState == STATE_IDLE) {

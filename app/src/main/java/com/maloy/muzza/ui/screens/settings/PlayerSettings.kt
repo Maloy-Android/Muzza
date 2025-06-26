@@ -75,7 +75,7 @@ fun PlayerSettings(
     val (stopPlayingSongWhenMinimumVolume,onStopPlayingSongWhenMinimumVolumeChange) = rememberPreference(
         StopPlayingSongWhenMinimumVolumeKey,defaultValue = true)
     val (crossfadeEnabled,onCrossfadeEnabledChange) = rememberPreference(CrossfadeEnabledKey,defaultValue = true)
-    val (crossfadeDuration,onCrossfadeDurationChange) = rememberPreference(CrossfadeDurationKey, defaultValue = 12000)
+    val (crossfadeDuration,onCrossfadeDurationChange) = rememberPreference(CrossfadeDurationKey, defaultValue = 3000)
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(AutoSkipNextOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
@@ -133,7 +133,7 @@ fun PlayerSettings(
             onCancel = {
                 showCrossFadeDur = false
             },
-            onReset = { onCrossfadeDurationChange(12000) },
+            onReset = { onCrossfadeDurationChange(3000) },
         )
     }
 

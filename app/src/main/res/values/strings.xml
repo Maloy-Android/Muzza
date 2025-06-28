@@ -283,6 +283,7 @@
     <string name="keep_alive_title">Prevent system killing app</string>
     <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
     <string name="notifications_settings">Notifications settings</string>
+    <string name="notification_permission_is_required">Notification permission is required</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>

@@ -301,6 +301,7 @@
     <string name="keep_alive_title">Предотвратить закрытие приложения системой</string>
     <string name="keep_alive_description">Используйте уведомление в фоновом режиме, чтобы предотвратить случайное закрытие Muzza системой.</string>
     <string name="notifications_settings">Настройки уведомлений</string>
+    <string name="notification_permission_is_required">Требуется разрешение на уведомления</string>
 
     <!-- Settings -->
     <string name="settings">Настройки</string>

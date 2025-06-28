@@ -76,7 +76,7 @@ fun NotificationSettings(
             onKeepAliveChange(false)
             Toast.makeText(
                 context,
-                "Notification permission is required",
+                context.getString(R.string.notification_permission_is_required),
                 Toast.LENGTH_SHORT
             ).show()
             ActivityCompat.requestPermissions(

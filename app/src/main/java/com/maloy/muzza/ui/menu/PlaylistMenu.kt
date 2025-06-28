@@ -1,10 +1,18 @@
 package com.maloy.muzza.ui.menu
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.HorizontalDivider
@@ -22,7 +30,9 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -134,7 +144,10 @@ fun PlaylistMenu(
             onDismiss = { showRemoveDownloadDialog = false },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist.playlist.name),
+                    text = stringResource(
+                        R.string.remove_download_playlist_confirm,
+                        playlist.playlist.name
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -233,6 +246,110 @@ fun PlaylistMenu(
         }
     )
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    onDismiss()
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist.playlist.name,
+                            items = songs.map { it.toMediaItem() }
+                        ))
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.play),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.play),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    onDismiss()
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist.playlist.name,
+                            items = songs.shuffled().map { it.toMediaItem() }
+                        ))
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.shuffle),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.shuffle),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    onDismiss()
+                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.queue_music),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.add_to_queue),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+    }
+
     HorizontalDivider()
 
     ListMenu(
@@ -243,36 +360,6 @@ fun PlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        ListMenuItem(
-            icon = R.drawable.play,
-            title = R.string.play
-        ) {
-            onDismiss()
-            playerConnection.playQueue(ListQueue(
-                title = playlist.playlist.name,
-                items = songs.map { it.toMediaItem() }
-            ))
-        }
-
-        ListMenuItem(
-            icon = R.drawable.shuffle,
-            title = R.string.shuffle
-        ) {
-            onDismiss()
-            playerConnection.playQueue(ListQueue(
-                title = playlist.playlist.name,
-                items = songs.shuffled().map { it.toMediaItem() }
-            ))
-        }
-
-        ListMenuItem(
-            icon = R.drawable.queue_music,
-            title = R.string.add_to_queue
-        ) {
-            onDismiss()
-            playerConnection.addToQueue(songs.map { it.toMediaItem() })
-        }
-
         ListMenuItem(
             icon = R.drawable.edit,
             title = R.string.edit

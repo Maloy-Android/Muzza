@@ -3,20 +3,34 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.muzza.LocalDatabase
@@ -73,6 +87,111 @@ fun YouTubeArtistMenu(
         }
     )
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        artist.radioEndpoint?.let { watchEndpoint ->
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.radio),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.start_radio),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        }
+
+        artist.shuffleEndpoint?.let { watchEndpoint ->
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.shuffle),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.shuffle),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, artist.shareLink)
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                    onDismiss()
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.share),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.share),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+    }
+
     HorizontalDivider()
 
     ListMenu(
@@ -83,42 +202,12 @@ fun YouTubeArtistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        artist.radioEndpoint?.let { watchEndpoint ->
-            ListMenuItem(
-                icon = R.drawable.radio,
-                title = R.string.start_radio
-            ) {
-                playerConnection.playQueue(YouTubeQueue(watchEndpoint))
-                onDismiss()
-            }
-        }
-        artist.shuffleEndpoint?.let { watchEndpoint ->
-            ListMenuItem(
-                icon = R.drawable.shuffle,
-                title = R.string.shuffle
-            ) {
-                playerConnection.playQueue(YouTubeQueue(watchEndpoint))
-                onDismiss()
-            }
-        }
         ListMenuItem(
             icon = R.drawable.music_note,
             title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, artist.shareLink.toUri())
             context.startActivity(intent)
-        }
-        ListMenuItem(
-            icon = R.drawable.share,
-            title = R.string.share
-        ) {
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, artist.shareLink)
-            }
-            context.startActivity(Intent.createChooser(intent, null))
-            onDismiss()
         }
     }
 }

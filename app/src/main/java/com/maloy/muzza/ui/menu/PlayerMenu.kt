@@ -7,6 +7,8 @@ import android.media.audiofx.AudioEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,6 +25,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
@@ -51,6 +54,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -217,6 +221,7 @@ fun PlayerMenu(
                                 },
                             )
                         }
+
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = sleepTimerValue,
@@ -224,6 +229,7 @@ fun PlayerMenu(
                                 valueRange = 5f..120f,
                             )
                         }
+
                         SliderStyle.COMPOSE -> {
                             Slider(
                                 value = sleepTimerValue,
@@ -347,6 +353,209 @@ fun PlayerMenu(
 
     HorizontalDivider()
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        if (!mediaMetadata.isLocal) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        playerConnection.service.startRadioSeamlessly()
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.radio),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.start_radio),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        } else {
+            if (librarySong?.song?.inLibrary != null) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            database.query {
+                                inLibrary(mediaMetadata.id, null)
+                            }
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.library_add_check),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.remove_from_library),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            database.transaction {
+                                insert(mediaMetadata)
+                                inLibrary(mediaMetadata.id, LocalDateTime.now())
+                            }
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.library_add),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.add_to_library),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            }
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    showChoosePlaylistDialog = true
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.playlist_add),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.add_to_playlist),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+        if (!mediaMetadata.isLocal) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        val intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                            )
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.share),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.share),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onShowDetailsDialog()
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.info),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.details),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        }
+    }
+
+    HorizontalDivider()
+
     Spacer(modifier = Modifier.height(12.dp))
 
     ListMenu(
@@ -357,21 +566,6 @@ fun PlayerMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (!mediaMetadata.isLocal) {
-            ListMenuItem(
-                icon = R.drawable.radio,
-                title = R.string.start_radio
-            ) {
-                playerConnection.service.startRadioSeamlessly()
-                onDismiss()
-            }
-        }
-        ListMenuItem(
-            icon = R.drawable.playlist_add,
-            title = R.string.add_to_playlist
-        ) {
-            showChoosePlaylistDialog = true
-        }
         if (!mediaMetadata.isLocal) {
             DownloadListMenu(
                 state = download?.state,
@@ -401,27 +595,27 @@ fun PlayerMenu(
                 }
             )
         }
-        if (librarySong?.song?.inLibrary != null) {
-            ListMenuItem(
-                icon = R.drawable.library_add_check,
-                title = R.string.remove_from_library,
-            ) {
-                database.query {
-                    inLibrary(mediaMetadata.id, null)
-                }
-            }
-        } else {
-            ListMenuItem(
-                icon = R.drawable.library_add,
-                title = R.string.add_to_library,
-            ) {
-                database.transaction {
-                    insert(mediaMetadata)
-                    inLibrary(mediaMetadata.id, LocalDateTime.now())
-                }
-            }
-        }
         if (!mediaMetadata.isLocal) {
+            if (librarySong?.song?.inLibrary != null) {
+                ListMenuItem(
+                    icon = R.drawable.library_add_check,
+                    title = R.string.remove_from_library,
+                ) {
+                    database.query {
+                        inLibrary(mediaMetadata.id, null)
+                    }
+                }
+            } else {
+                ListMenuItem(
+                    icon = R.drawable.library_add,
+                    title = R.string.add_to_library,
+                ) {
+                    database.transaction {
+                        insert(mediaMetadata)
+                        inLibrary(mediaMetadata.id, LocalDateTime.now())
+                    }
+                }
+            }
             if (artists.isNotEmpty()) {
                 ListMenuItem(
                     icon = R.drawable.artist,
@@ -457,28 +651,12 @@ fun PlayerMenu(
                 context.startActivity(intent)
             }
             ListMenuItem(
-                icon = R.drawable.share,
-                title = R.string.share
+                icon = R.drawable.info,
+                title = R.string.details
             ) {
-                val intent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    type = "text/plain"
-                    putExtra(
-                        Intent.EXTRA_TEXT,
-                        "https://music.youtube.com/watch?v=${mediaMetadata.id}"
-                    )
-                }
-                context.startActivity(Intent.createChooser(intent, null))
+                onShowDetailsDialog()
                 onDismiss()
             }
-        }
-
-        ListMenuItem(
-            icon = R.drawable.info,
-            title = R.string.details
-        ) {
-            onShowDetailsDialog()
-            onDismiss()
         }
         ListMenuItem(
             icon = R.drawable.equalizer,

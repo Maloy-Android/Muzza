@@ -1,12 +1,16 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -33,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -201,6 +206,105 @@ fun YouTubeSongMenu(
         }
     )
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+                    onDismiss()
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.radio),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.start_radio),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    showChoosePlaylistDialog = true
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.playlist_add),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.add_to_playlist),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(Intent.EXTRA_TEXT, song.shareLink)
+                    }
+                    context.startActivity(Intent.createChooser(intent, null))
+                    onDismiss()
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.share),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.share),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+    }
+
     HorizontalDivider()
 
     ListMenu(
@@ -211,13 +315,6 @@ fun YouTubeSongMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        ListMenuItem(
-            icon = R.drawable.radio,
-            title = R.string.start_radio
-        ) {
-            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
-            onDismiss()
-        }
         ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
@@ -251,12 +348,6 @@ fun YouTubeSongMenu(
                     inLibrary(song.id, LocalDateTime.now())
                 }
             }
-        }
-        ListMenuItem(
-            icon = R.drawable.playlist_add,
-            title = R.string.add_to_playlist
-        ) {
-            showChoosePlaylistDialog = true
         }
         DownloadListMenu(
             state = download?.state,
@@ -312,18 +403,6 @@ fun YouTubeSongMenu(
         ) {
             val intent = Intent(Intent.ACTION_VIEW, song.shareLink.toUri())
             context.startActivity(intent)
-        }
-        ListMenuItem(
-            icon = R.drawable.share,
-            title = R.string.share
-        ) {
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, song.shareLink)
-            }
-            context.startActivity(Intent.createChooser(intent, null))
-            onDismiss()
         }
     }
 }

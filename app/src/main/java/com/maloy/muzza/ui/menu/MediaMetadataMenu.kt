@@ -2,15 +2,22 @@ package com.maloy.muzza.ui.menu
 
 
 import android.content.Intent
+import androidx.compose.foundation.background
+import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,8 +34,10 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -69,7 +78,8 @@ fun MediaMetadataMenu(
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
 
-    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id).collectAsState(initial = null)
+    val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
+        .collectAsState(initial = null)
 
     val artists = remember(mediaMetadata.artists) {
         mediaMetadata.artists.filter { it.id != null }
@@ -159,6 +169,172 @@ fun MediaMetadataMenu(
         }
     )
 
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
+        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
+    ) {
+        if (mediaMetadata.isLocal) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        playerConnection.playNext(mediaMetadata.toMediaItem())
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.playlist_play),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.play_next),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        playerConnection.service.startRadioSeamlessly()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.radio),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.start_radio),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    showChoosePlaylistDialog = true
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.playlist_add),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.add_to_playlist),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+        if (!mediaMetadata.isLocal) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        val intent = Intent().apply {
+                            action = Intent.ACTION_SEND
+                            type = "text/plain"
+                            putExtra(
+                                Intent.EXTRA_TEXT,
+                                "https://music.youtube.com/watch?v=${mediaMetadata.id}"
+                            )
+                        }
+                        context.startActivity(Intent.createChooser(intent, null))
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.share),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.share),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        playerConnection.addToQueue((mediaMetadata.toMediaItem()))
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.queue_music),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.add_to_queue),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        }
+    }
+
     HorizontalDivider()
 
     ListMenu(
@@ -169,59 +345,49 @@ fun MediaMetadataMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        ListMenuItem(
-            icon = R.drawable.radio,
-            title = R.string.start_radio
-        ) {
-            playerConnection.service.startRadioSeamlessly()
-            onDismiss()
-        }
-        ListMenuItem(
-            icon = R.drawable.playlist_play,
-            title = R.string.play_next
-        ) {
-            onDismiss()
-            playerConnection.playNext(mediaMetadata.toMediaItem())
-        }
-        ListMenuItem(
-            icon = R.drawable.queue_music,
-            title = R.string.add_to_queue
-        ) {
-            onDismiss()
-            playerConnection.addToQueue(mediaMetadata.toMediaItem())
-        }
-        ListMenuItem(
-            icon = R.drawable.playlist_add,
-            title = R.string.add_to_playlist
-        ) {
-            showChoosePlaylistDialog = true
-        }
-        DownloadListMenu(
-            state = download?.state,
-            onDownload = {
-                database.transaction {
-                    insert(mediaMetadata)
-                }
-                val downloadRequest = DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-                    .setCustomCacheKey(mediaMetadata.id)
-                    .setData(mediaMetadata.title.toByteArray())
-                    .build()
-                DownloadService.sendAddDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    downloadRequest,
-                    false
-                )
-            },
-            onRemoveDownload = {
-                DownloadService.sendRemoveDownload(
-                    context,
-                    ExoDownloadService::class.java,
-                    mediaMetadata.id,
-                    false
-                )
+        if (!mediaMetadata.isLocal) {
+            ListMenuItem(
+                icon = R.drawable.playlist_play,
+                title = R.string.play_next
+            ) {
+                onDismiss()
+                playerConnection.playNext(mediaMetadata.toMediaItem())
             }
-        )
+            ListMenuItem(
+                icon = R.drawable.queue_music,
+                title = R.string.add_to_queue
+            ) {
+                onDismiss()
+                playerConnection.addToQueue(mediaMetadata.toMediaItem())
+            }
+            DownloadListMenu(
+                state = download?.state,
+                onDownload = {
+                    database.transaction {
+                        insert(mediaMetadata)
+                    }
+                    val downloadRequest =
+                        DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                            .setCustomCacheKey(mediaMetadata.id)
+                            .setData(mediaMetadata.title.toByteArray())
+                            .build()
+                    DownloadService.sendAddDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                },
+                onRemoveDownload = {
+                    DownloadService.sendRemoveDownload(
+                        context,
+                        ExoDownloadService::class.java,
+                        mediaMetadata.id,
+                        false
+                    )
+                }
+            )
+        }
         if (librarySong?.song?.inLibrary != null) {
             ListMenuItem(
                 icon = R.drawable.library_add_check,
@@ -242,7 +408,7 @@ fun MediaMetadataMenu(
                 }
             }
         }
-        if (artists.isNotEmpty()) {
+        if (!mediaMetadata.isLocal && artists.isNotEmpty()) {
             ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_artist
@@ -256,7 +422,7 @@ fun MediaMetadataMenu(
                 }
             }
         }
-        if (mediaMetadata.album != null) {
+        if (!mediaMetadata.isLocal && mediaMetadata.album != null) {
             ListMenuItem(
                 icon = R.drawable.album,
                 title = R.string.view_album
@@ -265,18 +431,6 @@ fun MediaMetadataMenu(
                 bottomSheetState.collapseSoft()
                 onDismiss()
             }
-        }
-        ListMenuItem(
-            icon = R.drawable.share,
-            title = R.string.share
-        ) {
-            val intent = Intent().apply {
-                action = Intent.ACTION_SEND
-                type = "text/plain"
-                putExtra(Intent.EXTRA_TEXT, "https://music.youtube.com/watch?v=${mediaMetadata.id}")
-            }
-            context.startActivity(Intent.createChooser(intent, null))
-            onDismiss()
         }
     }
 }

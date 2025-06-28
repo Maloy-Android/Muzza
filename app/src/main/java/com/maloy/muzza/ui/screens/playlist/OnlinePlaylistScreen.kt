@@ -519,22 +519,6 @@ fun OnlinePlaylistScreen(
                                         }
                                     }
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    Button(
-                                        onClick = {
-                                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-                                        },
-                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.shuffle),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                                        )
-                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.shuffle))
-                                    }
-
                                     playlist.radioEndpoint?.let { radioEndpoint ->
                                         Button(
                                             onClick = {
@@ -551,6 +535,21 @@ fun OnlinePlaylistScreen(
                                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                             Text(stringResource(R.string.radio))
                                         }
+                                    }
+                                    Button(
+                                        onClick = {
+                                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
+                                        },
+                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.shuffle),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(stringResource(R.string.shuffle))
                                     }
                                 }
                             }

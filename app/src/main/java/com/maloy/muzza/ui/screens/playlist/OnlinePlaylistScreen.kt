@@ -342,7 +342,11 @@ fun OnlinePlaylistScreen(
                                                                     browseId = playlist.id,
                                                                     thumbnailUrl = playlist.thumbnail,
                                                                     isEditable = playlist.isEditable,
-                                                                    remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
+                                                                    remoteSongCount = playlist.songCountText?.let {
+                                                                        Regex(
+                                                                            """\d+"""
+                                                                        ).find(it)?.value?.toIntOrNull()
+                                                                    },
                                                                     playEndpointParams = playlist.playEndpoint?.params,
                                                                     shuffleEndpointParams = playlist.shuffleEndpoint.params,
                                                                     radioEndpointParams = playlist.radioEndpoint?.params
@@ -359,23 +363,23 @@ fun OnlinePlaylistScreen(
                                                                     }
                                                                     .forEach(::insert)
                                                             }
-                                                            } else {
-                                                                database.transaction {
-                                                                    update(dbPlaylist!!.playlist.toggleLike())
-                                                                }
+                                                        } else {
+                                                            database.transaction {
+                                                                update(dbPlaylist!!.playlist.toggleLike())
+                                                            }
                                                         }
                                                     },
                                                     modifier = Modifier
                                                         .weight(1f)
                                                         .padding(4.dp)
                                                         .clip(RoundedCornerShape(12.dp))
-                                                        ) {
-                                                        Icon(
-                                                            painter = painterResource(
-                                                                if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
-                                                            ),
-                                                            contentDescription = null
-                                                        )
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(
+                                                            if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
+                                                        ),
+                                                        contentDescription = null
+                                                    )
                                                 }
                                             }
 
@@ -514,9 +518,6 @@ fun OnlinePlaylistScreen(
                                             }
                                         }
                                     }
-
-                                Spacer(Modifier.height(12.dp))
-
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {

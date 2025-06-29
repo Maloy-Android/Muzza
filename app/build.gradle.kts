@@ -1,4 +1,4 @@
-@file:Suppress("UnstableApiUsage")
+@file:Suppress("UnstableApiUsage", "DEPRECATION")
 
 val isFullBuild: Boolean by rootProject.extra
 
@@ -20,12 +20,12 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
 
 android {
     namespace = "com.maloy.muzza"
-    compileSdk = 35
+    compileSdk = 36
     buildToolsVersion = "35.0.0"
     defaultConfig {
         applicationId = "com.maloy.muzza"
         minSdk = 24
-        compileSdk = 35
+        targetSdk = 36
         versionCode = 41
         versionName = "0.6.9-rc-1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

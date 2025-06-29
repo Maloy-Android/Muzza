@@ -416,7 +416,7 @@ fun LocalPlaylistScreen(
                                     modifier = Modifier.weight(1f)
                                 )
 
-                                if (!inSelectMode) {
+                                if (!inSelectMode && sortType == PlaylistSongSortType.CUSTOM) {
                                     IconButton(
                                         onClick = { locked = !locked },
                                         modifier = Modifier.padding(horizontal = 6.dp)

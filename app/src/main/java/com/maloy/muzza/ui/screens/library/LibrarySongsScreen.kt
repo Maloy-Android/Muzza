@@ -316,7 +316,6 @@ fun LibrarySongsScreen(
                                 )
                             }
                         }
-                        Spacer(Modifier.weight(1f))
                         Text(
                             text = pluralStringResource(
                                 R.plurals.n_song,

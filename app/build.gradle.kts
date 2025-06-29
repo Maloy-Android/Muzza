@@ -1,5 +1,7 @@
 @file:Suppress("UnstableApiUsage")
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 val isFullBuild: Boolean by rootProject.extra
 
 plugins {
@@ -7,7 +9,6 @@ plugins {
     kotlin("android")
     kotlin("kapt")
     alias(libs.plugins.hilt)
-    alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
 }
@@ -20,7 +21,7 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
 
 android {
     namespace = "com.maloy.muzza"
-    compileSdk = 35
+    compileSdk = 36
     buildToolsVersion = "35.0.0"
     defaultConfig {
         applicationId = "com.maloy.muzza"
@@ -83,9 +84,11 @@ android {
     kotlin {
         jvmToolchain(17)
     }
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "17"
+    kotlin {
+        compilerOptions {
+            freeCompilerArgs.add("-Xcontext-receivers")
+            jvmTarget.set(JvmTarget.JVM_17)
+        }
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
@@ -106,10 +109,6 @@ android {
     androidResources{
         generateLocaleConfig = true
     }
-}
-
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
 }
 
 dependencies {
@@ -149,7 +148,6 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.cardview)
-    ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 
     implementation(libs.apache.lang3)

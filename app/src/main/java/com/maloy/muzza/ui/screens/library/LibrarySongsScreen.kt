@@ -247,52 +247,86 @@ fun LibrarySongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    SortHeader(
-                        sortType = sortType,
-                        sortDescending = sortDescending,
-                        onSortTypeChange = onSortTypeChange,
-                        onSortDescendingChange = onSortDescendingChange,
-                        sortTypeText = { sortType ->
-                            when (sortType) {
-                                SongSortType.CREATE_DATE -> R.string.sort_by_create_date
-                                SongSortType.NAME -> R.string.sort_by_name
-                                SongSortType.ARTIST -> R.string.sort_by_artist
-                                SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                    if (filter != SongFilter.CACHED) {
+                        SortHeader(
+                            sortType = sortType,
+                            sortDescending = sortDescending,
+                            onSortTypeChange = onSortTypeChange,
+                            onSortDescendingChange = onSortDescendingChange,
+                            sortTypeText = { sortType ->
+                                when (sortType) {
+                                    SongSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    SongSortType.NAME -> R.string.sort_by_name
+                                    SongSortType.ARTIST -> R.string.sort_by_artist
+                                    SongSortType.PLAY_TIME -> R.string.sort_by_play_time
+                                }
+                            }
+                        )
+                        Spacer(Modifier.weight(1f))
+                        if (!isSearching) {
+                            IconButton(
+                                onClick = { isSearching = true },
+                                Modifier.size(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = { isSearching = false },
+                                Modifier.size(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
                             }
                         }
-                    )
-                    Spacer(Modifier.weight(1f))
-                    if (!isSearching) {
-                        IconButton(
-                            onClick = { isSearching = true },
-                            Modifier.size(20.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.search),
-                                contentDescription = null
-                            )
-                        }
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                filteredSongs.size,
+                                filteredSongs.size
+                            ),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     } else {
-                        IconButton(
-                            onClick = { isSearching = false },
-                            Modifier.size(20.dp)
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.search),
-                                contentDescription = null
-                            )
+                        if (!isSearching) {
+                            IconButton(
+                                onClick = { isSearching = true },
+                                Modifier.size(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            }
+                        } else {
+                            IconButton(
+                                onClick = { isSearching = false },
+                                Modifier.size(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            }
                         }
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                filteredSongs.size,
+                                filteredSongs.size
+                            ),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
                     }
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.n_song,
-                            filteredSongs.size,
-                            filteredSongs.size
-                        ),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
                 }
             }
             if (filteredSongs.isEmpty() && !isSearching) {

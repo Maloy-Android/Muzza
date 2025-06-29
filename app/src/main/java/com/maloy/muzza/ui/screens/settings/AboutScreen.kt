@@ -188,6 +188,9 @@ fun AboutScreen(
     var showDonateCard by rememberSaveable {
         mutableStateOf(false)
     }
+    var showContactCard by rememberSaveable {
+        mutableStateOf(false)
+    }
 
     Column(
         modifier = Modifier
@@ -375,12 +378,47 @@ fun AboutScreen(
 
         Spacer(Modifier.height(20.dp))
 
-        CardItem(
-            icon = R.drawable.help,
-            title = stringResource(R.string.help),
-            subtitle = stringResource(R.string.help_text),
-            onClick = { uriHandler.openUri("https://wa.me/9022340312") }
-        )
+        if (showContactCard) {
+            CardItem(
+                icon = R.drawable.help,
+                title = stringResource(R.string.help),
+                subtitle = stringResource(R.string.help_text),
+                onClick = { showContactCard = false }
+            )
+        } else {
+            CardItem(
+                icon = R.drawable.help,
+                title = stringResource(R.string.help),
+                subtitle = stringResource(R.string.help_text),
+                onClick = { showContactCard = true }
+            )
+        }
+
+        if (showContactCard) {
+            Spacer(Modifier.height(20.dp))
+        }
+
+        AnimatedVisibility(showContactCard) {
+            CardItem(
+                icon = R.drawable.telegram,
+                title = stringResource(R.string.help),
+                subtitle = stringResource(R.string.help_text),
+                onClick = { uriHandler.openUri("https://web.telegram.org/k/#@MaloyBegonia") }
+            )
+        }
+
+        if (showContactCard) {
+            Spacer(Modifier.height(20.dp))
+        }
+
+        AnimatedVisibility(showContactCard) {
+            CardItem(
+                icon = R.drawable.whatsapp,
+                title = stringResource(R.string.help),
+                subtitle = stringResource(R.string.help_text),
+                onClick = { uriHandler.openUri("https://wa.me/9022340312") }
+            )
+        }
 
         Spacer(Modifier.height(20.dp))
         Row(

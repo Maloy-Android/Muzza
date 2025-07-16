@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.rounded.Output
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -267,7 +266,7 @@ fun PlaylistMenu(
             }
         }
     )
-
+    HorizontalDivider()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -371,8 +370,6 @@ fun PlaylistMenu(
             )
         }
     }
-
-    HorizontalDivider()
 
     ListMenu(
         contentPadding = PaddingValues(

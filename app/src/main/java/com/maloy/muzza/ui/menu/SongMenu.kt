@@ -226,7 +226,7 @@ fun SongMenu(
             }
         }
     )
-
+    HorizontalDivider()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -443,8 +443,6 @@ fun SongMenu(
             }
         }
     }
-
-    HorizontalDivider()
 
     ListMenu(
         contentPadding = PaddingValues(

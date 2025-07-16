@@ -168,7 +168,7 @@ fun MediaMetadataMenu(
             }
         }
     )
-
+    HorizontalDivider()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -334,8 +334,6 @@ fun MediaMetadataMenu(
             }
         }
     }
-
-    HorizontalDivider()
 
     ListMenu(
         contentPadding = PaddingValues(

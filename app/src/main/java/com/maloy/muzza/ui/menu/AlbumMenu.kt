@@ -227,6 +227,7 @@ fun AlbumMenu(
             }
         }
     )
+    HorizontalDivider()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -328,8 +329,6 @@ fun AlbumMenu(
             )
         }
     }
-
-    HorizontalDivider()
 
     ListMenu(
         contentPadding = PaddingValues(

@@ -205,7 +205,7 @@ fun YouTubeSongMenu(
             }
         }
     )
-
+    HorizontalDivider()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -304,8 +304,6 @@ fun YouTubeSongMenu(
             )
         }
     }
-
-    HorizontalDivider()
 
     ListMenu(
         contentPadding = PaddingValues(

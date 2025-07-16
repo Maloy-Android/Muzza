@@ -72,7 +72,7 @@ fun ArtistMenu(
             )
         }
     })
-
+    HorizontalDivider()
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -200,8 +200,6 @@ fun ArtistMenu(
             }
         }
     }
-
-    HorizontalDivider()
 
     ListMenu(
         contentPadding = PaddingValues(

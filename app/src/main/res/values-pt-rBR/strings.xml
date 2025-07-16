@@ -403,9 +403,6 @@
 
 <string name="auto_scanner_title">Scan automático</string>
 <string name="auto_scanner_description">Procurar músicas automaticamente ao abrir o aplicativo</string>
-
-<string name="manual_scanner_title">Manual scanner</string>
-<string name="scanner_warning">Dependendo do tamanho da sua biblioteca, pode demorar um pouco. É altamente recomendável esperar o scanner terminar antes de prosseguir. Depois não diga que não avisei!</string>
 <!--scanner additional settings-->
 <string name="scanner_settings_title">Definições adicionais do scanner</string>
 <string name="scanner_strict_file_name_title">Nomes de arquivo</string>

@@ -499,9 +499,6 @@
     <string name="auto_scanner_title">Scan automatically</string>
     <string name="auto_scanner_description">Automatically scan for songs when opening the app</string>
 
-    <string name="manual_scanner_title">Manual scanner</string>
-    <string name="scanner_warning">Depending on the size of your library, it make take a while. It is highly recommend to wait until the scanner to finish before proceeding. Don\'t say I didn\'t warn you!</string>
-
     <!--scanner additional settings-->
     <string name="scanner_settings_title">Additional scanner settings</string>
     <string name="scanner_strict_file_name_title">Strict file names</string>

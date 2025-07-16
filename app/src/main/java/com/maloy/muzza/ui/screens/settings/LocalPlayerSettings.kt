@@ -2,7 +2,6 @@ package com.maloy.muzza.ui.screens.settings
 
 
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -11,11 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.TextFields
-import androidx.compose.material.icons.rounded.WarningAmber
 import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -25,7 +22,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
@@ -50,7 +46,8 @@ fun LocalPlayerSettings(
 ) {
     val (autoSyncLocalSongs, onAutoSyncLocalSongs) = rememberPreference(
         key = AutoSyncLocalSongsKey,
-        defaultValue = true)
+        defaultValue = true
+    )
     val (scannerSensitivity, onScannerSensitivityChange) = rememberEnumPreference(
         key = ScannerSensitivityKey,
         defaultValue = ScannerSensitivity.LEVEL_2
@@ -70,32 +67,13 @@ fun LocalPlayerSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
             .verticalScroll(rememberScrollState())
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 20.dp, vertical = 8.dp)
-        ) {
-            Icon(
-                Icons.Rounded.WarningAmber,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.error,
-            )
-
-            Text(
-                stringResource(R.string.scanner_warning),
-                color = MaterialTheme.colorScheme.secondary,
-                fontSize = 12.sp,
-                modifier = Modifier
-                    .padding(horizontal = 15.dp)
-            )
-        }
-
         PreferenceGroupTitle(
             title = stringResource(R.string.scanner_settings_title)
         )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.auto_scanner_title)) },
-            description = stringResource(R.string.auto_scanner_description) ,
+            description = stringResource(R.string.auto_scanner_description),
             icon = { Icon(painterResource(R.drawable.sync), null) },
             checked = autoSyncLocalSongs,
             onCheckedChange = onAutoSyncLocalSongs

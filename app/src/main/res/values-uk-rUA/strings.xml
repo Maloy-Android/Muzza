@@ -537,9 +537,6 @@
     <string name="auto_scanner_title">Автосканування</string>
     <string name="auto_scanner_description">Автоматично сканувати пісні з пристрою при відкритті додатку</string>
 
-    <string name="manual_scanner_title">Ручне сканування</string>
-    <string name="scanner_warning">Залежно від розміру бібліотеки, процес може зайняти деякий час. Настійно рекомендовано дочекатися завершення сканування. Не кажіть, що я вас не попереджав!</string>
-
     <!-- Додаткові налаштування -->
     <string name="scanner_settings_title">Додаткові налаштування сканера</string>
     <string name="scanner_strict_file_name_title">Суворі назви файлів</string>

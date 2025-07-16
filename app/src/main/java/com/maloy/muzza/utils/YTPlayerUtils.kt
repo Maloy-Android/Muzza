@@ -18,11 +18,11 @@ object YTPlayerUtils {
         .proxy(YouTube.proxy)
         .build()
 
-    private val MAIN_CLIENT: YouTubeClient = IOS
+    private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
 
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,
-        WEB_REMIX,
+        IOS,
         YouTubeClient.WEB,
         YouTubeClient.MOBILE,
         YouTubeClient.ANDROID_MUSIC

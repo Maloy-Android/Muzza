@@ -228,16 +228,16 @@ fun HistoryScreen(
             } else if (historySource == HistorySource.REMOTE && filteredRemoteContent?.isNotEmpty() == true ||
                 historySource == HistorySource.LOCAL && filteredEventsMap.isNotEmpty()) {
                 item {
-                    ChipsRow(
-                        chips = if (ytmSync && isLoggedIn && isInternetAvailable(context)) listOf(
-                            HistorySource.LOCAL to stringResource(R.string.local_history),
-                            HistorySource.REMOTE to stringResource(R.string.remote_history),
-                        ) else {
-                            listOf(HistorySource.LOCAL to stringResource(R.string.local_history))
-                        },
-                        currentValue = historySource,
-                        onValueUpdate = { viewModel.historySource.value = it }
-                    )
+                    if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+                        ChipsRow(
+                            chips = listOf(
+                                HistorySource.LOCAL to stringResource(R.string.local_history),
+                                HistorySource.REMOTE to stringResource(R.string.remote_history),
+                            ),
+                            currentValue = historySource,
+                            onValueUpdate = { viewModel.historySource.value = it }
+                        )
+                    }
                 }
                 if (historySource == HistorySource.REMOTE) {
                     filteredRemoteContent?.forEach { section ->

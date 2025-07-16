@@ -416,45 +416,7 @@ fun HomeScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             item {
-                Row(
-                    modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                        .padding(horizontal = 12.dp, vertical = 6.dp)
-                        .fillMaxWidth()
-                        .animateItem()
-                ) {
-                    ChipsRow(
-                        chips = listOfNotNull(
-                            Pair("history", stringResource(R.string.history)),
-                            Pair("stats", stringResource(R.string.stats)),
-                            Pair("liked", stringResource(R.string.liked)),
-                            Pair("downloads", stringResource(R.string.offline)),
-                            Pair("MyTop", stringResource(R.string.my_top)),
-                            Pair("cached", stringResource(R.string.cached)),
-                            Pair("local", stringResource(R.string.local))
-                        ),
-                        currentValue = "",
-                        onValueUpdate = { value ->
-                            when (value) {
-                                "history" -> navController.navigate("history")
-                                "stats" -> navController.navigate("stats")
-                                "liked" -> navController.navigate("auto_playlist/liked")
-                                "downloads" -> navController.navigate("auto_playlist/downloaded")
-                                "MyTop" -> navController.navigate("top_playlist/$topSize")
-                                "cached" -> navController.navigate("CachedPlaylist")
-                                "local" -> navController.navigate("AutoPlaylistLocal")
-                            }
-                        },
-                        modifier = Modifier
-                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                            .fillMaxWidth(),
-                        containerColor = MaterialTheme.colorScheme.surfaceContainer
-                    )
-                }
                 if (!homePage?.chips.isNullOrEmpty() && showContentFilter) {
-                    PreferenceGroupTitle(
-                        title = stringResource(R.string.content_filter)
-                    )
                     ChipsRow(
                         chips = homePage?.chips?.mapNotNull { chip ->
                             chip?.let { it to it.title }

@@ -160,12 +160,6 @@ fun AppearanceSettings(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(useDarkTheme) {
-        if (!useDarkTheme && pureBlack) {
-            onPureBlackChange(false)
-        }
-    }
-
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -358,9 +352,7 @@ fun AppearanceSettings(
                 icon = { Icon(painterResource(R.drawable.contrast), null) },
                 checked = pureBlack,
                 onCheckedChange = { checked ->
-                    if (useDarkTheme) {
-                        onPureBlackChange(checked)
-                    }
+                    onPureBlackChange(checked)
                 }
             )
         }

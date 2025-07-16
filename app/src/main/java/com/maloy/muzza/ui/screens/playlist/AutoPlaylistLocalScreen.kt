@@ -86,7 +86,7 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
-import com.maloy.muzza.ui.menu.LocalSongSelectionMenu
+import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.scanLocal
 import com.maloy.muzza.ui.utils.syncDB
@@ -600,12 +600,13 @@ fun AutoPlaylistLocalScreen(
                         enabled = selection.isNotEmpty(),
                         onClick = {
                             menuState.show {
-                                LocalSongSelectionMenu(
+                                SongSelectionMenu(
                                     selection = selection.mapNotNull { songId ->
                                         songs.find { it.id == songId }
                                     },
                                     onDismiss = menuState::dismiss,
-                                    onExitSelectionMode = onExitSelectionMode
+                                    onExitSelectionMode = onExitSelectionMode,
+                                    navController = navController
                                 )
                             }
                         }

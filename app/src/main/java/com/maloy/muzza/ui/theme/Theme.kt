@@ -4,7 +4,9 @@ import android.graphics.Bitmap
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.ColorScheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.MaterialExpressiveTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.dynamicDarkColorScheme
 import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.runtime.Composable
@@ -15,14 +17,127 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.palette.graphics.Palette
-import com.google.material.color.dynamiccolor.DynamicScheme
-import com.google.material.color.hct.Hct
-import com.google.material.color.scheme.SchemeTonalSpot
-import com.google.material.color.score.Score
+import com.materialkolor.PaletteStyle
+import com.materialkolor.dynamiccolor.ColorSpec
+import com.materialkolor.rememberDynamicColorScheme
+import com.materialkolor.score.Score
 
 val DefaultThemeColor = Color(0xFFED5564)
 
+val AppTypography = Typography(
+    displayLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 57.sp,
+        lineHeight = 64.sp,
+        letterSpacing = (-0.25).sp
+    ),
+    displayMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 45.sp,
+        lineHeight = 52.sp,
+        letterSpacing = 0.sp
+    ),
+    displaySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 36.sp,
+        lineHeight = 44.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 32.sp,
+        lineHeight = 40.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 28.sp,
+        lineHeight = 36.sp,
+        letterSpacing = 0.sp
+    ),
+    headlineSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 24.sp,
+        lineHeight = 32.sp,
+        letterSpacing = 0.sp
+    ),
+    titleLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    ),
+    titleMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.15.sp
+    ),
+    titleSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    bodyLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.5.sp
+    ),
+    bodyMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.25.sp
+    ),
+    bodySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.4.sp
+    ),
+    labelLarge = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    ),
+    labelMedium = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    ),
+    labelSmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.5.sp
+    )
+)
+
+@ExperimentalMaterial3ExpressiveApi
 @Composable
 fun MuzzaTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -31,102 +146,59 @@ fun MuzzaTheme(
     content: @Composable () -> Unit,
 ) {
     val context = LocalContext.current
-    val colorScheme =
-        remember(darkTheme, pureBlack, themeColor) {
-            if (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                if (darkTheme) {
-                    dynamicDarkColorScheme(context).pureBlack(pureBlack)
-                } else {
-                    dynamicLightColorScheme(context)
-                }
-            } else {
-                SchemeTonalSpot(Hct.fromInt(themeColor.toArgb()), darkTheme, 0.0)
-                    .toColorScheme()
-                    .pureBlack(darkTheme && pureBlack)
-            }
-        }
+    val useSystemDynamicColor = (themeColor == DefaultThemeColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
 
-    MaterialTheme(
+    val baseColorScheme = if (useSystemDynamicColor) {
+        if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
+    } else {
+        rememberDynamicColorScheme(
+            seedColor = themeColor,
+            isDark = darkTheme,
+            specVersion = ColorSpec.SpecVersion.SPEC_2025,
+            style = PaletteStyle.TonalSpot
+        )
+    }
+
+    val colorScheme = remember(baseColorScheme, pureBlack, darkTheme) {
+        if (darkTheme && pureBlack) {
+            baseColorScheme.pureBlack(true)
+        } else {
+            baseColorScheme
+        }
+    }
+
+    MaterialExpressiveTheme(
         colorScheme = colorScheme,
-        typography = MaterialTheme.typography,
-        content = content,
+        typography = AppTypography,
+        content = content
     )
 }
 
 fun Bitmap.extractThemeColor(): Color {
-    val colorsToPopulation =
-        Palette
-            .from(this)
-            .maximumColorCount(8)
-            .generate()
-            .swatches
-            .associate { it.rgb to it.population }
+    val colorsToPopulation = Palette.from(this)
+        .maximumColorCount(8)
+        .generate()
+        .swatches
+        .associate { it.rgb to it.population }
     val rankedColors = Score.score(colorsToPopulation)
     return Color(rankedColors.first())
 }
 
-fun Bitmap.extractGradientColors(darkTheme: Boolean = false): List<Color> {
+fun Bitmap.extractGradientColors(): List<Color> {
     val extractedColors = Palette.from(this)
-        .maximumColorCount(16)
+        .maximumColorCount(64)
         .generate()
         .swatches
         .associate { it.rgb to it.population }
 
-    val orderedColors = if (darkTheme) {
-        Score.order(extractedColors)
-            .sortedBy { Color(it).luminance() }
-            .take(2)
-            .reversed()
-    } else {
-        Score.order(extractedColors)
-            .take(2)
-            .sortedByDescending { Color(it).luminance() }
-    }
+    val orderedColors = Score.score(extractedColors, 2, 0xff4285f4.toInt(), true)
+        .sortedByDescending { Color(it).luminance() }
+
     return if (orderedColors.size >= 2)
         listOf(Color(orderedColors[0]), Color(orderedColors[1]))
     else
         listOf(Color(0xFF595959), Color(0xFF0D0D0D))
 }
-
-fun DynamicScheme.toColorScheme() =
-    ColorScheme(
-        primary = Color(primary),
-        onPrimary = Color(onPrimary),
-        primaryContainer = Color(primaryContainer),
-        onPrimaryContainer = Color(onPrimaryContainer),
-        inversePrimary = Color(inversePrimary),
-        secondary = Color(secondary),
-        onSecondary = Color(onSecondary),
-        secondaryContainer = Color(secondaryContainer),
-        onSecondaryContainer = Color(onSecondaryContainer),
-        tertiary = Color(tertiary),
-        onTertiary = Color(onTertiary),
-        tertiaryContainer = Color(tertiaryContainer),
-        onTertiaryContainer = Color(onTertiaryContainer),
-        background = Color(background),
-        onBackground = Color(onBackground),
-        surface = Color(surface),
-        onSurface = Color(onSurface),
-        surfaceVariant = Color(surfaceVariant),
-        onSurfaceVariant = Color(onSurfaceVariant),
-        surfaceTint = Color(primary),
-        inverseSurface = Color(inverseSurface),
-        inverseOnSurface = Color(inverseOnSurface),
-        error = Color(error),
-        onError = Color(onError),
-        errorContainer = Color(errorContainer),
-        onErrorContainer = Color(onErrorContainer),
-        outline = Color(outline),
-        outlineVariant = Color(outlineVariant),
-        scrim = Color(scrim),
-        surfaceBright = Color(surfaceBright),
-        surfaceDim = Color(surfaceDim),
-        surfaceContainer = Color(surfaceContainer),
-        surfaceContainerHigh = Color(surfaceContainerHigh),
-        surfaceContainerHighest = Color(surfaceContainerHighest),
-        surfaceContainerLow = Color(surfaceContainerLow),
-        surfaceContainerLowest = Color(surfaceContainerLowest),
-    )
 
 fun ColorScheme.pureBlack(apply: Boolean) =
     if (apply) copy(

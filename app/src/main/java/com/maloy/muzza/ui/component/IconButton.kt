@@ -12,7 +12,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
@@ -20,6 +19,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
+import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
-import androidx.compose.ui.unit.dp
 
 @Composable
 fun ResizableIconButton(
@@ -72,9 +71,9 @@ fun IconButton(
     Box(
         modifier = modifier
             .minimumInteractiveComponentSize()
-            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
+            .size(IconButtonTokens.StateLayerSize)
             .clip(CircleShape)
-            .background(color = colors.containerColor)
+            .background(color = colors.containerColor(enabled))
             .combinedClickable(
                 onClick = onClick,
                 onLongClick = onLongClick,
@@ -83,12 +82,12 @@ fun IconButton(
                 interactionSource = interactionSource,
                 indication = ripple(
                     bounded = false,
-                    radius = 24.dp
-                ),
+                    radius = IconButtonTokens.StateLayerSize / 2
+                )
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
-        val contentColor = colors.contentColor
+        val contentColor = colors.contentColor(enabled)
         CompositionLocalProvider(LocalContentColor provides contentColor, content = content)
     }
 }

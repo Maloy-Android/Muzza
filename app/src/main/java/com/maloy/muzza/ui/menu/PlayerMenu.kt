@@ -703,6 +703,7 @@ fun PlayerMenu(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TempoPitchDialog(
     onDismiss: () -> Unit,
@@ -718,6 +719,7 @@ fun TempoPitchDialog(
         playerConnection.player.playbackParameters =
             PlaybackParameters(tempo, 2f.pow(transposeValue.toFloat() / 12))
     }
+    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
     AlertDialog(
         properties = DialogProperties(usePlatformDefaultWidth = false),
@@ -744,28 +746,130 @@ fun TempoPitchDialog(
             }
         },
         text = {
-            Column {
-                ValueAdjuster(
-                    icon = R.drawable.speed,
-                    currentValue = tempo,
-                    values = (0..35).map { round((0.25f + it * 0.05f) * 100) / 100 },
-                    onValueUpdate = {
-                        tempo = it
-                        updatePlaybackParameters()
-                    },
-                    valueText = { "x$it" },
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
-                ValueAdjuster(
-                    icon = R.drawable.discover_tune,
-                    currentValue = transposeValue,
-                    values = (-12..12).toList(),
-                    onValueUpdate = {
-                        transposeValue = it
-                        updatePlaybackParameters()
-                    },
-                    valueText = { "${if (it > 0) "+" else ""}$it" }
-                )
+            Column(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 24.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.speed),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    when (sliderStyle) {
+                        SliderStyle.DEFAULT -> {
+                            Slider(
+                                value = tempo,
+                                onValueChange = {
+                                    tempo = it
+                                    updatePlaybackParameters()
+                                },
+                                valueRange = 0.25f..2.0f,
+                                steps = 34,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        SliderStyle.SQUIGGLY -> {
+                            SquigglySlider(
+                                value = tempo,
+                                onValueChange = {
+                                    tempo = it
+                                    updatePlaybackParameters()
+                                },
+                                valueRange = 0.25f..2.0f,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        SliderStyle.COMPOSE -> {
+                            Slider(
+                                value = tempo,
+                                onValueChange = {
+                                    tempo = it
+                                    updatePlaybackParameters()
+                                },
+                                valueRange = 0.25f..2.0f,
+                                steps = 34,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "x${"%.2f".format(tempo)}",
+                        modifier = Modifier.width(50.dp),
+                        textAlign = TextAlign.End
+                    )
+                }
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.discover_tune),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    when (sliderStyle) {
+                        SliderStyle.DEFAULT -> {
+                            Slider(
+                                value = transposeValue.toFloat(),
+                                onValueChange = {
+                                    transposeValue = it.toInt()
+                                    updatePlaybackParameters()
+                                },
+                                valueRange = -12f..12f,
+                                steps = 24,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        SliderStyle.SQUIGGLY -> {
+                            SquigglySlider(
+                                value = transposeValue.toFloat(),
+                                onValueChange = {
+                                    transposeValue = it.toInt()
+                                    updatePlaybackParameters()
+                                },
+                                valueRange = -12f..12f,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                        SliderStyle.COMPOSE -> {
+                            Slider(
+                                value = transposeValue.toFloat(),
+                                onValueChange = {
+                                    transposeValue = it.toInt()
+                                    updatePlaybackParameters()
+                                },
+                                valueRange = -12f..12f,
+                                steps = 24,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Text(
+                        text = "${if (transposeValue > 0) "+" else ""}$transposeValue",
+                        modifier = Modifier.width(40.dp),
+                        textAlign = TextAlign.End
+                    )
+                }
             }
         }
     )

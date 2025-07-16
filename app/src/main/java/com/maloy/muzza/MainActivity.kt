@@ -45,11 +45,6 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialogDefaults
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
@@ -119,7 +114,6 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.AppDesignVariantKey
 import com.maloy.muzza.constants.AppDesignVariantType
-import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey

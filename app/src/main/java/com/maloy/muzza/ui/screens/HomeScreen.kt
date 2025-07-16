@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -102,7 +101,6 @@ import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
-import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.YouTubeCardItem
@@ -171,8 +169,6 @@ fun HomeScreen(
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val context = LocalContext.current
     var showNoInternetDialog by rememberPreference(showNoInternetDialogKey,defaultValue = false)
-
-    val topSize = 50
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {

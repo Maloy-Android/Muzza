@@ -151,6 +151,7 @@
     <string name="delete">Удалить</string>
     <string name="remove_from_history">Удалить из истории</string>
     <string name="remove_from_playlist">Удалить из плейлиста</string>
+    <string name="playlist_m3u_export">Экспортировать как файл M3U</string>
     <string name="remove_from_queue">Удалить из очереди</string>
     <string name="search_online">Поиск в Интернете</string>
     <string name="sync">Синхронизировать</string>

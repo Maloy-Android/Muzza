@@ -149,6 +149,7 @@
     <string name="delete">Видалити</string>
     <string name="remove_from_history">Видалити з історії</string>
     <string name="remove_from_playlist">Видалити з плейлиста</string>
+    <string name="playlist_m3u_export">Експортувати як файл M3U</string>
     <string name="remove_from_queue">Видалити з черги</string>
     <string name="remove_from_cache">Видалити з кешу</string>
     <string name="search_online">Пошук в Інтернеті</string>

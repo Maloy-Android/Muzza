@@ -1,5 +1,8 @@
 package com.maloy.muzza.ui.menu
 
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Output
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -224,6 +228,24 @@ fun PlaylistMenu(
         )
     }
 
+    val m3uLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("audio/x-mpegurl")
+    ) { uri: Uri? ->
+        uri?.let {
+            CoroutineScope(Dispatchers.IO).launch {
+                var result = "#EXTM3U\n"
+                songs.forEach { s ->
+                    val se = s.song
+                    result += "#EXTINF:${se.duration},${s.artists.joinToString(";") { it.name }} - ${s.title}\n"
+                    result += if (se.isLocal) se.localPath else "https://music.youtube.com/watch?v=${se.id}\n"
+                }
+                context.contentResolver.openOutputStream(uri)?.use { outputStream ->
+                    outputStream.write(result.toByteArray(Charsets.UTF_8))
+                }
+            }
+        }
+    }
+
     PlaylistListItem(
         playlist = playlist,
         thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
@@ -421,6 +443,12 @@ fun PlaylistMenu(
                     }
                 }
             }
+        }
+        ListMenuItem(
+            icon = R.drawable.backup,
+            title = R.string.playlist_m3u_export
+        ) {
+            m3uLauncher.launch("playlist.m3u")
         }
     }
 }

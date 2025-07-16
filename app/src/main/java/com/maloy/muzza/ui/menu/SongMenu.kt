@@ -63,6 +63,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.db.entities.Event
+import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
@@ -85,7 +86,7 @@ fun SongMenu(
     event: Event? = null,
     navController: NavController,
     playlistSong: PlaylistSong? = null,
-    playlistBrowseId: String? = null,
+    playlist: Playlist? = null,
     onDismiss: () -> Unit,
     isFromCache: Boolean = false,
 ) {
@@ -143,9 +144,9 @@ fun SongMenu(
     AddToPlaylistDialog(
         navController = navController,
         isVisible = showChoosePlaylistDialog,
-        onGetSong = { playlist ->
+        onGetSong = { playlistId ->
             coroutineScope.launch(Dispatchers.IO) {
-                playlist.playlist.browseId?.let { browseId ->
+                playlistId.playlist.browseId?.let { browseId ->
                     YouTube.addToPlaylist(browseId, song.id)
                 }
             }
@@ -307,7 +308,7 @@ fun SongMenu(
                         onDismiss()
                         database.transaction {
                             coroutineScope.launch {
-                                playlistBrowseId?.let { playlistId ->
+                                playlist?.id?.let { playlistId ->
                                     if (playlistSong.map.setVideoId != null) {
                                         YouTube.removeFromPlaylist(
                                             playlistId,

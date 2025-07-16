@@ -24,12 +24,10 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
-import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -532,7 +530,7 @@ fun LocalPlaylistScreen(
                                                 SongMenu(
                                                     originalSong = song.song,
                                                     playlistSong = song,
-                                                    playlistBrowseId = playlist?.playlist?.browseId,
+                                                    playlist = playlist,
                                                     navController = navController,
                                                     onDismiss = menuState::dismiss
                                                 )

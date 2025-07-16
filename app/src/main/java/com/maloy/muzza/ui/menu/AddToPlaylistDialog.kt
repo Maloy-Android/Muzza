@@ -47,6 +47,7 @@ import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
@@ -61,6 +62,7 @@ fun AddToPlaylistDialog(
     noSyncing: Boolean = false,
     onGetSong: suspend (Playlist) -> List<String>,
     onDismiss: () -> Unit,
+    songs: List<Song>? = null,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current

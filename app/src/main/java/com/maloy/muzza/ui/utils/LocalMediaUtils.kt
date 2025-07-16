@@ -6,13 +6,17 @@ import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.provider.MediaStore
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.constants.ScannerSensitivity
+import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.utils.LmImageCacheMgr
+import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -277,6 +281,35 @@ fun syncDB(
             }
         }
     }
+}
+
+fun youtubeSongLookup(query: String, songUrl: String?): List<MediaMetadata> {
+    val ytmResult = ArrayList<MediaMetadata>()
+    runBlocking(Dispatchers.IO) {
+        var exactSong: SongItem? = null
+        if (songUrl != null) {
+            runBlocking(Dispatchers.IO) {
+                runCatching {
+                    YouTube.queue(listOf(songUrl.substringAfter("/watch?v=").substringBefore("&")))
+                }.onSuccess {
+                    exactSong = it.getOrNull()?.firstOrNull()
+                }.onFailure {
+                    reportException(it)
+                }
+            }
+        }
+        if (exactSong != null) {
+            ytmResult.add(exactSong!!.toMediaMetadata())
+            return@runBlocking
+        }
+        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { result ->
+            val foundSong = result.items.filter {
+                it is SongItem
+            }
+            ytmResult.addAll(foundSong.map { (it as SongItem).toMediaMetadata() })
+        }
+    }
+    return ytmResult
 }
 
 fun compareArtist(a: List<ArtistEntity>, b: List<ArtistEntity>): Boolean {

@@ -508,6 +508,12 @@
     <string name="scanner_sensitivity_L2">Match title and artists</string>
     <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
 
+    <!--M3U IMPORT-->
+    <string name="import_failed_songs">Could not import</string>
+    <string name="import_success_songs">Successfully imported</string>
+    <string name="m3u_import_playlist">Import a playlist (m3u)</string>
+    <string name="m3u_import_playlist_failed">Failed to import</string>
+
     <!--Folders-->
     <string name="folders_settings_title">Folders</string>
     <string name="flat_subfolders_title">Flatten subfolders</string>

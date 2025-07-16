@@ -33,6 +33,12 @@ enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE
 }
 
+enum class ScannerM3uMatchCriteria {
+    LEVEL_1,
+    LEVEL_2
+}
+
+
 val AutoPlaylistsCustomizationKey = booleanPreferencesKey("autoPlaylistsCustomization")
 val AutoPlaylistLikedShowKey = booleanPreferencesKey("autoPlaylistLikedShow")
 val AutoPlaylistDownloadShowKey = booleanPreferencesKey("autoPlaylistDownloadShow")

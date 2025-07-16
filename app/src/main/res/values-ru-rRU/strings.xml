@@ -554,4 +554,9 @@
     <string name="flat_subfolders_title">Объединение подпапок</string>
     <string name="flat_subfolders_description">Отключите, чтобы сохранить структуру файлов как на диске</string>
     <string name="sync_local_songs_toast">Локальные песни успешно синхронизированы</string>
+
+    <string name="import_failed_songs">Не удалось импортировать</string>
+    <string name="import_success_songs">Успешно импортировано</string>
+    <string name="m3u_import_playlist">Импортировать плейлист (m3u)</string>
+    <string name="m3u_import_playlist_failed">Ошибка импорта</string>
 </resources>

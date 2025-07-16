@@ -40,6 +40,7 @@ import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.ImportM3uDialog
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.menu.AddToPlaylistDialog
@@ -67,29 +68,12 @@ fun BackupAndRestore(
             viewModel.restore(context, uri)
         }
     }
-    val (scannerSensitivity) = rememberEnumPreference(
-        key = ScannerSensitivityKey,
-        defaultValue = ScannerSensitivity.LEVEL_2
-    )
-
-    var showChoosePlaylistDialog by rememberSaveable {
-        mutableStateOf(false)
-    }
-    val importedTitle by remember { mutableStateOf("") }
-    val importedSongs = remember { mutableStateListOf<Song>() }
-    val rejectedSongs = remember { mutableStateListOf<String>() }
-    val importM3uLauncher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-        if (uri != null) {
-            val result = viewModel.loadM3u(context, uri, matchStrength = scannerSensitivity)
-            importedSongs.clear()
-            importedSongs.addAll(result.first)
-            rejectedSongs.clear()
-            rejectedSongs.addAll(result.second)
-
-            if (importedSongs.isNotEmpty()) {
-                showChoosePlaylistDialog = true
-            }
-        }
+    var showImportM3uDialog by rememberSaveable { mutableStateOf(false) }
+    if (showImportM3uDialog) {
+        ImportM3uDialog(
+            navController = navController,
+            onDismiss = { showImportM3uDialog = false }
+        )
     }
 
     Column(
@@ -137,43 +121,9 @@ fun BackupAndRestore(
             icon = { Icon(painterResource(R.drawable.playlist_add),null) },
             title = { Text(stringResource(R.string.import_m3u)) },
             onClick = {
-                importM3uLauncher.launch(arrayOf("audio/*"))
+                showImportM3uDialog = true
             }
         )
-        AddToPlaylistDialog(
-            navController = navController,
-            isVisible = showChoosePlaylistDialog,
-            initialTextFieldValue = importedTitle,
-            onGetSong = { importedSongs.map { it.id } },
-            onDismiss = { showChoosePlaylistDialog = false }
-        )
-
-        if (rejectedSongs.isNotEmpty()) {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 250.dp)
-                    .padding(20.dp)
-            ) {
-                item {
-                    Text(
-                        text = "Could not import:",
-                        maxLines = 1,
-                    )
-                }
-
-                itemsIndexed(
-                    items = rejectedSongs,
-                    key = { _, song -> song.hashCode() }
-                ) { _, item ->
-                    Text(
-                        text = item,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    )
-                }
-            }
-        }
     }
 
     TopAppBar(

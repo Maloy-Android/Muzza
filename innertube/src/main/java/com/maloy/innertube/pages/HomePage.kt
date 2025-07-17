@@ -73,18 +73,19 @@ data class HomePage(
                 return when {
                     renderer.isSong -> {
                         val subtitleRuns = renderer.subtitle?.runs ?: return null
-                        val (albumRuns) = subtitleRuns.partition { run ->
+                        val (artistRuns, albumRuns) = subtitleRuns.partition { run ->
                             run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
+                        }
+                        val artists = artistRuns.map {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                            )
                         }
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                            artists = listOfNotNull(renderer.subtitle.runs.oddElements().drop(1).firstOrNull()?.let {
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
-                                )
-                            }),
+                            artists = artists,
                             album = albumRuns.firstOrNull { run ->
                                 run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true
                             }?.let { run ->

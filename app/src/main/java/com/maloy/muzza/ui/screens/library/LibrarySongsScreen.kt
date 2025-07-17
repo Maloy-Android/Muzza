@@ -420,7 +420,12 @@ fun LibrarySongsScreen(
                                 } else {
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = context.getString(R.string.queue_all_songs),
+                                            title = when (filter) {
+                                                SongFilter.LIKED -> context.getString(R.string.liked)
+                                                SongFilter.LIBRARY -> context.getString(R.string.filter_library)
+                                                SongFilter.DOWNLOADED -> context.getString(R.string.downloaded_songs)
+                                                SongFilter.CACHED -> context.getString(R.string.cached)
+                                            },
                                             items = songs.map { it.toMediaItem() },
                                             startIndex = songs.indexOfFirst { it.song.id == song.id }
                                         )

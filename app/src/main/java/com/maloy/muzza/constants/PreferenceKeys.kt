@@ -152,9 +152,7 @@ enum class MixViewType {
 }
 
 enum class MixSortType {
-    CREATE_DATE,
-    NAME,
-    LAST_UPDATED,
+    DEFAULT, CREATE_DATE, LAST_UPDATED, NAME,
 }
 
 enum class PreferredLyricsProvider {

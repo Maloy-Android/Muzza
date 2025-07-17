@@ -148,7 +148,7 @@ fun LibraryMixScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         MixSortTypeKey,
-        MixSortType.CREATE_DATE
+        MixSortType.DEFAULT
     )
     val (sortDescending, onSortDescendingChange) = rememberPreference(MixSortDescendingKey, true)
     var viewType by rememberEnumPreference(MixViewTypeKey, MixViewType.GRID)
@@ -303,10 +303,11 @@ fun LibraryMixScreen(
     val artist = viewModel.artists.collectAsState()
     val playlist = viewModel.playlists.collectAsState()
 
-    var allItems = albums.value + artist.value + playlist.value
+    var allItems = artist.value + albums.value + playlist.value
     val collator = Collator.getInstance(Locale.getDefault())
     collator.strength = Collator.PRIMARY
     allItems = when (sortType) {
+        MixSortType.DEFAULT -> allItems
         MixSortType.CREATE_DATE -> allItems.sortedBy { item ->
             when (item) {
                 is Album -> item.album.bookmarkedAt
@@ -349,6 +350,7 @@ fun LibraryMixScreen(
                 onSortDescendingChange = onSortDescendingChange,
                 sortTypeText = { sortType ->
                     when (sortType) {
+                        MixSortType.DEFAULT -> R.string.default_
                         MixSortType.CREATE_DATE -> R.string.sort_by_create_date
                         MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
                         MixSortType.NAME -> R.string.sort_by_name

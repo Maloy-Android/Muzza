@@ -350,7 +350,7 @@ fun Thumbnail(
         }
 
         AnimatedVisibility(
-            visible = !showLyrics && error != null,
+            visible = error != null,
             enter = fadeIn() + slideInVertically { it / 2 },
             exit = fadeOut() + slideOutVertically { it / 2 },
             modifier = Modifier

@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,8 +22,7 @@ import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -43,13 +43,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
-import com.maloy.muzza.LocalSnackbarHostState
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ScannerM3uMatchCriteria
+import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.db.entities.SongEntity
+import com.maloy.muzza.db.entities.SongArtistMap
 import com.maloy.muzza.ui.menu.AddToPlaylistDialog
 import com.maloy.muzza.ui.utils.youtubeSongLookup
 import com.maloy.muzza.utils.reportException
@@ -67,7 +67,6 @@ fun ImportM3uDialog(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val snackbarHostState = LocalSnackbarHostState.current
 
     var scannerSensitivity by remember {
         mutableStateOf(ScannerM3uMatchCriteria.LEVEL_1)
@@ -91,7 +90,6 @@ fun ImportM3uDialog(
                         val result = loadM3u(
                             context,
                             database,
-                            snackbarHostState,
                             uri,
                             searchOnline = remoteLookup
                         )
@@ -169,16 +167,23 @@ fun ImportM3uDialog(
                     .padding(start = 20.dp, top = 8.dp, end = 20.dp, bottom = 20.dp)
             ) {
                 itemsIndexed(
-                    items = importedSongs.map { it.title },
+                    items = importedSongs,
                     key = { _, song -> song.hashCode() }
-                ) { _, item ->
-                    Text(
-                        text = item,
-                        fontSize = 14.sp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 8.dp)
-                    )
+                ) { _, song ->
+                    Column(modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)) {
+                        Text(
+                            text = song.title,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = song.artists.joinToString(", ") { it.name },
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
                 }
             }
         }
@@ -252,6 +257,13 @@ fun ImportM3uDialog(
                                 if (database.artist(artist.id).first() == null) {
                                     database.insert(artist)
                                 }
+                                database.insert(
+                                    SongArtistMap(
+                                        songId = song.id,
+                                        artistId = artist.id,
+                                        position = 0
+                                    )
+                                )
                             }
                         }
                     }
@@ -266,7 +278,6 @@ fun ImportM3uDialog(
 fun loadM3u(
     context: Context,
     database: MusicDatabase,
-    snackbarHostState: SnackbarHostState,
     uri: Uri,
     searchOnline: Boolean = false
 ): Triple<ArrayList<Song>, ArrayList<String>, String> {
@@ -280,61 +291,82 @@ fun loadM3u(
             if (lines.first().startsWith("#EXTM3U")) {
                 lines.forEachIndexed { index, rawLine ->
                     if (rawLine.startsWith("#EXTINF:")) {
-                        val artists =
-                            rawLine.substringAfter("#EXTINF:").substringAfter(',')
-                                .substringBefore(" - ").split(';')
-                        val title = rawLine.substringAfter("#EXTINF:").substringAfter(',')
-                            .substringAfter(" - ")
-                        val source = if (index + 1 < lines.size) lines[index + 1] else null
+                        val trackInfo = rawLine.substringAfter("#EXTINF:").substringAfter(',')
+                        val artistsPart = trackInfo.substringBefore(" - ").trim()
+                        val title = trackInfo.substringAfter(" - ").trim()
 
-                        Song(
-                            song = SongEntity(
-                                id = "",
-                                title = title,
-                                isLocal = true,
-                                localPath = if (source?.startsWith("http") == false) source.substringAfter(
-                                    ','
-                                ) else null
-                            ),
-                            artists = artists.map { ArtistEntity("", it) },
-                        )
-                        val matches = if (source == null) {
-                            runBlocking(Dispatchers.IO) {
-                                database.searchSongsInDb(title).first().toMutableList()
+                        val artists = artistsPart.split(*charArrayOf(';', '/', '&', ','))
+                            .map { it.trim() }
+                            .filter { it.isNotEmpty() }
+
+                        val source = if (index + 1 < lines.size) lines[index + 1] else null
+                        var foundSong: Song? = runBlocking(Dispatchers.IO) {
+                            val allSongs = database.songs(
+                                sortType = SongSortType.CREATE_DATE,
+                                descending = false
+                            ).first()
+                            allSongs.firstOrNull { dbSong ->
+                                dbSong.title.equals(title, ignoreCase = true) &&
+                                        dbSong.artists.any { dbArtist ->
+                                            artists.any { it.equals(dbArtist.name, ignoreCase = true) }
+                                        }
+                            } ?: allSongs.firstOrNull { dbSong ->
+                                dbSong.title.contains(title, ignoreCase = true) &&
+                                        dbSong.artists.any { dbArtist ->
+                                            artists.any { artist ->
+                                                dbArtist.name.contains(artist, ignoreCase = true) ||
+                                                        artist.contains(dbArtist.name, ignoreCase = true)
+                                            }
+                                        }
+                            } ?: allSongs.firstOrNull { dbSong ->
+                                dbSong.title.equals(title, ignoreCase = true)
                             }
-                        } else {
-                            runBlocking(Dispatchers.IO) {
-                                var id = source.substringBefore(',')
-                                if (id.isEmpty()) {
-                                    id = source.substringAfter("watch?").substringAfter("=")
-                                        .substringBefore('?')
+                        }
+                        if (foundSong == null && searchOnline && source?.startsWith("http") == true) {
+                            foundSong = runBlocking(Dispatchers.IO) {
+                                try {
+                                    youtubeSongLookup("$title ${artists.joinToString(" ")}", source)
+                                        .firstOrNull()
+                                        ?.let { ytSong ->
+                                            val songEntity = ytSong.toSongEntity()
+                                            database.transaction {
+                                                database.insert(songEntity)
+
+                                                ytSong.artists.forEach { artist ->
+                                                    val artistEntity = ArtistEntity(
+                                                        id = artist.id ?: ArtistEntity.generateArtistId(),
+                                                        name = artist.name
+                                                    )
+                                                    database.insert(artistEntity)
+                                                    database.insert(
+                                                        SongArtistMap(
+                                                            songId = songEntity.id,
+                                                            artistId = artistEntity.id,
+                                                            position = 0
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                            Song(
+                                                song = songEntity,
+                                                artists = ytSong.artists.map {
+                                                    ArtistEntity(
+                                                        id = it.id ?: ArtistEntity.generateArtistId(),
+                                                        name = it.name
+                                                    )
+                                                }
+                                            )
+                                        }
+                                } catch (e: Exception) {
+                                    null
                                 }
-                                val dbResult = mutableListOf(database.song(id).first())
-                                dbResult.addAll(database.searchSongsInDb(title).first())
-                                dbResult.filterNotNull().toMutableList()
                             }
                         }
-                        if (searchOnline && matches.isEmpty() && source?.contains(',') == false) {
-                            val onlineResult = runBlocking(Dispatchers.IO) {
-                                youtubeSongLookup("$title ${artists.joinToString(" ")}", source)
-                            }
-                            onlineResult.forEach { it ->
-                                val result = Song(
-                                    song = it.toSongEntity(),
-                                    artists = it.artists.map {
-                                        ArtistEntity(
-                                            id = it.id ?: ArtistEntity.generateArtistId(),
-                                            name = it.name
-                                        )
-                                    }
-                                )
-                                matches.add(result)
-                            }
-                        }
-                        val oldSize = songs.size
-                        songs.add(matches.first())
-                        if (oldSize == songs.size) {
-                            rejectedSongs.add(rawLine)
+
+                        if (foundSong != null) {
+                            songs.add(foundSong)
+                        } else {
+                            rejectedSongs.add("$title - ${artists.joinToString(", ")}")
                         }
                     }
                 }
@@ -344,21 +376,7 @@ fun loadM3u(
         reportException(it)
         Toast.makeText(context, R.string.m3u_import_playlist_failed, Toast.LENGTH_SHORT).show()
     }
-
-    if (songs.isEmpty()) {
-        CoroutineScope(Dispatchers.Main).launch {
-            snackbarHostState.showSnackbar(
-                message = context.getString(R.string.m3u_import_failed),
-                withDismissAction = true,
-                duration = SnackbarDuration.Long
-            )
-        }
-    }
-    return Triple(
-        songs,
-        rejectedSongs,
-        uri.path?.substringAfterLast('/')?.substringBeforeLast('.') ?: ""
-    )
+    return Triple(songs, rejectedSongs, uri.lastPathSegment?.substringBefore('.') ?: "")
 }
 
 fun InputStream.readLines(): List<String> {

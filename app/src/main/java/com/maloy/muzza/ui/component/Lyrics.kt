@@ -612,7 +612,6 @@ fun Lyrics(
                             .clickable {
                                 shareDialogData = Triple(lyricsText, songTitle, artists)
                                 showColorPickerDialog = true
-                                showShareDialog = false
                             }
                             .padding(vertical = 12.dp),
                         verticalAlignment = Alignment.CenterVertically

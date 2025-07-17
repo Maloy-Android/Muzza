@@ -92,6 +92,8 @@ import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkModeKey
+import com.maloy.muzza.constants.NowPlayingEnableKey
+import com.maloy.muzza.constants.NowPlayingPaddingKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerHorizontalPadding
@@ -187,6 +189,9 @@ fun BottomSheetPlayer(
             else
                 MaterialTheme.colorScheme.onPrimary
     }
+
+    val (nowPlayingEnable) = rememberPreference(NowPlayingEnableKey, defaultValue = true)
+    val (nowPlayingPadding) = rememberPreference(NowPlayingPaddingKey, defaultValue = 35)
 
     var gradientColors by remember {
         mutableStateOf<List<Color>>(emptyList())
@@ -780,7 +785,7 @@ fun BottomSheetPlayer(
             }
         }
 
-        if (!showLyrics) {
+        if (nowPlayingEnable && !showLyrics) {
             Column(
                 modifier = Modifier.fillMaxSize(),
             ) {
@@ -788,7 +793,7 @@ fun BottomSheetPlayer(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = PlayerHorizontalPadding)
-                        .padding(top = 35.dp),
+                        .padding(top = nowPlayingPadding.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
                 ) {
@@ -803,48 +808,57 @@ fun BottomSheetPlayer(
 
                     if (!queueTitle.isNullOrEmpty()) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier
+                                .weight(1f, fill = false)
+                                .padding(horizontal = 8.dp)
                         ) {
                             Text(
                                 text = stringResource(R.string.now_playing),
                                 style = MaterialTheme.typography.titleMedium,
                                 overflow = TextOverflow.Ellipsis,
-                                color = onBackgroundColor
+                                color = onBackgroundColor,
+                                maxLines = 1
                             )
                             Text(
                                 text = queueTitle.orEmpty(),
                                 style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
                                 overflow = TextOverflow.Ellipsis,
-                                color = onBackgroundColor
+                                color = onBackgroundColor,
+                                maxLines = 1,
+                                modifier = Modifier.basicMarquee()
                             )
                         }
                     }
-                    if (mediaMetadata?.isLocal == false) {
-                        ResizableIconButton(
-                            icon = R.drawable.share,
-                            modifier = Modifier.size(25.dp),
-                            color = onBackgroundColor,
-                            onClick = {
-                                val intent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    type = "text/plain"
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
-                                    )
+                    Box(modifier = Modifier.width(25.dp)) {
+                        if (mediaMetadata?.isLocal == false) {
+                            ResizableIconButton(
+                                icon = R.drawable.share,
+                                modifier = Modifier.size(25.dp),
+                                color = onBackgroundColor,
+                                onClick = {
+                                    val intent = Intent().apply {
+                                        action = Intent.ACTION_SEND
+                                        type = "text/plain"
+                                        putExtra(
+                                            Intent.EXTRA_TEXT,
+                                            "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                        )
+                                    }
+                                    context.startActivity(Intent.createChooser(intent, null))
                                 }
-                                context.startActivity(Intent.createChooser(intent, null))
-                            }
-                        )
-                    } else {
-                        ResizableIconButton(
-                            icon = R.drawable.info,
-                            modifier = Modifier.size(25.dp),
-                            color = onBackgroundColor,
-                            onClick = {
-                                showDetailsDialog = true
-                            }
-                        )
+                            )
+                        } else {
+                            ResizableIconButton(
+                                icon = R.drawable.info,
+                                modifier = Modifier.size(25.dp),
+                                color = onBackgroundColor,
+                                onClick = {
+                                    showDetailsDialog = true
+                                }
+                            )
+                        }
                     }
                 }
             }

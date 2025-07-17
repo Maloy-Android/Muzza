@@ -336,6 +336,7 @@
     <string name="default_">По умолчанию</string>
     <string name="squiggly">Волнистый</string>
     <string name="thumbnail_corner_radius">Радиус скругления обложки</string>
+    <string name="now_playing_padding">Настройте отступ для текущего воспроизведения</string>
     <string name="show_content_filter">фильтр контента</string>
     <string name="misc">Разное</string>
     <string name="main">Основное</string>

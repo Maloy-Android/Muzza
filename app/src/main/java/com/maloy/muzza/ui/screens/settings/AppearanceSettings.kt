@@ -77,6 +77,8 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MiniPlayerStyle
 import com.maloy.muzza.constants.MiniPlayerStyleKey
+import com.maloy.muzza.constants.NowPlayingEnableKey
+import com.maloy.muzza.constants.NowPlayingPaddingKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerStyle
@@ -135,6 +137,8 @@ fun AppearanceSettings(
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
+    val (nowPlayingEnable,onNowPlayingEnableChange) = rememberPreference(NowPlayingEnableKey, defaultValue = true)
+    val (nowPlayingPadding,onNowPlayingPadding) = rememberPreference(NowPlayingPaddingKey, defaultValue = 35)
     val (showContentFilter, onShowContentFilterChange) = rememberPreference(ShowContentFilterKey, defaultValue = true)
     val (showRecentActivity,onShowRecentActivityChange) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
@@ -183,6 +187,36 @@ fun AppearanceSettings(
                     showCornerRadiusDialog = false
                 },
                 onReset = { onThumbnailCornerRadius(6) },
+            )
+        }
+    }
+
+    var showNowPlayingPaddingDialog by remember {
+        mutableStateOf(false)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (showNowPlayingPaddingDialog ) {
+            CounterDialog(
+                title = stringResource(R.string.now_playing_padding),
+                onDismiss = { showNowPlayingPaddingDialog  = false },
+                initialValue = nowPlayingPadding,
+                upperBound = 100,
+                lowerBound = 0,
+                resetValue = 35,
+                onConfirm = {
+                    showNowPlayingPaddingDialog  = false
+                    onNowPlayingPadding(it)
+                },
+                onCancel = {
+                    showNowPlayingPaddingDialog  = false
+                },
+                onReset = { onNowPlayingPadding(35) },
             )
         }
     }
@@ -463,6 +497,26 @@ fun AppearanceSettings(
             icon = { Icon(Icons.Rounded.Image, null) },
             onClick = { showCornerRadiusDialog = true }
         )
+
+        PreferenceGroupTitle(
+            title = stringResource(R.string.now_playing)
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.now_playing)) },
+            icon = { Icon(painterResource(R.drawable.playlist_play), null) },
+            checked = nowPlayingEnable,
+            onCheckedChange = onNowPlayingEnableChange
+        )
+
+        AnimatedVisibility(nowPlayingEnable) {
+            PreferenceEntry(
+                title = { Text(stringResource(R.string.now_playing_padding)) },
+                description = "$nowPlayingPadding",
+                icon = { Icon(painterResource(R.drawable.arrow_downward), null) },
+                onClick = { showNowPlayingPaddingDialog = true }
+            )
+        }
 
         PreferenceGroupTitle(
             title = stringResource(R.string.misc)

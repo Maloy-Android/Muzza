@@ -334,6 +334,7 @@
     <string name="slider_style">Стиль повзунка</string>
     <string name="default_">Стандартний</string>
     <string name="thumbnail_corner_radius">Радіус заокруглення обкладинки</string>
+    <string name="now_playing_padding">Налаштуйте відступ для програвання зараз</string>
     <string name="show_content_filter">Фільтр контенту</string>
     <string name="squiggly">Хвилястий</string>
     <string name="misc">Різне</string>

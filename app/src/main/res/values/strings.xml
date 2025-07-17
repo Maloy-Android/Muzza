@@ -325,6 +325,7 @@
     <string name="squiggly">Squiggly</string>
     <string name="compose">Compose</string>
     <string name="thumbnail_corner_radius">Configure thumbnail corner radius</string>
+    <string name="now_playing_padding">Configure now playing padding</string>
     <string name="show_content_filter">Show content filter</string>
     <string name="misc">Misc</string>
     <string name="main">Main</string>

@@ -17,6 +17,8 @@ val SliderStyleKey = stringPreferencesKey("sliderStyle")
 val SwipeThumbnailKey = booleanPreferencesKey("swipeThumbnail")
 val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
+val NowPlayingEnableKey = booleanPreferencesKey("nowPlayingEnable")
+val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
 
 val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
 

@@ -1,26 +1,47 @@
+@file:Suppress("NAME_SHADOWING")
+
 package com.maloy.muzza.ui.component
 
+import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.res.Configuration
-import androidx.compose.foundation.Image
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material3.BasicAlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DividerDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,28 +52,38 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.drawable.toBitmap
+import androidx.palette.graphics.Palette
+import coil.ImageLoader
+import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkModeKey
@@ -62,8 +93,6 @@ import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
-import com.maloy.muzza.constants.ShowLyricsKey
-import com.maloy.muzza.constants.TranslateLyricsKey
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.lyrics.LyricsEntry
 import com.maloy.muzza.lyrics.LyricsEntry.Companion.HEAD_LYRICS_ENTRY
@@ -77,13 +106,19 @@ import com.maloy.muzza.ui.screens.settings.LyricsPosition
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
-import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.constants.PureBlackKey
+import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
+import com.maloy.muzza.utils.ComposeToImage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.seconds
 
+@SuppressLint("StringFormatInvalid", "ConfigurationScreenWidthHeight")
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun Lyrics(
     sliderPositionProvider: () -> Long?,
@@ -94,6 +129,9 @@ fun Lyrics(
     val density = LocalDensity.current
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val landscapeOffset = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val context = LocalContext.current
+    val configuration = LocalConfiguration.current
+    val scope = rememberCoroutineScope()
 
     val lyricsFontSize by rememberPreference(LyricFontSizeKey, 20)
 
@@ -101,7 +139,6 @@ fun Lyrics(
 
     var fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = false)
 
-    var translationEnabled by rememberPreference(TranslateLyricsKey, false)
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val translating by playerConnection.translating.collectAsState()
@@ -111,6 +148,19 @@ fun Lyrics(
     }
     val multilineLrc = rememberPreference(MultilineLrcKey, defaultValue = true)
     val lyricTrim = rememberPreference(LyricTrimKey, defaultValue = false)
+
+    var showProgressDialog by remember { mutableStateOf(false) }
+    var showShareDialog by remember { mutableStateOf(false) }
+    var shareDialogData by remember { mutableStateOf<Triple<String, String, String>?>(null) }
+
+    var showColorPickerDialog by remember { mutableStateOf(false) }
+    var previewBackgroundColor by remember { mutableStateOf(Color(0xFF242424)) }
+    var previewTextColor by remember { mutableStateOf(Color.White) }
+    var previewSecondaryTextColor by remember { mutableStateOf(Color.White.copy(alpha = 0.7f)) }
+
+    var isSelectionModeActive by rememberSaveable { mutableStateOf(false) }
+    val selectedIndices = remember { mutableStateListOf<Int>() }
+    var showMaxSelectionToast by remember { mutableStateOf(false) }
 
     val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
 
@@ -182,15 +232,28 @@ fun Lyrics(
 
     val lazyListState = rememberLazyListState()
 
-    LaunchedEffect(currentLineIndex, lastPreviewTime) {
-        /**
-         * Count number of new lines in a lyric
-         */
-        fun countNewLine(str: String) = str.count { it == '\n' }
 
-        /**
-         * Calculate the lyric offset Based on how many lines (\n chars)
-         */
+    val maxSelectionLimit = 5
+
+    LaunchedEffect(showMaxSelectionToast) {
+        if (showMaxSelectionToast) {
+            Toast.makeText(
+                context,
+                context.getString(R.string.max_selection_limit, maxSelectionLimit),
+                Toast.LENGTH_SHORT
+            ).show()
+            showMaxSelectionToast = false
+        }
+    }
+
+
+    LaunchedEffect(lines) {
+        isSelectionModeActive = false
+        selectedIndices.clear()
+    }
+
+    LaunchedEffect(currentLineIndex, lastPreviewTime) {
+        fun countNewLine(str: String) = str.count { it == '\n' }
         fun calculateOffset() = with(density) {
             if (landscapeOffset) {
                 16.dp.toPx().toInt() * countNewLine(lines[currentLineIndex].text)
@@ -235,7 +298,9 @@ fun Lyrics(
                             available: Offset,
                             source: NestedScrollSource
                         ): Offset {
-                            lastPreviewTime = System.currentTimeMillis()
+                            if (!isSelectionModeActive) {
+                                lastPreviewTime = System.currentTimeMillis()
+                            }
                             return super.onPostScroll(consumed, available, source)
                         }
 
@@ -243,13 +308,15 @@ fun Lyrics(
                             consumed: Velocity,
                             available: Velocity
                         ): Velocity {
-                            lastPreviewTime = System.currentTimeMillis()
+                            if (!isSelectionModeActive) {
+                                lastPreviewTime = System.currentTimeMillis()
+                            }
                             return super.onPostFling(consumed, available)
                         }
                     }
                 })
         ) {
-            val displayedCurrentLineIndex = if (isSeeking) deferredCurrentLineIndex else currentLineIndex
+            val displayedCurrentLineIndex = if (isSeeking || isSelectionModeActive) deferredCurrentLineIndex else currentLineIndex
 
             if (lyrics == null) {
                 item {
@@ -272,8 +339,64 @@ fun Lyrics(
                 }
             } else {
                 itemsIndexed(
-                    items = lines
+                    items = lines,
+                    key = { index, item -> "$index-${item.time}" }
                 ) { index, item ->
+                    val isSelected = selectedIndices.contains(index)
+                    val itemModifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .combinedClickable(
+                            enabled = true,
+                            onClick = {
+                                if (isSelectionModeActive) {
+                                    if (isSelected) {
+                                        selectedIndices.remove(index)
+                                        if (selectedIndices.isEmpty()) {
+                                            isSelectionModeActive = false
+                                        }
+                                    } else {
+                                        if (selectedIndices.size < maxSelectionLimit) {
+                                            selectedIndices.add(index)
+                                        } else {
+                                            showMaxSelectionToast = true
+                                        }
+                                    }
+                                } else if (isSynced) {
+                                    playerConnection.player.seekTo(item.time)
+                                    scope.launch {
+                                        lazyListState.animateScrollToItem(
+                                            index,
+                                            with(density) { 36.dp.toPx().toInt() } +
+                                                    with(density) {
+                                                        val count = item.text.count { it == '\n' }
+                                                        (if (landscapeOffset) 16.dp.toPx() else 20.dp.toPx()).toInt() * count
+                                                    }
+                                        )
+                                    }
+                                    lastPreviewTime = 0L
+                                }
+                            },
+                            onLongClick = {
+                                if (!isSelectionModeActive) {
+                                    isSelectionModeActive = true
+                                    selectedIndices.add(index)
+                                } else if (!isSelected && selectedIndices.size < maxSelectionLimit) {
+                                    selectedIndices.add(index)
+                                } else if (!isSelected) {
+                                    showMaxSelectionToast = true
+                                }
+                            }
+                        )
+                        .background(
+                            if (isSelected && isSelectionModeActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            else Color.Transparent
+                        )
+                        .padding(horizontal = 24.dp, vertical = 8.dp)
+                        .alpha(
+                            if (!isSynced || index == displayedCurrentLineIndex || (isSelectionModeActive && isSelected)) 1f
+                            else 0.5f
+                        )
                     Text(
                         text = item.text,
                         fontSize = lyricsFontSize.sp,
@@ -284,14 +407,7 @@ fun Lyrics(
                             LyricsPosition.RIGHT -> TextAlign.Right
                         },
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable(enabled = isSynced) {
-                                playerConnection.player.seekTo(item.time)
-                                lastPreviewTime = 0L
-                            }
-                            .padding(horizontal = 24.dp, vertical = 8.dp)
-                            .alpha(if (!isSynced || index == displayedCurrentLineIndex) 1f else 0.5f)
+                        modifier = itemModifier
                     )
                 }
             }
@@ -315,74 +431,477 @@ fun Lyrics(
             )
         }
 
-        mediaMetadata?.let { mediaMetadata ->
+        mediaMetadata?.let { metadata->
             Row(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 12.dp)
+
+                    .padding(end = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(
-                    onClick = {
-                        showLyrics = false
-                        fullScreenLyrics = true
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.close),
-                        contentDescription = null,
-                        tint = textColor
-                    )
-                }
-                if (BuildConfig.FLAVOR != "foss") {
+                if (isSelectionModeActive) {
                     IconButton(
                         onClick = {
-                            translationEnabled = !translationEnabled
+                            isSelectionModeActive = false
+                            selectedIndices.clear()
                         }
                     ) {
                         Icon(
-                            painter = painterResource(id = R.drawable.translate),
-                            contentDescription = null,
-                            tint = textColor.copy(alpha = if (translationEnabled) 1f else 0.3f)
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = stringResource(R.string.cancel),
+                            tint = textColor
                         )
                     }
-                }
-                if (fullScreenLyrics) {
+                    Spacer(Modifier.width(8.dp))
                     IconButton(
-                        onClick = { fullScreenLyrics = false }
+                        onClick = {
+                            if (selectedIndices.isNotEmpty()) {
+                                val sortedIndices = selectedIndices.sorted()
+                                val selectedLyricsText = sortedIndices
+                                    .mapNotNull { lines.getOrNull(it)?.text }
+                                    .joinToString("\n")
+
+                                if (selectedLyricsText.isNotBlank()) {
+                                    shareDialogData = Triple(
+                                        selectedLyricsText,
+                                        metadata.title,
+                                        metadata.artists.joinToString { it.name }
+                                    )
+                                    showShareDialog = true
+                                }
+                                isSelectionModeActive = false
+                                selectedIndices.clear()
+                            }
+                        },
+                        enabled = selectedIndices.isNotEmpty()
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Fullscreen,
-                            contentDescription = null,
-                            tint = textColor
+                            painter = painterResource(R.drawable.share),
+                            contentDescription = stringResource(R.string.share_selected),
+                            tint = if (selectedIndices.isNotEmpty()) textColor else textColor.copy(alpha = 0.5f)
                         )
                     }
                 } else {
                     IconButton(
-                        onClick = { fullScreenLyrics = true }
+                        onClick = {
+                            showLyrics = false
+                            fullScreenLyrics = true
+                        }
                     ) {
                         Icon(
-                            imageVector = Icons.Rounded.Fullscreen,
+                            painter = painterResource(R.drawable.close),
                             contentDescription = null,
                             tint = textColor
                         )
                     }
-                }
-                IconButton(
-                    onClick = {
-                        menuState.show {
-                            LyricsMenu(
-                                lyricsProvider = { lyricsEntity },
-                                mediaMetadataProvider = { mediaMetadata },
-                                onDismiss = menuState::dismiss
+                    if (fullScreenLyrics) {
+                        IconButton(
+                            onClick = { fullScreenLyrics = false }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Fullscreen,
+                                contentDescription = null,
+                                tint = textColor
+                            )
+                        }
+                    } else {
+                        IconButton(
+                            onClick = { fullScreenLyrics = true }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Rounded.Fullscreen,
+                                contentDescription = null,
+                                tint = textColor
                             )
                         }
                     }
-                ) {
-                    Icon(
-                        painterResource(id = R.drawable.more_horiz),
-                        contentDescription = null,
-                        tint = textColor
+                    IconButton(
+                        onClick = {
+                            menuState.show {
+                                LyricsMenu(
+                                    lyricsProvider = { lyricsEntity },
+                                    mediaMetadataProvider = { metadata },
+                                    onDismiss = menuState::dismiss
+                                )
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_horiz),
+                            contentDescription = stringResource(R.string.more_options),
+                            tint = textColor
+                        )
+                    }
+
+                }
+            }
+        }
+    }
+
+    if (showProgressDialog) {
+        BasicAlertDialog(onDismissRequest = {}) {
+            Card(
+                shape = MaterialTheme.shapes.medium,
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+            ) {
+                Box(modifier = Modifier.padding(32.dp)) {
+                    Text(
+                        text = stringResource(R.string.generating_image) + "\n" + stringResource(R.string.please_wait),
+                        color = MaterialTheme.colorScheme.onSurface
                     )
+                }
+            }
+        }
+    }
+
+    if (showShareDialog && shareDialogData != null) {
+        val (lyricsText, songTitle, artists) = shareDialogData!!
+        BasicAlertDialog(onDismissRequest = { showShareDialog = false }) {
+            Card(
+                shape = MaterialTheme.shapes.medium,
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
+                modifier = Modifier
+                    .padding(16.dp)
+                    .fillMaxWidth(0.85f)
+            ) {
+                Column(modifier = Modifier.padding(20.dp)) {
+                    Text(
+                        text = stringResource(R.string.share_lyrics),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    HorizontalDivider(color = DividerDefaults.color)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                val shareIntent = Intent().apply {
+                                    action = Intent.ACTION_SEND
+                                    type = "text/plain"
+                                    val songLink = "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                    putExtra(Intent.EXTRA_TEXT, "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink")
+                                }
+                                context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics)))
+                                showShareDialog = false
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.share),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.share_as_text),
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    HorizontalDivider(color = DividerDefaults.color)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                shareDialogData = Triple(lyricsText, songTitle, artists)
+                                showColorPickerDialog = true
+                                showShareDialog = false
+                            }
+                            .padding(vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.share),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = stringResource(R.string.share_as_image),
+                            fontSize = 16.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                    HorizontalDivider(color = DividerDefaults.color)
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp, bottom = 4.dp),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .clickable { showShareDialog = false }
+                                .padding(vertical = 8.dp, horizontal = 12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.cancel),
+                                fontSize = 16.sp,
+                                color = MaterialTheme.colorScheme.error,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.close),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                }
+                if (showColorPickerDialog && shareDialogData != null) {
+                    val (lyricsText, songTitle, artists) = shareDialogData!!
+                    val coverUrl = mediaMetadata?.thumbnailUrl
+                    val paletteColors = remember { mutableStateListOf<Color>() }
+
+                    val previewCardWidth = configuration.screenWidthDp.dp * 0.90f
+                    val previewPadding = 20.dp * 2
+                    val previewBoxPadding = 28.dp * 2
+                    val previewAvailableWidth =
+                        previewCardWidth - previewPadding - previewBoxPadding
+
+                    val previewBoxHeight = 340.dp
+                    val headerFooterEstimate = (48.dp + 14.dp + 16.dp + 20.dp + 8.dp + 28.dp * 2)
+                    val previewAvailableHeight =
+                        previewBoxHeight - headerFooterEstimate
+                    val textStyleForMeasurement = TextStyle(
+                        color = previewTextColor,
+                        fontWeight = FontWeight.Bold,
+                        textAlign = TextAlign.Center
+                    )
+                    val textMeasurer = rememberTextMeasurer()
+
+                    val calculatedFontSize = rememberAdjustedFontSize(
+                        text = lyricsText,
+                        maxWidth = previewAvailableWidth,
+                        maxHeight = previewAvailableHeight,
+                        density = density,
+                        initialFontSize = 50.sp,
+                        minFontSize = 22.sp,
+                        style = textStyleForMeasurement,
+                        textMeasurer = textMeasurer
+                    )
+                    LaunchedEffect(coverUrl) {
+                        if (coverUrl != null) {
+                            withContext(Dispatchers.IO) {
+                                try {
+                                    val loader = ImageLoader(context)
+                                    val req = ImageRequest.Builder(context).data(coverUrl)
+                                        .allowHardware(false).build()
+                                    val result = loader.execute(req)
+                                    val bmp = result.drawable?.toBitmap()
+                                    if (bmp != null) {
+                                        val palette = Palette.from(bmp).generate()
+                                        val swatches =
+                                            palette.swatches.sortedByDescending { it.population }
+                                        val colors = swatches.map { Color(it.rgb) }
+                                            .filter { color ->
+                                                val hsv = FloatArray(3)
+                                                android.graphics.Color.colorToHSV(
+                                                    color.toArgb(),
+                                                    hsv
+                                                )
+                                                hsv[1] > 0.2f
+                                            }
+                                        paletteColors.clear()
+                                        paletteColors.addAll(colors.take(5))
+                                    }
+                                } catch (_: Exception) {
+                                }
+                            }
+                        }
+                    }
+                    BasicAlertDialog(onDismissRequest = { showColorPickerDialog = false }) {
+                        Card(
+                            shape = RoundedCornerShape(20.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(20.dp)
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(20.dp)
+                            ) {
+
+                                Text(
+                                    text = stringResource(R.string.customize_colors),
+                                    style = MaterialTheme.typography.headlineSmall,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .height(340.dp)
+                                        .padding(8.dp)
+                                ) {
+                                    LyricsImageCard(
+                                        lyricText = lyricsText,
+                                        mediaMetadata = mediaMetadata ?: return@Box,
+                                        backgroundColor = previewBackgroundColor,
+                                        textColor = previewTextColor,
+                                        secondaryTextColor = previewSecondaryTextColor
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.height(18.dp))
+
+                                Text(
+                                    text = stringResource(R.string.background_color),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                ) {
+                                    (paletteColors + listOf(
+                                        Color(0xFF242424),
+                                        Color(0xFF121212),
+                                        Color.White,
+                                        Color.Black,
+                                        Color(0xFFF5F5F5)
+                                    )).distinct().take(8).forEach { color ->
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(color, shape = RoundedCornerShape(8.dp))
+                                                .clickable { previewBackgroundColor = color }
+                                                .border(
+                                                    2.dp,
+                                                    if (previewBackgroundColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = stringResource(R.string.text_color),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                ) {
+                                    (paletteColors + listOf(
+                                        Color.White,
+                                        Color.Black,
+                                        Color(0xFF1DB954)
+                                    )).distinct().take(8).forEach { color ->
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(color, shape = RoundedCornerShape(8.dp))
+                                                .clickable { previewTextColor = color }
+                                                .border(
+                                                    2.dp,
+                                                    if (previewTextColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+
+                                Text(
+                                    text = stringResource(R.string.secondary_text_color),
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                ) {
+                                    (paletteColors.map { it.copy(alpha = 0.7f) } + listOf(
+                                        Color.White.copy(
+                                            alpha = 0.7f
+                                        ), Color.Black.copy(alpha = 0.7f), Color(0xFF1DB954)
+                                    )).distinct().take(8).forEach { color ->
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(color, shape = RoundedCornerShape(8.dp))
+                                                .clickable { previewSecondaryTextColor = color }
+                                                .border(
+                                                    2.dp,
+                                                    if (previewSecondaryTextColor == color) MaterialTheme.colorScheme.primary else Color.Transparent,
+                                                    RoundedCornerShape(8.dp)
+                                                )
+                                        )
+                                    }
+                                }
+                                Spacer(modifier = Modifier.height(12.dp))
+
+                                Button(
+                                    onClick = {
+                                        showColorPickerDialog = false
+                                        showProgressDialog = true
+                                        calculatedFontSize.value * 1.1f
+
+                                        scope.launch {
+                                            try {
+                                                val screenWidth = configuration.screenWidthDp
+                                                val screenHeight = configuration.screenHeightDp
+
+                                                val image = ComposeToImage.createLyricsImage(
+                                                    context = context,
+                                                    coverArtUrl = coverUrl,
+                                                    songTitle = songTitle,
+                                                    artistName = artists,
+                                                    lyrics = lyricsText,
+                                                    width = (screenWidth * density.density).toInt(),
+                                                    height = (screenHeight * density.density).toInt(),
+                                                    backgroundColor = previewBackgroundColor.toArgb(),
+                                                    textColor = previewTextColor.toArgb(),
+                                                    secondaryTextColor = previewSecondaryTextColor.toArgb(),
+                                                )
+                                                val timestamp = System.currentTimeMillis()
+                                                val filename = "lyrics_$timestamp"
+                                                val uri = ComposeToImage.saveBitmapAsFile(
+                                                    context,
+                                                    image,
+                                                    filename
+                                                )
+                                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                                    type = "image/png"
+                                                    putExtra(Intent.EXTRA_STREAM, uri)
+                                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                                                }
+                                                context.startActivity(
+                                                    Intent.createChooser(
+                                                        shareIntent,
+                                                        "Share Lyrics"
+                                                    )
+                                                )
+                                            } catch (e: Exception) {
+                                                Toast.makeText(
+                                                    context,
+                                                    "Failed to create image: ${e.message}",
+                                                    Toast.LENGTH_SHORT
+                                                ).show()
+                                            } finally {
+                                                showProgressDialog = false
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(stringResource(R.string.share))
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }

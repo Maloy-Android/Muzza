@@ -556,4 +556,18 @@
     <string name="import_success_songs">Успішно імпортовано</string>
     <string name="m3u_import_playlist">Імпортувати плейлист (m3u)</string>
     <string name="m3u_import_playlist_failed">Помилка імпорту</string>
+
+    <string name="generating_image">Генерація зображення</string>
+    <string name="please_wait">Будь ласка, зачекайте</string>
+    <string name="cancel">Скасувати</string>
+    <string name="share_lyrics">Поділитися текстом</string>
+    <string name="share_as_text">Поділитися як текст</string>
+    <string name="share_as_image">Поділитися як зображення</string>
+    <string name="max_selection_limit">Ліміт вибору</string>
+    <string name="share_selected">Поділитися обраним</string>
+    <string name="customize_colors">Налаштувати кольори</string>
+    <string name="more_options">Додаткові опції</string>
+    <string name="text_color">Колір тексту</string>
+    <string name="secondary_text_color">Колір додаткового тексту</string>
+    <string name="background_color">Колір фону</string>
 </resources>

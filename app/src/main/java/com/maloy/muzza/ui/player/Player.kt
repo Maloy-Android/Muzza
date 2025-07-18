@@ -197,22 +197,27 @@ fun BottomSheetPlayer(
         mutableStateOf<List<Color>>(emptyList())
     }
 
-    LaunchedEffect(mediaMetadata) {
-        if (playerBackground != PlayerBackgroundStyle.GRADIENT) return@LaunchedEffect
-
-        withContext(Dispatchers.IO) {
+    LaunchedEffect(mediaMetadata, playerBackground) {
+        if (useBlackBackground && playerBackground != PlayerBackgroundStyle.BLUR) {
+            gradientColors = listOf(Color.Black, Color.Black)
+        }
+        if (useBlackBackground && playerBackground != PlayerBackgroundStyle.GRADIENT) {
+            gradientColors = listOf(Color.Black, Color.Black)
+        } else if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
+            withContext(Dispatchers.IO) {
                 val result = (ImageLoader(context).execute(
-                    ImageRequest.Builder(context)
-                        .data(mediaMetadata?.thumbnailUrl)
-                        .allowHardware(false)
-                        .build()
-                ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
+                        ImageRequest.Builder(context).data(mediaMetadata?.thumbnailUrl)
+                            .allowHardware(false).build(),
+                    ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
 
                 result?.let {
                     gradientColors = it
                 }
             }
+        } else {
+            gradientColors = emptyList()
         }
+    }
 
     var position by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.currentPosition)
@@ -532,15 +537,12 @@ fun BottomSheetPlayer(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .align(Alignment.Center)
-                                    .combinedClickable(
-                                        onClick = {
-                                            (playerConnection.player::seekToPrevious)()
-                                        },
-                                        onLongClick = {
-                                            playerConnection.player.seekTo(playerConnection.player.currentPosition - 5000)
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
-                                    )
+                                    .combinedClickable(onClick = {
+                                        (playerConnection.player::seekToPrevious)()
+                                    }, onLongClick = {
+                                        playerConnection.player.seekTo(playerConnection.player.currentPosition - 5000)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    })
                             )
                         }
                     }
@@ -595,15 +597,12 @@ fun BottomSheetPlayer(
                                 modifier = Modifier
                                     .size(32.dp)
                                     .align(Alignment.Center)
-                                    .combinedClickable(
-                                        onClick = {
-                                            (playerConnection.player::seekToNext)()
-                                        },
-                                        onLongClick = {
-                                            playerConnection.player.seekTo(playerConnection.player.currentPosition + 5000)
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        }
-                                    )
+                                    .combinedClickable(onClick = {
+                                        (playerConnection.player::seekToNext)()
+                                    }, onLongClick = {
+                                        playerConnection.player.seekTo(playerConnection.player.currentPosition + 5000)
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    })
                             )
                         }
                     }
@@ -649,12 +648,6 @@ fun BottomSheetPlayer(
                         .blur(100.dp)
                 )
             }
-
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black.copy(alpha = 0.3f))
-            )
         } else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
             Box(
                 modifier = Modifier

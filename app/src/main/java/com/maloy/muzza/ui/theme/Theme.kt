@@ -65,23 +65,16 @@ fun Bitmap.extractThemeColor(): Color {
     return Color(rankedColors.first())
 }
 
-fun Bitmap.extractGradientColors(darkTheme: Boolean = false): List<Color> {
+fun Bitmap.extractGradientColors(): List<Color> {
     val extractedColors = Palette.from(this)
-        .maximumColorCount(16)
+        .maximumColorCount(64)
         .generate()
         .swatches
         .associate { it.rgb to it.population }
 
-    val orderedColors = if (darkTheme) {
-        Score.order(extractedColors)
-            .sortedBy { Color(it).luminance() }
-            .take(2)
-            .reversed()
-    } else {
-        Score.order(extractedColors)
-            .take(2)
-            .sortedByDescending { Color(it).luminance() }
-    }
+    val orderedColors = Score.score(extractedColors, 2, 0xff4285f4.toInt(), true)
+        .sortedByDescending { Color(it).luminance() }
+
     return if (orderedColors.size >= 2)
         listOf(Color(orderedColors[0]), Color(orderedColors[1]))
     else

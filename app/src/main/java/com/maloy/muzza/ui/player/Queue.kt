@@ -91,6 +91,7 @@ import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.togglePlayPause
@@ -169,6 +170,7 @@ fun Queue(
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
     }
+    var fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = false)
 
     LaunchedEffect(sleepTimerEnabled) {
         if (sleepTimerEnabled) {
@@ -364,7 +366,12 @@ fun Queue(
                             }
                         }
 
-                        TextButton(onClick = { showLyrics = !showLyrics }) {
+                        TextButton(
+                            onClick = {
+                                showLyrics = !showLyrics
+                                fullScreenLyrics = true
+                            }
+                        ) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center

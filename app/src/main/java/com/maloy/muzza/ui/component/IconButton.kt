@@ -11,7 +11,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.IconButtonColors
 import androidx.compose.material3.IconButtonDefaults
@@ -19,7 +19,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.ripple
-import androidx.compose.material3.tokens.IconButtonTokens
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -31,6 +30,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.unit.dp
 
 @Composable
 fun ResizableIconButton(
@@ -71,7 +71,7 @@ fun IconButton(
     Box(
         modifier = modifier
             .minimumInteractiveComponentSize()
-            .size(IconButtonTokens.StateLayerSize)
+            .sizeIn(minWidth = 48.dp, minHeight = 48.dp)
             .clip(CircleShape)
             .background(color = colors.containerColor(enabled))
             .combinedClickable(
@@ -82,7 +82,7 @@ fun IconButton(
                 interactionSource = interactionSource,
                 indication = ripple(
                     bounded = false,
-                    radius = IconButtonTokens.StateLayerSize / 2
+                    radius = 24.dp
                 )
             ),
         contentAlignment = Alignment.Center

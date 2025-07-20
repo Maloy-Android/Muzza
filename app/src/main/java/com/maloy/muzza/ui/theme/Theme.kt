@@ -16,10 +16,10 @@ import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.palette.graphics.Palette
-import com.google.material.color.dynamiccolor.DynamicScheme
-import com.google.material.color.hct.Hct
-import com.google.material.color.scheme.SchemeTonalSpot
-import com.google.material.color.score.Score
+import com.materialkolor.hct.Hct
+import com.materialkolor.scheme.DynamicScheme
+import com.materialkolor.scheme.SchemeTonalSpot
+import com.materialkolor.score.Score
 
 val DefaultThemeColor = Color(0xFFED5564)
 
@@ -119,6 +119,18 @@ fun DynamicScheme.toColorScheme() =
         surfaceContainerHighest = Color(surfaceContainerHighest),
         surfaceContainerLow = Color(surfaceContainerLow),
         surfaceContainerLowest = Color(surfaceContainerLowest),
+        primaryFixed = Color(primaryContainer),
+        onPrimaryFixed = Color(onPrimaryContainer),
+        primaryFixedDim = Color(primaryContainer),
+        onPrimaryFixedVariant = Color(onPrimaryContainer),
+        secondaryFixed = Color(secondaryContainer),
+        onSecondaryFixed = Color(onSecondaryContainer),
+        secondaryFixedDim = Color(secondaryContainer),
+        onSecondaryFixedVariant = Color(onSecondaryContainer),
+        tertiaryFixed = Color(tertiaryContainer),
+        onTertiaryFixed = Color(onTertiaryContainer),
+        tertiaryFixedDim = Color(tertiaryContainer),
+        onTertiaryFixedVariant = Color(onTertiaryContainer),
     )
 
 fun ColorScheme.pureBlack(apply: Boolean) =

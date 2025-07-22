@@ -525,6 +525,24 @@ fun LibraryMixScreen(
                                 PlaylistListItem(
                                     playlist = item,
                                     thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    PlaylistMenu(
+                                                        playlist = item,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
@@ -547,6 +565,24 @@ fun LibraryMixScreen(
                             is Artist -> {
                                 ArtistListItem(
                                     artist = item,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    ArtistMenu(
+                                                        originalArtist = item,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()
@@ -571,6 +607,24 @@ fun LibraryMixScreen(
                                     album = item,
                                     isActive = item.id == mediaMetadata?.album?.id,
                                     isPlaying = isPlaying,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    AlbumMenu(
+                                                        originalAlbum = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
                                     modifier =
                                         Modifier
                                             .fillMaxWidth()

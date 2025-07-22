@@ -9,14 +9,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CardDefaults
@@ -24,41 +25,38 @@ import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AccountNameKey
-import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.PreferenceEntry
-import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.json.JSONObject
@@ -70,74 +68,55 @@ fun SettingsScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
+    val shimmerBrush = shimmerEffect()
     val uriHandler = LocalUriHandler.current
-    val backgroundImages = listOf(R.drawable.cardbg, R.drawable.cardbg2, R.drawable.cardbg3, R.drawable.cardbg4, R.drawable.cardbg5, R.drawable.cardbg6, R.drawable.cardbg7, R.drawable.cardbg8, R.drawable.cardbg9, R.drawable.cardbg11, R.drawable.cardbg12, R.drawable.cardbg13, R.drawable.cardbg14, R.drawable.cardbg15, R.drawable.cardbg16, R.drawable.cardbg17, R.drawable.cardbg18, R.drawable.cardbg19, R.drawable.cardbg20, R.drawable.cardbg22, R.drawable.cardbg23, R.drawable.cardbg24, R.drawable.cardbg25, R.drawable.cardbg26, R.drawable.cardbg27, R.drawable.cardbg28, R.drawable.cardbg29)
-    var currentImageIndex by remember { mutableIntStateOf((0..backgroundImages.lastIndex).random()) }
-    fun changeBackgroundImage() {
-        currentImageIndex = (currentImageIndex + 1) % backgroundImages.size
-    }
-    val accountName by rememberPreference(AccountNameKey, "")
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
-        }
+
 
     Column(
-        Modifier
+        modifier = Modifier
+            .fillMaxWidth()
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
-            Box(
-                modifier = Modifier
-                    .height(220.dp)
-                    .clip(RoundedCornerShape(25.dp))
-                    .background(color = Color.Transparent)
-                    .clickable { changeBackgroundImage() }
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
+        Spacer(Modifier.height(4.dp))
+        Box(
+            modifier = Modifier
+                .size(90.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(id = backgroundImages[currentImageIndex]),
-                contentDescription = "background",
-                contentScale = ContentScale.Crop,
+                painterResource(R.drawable.muzza_monochrome),
+                colorFilter = ColorFilter.tint(
+                    MaterialTheme.colorScheme.onBackground,
+                    BlendMode.SrcIn
+                ),
+                contentDescription = null
+            )
+            Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .blur(0.5.dp)
-                )
-                PreferenceEntryCard(
-                    title = {
-                        Column(
-                            modifier = Modifier.padding(16.dp),
-                        ) {
-                            if (isLoggedIn) {
-                                Text(
-                                    stringResource(R.string.Hi),
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                                Spacer(modifier = Modifier.height(3.dp))
-                                Text(
-                                    accountName.replace("@", ""),
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontFamily = FontFamily.Monospace
-                                )
-                            } else {
-                                Text(
-                                    stringResource(R.string.not_logged_in),
-                                    color = Color.White,
-                                    fontSize = 20.sp,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontFamily = FontFamily.SansSerif
-                                )
-                            }
-                        }
-                    },
-                    onClick = { changeBackgroundImage() }
-                )
+                    .matchParentSize()
+                    .background(shimmerBrush)
+            )
+        }
+
+        Row(
+            verticalAlignment = Alignment.Top,
+        ) {
+            Text(
+                text = "Muzza",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
+            )
         }
 
         Spacer(Modifier.height(25.dp))

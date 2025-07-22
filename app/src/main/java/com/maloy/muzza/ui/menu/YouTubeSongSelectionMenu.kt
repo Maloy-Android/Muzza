@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -72,7 +73,9 @@ fun YouTubeSongSelectionMenu(
             )
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle,
@@ -85,7 +88,9 @@ fun YouTubeSongSelectionMenu(
             )
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next,
@@ -94,7 +99,9 @@ fun YouTubeSongSelectionMenu(
             playerConnection.playNext(selection.map { it.toMediaItem() })
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
@@ -103,14 +110,18 @@ fun YouTubeSongSelectionMenu(
             playerConnection.addToQueue(selection.map { it.toMediaItem() })
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist,
         ) {
             showChoosePlaylistDialog = true
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.library_add,
             title = R.string.add_to_library,

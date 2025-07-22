@@ -406,14 +406,18 @@ fun PlaylistMenu(
                 showRemoveDownloadDialog = true
             }
         )
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.delete,
             title = R.string.delete
         ) {
             showDeletePlaylistDialog = true
         }
-
+        item {
+            HorizontalDivider()
+        }
         if (playlist.playlist.browseId != null) {
             ListMenuItem(
                 icon = R.drawable.sync,
@@ -439,6 +443,9 @@ fun PlaylistMenu(
                             .forEach(::insert)
                     }
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
         ListMenuItem(

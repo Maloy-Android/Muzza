@@ -21,6 +21,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -338,12 +339,18 @@ fun LyricsMenu(
         ) {
             showEditDialog = true
         }
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.cached,
             title = R.string.refetch
         ) {
             onDismiss()
             viewModel.refetchLyrics(mediaMetadataProvider(), lyricsProvider())
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.search,
@@ -352,6 +359,9 @@ fun LyricsMenu(
             showSearchDialog = true
         }
         if (lyricsProvider() != null) {
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.delete,
                 title = R.string.delete,

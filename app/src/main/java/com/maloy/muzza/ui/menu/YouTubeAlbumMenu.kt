@@ -319,6 +319,9 @@ fun YouTubeAlbumMenu(
                 ?.let(playerConnection::playNext)
             onDismiss()
         }
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
@@ -327,6 +330,9 @@ fun YouTubeAlbumMenu(
                 ?.map { it.toMediaItem() }
                 ?.let(playerConnection::addToQueue)
             onDismiss()
+        }
+        item {
+            HorizontalDivider()
         }
         DownloadListMenu(
             state = downloadState,
@@ -355,6 +361,9 @@ fun YouTubeAlbumMenu(
                 }
             }
         )
+        item {
+            HorizontalDivider()
+        }
         albumItem.artists?.let { artists ->
             ListMenuItem(
                 icon = R.drawable.artist,
@@ -366,6 +375,9 @@ fun YouTubeAlbumMenu(
                 } else {
                     showSelectArtistDialog = true
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
         ListMenuItem(

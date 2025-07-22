@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -124,7 +125,9 @@ fun SongSelectionMenu(
             )
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle,
@@ -137,7 +140,9 @@ fun SongSelectionMenu(
             )
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
@@ -146,12 +151,17 @@ fun SongSelectionMenu(
             playerConnection.addToQueue(selection.map { it.toMediaItem() })
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist,
         ) {
             showChoosePlaylistDialog = true
+        }
+        item {
+            HorizontalDivider()
         }
         DownloadListMenu(
             state = downloadState,
@@ -182,7 +192,9 @@ fun SongSelectionMenu(
                 }
             },
         )
-
+        item {
+            HorizontalDivider()
+        }
         if (isFromCache) {
             ListMenuItem(
                 icon = R.drawable.cached,
@@ -192,6 +204,9 @@ fun SongSelectionMenu(
                     onDismiss()
                     cacheViewModel.removeSongFromCache(song.id)
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
 
@@ -218,7 +233,9 @@ fun SongSelectionMenu(
                 }
             }
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = if (allLiked) R.drawable.favorite else R.drawable.favorite_border,
             tint = { if (allLiked) MaterialTheme.colorScheme.error else LocalContentColor.current },
@@ -237,8 +254,10 @@ fun SongSelectionMenu(
                     }
                 }
             }
+            item {
+                HorizontalDivider()
+            }
         }
-
         if (onRemoveFromQueue != null) {
             ListMenuItem(
                 icon = R.drawable.playlist_remove,
@@ -248,8 +267,14 @@ fun SongSelectionMenu(
                 onRemoveFromQueue()
                 onExitSelectionMode()
             }
+            item {
+                HorizontalDivider()
+            }
         }
         if (onRemoveFromHistory != null) {
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.delete,
                 title = R.string.remove_from_history,

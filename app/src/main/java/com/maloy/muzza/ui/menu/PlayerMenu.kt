@@ -592,6 +592,9 @@ fun PlayerMenu(
                     )
                 }
             )
+            item {
+                HorizontalDivider()
+            }
         }
         if (!mediaMetadata.isLocal) {
             if (librarySong?.song?.inLibrary != null) {
@@ -603,6 +606,9 @@ fun PlayerMenu(
                         inLibrary(mediaMetadata.id, null)
                     }
                 }
+                item {
+                    HorizontalDivider()
+                }
             } else {
                 ListMenuItem(
                     icon = R.drawable.library_add,
@@ -612,6 +618,9 @@ fun PlayerMenu(
                         insert(mediaMetadata)
                         inLibrary(mediaMetadata.id, LocalDateTime.now())
                     }
+                }
+                item {
+                    HorizontalDivider()
                 }
             }
             if (artists.isNotEmpty()) {
@@ -627,6 +636,9 @@ fun PlayerMenu(
                         showSelectArtistDialog = true
                     }
                 }
+                item {
+                    HorizontalDivider()
+                }
             }
             if (mediaMetadata.album != null) {
                 ListMenuItem(
@@ -636,6 +648,9 @@ fun PlayerMenu(
                     navController.navigate("album/${mediaMetadata.album.id}")
                     bottomSheetState.collapseSoft()
                     onDismiss()
+                }
+                item {
+                    HorizontalDivider()
                 }
             }
             ListMenuItem(
@@ -648,12 +663,18 @@ fun PlayerMenu(
                 )
                 context.startActivity(intent)
             }
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.info,
                 title = R.string.details
             ) {
                 onShowDetailsDialog()
                 onDismiss()
+            }
+            item {
+                HorizontalDivider()
             }
         }
         ListMenuItem(
@@ -687,12 +708,18 @@ fun PlayerMenu(
             }
             onDismiss()
         }
+        item {
+            HorizontalDivider()
+        }
         SleepTimerListMenu(
             sleepTimerTimeLeft = sleepTimerTimeLeft,
             enabled = sleepTimerEnabled,
         ) {
             if (sleepTimerEnabled) playerConnection.service.sleepTimer.clear()
             else showSleepTimerDialog = true
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.speed,

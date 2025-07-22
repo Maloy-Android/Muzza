@@ -77,6 +77,9 @@ fun FolderMenu(
                 playerConnection.playNext(it.toMediaItem())
             }
         }
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
@@ -85,6 +88,9 @@ fun FolderMenu(
             allFolderSongs.forEach {
                 playerConnection.addToQueue((it.toMediaItem()))
             }
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.playlist_add,

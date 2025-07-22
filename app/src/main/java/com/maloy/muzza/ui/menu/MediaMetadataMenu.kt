@@ -351,12 +351,18 @@ fun MediaMetadataMenu(
                 onDismiss()
                 playerConnection.playNext(mediaMetadata.toMediaItem())
             }
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.queue_music,
                 title = R.string.add_to_queue
             ) {
                 onDismiss()
                 playerConnection.addToQueue(mediaMetadata.toMediaItem())
+            }
+            item {
+                HorizontalDivider()
             }
             DownloadListMenu(
                 state = download?.state,
@@ -385,6 +391,9 @@ fun MediaMetadataMenu(
                     )
                 }
             )
+            item {
+                HorizontalDivider()
+            }
         }
         if (librarySong?.song?.inLibrary != null) {
             ListMenuItem(
@@ -395,6 +404,9 @@ fun MediaMetadataMenu(
                     inLibrary(mediaMetadata.id, null)
                 }
             }
+            item {
+                HorizontalDivider()
+            }
         } else {
             ListMenuItem(
                 icon = R.drawable.library_add,
@@ -404,6 +416,9 @@ fun MediaMetadataMenu(
                     insert(mediaMetadata)
                     inLibrary(mediaMetadata.id, LocalDateTime.now())
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
         if (!mediaMetadata.isLocal && artists.isNotEmpty()) {
@@ -418,6 +433,9 @@ fun MediaMetadataMenu(
                 } else {
                     showSelectArtistDialog = true
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
         if (!mediaMetadata.isLocal && mediaMetadata.album != null) {

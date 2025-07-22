@@ -320,12 +320,18 @@ fun YouTubeSongMenu(
             playerConnection.playNext(song.toMediaItem())
             onDismiss()
         }
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
             playerConnection.addToQueue((song.toMediaItem()))
             onDismiss()
+        }
+        item {
+            HorizontalDivider()
         }
         if (librarySong?.song?.inLibrary != null) {
             ListMenuItem(
@@ -336,6 +342,9 @@ fun YouTubeSongMenu(
                     inLibrary(song.id, null)
                 }
             }
+            item {
+                HorizontalDivider()
+            }
         } else {
             ListMenuItem(
                 icon = R.drawable.library_add,
@@ -345,6 +354,9 @@ fun YouTubeSongMenu(
                     insert(song.toMediaMetadata())
                     inLibrary(song.id, LocalDateTime.now())
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
         DownloadListMenu(
@@ -373,6 +385,9 @@ fun YouTubeSongMenu(
                 )
             }
         )
+        item {
+            HorizontalDivider()
+        }
         if (artists.isNotEmpty()) {
             ListMenuItem(
                 icon = R.drawable.artist,
@@ -385,6 +400,9 @@ fun YouTubeSongMenu(
                     showSelectArtistDialog = true
                 }
             }
+            item {
+                HorizontalDivider()
+            }
         }
         song.album?.let { album ->
             ListMenuItem(
@@ -393,6 +411,9 @@ fun YouTubeSongMenu(
             ) {
                 navController.navigate("album/${album.id}")
                 onDismiss()
+            }
+            item {
+                HorizontalDivider()
             }
         }
         ListMenuItem(

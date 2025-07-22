@@ -73,6 +73,7 @@ import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListMenu
+import com.maloy.muzza.ui.component.ListMenuDivider
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -339,21 +340,15 @@ fun AlbumMenu(
         )
     ) {
         ListMenuItem(
-            icon = R.drawable.playlist_play,
-            title = R.string.play_next
-        ) {
-            onDismiss()
-            playerConnection.playNext(songs.map { it.toMediaItem() })
-        }
-
-        ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue
         ) {
             onDismiss()
             playerConnection.addToQueue(songs.map { it.toMediaItem() })
         }
-
+        item {
+            ListMenuDivider()
+        }
         if (allInLibrary) {
             ListMenuItem(
                 icon = R.drawable.library_add_check,
@@ -376,6 +371,9 @@ fun AlbumMenu(
                     }
                 }
             }
+        }
+        item {
+            ListMenuDivider()
         }
 
         DownloadListMenu(
@@ -405,6 +403,9 @@ fun AlbumMenu(
                 }
             }
         )
+        item {
+            ListMenuDivider()
+        }
         ListMenuItem(
             icon = R.drawable.artist,
             title = R.string.view_artist
@@ -415,6 +416,9 @@ fun AlbumMenu(
             } else {
                 showSelectArtistDialog = true
             }
+        }
+        item {
+            ListMenuDivider()
         }
         ListMenuItem(
             icon = {
@@ -434,6 +438,9 @@ fun AlbumMenu(
                     }
                 }
             }
+        }
+        item {
+            ListMenuDivider()
         }
         ListMenuItem(
             icon = R.drawable.music_note,

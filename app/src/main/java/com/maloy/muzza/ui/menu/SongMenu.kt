@@ -460,6 +460,9 @@ fun SongMenu(
                 onDismiss()
                 playerConnection.playNext(song.toMediaItem())
             }
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.queue_music,
                 title = R.string.add_to_queue
@@ -467,13 +470,18 @@ fun SongMenu(
                 onDismiss()
                 playerConnection.addToQueue((song.toMediaItem()))
             }
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.edit,
                 title = R.string.edit
             ) {
                 showEditDialog = true
             }
-
+            item {
+                HorizontalDivider()
+            }
             if (isFromCache) {
                 ListMenuItem(
                     icon = R.drawable.cached,
@@ -481,6 +489,9 @@ fun SongMenu(
                 ) {
                     onDismiss()
                     cacheViewModel.removeSongFromCache(song.id)
+                }
+                item {
+                    HorizontalDivider()
                 }
             }
             DownloadListMenu(
@@ -506,7 +517,9 @@ fun SongMenu(
                     )
                 }
             )
-
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_artist
@@ -518,6 +531,9 @@ fun SongMenu(
                     showSelectArtistDialog = true
                 }
             }
+            item {
+                HorizontalDivider()
+            }
             if (song.song.albumId != null) {
                 ListMenuItem(
                     icon = R.drawable.album,
@@ -525,6 +541,9 @@ fun SongMenu(
                 ) {
                     onDismiss()
                     navController.navigate("album/${song.song.albumId}")
+                }
+                item {
+                    HorizontalDivider()
                 }
             }
             ListMenuItem(
@@ -536,6 +555,9 @@ fun SongMenu(
                     "https://music.youtube.com/watch?v=${song.id}".toUri()
                 )
                 context.startActivity(intent)
+            }
+            item {
+                HorizontalDivider()
             }
             ListMenuItem(
                 icon = {
@@ -559,6 +581,9 @@ fun SongMenu(
                     }
                 }
             }
+            item {
+                HorizontalDivider()
+            }
         }
         if (song.song.inLibrary == null) {
             ListMenuItem(
@@ -580,6 +605,9 @@ fun SongMenu(
             }
         }
         if (event != null) {
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.delete,
                 title = R.string.remove_from_history

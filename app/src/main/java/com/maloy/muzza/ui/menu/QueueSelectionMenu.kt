@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -102,7 +103,9 @@ fun QueueSelectionMenu(
             )
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.shuffle,
             title = R.string.shuffle,
@@ -115,7 +118,9 @@ fun QueueSelectionMenu(
             )
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next,
@@ -124,7 +129,9 @@ fun QueueSelectionMenu(
             playerConnection.playNext(selection.map { it.mediaItem })
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue,
@@ -133,14 +140,18 @@ fun QueueSelectionMenu(
             playerConnection.addToQueue(selection.map { it.mediaItem })
             onExitSelectionMode()
         }
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_add,
             title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
         }
-
+        item {
+            HorizontalDivider()
+        }
         DownloadListMenu(
             state = downloadState,
             onDownload = {
@@ -172,7 +183,9 @@ fun QueueSelectionMenu(
                 }
             }
         )
-
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_remove,
             title = R.string.remove_from_queue

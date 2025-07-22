@@ -13,6 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.Download
 import com.maloy.muzza.R
@@ -30,6 +31,22 @@ fun ListMenu(
         modifier = modifier,
         contentPadding = contentPadding,
         content = content
+    )
+}
+
+@Composable
+fun ListMenuDivider(
+    modifier: Modifier = Modifier,
+    thickness: Dp = 1.dp,
+    color: Color = MaterialTheme.colorScheme.outlineVariant,
+    startIndent: Dp = 16.dp
+) {
+    HorizontalDivider(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = startIndent),
+        thickness = thickness,
+        color = color
     )
 }
 

@@ -328,6 +328,9 @@ fun YouTubePlaylistMenu(
             playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
             onDismiss()
         }
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_play, title = R.string.play_next
         ) {
@@ -341,6 +344,9 @@ fun YouTubePlaylistMenu(
                 }
             }
             onDismiss()
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.queue_music, title = R.string.add_to_queue
@@ -356,10 +362,16 @@ fun YouTubePlaylistMenu(
             }
             onDismiss()
         }
+        item {
+            HorizontalDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_add, title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.music_note, title = R.string.listen_youtube_music

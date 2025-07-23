@@ -3,9 +3,13 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -141,8 +145,10 @@ import org.burnoutcrew.reorderable.ReorderableItem
 import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
+import java.io.File
+import java.io.FileOutputStream
 
-@SuppressLint("SuspiciousIndentation")
+@SuppressLint("SuspiciousIndentation", "UseKtx")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistScreen(
@@ -772,6 +778,44 @@ fun LocalPlaylistHeader(
 
     val editable: Boolean = playlist.playlist.isEditable
 
+    var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
+
+    fun saveImageToPrivateStorage(uri: Uri): Uri? {
+        return try {
+            val dir = File(context.filesDir, "playlist_covers")
+            if (!dir.exists()) dir.mkdirs()
+
+            val outputFile = File(dir, "cover_${playlist.playlist.id}.jpg")
+
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(outputFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+
+            Uri.fromFile(outputFile)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun loadSavedImage(): Uri? {
+        val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
+        return if (file.exists()) Uri.fromFile(file) else null
+    }
+
+    LaunchedEffect(playlist) {
+        customThumbnailUri = loadSavedImage()
+    }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            val savedUri = saveImageToPrivateStorage(selectedUri)
+            customThumbnailUri = savedUri
+        }
+    }
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
@@ -793,42 +837,58 @@ fun LocalPlaylistHeader(
         verticalArrangement = Arrangement.spacedBy(12.dp),
         modifier = modifier.padding(12.dp)
     ) {
-        if (playlist.thumbnails.isEmpty()) {
-            val libcarditem = 25.dp
-            Box(
+        if (customThumbnailUri != null) {
+            AsyncImage(
+                model = customThumbnailUri,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
+                    .clickable { pickImageLauncher.launch("image/*") }
                     .size(AlbumThumbnailSize)
-                    .clip(RoundedCornerShape(libcarditem))
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .align(alignment = Alignment.CenterHorizontally)
-                    .background(
-                        MaterialTheme.colorScheme.surfaceContainer,
-                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                    )
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
-                    contentDescription = null,
-                    tint = LocalContentColor.current.copy(alpha = 0.8f),
+            )
+        } else {
+            if (playlist.thumbnails.isEmpty() && customThumbnailUri == null) {
+                val libcarditem = 25.dp
+                Box(
                     modifier = Modifier
-                        .size(110.dp)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                        .align(Alignment.Center)
-                )
+                        .clickable { pickImageLauncher.launch("image/*") }
+                        .size(AlbumThumbnailSize)
+                        .clip(RoundedCornerShape(libcarditem))
+                        .align(alignment = Alignment.CenterHorizontally)
+                        .background(
+                            MaterialTheme.colorScheme.surfaceContainer,
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.QueueMusic,
+                        contentDescription = null,
+                        tint = LocalContentColor.current.copy(alpha = 0.8f),
+                        modifier = Modifier
+                            .size(110.dp)
+                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                            .align(Alignment.Center)
+                    )
+                }
             }
         }
-            if (playlist.thumbnails.size == 1) {
+            if (playlist.thumbnails.size == 1 && customThumbnailUri == null) {
                 AsyncImage(
                     model = playlist.thumbnails[0],
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
+                        .clickable { pickImageLauncher.launch("image/*") }
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)
                 )
-            } else if (playlist.thumbnails.size > 1) {
+            } else if (playlist.thumbnails.size > 1 && customThumbnailUri == null) {
                 Box(
                     modifier = Modifier
+                        .clickable { pickImageLauncher.launch("image/*") }
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)

@@ -130,6 +130,7 @@
     <!-- Menu -->
     <string name="details">Подробнее</string>
     <string name="edit">Редактировать</string>
+    <string name="edit_playlist_thumbnail">Редактировать обложку плейлиста</string>
     <string name="start_radio">Запустить радио</string>
     <string name="play">Воспоизвести</string>
     <string name="play_next">Воспроизвести следующим</string>

@@ -70,6 +70,8 @@ import com.maloy.muzza.ui.component.TextFieldDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.io.File
+import java.io.FileOutputStream
 
 @Composable
 fun PlaylistMenu(
@@ -136,6 +138,43 @@ fun PlaylistMenu(
                 }
             }
         )
+    }
+    fun saveImageToPrivateStorage(uri: Uri): Uri? {
+        return try {
+            val dir = File(context.filesDir, "playlist_covers")
+            if (!dir.exists()) dir.mkdirs()
+
+            val outputFile = File(dir, "cover_${playlist.playlist.id}.jpg")
+
+            context.contentResolver.openInputStream(uri)?.use { inputStream ->
+                FileOutputStream(outputFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+
+            Uri.fromFile(outputFile)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
+    fun loadSavedImage(): Uri? {
+        val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
+        return if (file.exists()) Uri.fromFile(file) else null
+    }
+    var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
+
+    LaunchedEffect(playlist) {
+        customThumbnailUri = loadSavedImage()
+    }
+
+    val pickImageLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            val savedUri = saveImageToPrivateStorage(selectedUri)
+                customThumbnailUri = savedUri
+        }
     }
 
     var showRemoveDownloadDialog by remember {
@@ -384,6 +423,15 @@ fun PlaylistMenu(
             title = R.string.edit
         ) {
             showEditDialog = true
+        }
+        item {
+            HorizontalDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.image,
+            title = R.string.edit_playlist_thumbnail
+        ) {
+            pickImageLauncher.launch("image/*")
         }
         item {
             HorizontalDivider()

@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.component
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
@@ -30,7 +31,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Cloud
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderCopy
@@ -110,6 +110,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 const val ActiveBoxAlpha = 0.6f
 
@@ -853,49 +854,71 @@ fun PlaylistListItem(
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     trailingContent: @Composable (RowScope.() -> Unit) = {},
-) = ListItem(
-    title = playlist.playlist.name,
-    subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
-    thumbnailContent = {
-        Box(
-            modifier = Modifier
-                .size(ListThumbnailSize)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.surfaceContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            PlaylistThumbnail(
-                thumbnails = playlist.thumbnails,
-                size = ListThumbnailSize,
-                placeHolder = {
-                    Icon(
-                        imageVector = thumbnail,
-                        contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.8f),
-                        modifier = Modifier
-                            .size(ListThumbnailSize / 2)
-                            .align(Alignment.Center)
-                    )
-                },
-                shape = RoundedCornerShape(ThumbnailCornerRadius)
-            )
-        }
-    },
-    badges = {
-        if (playlist.playlist.isLocal) {
-            Icon(
-                imageVector = Icons.Rounded.CloudOff,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(18.dp)
-                    .padding(end = 2.dp)
-            )
-        }
-    },
-    trailingContent = trailingContent,
-    modifier = modifier
-)
+) {
+    val context = LocalContext.current
+    var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
+    fun loadSavedImage(): Uri? {
+        val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
+        return if (file.exists()) Uri.fromFile(file) else null
+    }
+
+    LaunchedEffect(playlist) {
+        customThumbnailUri = loadSavedImage()
+    }
+
+    ListItem(
+        title = playlist.playlist.name,
+        subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
+        thumbnailContent = {
+            Box(
+                modifier = Modifier
+                    .size(ListThumbnailSize)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(MaterialTheme.colorScheme.surfaceContainer),
+                contentAlignment = Alignment.Center
+            ) {
+                if (customThumbnailUri != null) {
+                    AsyncImage(
+                        model = customThumbnailUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                } else {
+                    PlaylistThumbnail(
+                        thumbnails = playlist.thumbnails,
+                        size = ListThumbnailSize,
+                        placeHolder = {
+                            Icon(
+                                imageVector = thumbnail,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                modifier = Modifier
+                                    .size(ListThumbnailSize / 2)
+                                    .align(Alignment.Center)
+                            )
+                        },
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+                }
+            }
+        },
+        badges = {
+            if (playlist.playlist.isLocal) {
+                Icon(
+                    imageVector = Icons.Rounded.CloudOff,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .padding(end = 2.dp)
+                )
+            }
+        },
+        trailingContent = trailingContent,
+        modifier = modifier
+    )
+}
 @Composable
 fun PlaylistGridItem(
     playlist: Playlist,
@@ -903,39 +926,62 @@ fun PlaylistGridItem(
     modifier: Modifier = Modifier,
     fillMaxWidth: Boolean = false,
     badges: @Composable (RowScope.() -> Unit) = {},
-) = GridItem(
-    title = playlist.playlist.name,
-    subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
-    badges = badges,
-    thumbnailContent = {
-        val width = maxWidth
-        val libcarditem = 25.dp
-        Box(
-            modifier = Modifier
-                .size(width)
-                .clip(RoundedCornerShape(libcarditem))
-                .background(MaterialTheme.colorScheme.surfaceContainer)
-        ) {
-            PlaylistThumbnail(
-                thumbnails = playlist.thumbnails,
-                size = width,
-                placeHolder = {
-                    Icon(
-                        imageVector = thumbnail,
+) {
+    val context = LocalContext.current
+    var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
+
+    fun loadSavedImage(): Uri? {
+        val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
+        return if (file.exists()) Uri.fromFile(file) else null
+    }
+
+    LaunchedEffect(playlist) {
+        customThumbnailUri = loadSavedImage()
+    }
+
+    GridItem(
+        title = playlist.playlist.name,
+        subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
+        badges = badges,
+        thumbnailContent = {
+            val width = maxWidth
+            val libcarditem = 25.dp
+            Box(
+                modifier = Modifier
+                    .size(width)
+                    .clip(RoundedCornerShape(libcarditem))
+                    .background(MaterialTheme.colorScheme.surfaceContainer)
+            ) {
+                if (customThumbnailUri != null) {
+                    AsyncImage(
+                        model = customThumbnailUri,
                         contentDescription = null,
-                        tint = LocalContentColor.current.copy(alpha = 0.8f),
-                        modifier = Modifier
-                            .size(width / 2)
-                            .align(Alignment.Center)
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
                     )
-                },
-                shape = RoundedCornerShape(ThumbnailCornerRadius)
-            )
-        }
-    },
-    fillMaxWidth = fillMaxWidth,
-    modifier = modifier
-)
+                } else {
+                    PlaylistThumbnail(
+                        thumbnails = playlist.thumbnails,
+                        size = width,
+                        placeHolder = {
+                            Icon(
+                                imageVector = thumbnail,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                modifier = Modifier
+                                    .size(width / 2)
+                                    .align(Alignment.Center)
+                            )
+                        },
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+                }
+            }
+        },
+        fillMaxWidth = fillMaxWidth,
+        modifier = modifier
+    )
+}
 
 @Composable
 fun MediaMetadataListItem(

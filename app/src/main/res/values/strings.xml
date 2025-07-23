@@ -128,6 +128,7 @@
     <!-- Menu -->
     <string name="details">Details</string>
     <string name="edit">Edit</string>
+    <string name="edit_playlist_thumbnail">Edit playlist thumbnail</string>
     <string name="start_radio">Start radio</string>
     <string name="play">Play</string>
     <string name="play_next">Play next</string>

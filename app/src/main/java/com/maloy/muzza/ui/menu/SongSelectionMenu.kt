@@ -267,9 +267,6 @@ fun SongSelectionMenu(
                 onRemoveFromQueue()
                 onExitSelectionMode()
             }
-            item {
-                HorizontalDivider()
-            }
         }
         if (onRemoveFromHistory != null) {
             item {

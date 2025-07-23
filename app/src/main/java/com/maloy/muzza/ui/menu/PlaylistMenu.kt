@@ -385,7 +385,9 @@ fun PlaylistMenu(
         ) {
             showEditDialog = true
         }
-
+        item {
+            HorizontalDivider()
+        }
         DownloadListMenu(
             state = downloadState,
             onDownload = {

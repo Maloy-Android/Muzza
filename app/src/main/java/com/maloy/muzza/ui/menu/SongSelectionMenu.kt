@@ -259,6 +259,9 @@ fun SongSelectionMenu(
             }
         }
         if (onRemoveFromQueue != null) {
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.playlist_remove,
                 title = R.string.remove_from_playlist,

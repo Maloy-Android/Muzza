@@ -465,6 +465,8 @@
     <string name="use_login_for_browse_desc">This can influence what content you see and for example shows premium-only albums if you are logged in with a Premium account</string>
     <string name="disable_screenshot">Disable screenshot</string>
     <string name="disable_screenshot_desc">When this option is on, screenshots and the app\'s view in Recents are disabled.</string>
+    <string name="ignore_battery_optimizations">Ignore battery optimizations</string>
+    <string name="ignore_battery_optimizations_description">Enable this to prevent the system from restricting background activity. This ensures the app works properly even when not in use.e</string>
     <string name="enable_lrclib">Enable LrcLib lyrics provider</string>
     <string name="enable_kugou">Enable KuGou lyrics provider</string>
     <string name="default_lyrics_provider">Default lyrics provider</string>

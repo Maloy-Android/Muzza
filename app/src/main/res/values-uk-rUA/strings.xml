@@ -493,6 +493,8 @@
     <string name="clear_search_history_confirm">Ви впевнені, що хочете очистити всю історію пошуку?</string>
     <string name="disable_screenshot">Вимкнути знімок екрана</string>
     <string name="disable_screenshot_desc">Якщо ця опція увімкнена, знімки екрана та відображення програми в списку останніх відключаються.</string>
+    <string name="ignore_battery_optimizations">Ігнорувати оптимізацію батареї</string>
+    <string name="ignore_battery_optimizations_description">Увімкніть цю функцію, щоб система не обмежувала роботу додатка у фоновому режимі. Це забезпечить коректну роботу навіть коли додаток не використовується.</string>
     <string name="use_login_for_browse">Використовувати логін для перегляду контента</string>
     <string name="use_login_for_browse_desc">Це може вплинути на те, який контент ви бачете, і, наприклад, показувати альбоми тільки преміум-класа, якщо ви війшли в систему з преміум-акаунтом</string>
     <string name="enable_lrclib">Увімкнути провайдера текстів LrcLib</string>

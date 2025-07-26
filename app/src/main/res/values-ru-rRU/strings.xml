@@ -499,6 +499,8 @@
     <string name="use_login_for_browse_desc">Это может повлиять на то, какой контент вы видите, и, например, показывать альбомы только премиум-класса, если вы вошли в систему с премиум-аккаунтом</string>
     <string name="disable_screenshot">Отключить снимок экрана</string>
     <string name="disable_screenshot_desc">При включении этой опции скриншоты и отображение приложения в списке последних отключаются.</string>
+    <string name="ignore_battery_optimizations">Игнорировать оптимизацию батареи</string>
+    <string name="ignore_battery_optimizations_description">Включите эту функцию, чтобы система не ограничивала работу приложения в фоне. Это обеспечит корректную работу даже когда приложение не активно.</string>
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>
     <string name="enable_kugou">Включить провайдера текстов KuGou</string>
     <string name="default_lyrics_provider">Поставшик текстов по умолчанию</string>

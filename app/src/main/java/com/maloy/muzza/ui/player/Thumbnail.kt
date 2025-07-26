@@ -1,6 +1,5 @@
 package com.maloy.muzza.ui.player
 
-import android.media.MediaMetadata
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
@@ -70,6 +69,7 @@ import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
+import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.Lyrics
 import com.maloy.muzza.ui.utils.imageCache
@@ -84,13 +84,15 @@ fun Thumbnail(
     modifier: Modifier = Modifier,
     showLyricsOnClick: Boolean = false,
     contentScale: ContentScale = ContentScale.Fit,
+    customMediaMetadata: MediaMetadata? = null
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentView = LocalView.current
     val context = LocalContext.current
 
     val error: PlaybackException? by playerConnection.error.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val playerMediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val mediaMetadata = customMediaMetadata ?: playerMediaMetadata
 
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
@@ -171,7 +173,7 @@ fun Thumbnail(
                 if (mediaMetadata?.isLocal == false) {
                     if (playerStyle == PlayerStyle.NEW) {
                         AsyncImage(
-                            model = mediaMetadata?.thumbnailUrl,
+                            model = mediaMetadata.thumbnailUrl,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -216,7 +218,7 @@ fun Thumbnail(
                         )
                     } else {
                         AsyncImage(
-                            model = mediaMetadata?.thumbnailUrl,
+                            model = mediaMetadata.thumbnailUrl,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
@@ -238,7 +240,7 @@ fun Thumbnail(
                         if (playerStyle == PlayerStyle.NEW) {
                             mediaMetadata.let {
                                 AsyncLocalImage(
-                                    image = { imageCache.getLocalThumbnail(it?.localPath, false) },
+                                    image = { imageCache.getLocalThumbnail(it.localPath, false) },
                                     contentDescription = null,
                                     contentScale = contentScale,
                                     modifier = Modifier
@@ -285,7 +287,7 @@ fun Thumbnail(
                         } else {
                             mediaMetadata.let {
                                 AsyncLocalImage(
-                                    image = { imageCache.getLocalThumbnail(it?.localPath, false) },
+                                    image = { imageCache.getLocalThumbnail(it.localPath, false) },
                                     contentDescription = null,
                                     contentScale = contentScale,
                                     modifier = Modifier

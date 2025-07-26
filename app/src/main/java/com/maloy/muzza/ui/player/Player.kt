@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateDpAsState
@@ -17,20 +18,25 @@ import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,10 +44,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
@@ -51,6 +61,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +83,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -104,7 +116,9 @@ import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
+import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
@@ -119,6 +133,7 @@ import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.theme.extractGradientColors
+import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.ui.utils.imageCache
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -128,8 +143,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.saket.squiggles.SquigglySlider
+import kotlin.math.max
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun BottomSheetPlayer(
     state: BottomSheetState,
@@ -144,7 +160,8 @@ fun BottomSheetPlayer(
     val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
     val haptic = LocalHapticFeedback.current
     val useBlackBackground = remember(isSystemInDarkTheme, darkTheme, pureBlack) {
-        val useDarkTheme = if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
+        val useDarkTheme =
+            if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
         useDarkTheme && pureBlack
     }
     if (useBlackBackground && state.value > state.collapsedBound) {
@@ -170,9 +187,12 @@ fun BottomSheetPlayer(
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
 
-    val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
+    val playerBackground by rememberEnumPreference(
+        key = PlayerBackgroundStyleKey,
+        defaultValue = PlayerBackgroundStyle.DEFAULT
+    )
 
-    val (playerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
+    val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
 
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -186,8 +206,8 @@ fun BottomSheetPlayer(
             else
                 if (pureBlack && darkTheme == DarkMode.ON && isSystemInDarkTheme)
                     Color.White
-            else
-                MaterialTheme.colorScheme.onPrimary
+                else
+                    MaterialTheme.colorScheme.onPrimary
     }
 
     val (nowPlayingEnable) = rememberPreference(NowPlayingEnableKey, defaultValue = true)
@@ -206,9 +226,9 @@ fun BottomSheetPlayer(
         } else if (playerBackground == PlayerBackgroundStyle.GRADIENT) {
             withContext(Dispatchers.IO) {
                 val result = (ImageLoader(context).execute(
-                        ImageRequest.Builder(context).data(mediaMetadata?.thumbnailUrl)
-                            .allowHardware(false).build(),
-                    ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
+                    ImageRequest.Builder(context).data(mediaMetadata?.thumbnailUrl)
+                        .allowHardware(false).build(),
+                ).drawable as? BitmapDrawable)?.bitmap?.extractGradientColors()
 
                 result?.let {
                     gradientColors = it
@@ -244,9 +264,55 @@ fun BottomSheetPlayer(
             }
         }
     }
+    val thumbnailLazyGridState = rememberLazyGridState()
+    val horizontalLazyGridItemWidthFactor = 1f
+    val thumbnailSnapLayoutInfoProvider = remember(thumbnailLazyGridState) {
+        SnapLayoutInfoProvider(
+            lazyGridState = thumbnailLazyGridState,
+            positionInLayout = { layoutSize, itemSize ->
+                (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
+            }
+        )
+    }
+    val (swipeThumbnail) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
+    val previousMediaMetadata =
+        if (swipeThumbnail && playerConnection.player.hasPreviousMediaItem()) {
+            val previousIndex = playerConnection.player.previousMediaItemIndex
+            playerConnection.player.getMediaItemAt(previousIndex).metadata
+        } else null
+
+    val nextMediaMetadata = if (swipeThumbnail && playerConnection.player.hasNextMediaItem()) {
+        val nextIndex = playerConnection.player.nextMediaItemIndex
+        playerConnection.player.getMediaItemAt(nextIndex).metadata
+    } else null
+
+    val mediaItems = listOfNotNull(previousMediaMetadata, mediaMetadata, nextMediaMetadata)
+    val currentMediaIndex = mediaItems.indexOf(mediaMetadata)
+
+    val currentItem by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemIndex } }
+    val itemScrollOffset by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemScrollOffset } }
+
+    LaunchedEffect(itemScrollOffset) {
+        if (!thumbnailLazyGridState.isScrollInProgress || !swipeThumbnail || itemScrollOffset != 0) return@LaunchedEffect
+
+        if (currentItem > currentMediaIndex)
+            playerConnection.player.seekToNext()
+        else if (currentItem < currentMediaIndex)
+            playerConnection.player.seekToPreviousMediaItem()
+    }
+
+
+    LaunchedEffect(mediaMetadata, canSkipPrevious, canSkipNext) {
+        val index = maxOf(0, currentMediaIndex)
+        if (state.isExpanded)
+            thumbnailLazyGridState.animateScrollToItem(index)
+        else
+            thumbnailLazyGridState.scrollToItem(index)
+    }
 
     val queueSheetState = rememberBottomSheetState(
-        dismissedBound = QueuePeekHeight + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
+        dismissedBound = QueuePeekHeight + WindowInsets.systemBars.asPaddingValues()
+            .calculateBottomPadding(),
         expandedBound = state.expandedBound,
     )
 
@@ -257,6 +323,7 @@ fun BottomSheetPlayer(
             pureBlack && darkTheme == DarkMode.ON -> Color.Black
             useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
                 MaterialTheme.colorScheme.surfaceContainer
+
             else -> MaterialTheme.colorScheme.onSurfaceVariant
         },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -716,65 +783,112 @@ fun BottomSheetPlayer(
                 )
             }
         }
-        when (LocalConfiguration.current.orientation) {
-            Configuration.ORIENTATION_LANDSCAPE -> {
-                Row(
+        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            val vPadding = max(
+                WindowInsets.safeDrawing.getTop(LocalDensity.current),
+                WindowInsets.safeDrawing.getBottom(LocalDensity.current)
+            )
+            val vPaddingDp = with(LocalDensity.current) { vPadding.toDp() }
+            val verticalInsets = WindowInsets(left = 0.dp, top = vPaddingDp, right = 0.dp, bottom = vPaddingDp)
+            Row(
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).add(verticalInsets))
+                    .fillMaxSize()
+            ) {
+                BoxWithConstraints(
+                    contentAlignment = Alignment.Center,
                     modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                        .padding(bottom = queueSheetState.collapsedBound)
+                        .weight(1f)
+                        .nestedScroll(state.preUpPostDownNestedScrollConnection)
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.weight(1f)
+                    val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
+
+                    LazyHorizontalGrid(
+                        state = thumbnailLazyGridState,
+                        rows = GridCells.Fixed(1),
+                        contentPadding = PaddingValues(vertical = 16.dp),
+                        flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
+                        userScrollEnabled = state.isExpanded && swipeThumbnail
                     ) {
-                        Thumbnail(
-                            sliderPositionProvider = { sliderPosition },
-                            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                            showLyricsOnClick = true
-                        )
-                    }
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier
-                            .weight(1f)
-                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
-                    ) {
-                        Spacer(Modifier.weight(1f))
-
-                        mediaMetadata?.let {
-                            controlsContent(it)
-                        }
-
-                        Spacer(Modifier.weight(1f))
+                        items(
+                            count = mediaItems.size,
+                            key = { index -> mediaItems[index].id }
+                        ) { index ->
+                            Thumbnail(
+                                sliderPositionProvider = { sliderPosition },
+                                modifier = Modifier
+                                    .width(horizontalLazyGridItemWidth)
+                                    .animateContentSize(),
+                                contentScale = ContentScale.Crop,
+                                showLyricsOnClick = true,
+                                customMediaMetadata = mediaItems[index]
+                            )
+                            }
                     }
                 }
-            }
 
-            else -> {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                        .padding(bottom = queueSheetState.collapsedBound)
+                        .weight(if (showLyrics) 0.65f else 1f, false)
+                        .animateContentSize()
+                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
                 ) {
-                    Box(
-                        contentAlignment = Alignment.Center,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Thumbnail(
-                            sliderPositionProvider = { sliderPosition },
-                            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                            showLyricsOnClick = true
-                        )
-                    }
+                    Spacer(Modifier.weight(1f))
 
                     mediaMetadata?.let {
                         controlsContent(it)
                     }
 
-                    Spacer(Modifier.height(32.dp))
+                    Spacer(Modifier.weight(1f))
                 }
+            }
+        } else {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                    .padding(bottom = queueSheetState.collapsedBound)
+            ) {
+                BoxWithConstraints(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .weight(1f)
+                        .nestedScroll(state.preUpPostDownNestedScrollConnection)
+                ) {
+                    val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
+
+                    LazyHorizontalGrid(
+                        state = thumbnailLazyGridState,
+                        rows = GridCells.Fixed(1),
+                        flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
+                        userScrollEnabled = swipeThumbnail && state.isExpanded
+                    ) {
+                        items(
+                            count = mediaItems.size,
+                            key = { index -> mediaItems[index].id }
+                        ) { index ->
+                            Thumbnail(
+                                modifier = Modifier
+                                    .width(horizontalLazyGridItemWidth)
+                                    .animateContentSize(),
+                                contentScale = ContentScale.Crop,
+                                sliderPositionProvider = { sliderPosition },
+                                showLyricsOnClick = true,
+                                customMediaMetadata = mediaItems[index]
+                            )
+                        }
+                    }
+                }
+
+                Spacer(Modifier.height(8.dp))
+
+                mediaMetadata?.let {
+                    controlsContent(it)
+                }
+
+                Spacer(Modifier.height(24.dp))
             }
         }
 

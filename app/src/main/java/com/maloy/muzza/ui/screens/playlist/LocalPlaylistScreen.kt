@@ -3,6 +3,7 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -32,6 +33,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.HideImage
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -131,6 +133,7 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
+import com.maloy.muzza.ui.screens.settings.ConfirmationDialog
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
@@ -803,6 +806,24 @@ fun LocalPlaylistHeader(
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
     }
+    fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
+        val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
+        return file.exists() && file.delete()
+    }
+    var showClearPlaylistThumbnailDialog by remember {
+        mutableStateOf(false)
+    }
+    if (showClearPlaylistThumbnailDialog) {
+        ConfirmationDialog(
+            title = R.string.remove_custom_playlist_thumbnail,
+            icon = Icons.Rounded.HideImage,
+            onDismiss = { showClearPlaylistThumbnailDialog = false },
+            onConfirm = {
+                showClearPlaylistThumbnailDialog = false
+                deletePlaylistCover(context = context, playlistId = playlist.playlist.id)
+            }
+        )
+    }
 
     LaunchedEffect(playlist) {
         customThumbnailUri = loadSavedImage()
@@ -843,7 +864,7 @@ fun LocalPlaylistHeader(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .clickable { pickImageLauncher.launch("image/*") }
+                    .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
                     .size(AlbumThumbnailSize)
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .align(alignment = Alignment.CenterHorizontally)
@@ -853,7 +874,7 @@ fun LocalPlaylistHeader(
                 val libcarditem = 25.dp
                 Box(
                     modifier = Modifier
-                        .clickable { pickImageLauncher.launch("image/*") }
+                        .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(libcarditem))
                         .align(alignment = Alignment.CenterHorizontally)
@@ -880,7 +901,7 @@ fun LocalPlaylistHeader(
                     contentDescription = null,
                     contentScale = ContentScale.Crop,
                     modifier = Modifier
-                        .clickable { pickImageLauncher.launch("image/*") }
+                        .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)
@@ -888,7 +909,7 @@ fun LocalPlaylistHeader(
             } else if (playlist.thumbnails.size > 1 && customThumbnailUri == null) {
                 Box(
                     modifier = Modifier
-                        .clickable { pickImageLauncher.launch("image/*") }
+                        .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)

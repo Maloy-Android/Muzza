@@ -476,7 +476,7 @@ private fun ModelManagementCard(onClear: () -> Unit) {
 }
 
 @Composable
-private fun ConfirmationDialog(
+fun ConfirmationDialog(
     @StringRes title: Int,
     icon: ImageVector,
     onDismiss: () -> Unit,

@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.menu
 
+import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.HideImage
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -67,6 +69,7 @@ import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.ui.screens.settings.ConfirmationDialog
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -175,6 +178,24 @@ fun PlaylistMenu(
             val savedUri = saveImageToPrivateStorage(selectedUri)
                 customThumbnailUri = savedUri
         }
+    }
+    fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
+        val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
+        return file.exists() && file.delete()
+    }
+    var showClearPlaylistThumbnailDialog by remember {
+        mutableStateOf(false)
+    }
+    if (showClearPlaylistThumbnailDialog) {
+        ConfirmationDialog(
+            title = R.string.remove_custom_playlist_thumbnail,
+            icon = Icons.Rounded.HideImage,
+            onDismiss = { showClearPlaylistThumbnailDialog = false },
+            onConfirm = {
+                showClearPlaylistThumbnailDialog = false
+                deletePlaylistCover(context = context, playlistId = playlist.playlist.id)
+            }
+        )
     }
 
     var showRemoveDownloadDialog by remember {
@@ -427,11 +448,20 @@ fun PlaylistMenu(
         item {
             HorizontalDivider()
         }
-        ListMenuItem(
-            icon = R.drawable.image,
-            title = R.string.edit_playlist_thumbnail
-        ) {
-            pickImageLauncher.launch("image/*")
+        if (customThumbnailUri == null) {
+            ListMenuItem(
+                icon = R.drawable.image,
+                title = R.string.edit_playlist_thumbnail
+            ) {
+                pickImageLauncher.launch("image/*")
+            }
+        } else {
+            ListMenuItem(
+                icon = R.drawable.remove_image,
+                title = R.string.remove_custom_playlist_thumbnail
+            ) {
+                showClearPlaylistThumbnailDialog = true
+            }
         }
         item {
             HorizontalDivider()

@@ -527,7 +527,7 @@ fun Lyrics(
                         }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.more_horiz),
+                            painter = painterResource(R.drawable.more_vert),
                             contentDescription = stringResource(R.string.more_options),
                             tint = textColor
                         )

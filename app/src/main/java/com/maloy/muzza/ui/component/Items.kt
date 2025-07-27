@@ -316,10 +316,7 @@ fun SongListItem(
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val dismissState = rememberSwipeToDismissBoxState(
-        SwipeToDismissBoxValue.Settled,
-        SwipeToDismissBoxDefaults.positionalThreshold
-    )
+    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
     val colorScheme = MaterialTheme.colorScheme
 
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
@@ -1150,7 +1147,7 @@ fun YouTubeListItem(
     if (item is SongItem && isSwipeable && swipeSongToDismiss) {
         val context = LocalContext.current
         val playerConnection = LocalPlayerConnection.current ?: return
-        val dismissState = rememberSwipeToDismissBoxState()
+        val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
         val colorScheme = MaterialTheme.colorScheme
 
         SwipeToDismissBox(

@@ -345,7 +345,7 @@ fun BottomSheetPlayer(
                 label = "playPauseRoundness",
             )
 
-            if (fullScreenLyrics && !showLyrics) {
+            if (fullScreenLyrics) {
                 Row(
                     horizontalArrangement = Arrangement.Start,
                     modifier = Modifier
@@ -971,7 +971,7 @@ fun BottomSheetPlayer(
             }
         }
 
-        if (fullScreenLyrics && !showLyrics) {
+        if (fullScreenLyrics) {
             Queue(
                 state = queueSheetState,
                 backgroundColor =

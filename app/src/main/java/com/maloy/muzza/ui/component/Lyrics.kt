@@ -93,6 +93,8 @@ import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
+import com.maloy.muzza.constants.PlayerStyle
+import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.lyrics.LyricsEntry
 import com.maloy.muzza.lyrics.LyricsEntry.Companion.HEAD_LYRICS_ENTRY
@@ -162,6 +164,7 @@ fun Lyrics(
     val selectedIndices = remember { mutableStateListOf<Int>() }
     var showMaxSelectionToast by remember { mutableStateOf(false) }
 
+    val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
     val playerBackground by rememberEnumPreference(key = PlayerBackgroundStyleKey, defaultValue = PlayerBackgroundStyle.DEFAULT)
 
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -482,17 +485,19 @@ fun Lyrics(
                         )
                     }
                 } else {
-                    IconButton(
-                        onClick = {
-                            showLyrics = false
-                            fullScreenLyrics = true
+                    if (!fullScreenLyrics || playerStyle == PlayerStyle.OLD) {
+                        IconButton(
+                            onClick = {
+                                showLyrics = false
+                                fullScreenLyrics = true
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.close),
+                                contentDescription = null,
+                                tint = textColor
+                            )
                         }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.close),
-                            contentDescription = null,
-                            tint = textColor
-                        )
                     }
                     if (fullScreenLyrics) {
                         IconButton(

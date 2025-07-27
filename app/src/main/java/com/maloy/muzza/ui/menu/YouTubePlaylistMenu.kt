@@ -322,14 +322,16 @@ fun YouTubePlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        ListMenuItem(
-            icon = R.drawable.shuffle, title = R.string.shuffle
-        ) {
-            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-            onDismiss()
-        }
-        item {
-            HorizontalDivider()
+        if (playlist.id != "LM") {
+            ListMenuItem(
+                icon = R.drawable.shuffle, title = R.string.shuffle
+            ) {
+                playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
+                onDismiss()
+            }
+            item {
+                HorizontalDivider()
+            }
         }
         ListMenuItem(
             icon = R.drawable.playlist_play, title = R.string.play_next

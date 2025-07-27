@@ -92,6 +92,8 @@
 
     <!-- Artist screen -->
     <string name="from_your_library">З вашої бібліотеки</string>
+    <string name="subscribe">Підписатися</string>
+    <string name="subscribed">Підписано</string>
 
     <!-- Album screen -->
     <string name="other_versions">Інші версії</string>

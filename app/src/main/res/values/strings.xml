@@ -106,6 +106,8 @@
 
     <!-- Artist screen -->
     <string name="from_your_library">From your library</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="subscribed">Subscribed</string>
 
     <!-- Album screen -->
     <string name="other_versions">Other versions</string>

@@ -13,10 +13,8 @@ import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
-import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -182,7 +180,7 @@ class MusicService : MediaLibraryService(),
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
 
-    var consecutivePlaybackErr = 0
+    private var consecutivePlaybackErr = 0
 
     val currentMediaMetadata = MutableStateFlow<com.maloy.muzza.models.MediaMetadata?>(null)
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
@@ -739,15 +737,11 @@ class MusicService : MediaLibraryService(),
         val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
-
-            // find a better way to detect local files later...
             if (mediaId.startsWith("1000")) {
                 val songPath = runBlocking(Dispatchers.IO) {
                     database.song(mediaId).firstOrNull()?.song?.localPath
                 }
-                Log.d("WTF", "Looking for local file: " + songPath)
-
-                return@Factory dataSpec.withUri(Uri.fromFile(File(songPath)))
+                return@Factory dataSpec.withUri(Uri.fromFile(songPath?.let { File(it) }))
             }
 
             if (downloadCache.isCached(mediaId, dataSpec.position, if (dataSpec.length >= 0) dataSpec.length else 1) ||

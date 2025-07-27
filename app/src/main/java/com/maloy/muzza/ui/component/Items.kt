@@ -39,6 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
+import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -315,8 +316,10 @@ fun SongListItem(
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
-
-    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
+    val dismissState = rememberSwipeToDismissBoxState(
+        SwipeToDismissBoxValue.Settled,
+        SwipeToDismissBoxDefaults.positionalThreshold
+    )
     val colorScheme = MaterialTheme.colorScheme
 
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
@@ -1147,8 +1150,7 @@ fun YouTubeListItem(
     if (item is SongItem && isSwipeable && swipeSongToDismiss) {
         val context = LocalContext.current
         val playerConnection = LocalPlayerConnection.current ?: return
-
-        val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
+        val dismissState = rememberSwipeToDismissBoxState()
         val colorScheme = MaterialTheme.colorScheme
 
         SwipeToDismissBox(

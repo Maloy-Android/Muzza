@@ -808,7 +808,7 @@ fun BottomSheetPlayer(
                         rows = GridCells.Fixed(1),
                         contentPadding = PaddingValues(vertical = 16.dp),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = state.isExpanded && swipeThumbnail
+                        userScrollEnabled = state.isExpanded && swipeThumbnail && !showLyrics
                     ) {
 
                         items(
@@ -863,7 +863,7 @@ fun BottomSheetPlayer(
                         state = thumbnailLazyGridState,
                         rows = GridCells.Fixed(1),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = swipeThumbnail && state.isExpanded
+                        userScrollEnabled = swipeThumbnail && state.isExpanded && !showLyrics
                     ) {
                         items(
                             count = mediaItems.size,

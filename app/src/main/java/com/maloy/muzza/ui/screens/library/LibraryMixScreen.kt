@@ -303,11 +303,11 @@ fun LibraryMixScreen(
     val artist = viewModel.artists.collectAsState()
     val playlist = viewModel.playlists.collectAsState()
 
-    var allItems = artist.value + albums.value + playlist.value
+    var allItems = playlist.value + albums.value + artist.value
     val collator = Collator.getInstance(Locale.getDefault())
     collator.strength = Collator.PRIMARY
     allItems = when (sortType) {
-        MixSortType.DEFAULT -> allItems.sortedBy { LocalDateTime.now() }
+        MixSortType.DEFAULT -> allItems.reversed()
         MixSortType.CREATE_DATE -> allItems.sortedBy { item ->
             when (item) {
                 is Album -> item.album.bookmarkedAt

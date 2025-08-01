@@ -307,7 +307,7 @@ fun LibraryMixScreen(
     val collator = Collator.getInstance(Locale.getDefault())
     collator.strength = Collator.PRIMARY
     allItems = when (sortType) {
-        MixSortType.DEFAULT -> allItems
+        MixSortType.DEFAULT -> allItems.sortedBy { LocalDateTime.now() }
         MixSortType.CREATE_DATE -> allItems.sortedBy { item ->
             when (item) {
                 is Album -> item.album.bookmarkedAt

@@ -172,7 +172,7 @@ fun BottomSheetPlayer(
 
     val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
-    val fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = true)
+    var fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = true)
 
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
 
@@ -276,12 +276,12 @@ fun BottomSheetPlayer(
     }
     val (swipeThumbnail) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val previousMediaMetadata =
-        if (swipeThumbnail && playerConnection.player.hasPreviousMediaItem()) {
+        if (playerConnection.player.hasPreviousMediaItem()) {
             val previousIndex = playerConnection.player.previousMediaItemIndex
             playerConnection.player.getMediaItemAt(previousIndex).metadata
         } else null
 
-    val nextMediaMetadata = if (swipeThumbnail && playerConnection.player.hasNextMediaItem()) {
+    val nextMediaMetadata = if (playerConnection.player.hasNextMediaItem()) {
         val nextIndex = playerConnection.player.nextMediaItemIndex
         playerConnection.player.getMediaItemAt(nextIndex).metadata
     } else null
@@ -293,7 +293,7 @@ fun BottomSheetPlayer(
     val itemScrollOffset by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemScrollOffset } }
 
     LaunchedEffect(itemScrollOffset) {
-        if (!thumbnailLazyGridState.isScrollInProgress || !swipeThumbnail || itemScrollOffset != 0) return@LaunchedEffect
+        if (!thumbnailLazyGridState.isScrollInProgress || itemScrollOffset != 0) return@LaunchedEffect
 
         if (currentItem > currentMediaIndex)
             playerConnection.player.seekToNext()
@@ -308,6 +308,10 @@ fun BottomSheetPlayer(
             thumbnailLazyGridState.animateScrollToItem(index)
         else
             thumbnailLazyGridState.scrollToItem(index)
+    }
+
+    LaunchedEffect(!showLyrics) {
+        fullScreenLyrics = true
     }
 
     val queueSheetState = rememberBottomSheetState(
@@ -792,7 +796,10 @@ fun BottomSheetPlayer(
             val verticalInsets = WindowInsets(left = 0.dp, top = vPaddingDp, right = 0.dp, bottom = vPaddingDp)
             Row(
                 modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal).add(verticalInsets))
+                    .windowInsetsPadding(
+                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
+                            .add(verticalInsets)
+                    )
                     .fillMaxSize()
             ) {
                 BoxWithConstraints(

@@ -361,6 +361,8 @@
     <string name="bugs">Issues</string>
     <string name="bugs_text">Bugs or Problems? Report them here ❯</string>
     <string name="help">Help</string>
+    <string name="help_title_whatsapp">WhatsApp</string>
+    <string name="help_title_telegram">Telegram</string>
     <string name="help_text">Contact Dev ❯</string>
     <string name="contribution">Contribution ?</string>
     <string name="contribution_text">If you want to contribute, click here ❯</string>

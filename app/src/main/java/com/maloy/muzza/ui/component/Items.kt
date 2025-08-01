@@ -32,14 +32,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxDefaults
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
@@ -508,7 +506,7 @@ fun SongFolderItem(
 
     ) = ListItem(title = folderTitle, thumbnailContent = {
     Icon(
-        Icons.Rounded.Folder,
+        Icons.Rounded.FolderCopy,
         contentDescription = null,
         modifier = modifier.size(48.dp)
     )
@@ -525,7 +523,7 @@ fun SongFolderItem(
     subtitle = subtitle,
     thumbnailContent = {
         Icon(
-            Icons.Rounded.Folder,
+            Icons.Rounded.FolderCopy,
             contentDescription = null,
             modifier = modifier.size(48.dp)
         )
@@ -540,7 +538,8 @@ fun SongFolderItem(
     folderTitle: String? = null,
     menuState: MenuState,
     navController: NavController,
-    subtitle: String
+    subtitle: String,
+    trailingContent: @Composable RowScope.() -> Unit = {},
 ) = ListItem(title = folderTitle ?: folder.currentDir,
     subtitle = subtitle,
     thumbnailContent = {

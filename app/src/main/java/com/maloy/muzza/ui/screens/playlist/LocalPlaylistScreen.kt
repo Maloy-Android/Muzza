@@ -109,6 +109,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.PlaylistEditLockKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
@@ -781,6 +782,8 @@ fun LocalPlaylistHeader(
 
     val editable: Boolean = playlist.playlist.isEditable
 
+    val accountName by rememberPreference(AccountNameKey, "")
+
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
     fun saveImageToPrivateStorage(uri: Uri): Uri? {
@@ -943,6 +946,16 @@ fun LocalPlaylistHeader(
                     overflow = TextOverflow.Ellipsis,
                     fontSizeRange = FontSizeRange(16.sp, 22.sp)
                 )
+
+                if (accountName.isNotEmpty() && playlist.playlist.isLocal) {
+                    Text(
+                        text = accountName,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                }
 
                 Text(
                     text = makeTimeString(playlistLength * 1000L),

@@ -323,11 +323,13 @@ fun YouTubePlaylistMenu(
         )
     ) {
         if (playlist.id != "LM") {
-            ListMenuItem(
-                icon = R.drawable.shuffle, title = R.string.shuffle
-            ) {
-                playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-                onDismiss()
+            playlist.shuffleEndpoint.let {
+                ListMenuItem(
+                    icon = R.drawable.shuffle, title = R.string.shuffle
+                ) {
+                    playerConnection.playQueue(YouTubeQueue(it))
+                    onDismiss()
+                }
             }
             item {
                 HorizontalDivider()

@@ -319,7 +319,7 @@ fun OnlinePlaylistScreen(
                                                     }
                                                 })
                                             }
-                                        } else {
+                                        } else if (accountName.isNotEmpty()) {
                                             Text(
                                                 text = accountName,
                                                 style = MaterialTheme.typography.titleMedium.copy(

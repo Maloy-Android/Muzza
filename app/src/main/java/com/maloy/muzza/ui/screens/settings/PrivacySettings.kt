@@ -34,10 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AddingPlayedSongsToYTMHistoryKey
 import com.maloy.muzza.constants.DisableScreenshotKey
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PauseListenHistoryKey
 import com.maloy.muzza.constants.PauseSearchHistoryKey
 import com.maloy.muzza.ui.component.DefaultDialog
@@ -62,6 +65,14 @@ fun PrivacySettings(
     val (disableScreenshot, onDisableScreenshotChange) = rememberPreference(key = DisableScreenshotKey, defaultValue = false)
 
     var showClearListenHistoryDialog by remember { mutableStateOf(false) }
+
+    val (addingPlayedSongsToYtmHistory, onAddingPlayedSongsToYtmHistoryChange) = rememberPreference(
+        AddingPlayedSongsToYTMHistoryKey, defaultValue = true)
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
 
     val powerManager = context.getSystemService<PowerManager>()
     val isIgnoringOptimizations =
@@ -141,6 +152,15 @@ fun PrivacySettings(
         PreferenceGroupTitle(
             title = stringResource(R.string.listen_history)
         )
+
+        if (isLoggedIn) {
+            SwitchPreference(
+                title = { Text(stringResource(R.string.adding_played_songs_to_ytm_history)) },
+                icon = { Icon(painterResource(R.drawable.history), null) },
+                checked = addingPlayedSongsToYtmHistory,
+                onCheckedChange = onAddingPlayedSongsToYtmHistoryChange
+            )
+        }
 
         SwitchPreference(
             title = { Text(stringResource(R.string.pause_listen_history)) },

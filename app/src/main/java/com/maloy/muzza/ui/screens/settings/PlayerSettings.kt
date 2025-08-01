@@ -29,10 +29,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
-import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AddingPlayedSongsToYTMHistoryKey
 import com.maloy.muzza.constants.AudioNormalizationKey
 import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
@@ -40,7 +38,6 @@ import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
-import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
@@ -75,13 +72,6 @@ fun PlayerSettings(
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
-    val (addingPlayedSongsToYtmHistory, onAddingPlayedSongsToYtmHistoryChange) = rememberPreference(
-        AddingPlayedSongsToYTMHistoryKey, defaultValue = true)
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
-        }
 
     var showMinPlaybackDur by remember {
         mutableStateOf(false)
@@ -158,15 +148,6 @@ fun PlayerSettings(
             checked = skipSilence,
             onCheckedChange = onSkipSilenceChange
         )
-
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.adding_played_songs_to_ytm_history)) },
-                icon = { Icon(painterResource(R.drawable.history), null) },
-                checked = addingPlayedSongsToYtmHistory,
-                onCheckedChange = onAddingPlayedSongsToYtmHistoryChange
-            )
-        }
 
         SwitchPreference(
             title = { Text(stringResource(R.string.audio_normalization)) },

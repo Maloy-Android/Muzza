@@ -922,8 +922,15 @@ fun PlaylistGridItem(
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     fillMaxWidth: Boolean = false,
-    badges: @Composable (RowScope.() -> Unit) = {},
-    showLikedIcon: Boolean = true
+    showLikedIcon: Boolean = true,
+    badges: @Composable (RowScope.() -> Unit) = {
+        if (playlist.playlist.isLocal) {
+            Icon.PlaylistLocal()
+        }
+        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+            Icon.Favorite()
+        }
+    }
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -940,14 +947,7 @@ fun PlaylistGridItem(
     GridItem(
         title = playlist.playlist.name,
         subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
-        badges = {
-            if (playlist.playlist.isLocal) {
-                Icon.PlaylistLocal()
-            }
-            if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
-                Icon.Favorite()
-            }
-        },
+        badges = badges,
         thumbnailContent = {
             val width = maxWidth
             val libcarditem = 25.dp

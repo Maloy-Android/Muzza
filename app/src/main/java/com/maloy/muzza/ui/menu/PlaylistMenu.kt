@@ -307,6 +307,7 @@ fun PlaylistMenu(
 
     PlaylistListItem(
         playlist = playlist,
+        showLikedIcon = false,
         thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
         trailingContent = {
             if (!playlist.playlist.isEditable) {

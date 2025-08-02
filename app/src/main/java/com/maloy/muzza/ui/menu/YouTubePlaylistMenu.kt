@@ -128,7 +128,7 @@ fun YouTubePlaylistMenu(
     }
 
     YouTubeListItem(
-        item = playlist, trailingContent = {
+        item = playlist, showLikedIcon = false, trailingContent = {
             if (playlist.id != "LM" && !playlist.isEditable) {
                 IconButton(
                     onClick = {

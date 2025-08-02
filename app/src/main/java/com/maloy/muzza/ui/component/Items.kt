@@ -853,6 +853,7 @@ fun PlaylistListItem(
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     trailingContent: @Composable (RowScope.() -> Unit) = {},
+    showLikedIcon: Boolean = true
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -905,13 +906,10 @@ fun PlaylistListItem(
         },
         badges = {
             if (playlist.playlist.isLocal) {
-                Icon(
-                    imageVector = Icons.Rounded.CloudOff,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .padding(end = 2.dp)
-                )
+                Icon.PlaylistLocal()
+            }
+            if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+                Icon.Favorite()
             }
         },
         trailingContent = trailingContent,
@@ -925,6 +923,7 @@ fun PlaylistGridItem(
     modifier: Modifier = Modifier,
     fillMaxWidth: Boolean = false,
     badges: @Composable (RowScope.() -> Unit) = {},
+    showLikedIcon: Boolean = true
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -941,7 +940,14 @@ fun PlaylistGridItem(
     GridItem(
         title = playlist.playlist.name,
         subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
-        badges = badges,
+        badges = {
+            if (playlist.playlist.isLocal) {
+                Icon.PlaylistLocal()
+            }
+            if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+                Icon.Favorite()
+            }
+        },
         thumbnailContent = {
             val width = maxWidth
             val libcarditem = 25.dp
@@ -1117,13 +1123,16 @@ fun YouTubeListItem(
     modifier: Modifier = Modifier,
     isSwipeable: Boolean = true,
     albumIndex: Int? = null,
+    showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
+        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null ||
+            item is PlaylistItem && showLikedIcon && playlist?.playlist?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }
@@ -1136,6 +1145,9 @@ fun YouTubeListItem(
         if (item is SongItem) {
             val downloads by LocalDownloadUtil.current.downloads.collectAsState()
             Icon.Download(downloads[item.id]?.state)
+        }
+        if (item is PlaylistItem && playlist?.playlist?.isLocal != false) {
+            Icon.PlaylistLocal()
         }
     },
     isActive: Boolean = false,
@@ -1630,6 +1642,17 @@ private object Icon {
     fun Explicit() {
         Icon(
             painter = painterResource(R.drawable.explicit),
+            contentDescription = null,
+            modifier = Modifier
+                .size(18.dp)
+                .padding(end = 2.dp)
+        )
+    }
+
+    @Composable
+    fun PlaylistLocal() {
+        Icon(
+            imageVector = Icons.Rounded.CloudOff,
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)

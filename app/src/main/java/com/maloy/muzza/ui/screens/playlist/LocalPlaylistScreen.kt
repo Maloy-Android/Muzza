@@ -832,6 +832,10 @@ fun LocalPlaylistHeader(
         customThumbnailUri = loadSavedImage()
     }
 
+    LaunchedEffect(customThumbnailUri) {
+        playlist.playlist.thumbnailUrl
+    }
+
     val pickImageLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->

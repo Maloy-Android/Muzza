@@ -920,20 +920,20 @@ fun BottomSheetPlayer(
                         }
                     )
 
-                    if (!queueTitle.isNullOrEmpty()) {
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .weight(1f, fill = false)
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            Text(
-                                text = stringResource(R.string.now_playing),
-                                style = MaterialTheme.typography.titleMedium,
-                                overflow = TextOverflow.Ellipsis,
-                                color = onBackgroundColor,
-                                maxLines = 1
-                            )
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .weight(1f, fill = false)
+                            .padding(horizontal = 8.dp)
+                    ) {
+                        Text(
+                            text = stringResource(R.string.now_playing),
+                            style = MaterialTheme.typography.titleMedium,
+                            overflow = TextOverflow.Ellipsis,
+                            color = onBackgroundColor,
+                            maxLines = 1
+                        )
+                        if (!queueTitle.isNullOrEmpty()) {
                             Text(
                                 text = queueTitle.orEmpty(),
                                 style = MaterialTheme.typography.bodyMedium,
@@ -943,6 +943,18 @@ fun BottomSheetPlayer(
                                 maxLines = 1,
                                 modifier = Modifier.basicMarquee()
                             )
+                        } else {
+                            mediaMetadata?.let {
+                                Text(
+                                    text = it.title,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    overflow = TextOverflow.Ellipsis,
+                                    color = onBackgroundColor,
+                                    maxLines = 1,
+                                    modifier = Modifier.basicMarquee()
+                                )
+                            }
                         }
                     }
                     Box(modifier = Modifier.width(25.dp)) {

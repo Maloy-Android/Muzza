@@ -1,4 +1,4 @@
-@file:Suppress("NAME_SHADOWING")
+@file:Suppress("NAME_SHADOWING", "UNREACHABLE_CODE")
 
 package com.maloy.muzza.ui.screens.playlist
 
@@ -805,13 +805,18 @@ fun LocalPlaylistHeader(
         }
     }
 
+    var updatePlaylistThumbnail by remember {
+        mutableStateOf(false)
+    }
     fun loadSavedImage(): Uri? {
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
+        updatePlaylistThumbnail = true
     }
     fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
         val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
         return file.exists() && file.delete()
+        updatePlaylistThumbnail = true
     }
     var showClearPlaylistThumbnailDialog by remember {
         mutableStateOf(false)
@@ -828,11 +833,11 @@ fun LocalPlaylistHeader(
         )
     }
 
-    LaunchedEffect(playlist) {
+    LaunchedEffect(updatePlaylistThumbnail) {
         customThumbnailUri = loadSavedImage()
     }
 
-    LaunchedEffect(customThumbnailUri) {
+    LaunchedEffect(updatePlaylistThumbnail) {
         playlist.playlist.thumbnailUrl
     }
 

@@ -12,7 +12,6 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Bolt
-import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -125,7 +124,7 @@ fun PlayerSettings(
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.lyrics_settings_title)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
             onClick = { navController.navigate("settings/player/lyrics") }
         )
 

@@ -111,7 +111,7 @@ fun ImportM3uDialog(
 
     DefaultDialog(
         onDismiss = onDismiss,
-        icon = { Icon(painterResource(R.drawable.restore), null) },
+        icon = { Icon(painterResource(R.drawable.playlist_add), null) },
         title = { Text(stringResource(R.string.import_playlist)) },
     ) {
         EnumListPreference(

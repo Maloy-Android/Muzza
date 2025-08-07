@@ -101,7 +101,6 @@ import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -154,6 +153,8 @@ fun OnlinePlaylistScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val syncUtils = LocalSyncUtils.current
+
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val accountName by rememberPreference(AccountNameKey, "")
 
@@ -482,19 +483,25 @@ fun OnlinePlaylistScreen(
 
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(
-                                                        items = songs.map { it.toMediaItem() }
-                                                    )
+                                                    viewModel.loadRemainingSongs()
                                                 },
+                                                enabled = !isLoading,
                                                 modifier = Modifier
                                                     .weight(1f)
                                                     .padding(4.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.queue_music),
-                                                    contentDescription = null
-                                                )
+                                                if (isLoading) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(16.dp),
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        painterResource(R.drawable.sync),
+                                                        contentDescription = null
+                                                    )
+                                                }
                                             }
 
                                             if (playlist.id != "LM") {

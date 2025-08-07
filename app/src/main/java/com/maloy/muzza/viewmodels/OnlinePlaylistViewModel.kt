@@ -23,6 +23,7 @@ class OnlinePlaylistViewModel @Inject constructor(
 ) : ViewModel() {
     private val playlistId = savedStateHandle.get<String>("playlistId")!!
 
+    val isLoading = MutableStateFlow(false)
     val playlist = MutableStateFlow<PlaylistItem?>(null)
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
     var continuation: String? = null
@@ -31,6 +32,7 @@ class OnlinePlaylistViewModel @Inject constructor(
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
+            isLoading.value = true
             YouTube.playlist(playlistId)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
@@ -39,13 +41,26 @@ class OnlinePlaylistViewModel @Inject constructor(
                 }.onFailure {
                     reportException(it)
                 }
+            isLoading.value = false
         }
     }
     fun loadMoreSongs() {
         continuation?.let {
+            isLoading.value = true
             viewModelScope.launch(Dispatchers.IO) {
                 getContinuation(it)
             }
+            isLoading.value = false
+        }
+    }
+
+    fun loadRemainingSongs() {
+        viewModelScope.launch(Dispatchers.IO) {
+            isLoading.value = true
+            while (continuation != null) {
+                getContinuation(continuation!!)
+            }
+            isLoading.value = false
         }
     }
 

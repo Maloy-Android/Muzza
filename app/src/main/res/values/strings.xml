@@ -289,6 +289,8 @@
     <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
     <string name="notifications_settings">Notifications settings</string>
     <string name="notification_permission_is_required">Notification permission is required</string>
+    <string name="advanced_notification_settings_title">Advanced notification settings</string>
+    <string name="intent_advanced_notification_settings_not_found">Couldn\'t find advanced notifications settings, please configure them manually</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>

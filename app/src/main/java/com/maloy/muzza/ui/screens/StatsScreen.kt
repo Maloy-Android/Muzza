@@ -86,12 +86,12 @@ fun StatsScreen(
             item {
                 ChipsRow(
                     chips = listOf(
+                        StatPeriod.ALL to stringResource(R.string.filter_all),
                         StatPeriod.`1_WEEK` to pluralStringResource(R.plurals.n_week, 1, 1),
                         StatPeriod.`1_MONTH` to pluralStringResource(R.plurals.n_month, 1, 1),
                         StatPeriod.`3_MONTH` to pluralStringResource(R.plurals.n_month, 3, 3),
                         StatPeriod.`6_MONTH` to pluralStringResource(R.plurals.n_month, 6, 6),
-                        StatPeriod.`1_YEAR` to pluralStringResource(R.plurals.n_year, 1, 1),
-                        StatPeriod.ALL to stringResource(R.string.filter_all)
+                        StatPeriod.`1_YEAR` to pluralStringResource(R.plurals.n_year, 1, 1)
                     ),
                     currentValue = statPeriod,
                     onValueUpdate = { viewModel.statPeriod.value = it }

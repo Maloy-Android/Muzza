@@ -23,7 +23,7 @@ import javax.inject.Inject
 class StatsViewModel @Inject constructor(
     val database: MusicDatabase,
 ) : ViewModel() {
-    val statPeriod = MutableStateFlow(StatPeriod.`1_WEEK`)
+    val statPeriod = MutableStateFlow(StatPeriod.ALL)
 
     val mostPlayedSongs = statPeriod.flatMapLatest { period ->
         database.mostPlayedSongs(period.toTimeMillis())

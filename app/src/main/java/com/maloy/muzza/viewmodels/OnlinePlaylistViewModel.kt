@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.utils.completed
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,18 +25,36 @@ class OnlinePlaylistViewModel @Inject constructor(
 
     val playlist = MutableStateFlow<PlaylistItem?>(null)
     val playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
+    var continuation: String? = null
     val dbPlaylist = database.playlistByBrowseId(playlistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            YouTube.playlist(playlistId).completed()
+            YouTube.playlist(playlistId)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
                     playlistSongs.value = playlistPage.songs
+                    continuation = playlistPage.songsContinuation
                 }.onFailure {
                     reportException(it)
                 }
         }
+    }
+    fun loadMoreSongs() {
+        continuation?.let {
+            viewModelScope.launch(Dispatchers.IO) {
+                getContinuation(it)
+            }
+        }
+    }
+
+    private suspend fun getContinuation(continuation: String) {
+        val continuationPage = YouTube.playlistContinuation(continuation).getOrElse { e ->
+            reportException(e)
+            return
+        }
+        playlistSongs.value += continuationPage.songs
+        this.continuation = continuationPage.continuation
     }
 }

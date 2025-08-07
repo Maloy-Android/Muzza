@@ -314,6 +314,10 @@ fun BottomSheetPlayer(
         fullScreenLyrics = true
     }
 
+    LaunchedEffect(!showLyrics && !fullScreenLyrics) {
+        fullScreenLyrics = true
+    }
+
     val queueSheetState = rememberBottomSheetState(
         dismissedBound = QueuePeekHeight + WindowInsets.systemBars.asPaddingValues()
             .calculateBottomPadding(),

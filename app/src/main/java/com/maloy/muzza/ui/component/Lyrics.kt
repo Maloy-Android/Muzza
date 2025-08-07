@@ -35,6 +35,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Fullscreen
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material3.BasicAlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
@@ -599,7 +601,7 @@ fun Lyrics(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.share),
+                            imageVector = Icons.Rounded.TextFields,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )
@@ -622,7 +624,7 @@ fun Lyrics(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.share),
+                            imageVector = Icons.Rounded.Image,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary
                         )

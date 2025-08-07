@@ -209,6 +209,7 @@ fun SongMenu(
     SongListItem(
         song = song,
         showLikedIcon = false,
+        isSwipeable = false,
         badges = {},
         trailingContent = {
             IconButton(

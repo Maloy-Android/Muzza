@@ -2,6 +2,7 @@ package com.maloy.innertube
 
 import okhttp3.OkHttpClient
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.schabi.newpipe.extractor.downloader.CancellableCall
 import org.schabi.newpipe.extractor.downloader.Downloader
 import org.schabi.newpipe.extractor.downloader.Request
 import org.schabi.newpipe.extractor.downloader.Response
@@ -51,7 +52,11 @@ object NewPipeDownloaderImpl : Downloader() {
         val responseBodyToReturn = response.body?.string()
 
         val latestUrl = response.request.url.toString()
-        return Response(response.code, response.message, response.headers.toMultimap(), responseBodyToReturn, latestUrl)
+        return Response(response.code, response.message, response.headers.toMultimap(), responseBodyToReturn, responseBodyToReturn?.toByteArray(), latestUrl)
+    }
+
+    override fun executeAsync(request: Request, callback: AsyncCallback?): CancellableCall {
+        TODO("Placeholder")
     }
 
 }

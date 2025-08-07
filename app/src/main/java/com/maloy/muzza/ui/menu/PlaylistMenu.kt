@@ -70,6 +70,7 @@ import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.screens.settings.ConfirmationDialog
+import com.maloy.muzza.utils.isInternetAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -504,7 +505,7 @@ fun PlaylistMenu(
         item {
             HorizontalDivider()
         }
-        if (playlist.playlist.browseId != null) {
+        if (playlist.playlist.browseId != null && !isInternetAvailable(context)) {
             ListMenuItem(
                 icon = R.drawable.sync,
                 title = R.string.sync

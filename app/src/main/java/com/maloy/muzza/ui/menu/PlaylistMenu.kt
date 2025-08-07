@@ -34,7 +34,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -292,6 +291,7 @@ fun PlaylistMenu(
         )
     }
 
+    val playlistName = playlist.title
     val m3uLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.CreateDocument("audio/x-mpegurl")
     ) { uri: Uri? ->
@@ -538,7 +538,7 @@ fun PlaylistMenu(
             icon = R.drawable.backup,
             title = R.string.playlist_m3u_export
         ) {
-            m3uLauncher.launch("playlist.m3u")
+            m3uLauncher.launch("$playlistName.m3u")
         }
     }
 }

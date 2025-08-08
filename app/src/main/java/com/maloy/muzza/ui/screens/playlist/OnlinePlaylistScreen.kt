@@ -142,6 +142,7 @@ fun OnlinePlaylistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val scope = rememberCoroutineScope()
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
@@ -483,7 +484,14 @@ fun OnlinePlaylistScreen(
 
                                             Button(
                                                 onClick = {
-                                                    viewModel.loadRemainingSongs()
+                                                    scope.launch(Dispatchers.IO) {
+                                                        viewModel.loadRemainingSongs()
+                                                        snackbarHostState.showSnackbar(
+                                                            context.getString(
+                                                                R.string.playlist_synced
+                                                            )
+                                                        )
+                                                    }
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier

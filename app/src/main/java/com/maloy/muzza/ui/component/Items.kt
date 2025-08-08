@@ -905,7 +905,7 @@ fun PlaylistListItem(
             }
         },
         badges = {
-            if (playlist.playlist.isLocal) {
+            if (playlist.playlist.isLocal && playlist.playlist.bookmarkedAt == null) {
                 Icon.PlaylistLocal()
             }
             if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
@@ -1144,9 +1144,6 @@ fun YouTubeListItem(
         if (item is SongItem) {
             val downloads by LocalDownloadUtil.current.downloads.collectAsState()
             Icon.Download(downloads[item.id]?.state)
-        }
-        if (item is PlaylistItem && playlist?.playlist?.isLocal != false) {
-            Icon.PlaylistLocal()
         }
     },
     isActive: Boolean = false,

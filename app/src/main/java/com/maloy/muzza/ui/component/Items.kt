@@ -905,10 +905,10 @@ fun PlaylistListItem(
             }
         },
         badges = {
-            if (playlist.playlist.isLocal && playlist.playlist.bookmarkedAt == null) {
+            if (playlist.playlist.isLocal) {
                 Icon.PlaylistLocal()
             }
-            if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+            if (showLikedIcon && playlist.playlist.bookmarkedAt != null && !playlist.playlist.isLocal) {
                 Icon.Favorite()
             }
         },

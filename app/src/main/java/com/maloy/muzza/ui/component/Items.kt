@@ -874,7 +874,7 @@ fun PlaylistListItem(
             Box(
                 modifier = Modifier
                     .size(ListThumbnailSize)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .background(MaterialTheme.colorScheme.surfaceContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -950,11 +950,10 @@ fun PlaylistGridItem(
         badges = badges,
         thumbnailContent = {
             val width = maxWidth
-            val libcarditem = 25.dp
             Box(
                 modifier = Modifier
                     .size(width)
-                    .clip(RoundedCornerShape(libcarditem))
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 if (customThumbnailUri != null) {

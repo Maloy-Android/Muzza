@@ -883,12 +883,11 @@ fun LocalPlaylistHeader(
             )
         } else {
             if (playlist.thumbnails.isEmpty() && customThumbnailUri == null) {
-                val libcarditem = 25.dp
                 Box(
                     modifier = Modifier
                         .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
                         .size(AlbumThumbnailSize)
-                        .clip(RoundedCornerShape(libcarditem))
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)
                         .background(
                             MaterialTheme.colorScheme.surfaceContainer,

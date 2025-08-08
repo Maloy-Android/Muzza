@@ -222,11 +222,10 @@ fun CachePlaylistScreen(
                             verticalArrangement = Arrangement.spacedBy(12.dp),
                             modifier = Modifier.padding(12.dp)
                         ) {
-                            val libcarditem = 25.dp
                             Box(
                                 modifier = Modifier
                                     .size(AlbumThumbnailSize)
-                                    .clip(RoundedCornerShape(libcarditem))
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
                                     .align(alignment = Alignment.CenterHorizontally)
                                     .background(
                                         MaterialTheme.colorScheme.surfaceContainer,

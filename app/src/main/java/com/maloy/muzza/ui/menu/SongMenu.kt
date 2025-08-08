@@ -474,17 +474,19 @@ fun SongMenu(
             item {
                 HorizontalDivider()
             }
-            if (playlistSong != null) {
-                ListMenuItem(
-                    icon = R.drawable.playlist_add,
-                    title = R.string.add_to_playlist
-                ) {
-                    showChoosePlaylistDialog = true
-                }
-                item {
-                    HorizontalDivider()
-                }
+        }
+        if (playlistSong != null) {
+            ListMenuItem(
+                icon = R.drawable.playlist_add,
+                title = R.string.add_to_playlist
+            ) {
+                showChoosePlaylistDialog = true
             }
+            item {
+                HorizontalDivider()
+            }
+        }
+        if (!song.song.isLocal)  {
             ListMenuItem(
                 icon = R.drawable.edit,
                 title = R.string.edit

@@ -1,5 +1,3 @@
-@file:Suppress("UNREACHABLE_CODE")
-
 package com.maloy.muzza.ui.menu
 
 import android.content.Context
@@ -164,23 +162,14 @@ fun PlaylistMenu(
         }
     }
 
-    var updatePlaylistThumbnail by remember {
-        mutableStateOf(false)
-    }
-
     fun loadSavedImage(): Uri? {
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
-        updatePlaylistThumbnail = true
     }
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
-    LaunchedEffect(updatePlaylistThumbnail) {
+    LaunchedEffect(playlist) {
         customThumbnailUri = loadSavedImage()
-    }
-
-    LaunchedEffect(updatePlaylistThumbnail) {
-        playlist.playlist.thumbnailUrl
     }
 
     val pickImageLauncher = rememberLauncherForActivityResult(
@@ -194,7 +183,6 @@ fun PlaylistMenu(
     fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
         val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
         return file.exists() && file.delete()
-        updatePlaylistThumbnail = true
     }
     var showClearPlaylistThumbnailDialog by remember {
         mutableStateOf(false)

@@ -40,7 +40,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -178,7 +177,7 @@ fun AppearanceSettings(
                 upperBound = 10,
                 lowerBound = 0,
                 resetValue = 6,
-                unitDisplay = "0%",
+                unitDisplay = if (thumbnailCornerRadius.toFloat() != 0.toFloat()) "0%" else "%",
                 onConfirm = {
                     showCornerRadiusDialog = false
                     onThumbnailCornerRadius(it)
@@ -493,7 +492,7 @@ fun AppearanceSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.thumbnail_corner_radius)) },
-            description = "$thumbnailCornerRadius" + "0%",
+            description = "$thumbnailCornerRadius" + if (thumbnailCornerRadius.toFloat() != 0.toFloat()) "0%" else "%",
             icon = { Icon(Icons.Rounded.Image, null) },
             onClick = { showCornerRadiusDialog = true }
         )

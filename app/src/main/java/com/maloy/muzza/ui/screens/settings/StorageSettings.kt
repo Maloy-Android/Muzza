@@ -52,6 +52,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi
 import coil.imageLoader
@@ -61,6 +62,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.MaxImageCacheSizeKey
 import com.maloy.muzza.constants.MaxSongCacheSizeKey
 import com.maloy.muzza.extensions.tryOrNull
+import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.formatFileSize
@@ -288,6 +290,14 @@ fun StorageSettings(
             onConfirm = {
                 showClearAllDownloadsDialog = false
                 coroutineScope.launch(Dispatchers.IO) {
+                    downloadCache.keys.forEach { key ->
+                        DownloadService.sendRemoveDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            key,
+                            false
+                        )
+                    }
                     downloadCache.keys.forEach { key ->
                         downloadCache.removeResource(key)
                     }

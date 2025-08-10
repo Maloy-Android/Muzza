@@ -2,7 +2,6 @@ package com.maloy.muzza.playback
 
 import android.content.Context
 import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.media3.database.DatabaseProvider
@@ -18,13 +17,11 @@ import androidx.media3.exoplayer.offline.DownloadService
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.constants.AudioQuality
 import com.maloy.muzza.constants.AudioQualityKey
-import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.FormatEntity
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.di.DownloadCache
 import com.maloy.muzza.di.PlayerCache
-import com.maloy.muzza.extensions.getLikeAutoDownload
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.utils.YTPlayerUtils
 import com.maloy.muzza.utils.enumPreference
@@ -143,26 +140,6 @@ class DownloadUtil @Inject constructor(
             downloadRequest,
             false)
     }
-
-    fun autoDownloadIfLiked(songs: List<SongEntity>){
-        songs.forEach { song -> autoDownloadIfLiked(song) }
-    }
-
-    fun autoDownloadIfLiked(song: SongEntity){
-        if (!song.liked || song.dateDownload != null){
-            return
-        }
-        val isWifiConnected = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-            ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
-        if (
-            context.getLikeAutoDownload() == LikedAutodownloadMode.ON
-            || (context.getLikeAutoDownload() == LikedAutodownloadMode.WIFI_ONLY && isWifiConnected)
-        )
-        {
-            download(song)
-        }
-    }
-
     init {
         val result = mutableMapOf<String, Download>()
         val cursor = downloadManager.downloadIndex.getDownloads()

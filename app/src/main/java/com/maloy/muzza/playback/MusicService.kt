@@ -11,6 +11,7 @@ import android.database.SQLException
 import android.media.AudioManager
 import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import android.net.Uri
 import android.os.Binder
 import androidx.core.content.getSystemService
@@ -70,6 +71,7 @@ import com.maloy.muzza.constants.DiscordTokenKey
 import com.maloy.muzza.constants.EnableDiscordRPCKey
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.KeepAliveKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLibrary
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleLike
 import com.maloy.muzza.constants.MediaSessionConstants.CommandToggleRepeatMode
@@ -95,6 +97,7 @@ import com.maloy.muzza.extensions.collect
 import com.maloy.muzza.extensions.collectLatest
 import com.maloy.muzza.extensions.currentMetadata
 import com.maloy.muzza.extensions.findNextMediaItemById
+import com.maloy.muzza.extensions.getLikeAutoDownload
 import com.maloy.muzza.extensions.mediaItems
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.setOffloadEnabled
@@ -604,8 +607,22 @@ class MusicService : MediaLibraryService(),
         database.query {
             currentSong.value?.let {
                 val song = it.song.toggleLike()
+                val isWifiConnected = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+                    ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
                 update(song)
-                downloadUtil.autoDownloadIfLiked(song)
+                if (getLikeAutoDownload() == LikedAutodownloadMode.ON && song.liked && song.dateDownload != null || getLikeAutoDownload() == LikedAutodownloadMode.WIFI_ONLY && song.liked && song.dateDownload != null && isWifiConnected) {
+                    val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
+                        .Builder(song.id, song.id.toUri())
+                        .setCustomCacheKey(song.id)
+                        .setData(song.title.toByteArray())
+                        .build()
+                    androidx.media3.exoplayer.offline.DownloadService.sendAddDownload(
+                        this@MusicService,
+                        ExoDownloadService::class.java,
+                        downloadRequest,
+                        false
+                    )
+                }
             }
         }
     }

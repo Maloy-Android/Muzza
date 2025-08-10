@@ -96,7 +96,7 @@ fun Thumbnail(
 
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
-    val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, 6)
+    val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, 3)
     val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
 
     val thumbnailAlpha by animateFloatAsState(

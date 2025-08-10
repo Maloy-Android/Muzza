@@ -13,6 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,7 +34,6 @@ import com.maloy.muzza.constants.AccountChannelHandleKey
 import com.maloy.muzza.constants.AccountEmailKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
-import com.maloy.muzza.constants.UseLoginForBrowse
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.InfoLabel
@@ -58,7 +58,6 @@ fun AccountSettings(
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
-    val (useLoginForBrowse, onUseLoginForBrowseChange) = rememberPreference(key = UseLoginForBrowse, defaultValue = false)
 
     var showToken: Boolean by remember {
         mutableStateOf(false)
@@ -66,6 +65,17 @@ fun AccountSettings(
     var showTokenEditor by remember {
         mutableStateOf(false)
     }
+
+    if (isLoggedIn) {
+        LaunchedEffect(Unit) {
+            YouTube.useLoginForBrowse = true
+        }
+    } else  {
+        LaunchedEffect(Unit) {
+            YouTube.useLoginForBrowse = false
+        }
+    }
+
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -171,16 +181,6 @@ fun AccountSettings(
         )
         PreferenceGroupTitle(
             title = stringResource(R.string.misc)
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.use_login_for_browse)) },
-            description = stringResource(R.string.use_login_for_browse_desc),
-            icon = { Icon(painterResource(R.drawable.person), null) },
-            checked = useLoginForBrowse,
-            onCheckedChange = {
-                YouTube.useLoginForBrowse = it
-                onUseLoginForBrowseChange(it)
-            }
         )
     }
     TopAppBar(

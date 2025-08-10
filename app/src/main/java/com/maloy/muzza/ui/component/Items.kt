@@ -1129,14 +1129,14 @@ fun YouTubeListItem(
         val album by database.album(item.id).collectAsState(initial = null)
         val playlist by database.playlist(item.id).collectAsState(initial = null)
 
+        if (item.explicit) {
+            Icon.Explicit()
+        }
         if (item is SongItem && song?.song?.liked == true ||
             item is AlbumItem && album?.album?.bookmarkedAt != null ||
             item is PlaylistItem && showLikedIcon && playlist?.playlist?.bookmarkedAt != null
         ) {
             Icon.Favorite()
-        }
-        if (item.explicit) {
-            Icon.Explicit()
         }
         if (item is SongItem && song?.song?.inLibrary != null) {
             Icon.Library()
@@ -1308,13 +1308,13 @@ fun YouTubeGridItem(
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
 
+        if (item.explicit) {
+            Icon.Explicit()
+        }
         if (item is SongItem && song?.song?.liked == true ||
             item is AlbumItem && album?.album?.bookmarkedAt != null
         ) {
             Icon.Favorite()
-        }
-        if (item.explicit) {
-            Icon.Explicit()
         }
         if (item is SongItem && song?.song?.inLibrary != null) {
             Icon.Library()

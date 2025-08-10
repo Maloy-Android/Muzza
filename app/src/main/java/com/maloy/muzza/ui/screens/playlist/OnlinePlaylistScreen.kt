@@ -101,6 +101,7 @@ import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -481,7 +482,6 @@ fun OnlinePlaylistScreen(
                                                     }
                                                 }
                                             }
-
                                             Button(
                                                 onClick = {
                                                     scope.launch(Dispatchers.IO) {
@@ -507,6 +507,23 @@ fun OnlinePlaylistScreen(
                                                 } else {
                                                     Icon(
                                                         painterResource(R.drawable.sync),
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            }
+                                            if (playlist.id == "LM") {
+                                                Button(
+                                                    onClick = {
+                                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                    },
+                                                    enabled = !isLoading,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painterResource(R.drawable.queue_music),
                                                         contentDescription = null
                                                     )
                                                 }

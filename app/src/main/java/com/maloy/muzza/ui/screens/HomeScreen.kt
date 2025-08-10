@@ -691,7 +691,7 @@ fun HomeScreen(
                 }
             }
 
-            if (ytmSync && selectedChip == null) {
+            if (isLoggedIn && ytmSync && selectedChip == null) {
                 accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                     item {
                         NavigationTitle(

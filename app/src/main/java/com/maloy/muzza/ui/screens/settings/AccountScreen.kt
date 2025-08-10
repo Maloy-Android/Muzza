@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -26,7 +25,6 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.maloy.innertube.YouTube
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
@@ -64,16 +62,6 @@ fun AccountSettings(
     }
     var showTokenEditor by remember {
         mutableStateOf(false)
-    }
-
-    if (isLoggedIn) {
-        LaunchedEffect(Unit) {
-            YouTube.useLoginForBrowse = true
-        }
-    } else  {
-        LaunchedEffect(Unit) {
-            YouTube.useLoginForBrowse = false
-        }
     }
 
     Column(
@@ -178,9 +166,6 @@ fun AccountSettings(
             title = { Text(stringResource(R.string.discord_integration)) },
             icon = { Icon(painterResource(R.drawable.discord), null) },
             onClick = { navController.navigate("settings/discord") }
-        )
-        PreferenceGroupTitle(
-            title = stringResource(R.string.misc)
         )
     }
     TopAppBar(

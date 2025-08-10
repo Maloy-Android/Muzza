@@ -301,6 +301,7 @@ fun StorageSettings(
                     downloadCache.keys.forEach { key ->
                         downloadCache.removeResource(key)
                     }
+                    downloadCacheSize = 0
                 }
             }
         )
@@ -315,6 +316,7 @@ fun StorageSettings(
                 coroutineScope.launch(Dispatchers.IO) {
                     imageDiskCache.clear()
                 }
+                imageCacheSize = 0
             }
         )
     }
@@ -330,6 +332,7 @@ fun StorageSettings(
                         playerCache.removeResource(key)
                     }
                 }
+                playerCacheSize = 0
             }
         )
     }

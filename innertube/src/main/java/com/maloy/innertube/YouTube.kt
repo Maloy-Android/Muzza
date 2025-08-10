@@ -42,6 +42,7 @@ import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.LibraryContinuationPage
 import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
+import com.maloy.innertube.pages.NewPipeDownloaderImpl
 import com.maloy.innertube.pages.NewReleaseAlbumPage
 import com.maloy.innertube.pages.NextPage
 import com.maloy.innertube.pages.NextResult
@@ -73,7 +74,7 @@ object YouTube {
     private val innerTube = InnerTube()
 
     init {
-        NewPipe.init(NewPipeDownloaderImpl)
+        NewPipe.init(NewPipeDownloaderImpl(proxy))
     }
 
     var locale: YouTubeLocale
@@ -157,7 +158,7 @@ object YouTube {
                 }.orEmpty(),
             continuation = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
                 ?.tabRenderer?.content?.sectionListRenderer?.contents?.lastOrNull()
-                ?.musicShelfRenderer?.contents?.getContinuation()
+                ?.musicShelfRenderer?.continuations?.getContinuation()
         )
     }
 

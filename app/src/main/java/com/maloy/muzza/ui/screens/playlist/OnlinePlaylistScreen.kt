@@ -55,6 +55,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,15 +95,12 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AccountChannelHandleKey
-import com.maloy.muzza.constants.AccountEmailKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -126,9 +124,11 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.time.LocalDateTime
+import kotlinx.coroutines.FlowPreview
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.debounce
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class, FlowPreview::class)
 @Composable
 fun OnlinePlaylistScreen(
     navController: NavController,
@@ -142,6 +142,7 @@ fun OnlinePlaylistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val scope = rememberCoroutineScope()
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
@@ -153,6 +154,8 @@ fun OnlinePlaylistScreen(
     val coroutineScope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
     val syncUtils = LocalSyncUtils.current
+
+    val isLoading by viewModel.isLoading.collectAsState()
 
     val accountName by rememberPreference(AccountNameKey, "")
 
@@ -179,6 +182,15 @@ fun OnlinePlaylistScreen(
             isSearching = false
             query = TextFieldValue()
         }
+    }
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }.debounce { 100L }
+            .collectLatest { lastVisibleIndex ->
+                if (lastVisibleIndex != null && lastVisibleIndex >= songs.size - 5) {
+                    viewModel.loadMoreSongs()
+                }
+            }
     }
 
     val showTopBarTitle by remember {
@@ -319,7 +331,7 @@ fun OnlinePlaylistScreen(
                                                     }
                                                 })
                                             }
-                                        } else {
+                                        } else if (accountName.isNotEmpty()) {
                                             Text(
                                                 text = accountName,
                                                 style = MaterialTheme.typography.titleMedium.copy(
@@ -472,19 +484,32 @@ fun OnlinePlaylistScreen(
 
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(
-                                                        items = songs.map { it.toMediaItem() }
-                                                    )
+                                                    scope.launch(Dispatchers.IO) {
+                                                        viewModel.loadRemainingSongs()
+                                                        snackbarHostState.showSnackbar(
+                                                            context.getString(
+                                                                R.string.playlist_synced
+                                                            )
+                                                        )
+                                                    }
                                                 },
+                                                enabled = !isLoading,
                                                 modifier = Modifier
                                                     .weight(1f)
                                                     .padding(4.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.queue_music),
-                                                    contentDescription = null
-                                                )
+                                                if (isLoading) {
+                                                    CircularProgressIndicator(
+                                                        modifier = Modifier.size(16.dp),
+                                                        strokeWidth = 2.dp
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        painterResource(R.drawable.sync),
+                                                        contentDescription = null
+                                                    )
+                                                }
                                             }
 
                                             if (playlist.id != "LM") {
@@ -644,6 +669,15 @@ fun OnlinePlaylistScreen(
                                 .alpha(if (hideExplicit && song.explicit) 0.3f else 1f)
                                 .animateItem()
                         )
+                    }
+                    if (viewModel.continuation != null && songs.isNotEmpty()) {
+                        item {
+                            ShimmerHost {
+                                repeat(2) {
+                                    ListItemPlaceHolder()
+                                }
+                            }
+                        }
                     }
                 } else {
                     item {

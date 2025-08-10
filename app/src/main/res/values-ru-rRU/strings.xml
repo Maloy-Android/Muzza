@@ -93,6 +93,8 @@
 
     <!-- Artist screen -->
     <string name="from_your_library">Из вашей библиотеки</string>
+    <string name="subscribe">Подписаться</string>
+    <string name="subscribed">Подписан</string>
 
     <!-- Album screen -->
     <string name="other_versions">Другие версии</string>
@@ -305,6 +307,8 @@
     <string name="keep_alive_description">Используйте уведомление в фоновом режиме, чтобы предотвратить случайное закрытие Muzza системой.</string>
     <string name="notifications_settings">Настройки уведомлений</string>
     <string name="notification_permission_is_required">Требуется разрешение на уведомления</string>
+    <string name="advanced_notification_settings_title">Расширенные настройки уведомлений</string>
+    <string name="intent_advanced_notification_settings_not_found">Не удалось найти настройки уведомлений, пожалуйста настройте их вручную.</string>
 
     <!-- Settings -->
     <string name="settings">Настройки</string>

@@ -106,6 +106,8 @@
 
     <!-- Artist screen -->
     <string name="from_your_library">From your library</string>
+    <string name="subscribe">Subscribe</string>
+    <string name="subscribed">Subscribed</string>
 
     <!-- Album screen -->
     <string name="other_versions">Other versions</string>
@@ -287,6 +289,8 @@
     <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
     <string name="notifications_settings">Notifications settings</string>
     <string name="notification_permission_is_required">Notification permission is required</string>
+    <string name="advanced_notification_settings_title">Advanced notification settings</string>
+    <string name="intent_advanced_notification_settings_not_found">Couldn\'t find advanced notifications settings, please configure them manually</string>
 
     <!-- Settings -->
     <string name="settings">Settings</string>
@@ -359,6 +363,8 @@
     <string name="bugs">Issues</string>
     <string name="bugs_text">Bugs or Problems? Report them here ❯</string>
     <string name="help">Help</string>
+    <string name="help_title_whatsapp">WhatsApp</string>
+    <string name="help_title_telegram">Telegram</string>
     <string name="help_text">Contact Dev ❯</string>
     <string name="contribution">Contribution ?</string>
     <string name="contribution_text">If you want to contribute, click here ❯</string>
@@ -480,7 +486,6 @@
     <string name="backup_restore">Backup and restore</string>
     <string name="backup">Backup</string>
     <string name="restore">Restore</string>
-    <string name="import_m3u">Import a playlist (m3u)</string>
     <string name="m3u_import_failed">Failed to import playlist</string>
     <string name="imported_playlist">Imported playlist</string>
     <string name="backup_create_success">Backup created successfully</string>

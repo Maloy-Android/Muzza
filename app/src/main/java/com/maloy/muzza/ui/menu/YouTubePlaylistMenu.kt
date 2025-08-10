@@ -128,7 +128,7 @@ fun YouTubePlaylistMenu(
     }
 
     YouTubeListItem(
-        item = playlist, trailingContent = {
+        item = playlist, showLikedIcon = false, trailingContent = {
             if (playlist.id != "LM" && !playlist.isEditable) {
                 IconButton(
                     onClick = {
@@ -322,14 +322,18 @@ fun YouTubePlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        ListMenuItem(
-            icon = R.drawable.shuffle, title = R.string.shuffle
-        ) {
-            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-            onDismiss()
-        }
-        item {
-            HorizontalDivider()
+        if (playlist.id != "LM") {
+            playlist.shuffleEndpoint.let {
+                ListMenuItem(
+                    icon = R.drawable.shuffle, title = R.string.shuffle
+                ) {
+                    playerConnection.playQueue(YouTubeQueue(it))
+                    onDismiss()
+                }
+            }
+            item {
+                HorizontalDivider()
+            }
         }
         ListMenuItem(
             icon = R.drawable.playlist_play, title = R.string.play_next

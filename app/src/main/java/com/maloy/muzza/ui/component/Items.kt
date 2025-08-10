@@ -32,7 +32,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -315,7 +314,6 @@ fun SongListItem(
 ) {
     val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
-
     val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
     val colorScheme = MaterialTheme.colorScheme
 
@@ -508,7 +506,7 @@ fun SongFolderItem(
 
     ) = ListItem(title = folderTitle, thumbnailContent = {
     Icon(
-        Icons.Rounded.Folder,
+        Icons.Rounded.FolderCopy,
         contentDescription = null,
         modifier = modifier.size(48.dp)
     )
@@ -525,7 +523,7 @@ fun SongFolderItem(
     subtitle = subtitle,
     thumbnailContent = {
         Icon(
-            Icons.Rounded.Folder,
+            Icons.Rounded.FolderCopy,
             contentDescription = null,
             modifier = modifier.size(48.dp)
         )
@@ -540,7 +538,8 @@ fun SongFolderItem(
     folderTitle: String? = null,
     menuState: MenuState,
     navController: NavController,
-    subtitle: String
+    subtitle: String,
+    trailingContent: @Composable RowScope.() -> Unit = {},
 ) = ListItem(title = folderTitle ?: folder.currentDir,
     subtitle = subtitle,
     thumbnailContent = {
@@ -854,6 +853,7 @@ fun PlaylistListItem(
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     trailingContent: @Composable (RowScope.() -> Unit) = {},
+    showLikedIcon: Boolean = true
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -874,7 +874,7 @@ fun PlaylistListItem(
             Box(
                 modifier = Modifier
                     .size(ListThumbnailSize)
-                    .clip(RoundedCornerShape(12.dp))
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .background(MaterialTheme.colorScheme.surfaceContainer),
                 contentAlignment = Alignment.Center
             ) {
@@ -906,13 +906,10 @@ fun PlaylistListItem(
         },
         badges = {
             if (playlist.playlist.isLocal) {
-                Icon(
-                    imageVector = Icons.Rounded.CloudOff,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .size(18.dp)
-                        .padding(end = 2.dp)
-                )
+                Icon.PlaylistLocal()
+            }
+            if (showLikedIcon && playlist.playlist.bookmarkedAt != null && !playlist.playlist.isLocal) {
+                Icon.Favorite()
             }
         },
         trailingContent = trailingContent,
@@ -925,7 +922,15 @@ fun PlaylistGridItem(
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     fillMaxWidth: Boolean = false,
-    badges: @Composable (RowScope.() -> Unit) = {},
+    showLikedIcon: Boolean = true,
+    badges: @Composable (RowScope.() -> Unit) = {
+        if (playlist.playlist.isLocal) {
+            Icon.PlaylistLocal()
+        }
+        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+            Icon.Favorite()
+        }
+    }
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -945,11 +950,10 @@ fun PlaylistGridItem(
         badges = badges,
         thumbnailContent = {
             val width = maxWidth
-            val libcarditem = 25.dp
             Box(
                 modifier = Modifier
                     .size(width)
-                    .clip(RoundedCornerShape(libcarditem))
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 if (customThumbnailUri != null) {
@@ -1118,13 +1122,16 @@ fun YouTubeListItem(
     modifier: Modifier = Modifier,
     isSwipeable: Boolean = true,
     albumIndex: Int? = null,
+    showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
+        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null ||
+            item is PlaylistItem && showLikedIcon && playlist?.playlist?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }
@@ -1147,7 +1154,6 @@ fun YouTubeListItem(
     if (item is SongItem && isSwipeable && swipeSongToDismiss) {
         val context = LocalContext.current
         val playerConnection = LocalPlayerConnection.current ?: return
-
         val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
         val colorScheme = MaterialTheme.colorScheme
 
@@ -1632,6 +1638,17 @@ private object Icon {
     fun Explicit() {
         Icon(
             painter = painterResource(R.drawable.explicit),
+            contentDescription = null,
+            modifier = Modifier
+                .size(18.dp)
+                .padding(end = 2.dp)
+        )
+    }
+
+    @Composable
+    fun PlaylistLocal() {
+        Icon(
+            imageVector = Icons.Rounded.CloudOff,
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)

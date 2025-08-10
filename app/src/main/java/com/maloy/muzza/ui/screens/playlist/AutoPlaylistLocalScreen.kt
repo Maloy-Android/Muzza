@@ -86,6 +86,7 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
+import com.maloy.muzza.ui.menu.FolderMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.scanLocal
@@ -286,11 +287,10 @@ fun AutoPlaylistLocalScreen(
                         verticalArrangement = Arrangement.spacedBy(12.dp),
                         modifier = Modifier.padding(12.dp)
                     ) {
-                        val libcarditem = 25.dp
                         Box(
                             modifier = Modifier
                                 .size(AlbumThumbnailSize)
-                                .clip(RoundedCornerShape(libcarditem))
+                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
                                 .align(alignment = Alignment.CenterHorizontally)
                                 .background(
                                     MaterialTheme.colorScheme.surfaceContainer,
@@ -458,9 +458,20 @@ fun AutoPlaylistLocalScreen(
                         folder.toList().size
                     ),
                     modifier = Modifier
-                        .combinedClickable {
-                            currDir = folderStack.push(folder)
-                        }
+                        .combinedClickable (
+                            onClick = {
+                                currDir = folderStack.push(folder)
+                            },
+                            onLongClick = {
+                                menuState.show {
+                                    FolderMenu(
+                                        folder = folder,
+                                        navController = navController,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
+                        )
                         .animateItem(),
                     menuState = menuState,
                     navController = navController

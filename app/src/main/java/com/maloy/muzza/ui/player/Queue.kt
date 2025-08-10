@@ -407,6 +407,7 @@ fun Queue(
             }
         }
     ) {
+        val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
         val queueTitle by playerConnection.queueTitle.collectAsState()
         val queueWindows by playerConnection.queueWindows.collectAsState()
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
@@ -664,6 +665,16 @@ fun Queue(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
+                            } else {
+                                mediaMetadata?.let {
+                                    Text(
+                                        text = it.title,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                }
                             }
                         }
 

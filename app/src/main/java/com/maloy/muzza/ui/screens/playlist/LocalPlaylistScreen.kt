@@ -1,4 +1,4 @@
-@file:Suppress("NAME_SHADOWING")
+@file:Suppress("NAME_SHADOWING", "UNREACHABLE_CODE")
 
 package com.maloy.muzza.ui.screens.playlist
 
@@ -109,6 +109,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.PlaylistEditLockKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
@@ -781,6 +782,8 @@ fun LocalPlaylistHeader(
 
     val editable: Boolean = playlist.playlist.isEditable
 
+    val accountName by rememberPreference(AccountNameKey, "")
+
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
     fun saveImageToPrivateStorage(uri: Uri): Uri? {
@@ -802,13 +805,18 @@ fun LocalPlaylistHeader(
         }
     }
 
+    var updatePlaylistThumbnail by remember {
+        mutableStateOf(false)
+    }
     fun loadSavedImage(): Uri? {
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
+        updatePlaylistThumbnail = true
     }
     fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
         val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
         return file.exists() && file.delete()
+        updatePlaylistThumbnail = true
     }
     var showClearPlaylistThumbnailDialog by remember {
         mutableStateOf(false)
@@ -825,8 +833,12 @@ fun LocalPlaylistHeader(
         )
     }
 
-    LaunchedEffect(playlist) {
+    LaunchedEffect(updatePlaylistThumbnail) {
         customThumbnailUri = loadSavedImage()
+    }
+
+    LaunchedEffect(updatePlaylistThumbnail) {
+        playlist.playlist.thumbnailUrl
     }
 
     val pickImageLauncher = rememberLauncherForActivityResult(
@@ -871,12 +883,11 @@ fun LocalPlaylistHeader(
             )
         } else {
             if (playlist.thumbnails.isEmpty() && customThumbnailUri == null) {
-                val libcarditem = 25.dp
                 Box(
                     modifier = Modifier
                         .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
                         .size(AlbumThumbnailSize)
-                        .clip(RoundedCornerShape(libcarditem))
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)
                         .background(
                             MaterialTheme.colorScheme.surfaceContainer,
@@ -943,6 +954,16 @@ fun LocalPlaylistHeader(
                     overflow = TextOverflow.Ellipsis,
                     fontSizeRange = FontSizeRange(16.sp, 22.sp)
                 )
+
+                if (accountName.isNotEmpty() && playlist.playlist.isLocal) {
+                    Text(
+                        text = accountName,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                }
 
                 Text(
                     text = makeTimeString(playlistLength * 1000L),

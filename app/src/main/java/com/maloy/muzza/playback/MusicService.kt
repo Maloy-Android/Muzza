@@ -13,10 +13,8 @@ import android.media.audiofx.AudioEffect
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
-import android.util.Log
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
-import androidx.datastore.dataStore
 import androidx.datastore.preferences.core.edit
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -145,7 +143,9 @@ import java.io.File
 import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.net.ConnectException
+import java.net.HttpURLConnection
 import java.net.SocketTimeoutException
+import java.net.URL
 import java.net.UnknownHostException
 import java.time.LocalDateTime
 import javax.inject.Inject
@@ -182,7 +182,7 @@ class MusicService : MediaLibraryService(),
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
 
-    var consecutivePlaybackErr = 0
+    private var consecutivePlaybackErr = 0
 
     val currentMediaMetadata = MutableStateFlow<com.maloy.muzza.models.MediaMetadata?>(null)
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
@@ -735,19 +735,34 @@ class MusicService : MediaLibraryService(),
             .setCacheWriteDataSinkFactory(null)
             .setFlags(FLAG_IGNORE_CACHE_ON_ERROR)
 
+    private suspend fun validateStreamUrl(url: String): Boolean {
+        return try {
+            withContext(Dispatchers.IO) {
+                val connection = URL(url).openConnection() as HttpURLConnection
+                connection.requestMethod = "HEAD"
+                connection.connectTimeout = 5000
+                connection.readTimeout = 5000
+                connection.connect()
+                val responseCode = connection.responseCode
+                val contentLength = connection.contentLength
+                connection.disconnect()
+
+                responseCode == 200 && contentLength > 1024
+            }
+        } catch (e: Exception) {
+            false
+        }
+    }
+
     private fun createDataSourceFactory(): DataSource.Factory {
         val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
-
-            // find a better way to detect local files later...
             if (mediaId.startsWith("1000")) {
                 val songPath = runBlocking(Dispatchers.IO) {
                     database.song(mediaId).firstOrNull()?.song?.localPath
                 }
-                Log.d("WTF", "Looking for local file: " + songPath)
-
-                return@Factory dataSpec.withUri(Uri.fromFile(File(songPath)))
+                return@Factory dataSpec.withUri(Uri.fromFile(songPath?.let { File(it) }))
             }
 
             if (downloadCache.isCached(mediaId, dataSpec.position, if (dataSpec.length >= 0) dataSpec.length else 1) ||
@@ -756,10 +771,16 @@ class MusicService : MediaLibraryService(),
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                 return@Factory dataSpec
             }
-
-            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
-                scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                return@Factory dataSpec.withUri(it.first.toUri())
+            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let { cached ->
+                return@let runBlocking(Dispatchers.IO) {
+                    if (validateStreamUrl(cached.first)) {
+                        recoverSong(mediaId)
+                        dataSpec.withUri(cached.first.toUri())
+                    } else {
+                        songUrlCache.remove(mediaId)
+                        null
+                    }
+                }
             }
 
             val playbackData = runBlocking(Dispatchers.IO) {
@@ -781,6 +802,13 @@ class MusicService : MediaLibraryService(),
 
                     else -> throw PlaybackException(getString(R.string.error_unknown), throwable, PlaybackException.ERROR_CODE_REMOTE_ERROR)
                 }
+            }
+            val isValidUrl = runBlocking(Dispatchers.IO) {
+                validateStreamUrl(playbackData.streamUrl)
+            }
+
+            if (!isValidUrl) {
+                throw PlaybackException("Invalid stream URL", null, PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS)
             }
             val format = playbackData.format
 

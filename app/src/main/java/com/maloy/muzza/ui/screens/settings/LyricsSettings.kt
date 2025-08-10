@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.ContentCut
-import androidx.compose.material.icons.rounded.Lyrics
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -21,6 +20,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.toLowerCase
@@ -91,13 +91,13 @@ fun LyricsSettings(
 
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_kugou)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
             checked = enableKugou,
             onCheckedChange = onEnableKugouChange
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_lrclib)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
             checked = enableLrcLib,
             onCheckedChange = onEnableLrcLibChange
         )
@@ -117,7 +117,7 @@ fun LyricsSettings(
 
         EnumListPreference(
             title = { Text(stringResource(R.string.lyrics_text_position)) },
-            icon = { Icon(Icons.Rounded.Lyrics, null) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
             selectedValue = lyricsPosition,
             onValueSelected = onLyricsPositionChange,
             valueText = {

@@ -401,7 +401,7 @@ fun AboutScreen(
         AnimatedVisibility(showContactCard) {
             CardItem(
                 icon = R.drawable.telegram,
-                title = stringResource(R.string.help),
+                title = stringResource(R.string.help_title_telegram),
                 subtitle = stringResource(R.string.help_text),
                 onClick = { uriHandler.openUri("https://web.telegram.org/k/#@MaloyBegonia") }
             )
@@ -414,7 +414,7 @@ fun AboutScreen(
         AnimatedVisibility(showContactCard) {
             CardItem(
                 icon = R.drawable.whatsapp,
-                title = stringResource(R.string.help),
+                title = stringResource(R.string.help_title_whatsapp),
                 subtitle = stringResource(R.string.help_text),
                 onClick = { uriHandler.openUri("https://wa.me/9022340312") }
             )

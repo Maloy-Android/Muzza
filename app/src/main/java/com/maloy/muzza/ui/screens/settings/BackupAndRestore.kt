@@ -5,14 +5,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -22,9 +17,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -36,16 +29,11 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.ScannerSensitivity
-import com.maloy.muzza.constants.ScannerSensitivityKey
-import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.ImportM3uDialog
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
-import com.maloy.muzza.ui.menu.AddToPlaylistDialog
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.viewmodels.BackupRestoreViewModel
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -119,7 +107,7 @@ fun BackupAndRestore(
         )
         PreferenceEntry(
             icon = { Icon(painterResource(R.drawable.playlist_add),null) },
-            title = { Text(stringResource(R.string.import_m3u)) },
+            title = { Text(stringResource(R.string.m3u_import_playlist)) },
             onClick = {
                 showImportM3uDialog = true
             }

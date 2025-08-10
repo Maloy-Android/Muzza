@@ -74,6 +74,8 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountNameKey
+import com.maloy.muzza.constants.AppDesignVariantKey
+import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
@@ -117,6 +119,7 @@ import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
 import java.util.Calendar
@@ -375,6 +378,8 @@ fun HomeScreen(
 
         val (showContentFilter) = rememberPreference(ShowContentFilterKey, defaultValue = true)
 
+        val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
+
         if (showNoInternetDialog) {
             AlertDialog(
                 onDismissRequest = { showNoInternetDialog = false },
@@ -398,10 +403,20 @@ fun HomeScreen(
                     }
                 },
                 dismissButton = {
-                    Button(onClick = {
-                        navController.navigate("library")
-                    }) {
-                        Text(stringResource(R.string.filter_library))
+                    if (appDesignVariant == AppDesignVariantType.NEW) {
+                        Button(onClick = {
+                            navController.navigate("library")
+                            showNoInternetDialog = false
+                        }) {
+                            Text(stringResource(R.string.filter_library))
+                        }
+                    } else {
+                        Button(onClick = {
+                            navController.navigate("auto_playlist/downloaded")
+                            showNoInternetDialog = false
+                        }) {
+                            Text(stringResource(R.string.offline))
+                        }
                     }
                 }
             )

@@ -13,7 +13,6 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.playback.DownloadUtil
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
@@ -23,11 +22,9 @@ import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
 
-@Suppress("NAME_SHADOWING")
 @Singleton
 class SyncUtils @Inject constructor(
     val database: MusicDatabase,
-    private val downloadUtil: DownloadUtil
 ) {
     suspend fun syncLikedSongs() {
         YouTube.playlist("LM").completed().onSuccess { page ->
@@ -48,12 +45,6 @@ class SyncUtils @Inject constructor(
                         }
                     }
                 }
-                val songs = database.likedSongsNotDownloaded()
-                    .first()
-                    .filterNot { it.song.isLocal }
-                    .map { it.song }
-
-                downloadUtil.autoDownloadIfLiked(songs)
             }
         }
     }

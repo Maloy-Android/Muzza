@@ -250,7 +250,6 @@ fun SongSelectionMenu(
                     selection.forEach { song ->
                         val likedSong = song.song.copy(liked = true)
                         update(likedSong)
-                        downloadUtil.autoDownloadIfLiked(likedSong)
                     }
                 }
             }

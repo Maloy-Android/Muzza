@@ -112,7 +112,6 @@ fun PlayerMenu(
     mediaMetadata ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val activityResultLauncher =
@@ -135,12 +134,6 @@ fun PlayerMenu(
 
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
-    }
-
-    LaunchedEffect(librarySong?.song?.liked) {
-        librarySong?.let {
-            downloadUtil.autoDownloadIfLiked(it.song)
-        }
     }
 
     LaunchedEffect(sleepTimerEnabled) {

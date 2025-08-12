@@ -1,6 +1,9 @@
 package com.maloy.muzza.ui.menu
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -24,6 +27,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -52,6 +56,8 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
@@ -68,6 +74,7 @@ import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
+import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -79,6 +86,12 @@ fun YouTubeSongMenu(
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
+    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val isWifiConnected = remember {
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+    }
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(song.id).collectAsState(initial = null)
@@ -94,6 +107,20 @@ fun YouTubeSongMenu(
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+
+    LaunchedEffect(likedAutoDownload == LikedAutodownloadMode.ON && librarySong?.song?.liked == true && librarySong?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && librarySong?.song?.liked == true && librarySong?.song?.dateDownload == null && isWifiConnected) {
+        val downloadRequest = DownloadRequest
+            .Builder(song.id, song.id.toUri())
+            .setCustomCacheKey(song.id)
+            .setData(song.title.toByteArray())
+            .build()
+        DownloadService.sendAddDownload(
+            context,
+            ExoDownloadService::class.java,
+            downloadRequest,
+            false
+        )
     }
 
     AddToPlaylistDialog(

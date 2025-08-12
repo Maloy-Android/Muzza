@@ -1,5 +1,8 @@
 package com.maloy.muzza.ui.menu
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -30,6 +33,8 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
@@ -37,6 +42,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
+import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -67,6 +73,13 @@ fun SongSelectionMenu(
 
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
+    }
+
+    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val isWifiConnected = remember {
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
     }
 
     val cacheViewModel = viewModel<CachePlaylistViewModel>()
@@ -250,6 +263,19 @@ fun SongSelectionMenu(
                     selection.forEach { song ->
                         val likedSong = song.song.copy(liked = true)
                         update(likedSong)
+                        if (likedAutoDownload == LikedAutodownloadMode.ON && likedSong.liked && likedSong.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && likedSong.liked && likedSong.dateDownload == null && isWifiConnected) {
+                            val downloadRequest = DownloadRequest
+                                .Builder(likedSong.id, likedSong.id.toUri())
+                                .setCustomCacheKey(likedSong.id)
+                                .setData(likedSong.title.toByteArray())
+                                .build()
+                            DownloadService.sendAddDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false
+                            )
+                        }
                     }
                 }
             }

@@ -610,7 +610,7 @@ class MusicService : MediaLibraryService(),
                 val isWifiConnected = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
                     ?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
                 update(song)
-                if (getLikeAutoDownload() == LikedAutodownloadMode.ON && song.liked && song.dateDownload != null || getLikeAutoDownload() == LikedAutodownloadMode.WIFI_ONLY && song.liked && song.dateDownload != null && isWifiConnected) {
+                if (getLikeAutoDownload() == LikedAutodownloadMode.ON && song.liked && song.dateDownload == null || getLikeAutoDownload() == LikedAutodownloadMode.WIFI_ONLY && song.liked && song.dateDownload == null && isWifiConnected) {
                     val downloadRequest = androidx.media3.exoplayer.offline.DownloadRequest
                         .Builder(song.id, song.id.toUri())
                         .setCustomCacheKey(song.id)

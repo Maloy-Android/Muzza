@@ -1432,9 +1432,11 @@ fun ItemThumbnail(
             AsyncImage(
                 model = thumbnailUrl,
                 contentDescription = null,
+                contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .fillMaxWidth()
                     .clip(shape)
+                    .aspectRatio(1f)
             )
         }
 

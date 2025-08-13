@@ -42,8 +42,8 @@ sealed class Screens(
 
     data object Artists : Screens(
         titleId = R.string.artists,
-        iconIdInactive = R.drawable.artist,
-        iconIdActive = R.drawable.artist_filled,
+        iconIdInactive = R.drawable.artists,
+        iconIdActive = R.drawable.artists_filled,
         route = "artists"
     )
 

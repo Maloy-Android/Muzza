@@ -555,7 +555,7 @@ fun SongMenu(
                 HorizontalDivider()
             }
             ListMenuItem(
-                icon = R.drawable.artist,
+                icon = if (song.artists.size == 1) R.drawable.artist else R.drawable.artists,
                 title = R.string.view_artist
             ) {
                 if (song.artists.size == 1) {

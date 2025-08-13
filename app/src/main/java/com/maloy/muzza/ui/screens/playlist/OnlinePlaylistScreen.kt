@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -65,6 +66,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -293,11 +295,13 @@ fun OnlinePlaylistScreen(
                             ) {
                                     AsyncImage(
                                         model = playlist.thumbnail,
+                                        contentScale = ContentScale.Crop,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(AlbumThumbnailSize)
                                             .clip(RoundedCornerShape(ThumbnailCornerRadius))
                                             .align(alignment = Alignment.CenterHorizontally)
+                                            .aspectRatio(1f)
                                     )
 
                                     Spacer(Modifier.width(12.dp))

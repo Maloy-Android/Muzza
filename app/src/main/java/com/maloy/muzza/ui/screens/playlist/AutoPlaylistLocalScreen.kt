@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
@@ -351,12 +350,6 @@ fun AutoPlaylistLocalScreen(
                                         }
                                         isScanFinished = false
                                         isScannerActive = true
-                                        val text = context.getString(R.string.sync_local_songs_toast)
-                                        Toast.makeText(
-                                            context,
-                                            text,
-                                            Toast.LENGTH_SHORT
-                                        ).show()
                                         coroutineScope.launch(Dispatchers.IO) {
                                             val directoryStructure =
                                                 scanLocal(context).value
@@ -368,6 +361,11 @@ fun AutoPlaylistLocalScreen(
                                             )
                                             isScannerActive = false
                                             isScanFinished = true
+                                            snackbarHostState.showSnackbar(
+                                                context.getString(
+                                                    R.string.sync_local_songs_toast
+                                                )
+                                            )
                                         }
                                     },
                                     modifier = Modifier

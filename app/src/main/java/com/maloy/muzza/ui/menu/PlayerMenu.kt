@@ -2,11 +2,9 @@
 
 package com.maloy.muzza.ui.menu
 
-import android.content.Context
+
 import android.content.Intent
 import android.media.audiofx.AudioEffect
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
@@ -78,8 +76,6 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.LikedAutoDownloadKey
-import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -125,12 +121,6 @@ fun PlayerMenu(
     val coroutineScope = rememberCoroutineScope()
     val download by LocalDownloadUtil.current.getDownload(mediaMetadata.id)
         .collectAsState(initial = null)
-    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val isWifiConnected = remember {
-        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
-    }
 
     val artists = remember(mediaMetadata.artists) {
         mediaMetadata.artists.filter { it.id != null }
@@ -145,20 +135,6 @@ fun PlayerMenu(
 
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
-    }
-
-    LaunchedEffect(likedAutoDownload == LikedAutodownloadMode.ON && librarySong?.song?.liked == true && librarySong?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && librarySong?.song?.liked == true && librarySong?.song?.dateDownload == null && isWifiConnected) {
-        val downloadRequest = DownloadRequest
-            .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-            .setCustomCacheKey(mediaMetadata.id)
-            .setData(mediaMetadata.title.toByteArray())
-            .build()
-        DownloadService.sendAddDownload(
-            context,
-            ExoDownloadService::class.java,
-            downloadRequest,
-            false
-        )
     }
 
     LaunchedEffect(sleepTimerEnabled) {

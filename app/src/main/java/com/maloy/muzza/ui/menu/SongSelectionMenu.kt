@@ -266,7 +266,7 @@ fun SongSelectionMenu(
                     selection.forEach { song ->
                         val likedSong = song.song.copy(liked = true)
                         update(likedSong)
-                        if (likedAutoDownload == LikedAutodownloadMode.ON && likedSong.liked && likedSong.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && likedSong.liked && likedSong.dateDownload == null && isWifiConnected) {
+                        if (likedAutoDownload == LikedAutodownloadMode.ON && !likedSong.liked && likedSong.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && !likedSong.liked && likedSong.dateDownload == null && isWifiConnected) {
                             val downloadRequest = DownloadRequest
                                 .Builder(likedSong.id, likedSong.id.toUri())
                                 .setCustomCacheKey(likedSong.id)

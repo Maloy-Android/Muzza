@@ -2,9 +2,12 @@
 
 package com.maloy.muzza.ui.player
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -91,12 +94,15 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.core.net.toUri
 import androidx.media3.common.C
 import androidx.media3.common.Player.REPEAT_MODE_ALL
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Player.STATE_READY
+import androidx.media3.exoplayer.offline.DownloadRequest
+import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
@@ -104,6 +110,8 @@ import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkModeKey
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.NowPlayingEnableKey
 import com.maloy.muzza.constants.NowPlayingPaddingKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
@@ -123,6 +131,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
@@ -215,6 +224,13 @@ fun BottomSheetPlayer(
 
     var gradientColors by remember {
         mutableStateOf<List<Color>>(emptyList())
+    }
+
+    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val isWifiConnected = remember {
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
     }
 
     LaunchedEffect(mediaMetadata, playerBackground) {
@@ -441,7 +457,24 @@ fun BottomSheetPlayer(
                                 modifier = Modifier
                                     .align(Alignment.Center)
                                     .size(24.dp),
-                                onClick = playerConnection::toggleLike
+                                onClick = {
+                                    playerConnection.toggleLike()
+                                    if (likedAutoDownload == LikedAutodownloadMode.ON && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null && isWifiConnected) {
+                                        val downloadRequest = mediaMetadata.let {
+                                            DownloadRequest
+                                                .Builder(it.id, it.id.toUri())
+                                                .setCustomCacheKey(it.id)
+                                                .setData(it.title.toByteArray())
+                                                .build()
+                                        }
+                                        DownloadService.sendAddDownload(
+                                            context,
+                                            ExoDownloadService::class.java,
+                                            downloadRequest,
+                                            false
+                                        )
+                                    }
+                                }
                             )
                         }
 

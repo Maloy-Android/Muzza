@@ -30,7 +30,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -148,20 +147,6 @@ fun SongMenu(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(likedAutoDownload == LikedAutodownloadMode.ON && song.song.liked && song.song.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && song.song.liked && song.song.dateDownload == null && isWifiConnected) {
-        val downloadRequest = DownloadRequest
-            .Builder(song.id, song.id.toUri())
-            .setCustomCacheKey(song.id)
-            .setData(song.title.toByteArray())
-            .build()
-        DownloadService.sendAddDownload(
-            context,
-            ExoDownloadService::class.java,
-            downloadRequest,
-            false
-        )
-    }
-
     AddToPlaylistDialog(
         navController = navController,
         isVisible = showChoosePlaylistDialog,
@@ -237,6 +222,19 @@ fun SongMenu(
                 onClick = {
                     database.query {
                         update(song.song.toggleLike())
+                        if (likedAutoDownload == LikedAutodownloadMode.ON && !song.song.liked && song.song.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && !song.song.liked && song.song.dateDownload == null && isWifiConnected) {
+                            val downloadRequest = DownloadRequest
+                                .Builder(song.id, song.id.toUri())
+                                .setCustomCacheKey(song.id)
+                                .setData(song.title.toByteArray())
+                                .build()
+                            DownloadService.sendAddDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false
+                            )
+                        }
                     }
                 }
             ) {

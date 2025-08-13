@@ -58,6 +58,7 @@ fun SongSelectionMenu(
     onRemoveFromQueue: (() -> Unit)? = null,
     onRemoveFromHistory: (() -> Unit)? = null,
     isFromCache: Boolean = false,
+    showDownloadButton: Boolean = true
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -176,37 +177,39 @@ fun SongSelectionMenu(
         item {
             HorizontalDivider()
         }
-        DownloadListMenu(
-            state = downloadState,
-            onDownload = {
-                selection.forEach { song ->
-                    val downloadRequest =
-                        DownloadRequest
-                            .Builder(song.id, song.id.toUri())
-                            .setCustomCacheKey(song.id)
-                            .setData(song.song.title.toByteArray())
-                            .build()
-                    DownloadService.sendAddDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false,
-                    )
-                }
-            },
-            onRemoveDownload = {
-                selection.forEach { song ->
-                    DownloadService.sendRemoveDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        song.song.id,
-                        false
-                    )
-                }
-            },
-        )
-        item {
-            HorizontalDivider()
+        if (showDownloadButton) {
+            DownloadListMenu(
+                state = downloadState,
+                onDownload = {
+                    selection.forEach { song ->
+                        val downloadRequest =
+                            DownloadRequest
+                                .Builder(song.id, song.id.toUri())
+                                .setCustomCacheKey(song.id)
+                                .setData(song.song.title.toByteArray())
+                                .build()
+                        DownloadService.sendAddDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false,
+                        )
+                    }
+                },
+                onRemoveDownload = {
+                    selection.forEach { song ->
+                        DownloadService.sendRemoveDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            song.song.id,
+                            false
+                        )
+                    }
+                },
+            )
+            item {
+                HorizontalDivider()
+            }
         }
         if (isFromCache) {
             ListMenuItem(

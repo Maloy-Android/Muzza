@@ -615,6 +615,7 @@ fun AutoPlaylistLocalScreen(
                                     selection = selection.mapNotNull { songId ->
                                         songs.find { it.id == songId }
                                     },
+                                    showDownloadButton = false,
                                     onDismiss = menuState::dismiss,
                                     onExitSelectionMode = onExitSelectionMode,
                                     navController = navController

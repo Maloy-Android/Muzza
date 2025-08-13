@@ -169,7 +169,8 @@ fun MiniPlayer(
                 }
                 IconButton(
                     onClick = {
-                        playerConnection.toggleLike()
+                        currentSong?.song?.toggleLike()
+                        currentSong?.song?.localToggleLike()
                         if (likedAutoDownload == LikedAutodownloadMode.ON && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null && isWifiConnected) {
                             val downloadRequest = mediaMetadata?.let {
                                 DownloadRequest

@@ -191,6 +191,7 @@ fun YouTubeAlbumMenu(
                 onClick = {
                     database.query {
                         album?.album?.toggleLike()?.let(::update)
+                        album?.album?.localToggleLike()?.let(::update)
                     }
                 }
             ) {

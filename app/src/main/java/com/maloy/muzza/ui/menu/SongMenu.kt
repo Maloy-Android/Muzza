@@ -222,6 +222,7 @@ fun SongMenu(
                 onClick = {
                     database.query {
                         update(song.song.toggleLike())
+                        update(song.song.localToggleLike())
                         if (likedAutoDownload == LikedAutodownloadMode.ON && !song.song.liked && song.song.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && !song.song.liked && song.song.dateDownload == null && isWifiConnected) {
                             val downloadRequest = DownloadRequest
                                 .Builder(song.id, song.id.toUri())

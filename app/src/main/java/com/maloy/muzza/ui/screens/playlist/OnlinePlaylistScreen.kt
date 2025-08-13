@@ -392,6 +392,7 @@ fun OnlinePlaylistScreen(
                                                         } else {
                                                             database.transaction {
                                                                 update(dbPlaylist!!.playlist.toggleLike())
+                                                                update(dbPlaylist!!.playlist.localToggleLike())
                                                             }
                                                         }
                                                     },

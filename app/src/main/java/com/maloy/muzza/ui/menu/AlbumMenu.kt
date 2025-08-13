@@ -217,6 +217,7 @@ fun AlbumMenu(
                 onClick = {
                     database.query {
                         update(album.album.toggleLike())
+                        update(album.album.localToggleLike())
                     }
                 }
             ) {

@@ -196,6 +196,7 @@ fun YouTubeSongMenu(
                                 insert(song.toMediaMetadata(), SongEntity::toggleLike)
                             } else {
                                 update(librarySong.song.toggleLike())
+                                update(librarySong.song.localToggleLike())
                             }
                             if (likedAutoDownload == LikedAutodownloadMode.ON && librarySong?.song?.liked == false && librarySong.song.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && librarySong?.song?.liked == false && librarySong.song.dateDownload == null && isWifiConnected) {
                                 val downloadRequest = DownloadRequest

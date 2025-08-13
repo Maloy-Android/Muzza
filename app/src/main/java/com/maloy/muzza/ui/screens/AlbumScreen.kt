@@ -247,6 +247,7 @@ fun AlbumScreen(
                                     onClick = {
                                         database.query {
                                             update(albumWithSongs.album.toggleLike())
+                                            update(albumWithSongs.album.localToggleLike())
                                         }
                                     },
                                     modifier = Modifier

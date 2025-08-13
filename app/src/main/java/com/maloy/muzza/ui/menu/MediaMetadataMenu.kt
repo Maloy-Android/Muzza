@@ -170,6 +170,7 @@ fun MediaMetadataMenu(
                             insert(mediaMetadata, SongEntity::toggleLike)
                         } else {
                             update(currentSong.song.toggleLike())
+                            update(currentSong.song.localToggleLike())
                         }
                         if (likedAutoDownload == LikedAutodownloadMode.ON && song?.song?.liked == false && song?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && song?.song?.liked == false && song?.song?.dateDownload == null && isWifiConnected) {
                             val downloadRequest = DownloadRequest

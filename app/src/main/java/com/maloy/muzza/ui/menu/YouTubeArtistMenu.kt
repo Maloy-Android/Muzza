@@ -63,6 +63,7 @@ fun YouTubeArtistMenu(
                         val libraryArtist = libraryArtist
                         if (libraryArtist != null) {
                             update(libraryArtist.artist.toggleLike())
+                            update(libraryArtist.artist.localToggleLike())
                         } else {
                             insert(
                                 ArtistEntity(

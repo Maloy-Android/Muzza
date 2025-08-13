@@ -254,6 +254,7 @@ fun ArtistScreen(
                                             val artist = libraryArtist?.artist
                                             if (artist != null) {
                                                 update(artist.toggleLike())
+                                                update(artist.localToggleLike())
                                             } else {
                                                 artistPage.artist.let {
                                                     insert(
@@ -263,6 +264,7 @@ fun ArtistScreen(
                                                             channelId = it.channelId,
                                                             thumbnailUrl = it.thumbnail,
                                                         ).toggleLike()
+                                                            .localToggleLike()
                                                     )
                                                 }
                                             }

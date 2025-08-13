@@ -166,6 +166,7 @@ fun YouTubePlaylistMenu(
                         } else {
                             database.transaction {
                                 update(dbPlaylist!!.playlist.toggleLike())
+                                update(dbPlaylist!!.playlist.localToggleLike())
                             }
                         }
                     }) {

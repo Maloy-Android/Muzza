@@ -80,6 +80,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
@@ -121,6 +122,7 @@ import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
@@ -171,6 +173,9 @@ fun OnlinePlaylistScreen(
                         song.title.contains(query.text, ignoreCase = true) ||
                         song.artists.any { it.name.contains(query.text, ignoreCase = true) })
             }
+    }
+    val songsLength = remember(songs) {
+        songs.fastSumBy { it.duration!! }
     }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(isSearching) {
@@ -341,6 +346,14 @@ fun OnlinePlaylistScreen(
                                                 )
                                             )
                                         }
+
+                                        Spacer(Modifier.height(12.dp))
+
+                                        Text(
+                                            text = makeTimeString(songsLength * 1000L),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Normal
+                                        )
 
                                         Spacer(Modifier.height(12.dp))
 

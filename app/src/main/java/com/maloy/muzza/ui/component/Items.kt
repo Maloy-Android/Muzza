@@ -1303,16 +1303,19 @@ fun YouTubeGridItem(
     item: YTItem,
     modifier: Modifier = Modifier,
     coroutineScope: CoroutineScope? = null,
+    test: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
+        val playlist by database.playlist(item.id).collectAsState(initial = null)
 
         if (item.explicit) {
             Icon.Explicit()
         }
         if (item is SongItem && song?.song?.liked == true ||
-            item is AlbumItem && album?.album?.bookmarkedAt != null
+            item is AlbumItem && album?.album?.bookmarkedAt != null ||
+            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null && playlist?.playlist?.isLocal != true
         ) {
             Icon.Favorite()
         }
@@ -1363,12 +1366,27 @@ fun YouTubeGridItem(
         val database = LocalDatabase.current
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
 
-        ItemThumbnail(
-            thumbnailUrl = item.thumbnail,
-            isActive = isActive,
-            isPlaying = isPlaying,
-            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
-        )
+        if (test) {
+            ItemThumbnail(
+                test = true,
+                thumbnailUrl = item.thumbnail,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
+                    ThumbnailCornerRadius
+                ),
+            )
+        }  else {
+            ItemThumbnail(
+                test = false,
+                thumbnailUrl = item.thumbnail,
+                isActive = isActive,
+                isPlaying = isPlaying,
+                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
+                    ThumbnailCornerRadius
+                ),
+            )
+        }
 
         AlbumPlayButton(
             visible = item is AlbumItem && !isActive,
@@ -1412,6 +1430,7 @@ fun ItemThumbnail(
     shape: Shape,
     modifier: Modifier = Modifier,
     albumIndex: Int? = null,
+    test: Boolean = true
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -1428,7 +1447,7 @@ fun ItemThumbnail(
                     style = MaterialTheme.typography.labelLarge
                 )
             }
-        } else {
+        } else if (test) {
             AsyncImage(
                 model = thumbnailUrl,
                 contentDescription = null,
@@ -1437,6 +1456,14 @@ fun ItemThumbnail(
                     .fillMaxWidth()
                     .clip(shape)
                     .aspectRatio(1f)
+            )
+        } else {
+            AsyncImage(
+                model = thumbnailUrl,
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(shape)
             )
         }
 

@@ -458,7 +458,7 @@ fun BottomSheetPlayer(
                                     .align(Alignment.Center)
                                     .size(24.dp),
                                 onClick = {
-                                    currentSong?.song?.toggleLike()
+                                    playerConnection.toggleLike()
                                     currentSong?.song?.localToggleLike()
                                     if (likedAutoDownload == LikedAutodownloadMode.ON && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null && isWifiConnected) {
                                         val downloadRequest = mediaMetadata.let {

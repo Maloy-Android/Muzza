@@ -305,28 +305,30 @@ fun LibrarySongsScreen(
                             color = MaterialTheme.colorScheme.secondary
                         )
                     } else {
-                        if (!isSearching) {
-                            IconButton(
-                                onClick = { isSearching = true },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = {
-                                    isSearching = false
-                                    searchQuery = TextFieldValue("")
-                                },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
+                        if (!inSelectMode) {
+                            if (!isSearching) {
+                                IconButton(
+                                    onClick = { isSearching = true },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        isSearching = false
+                                        searchQuery = TextFieldValue("")
+                                    },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
                         Text(

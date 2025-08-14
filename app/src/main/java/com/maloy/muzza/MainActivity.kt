@@ -444,11 +444,15 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(intent?.action == ACTION_SEARCH)
                     }
 
-                    val shouldShowSearchBar = remember(active, navBackStackEntry, inSelectMode?.value) {
+                    val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
+                    val isSearching = navBackStackEntry?.savedStateHandle?.getStateFlow("isSearching", false)?.collectAsState()
+
+                    val shouldShowSearchBar = remember(active, navBackStackEntry, inSelectMode?.value, isSearching?.value) {
                         (active ||
                                 navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
                                 navBackStackEntry?.destination?.route?.startsWith("search/") == true) &&
-                                inSelectMode?.value != true
+                                inSelectMode?.value != true &&
+                                isSearching?.value != true
                     }
                     val shouldShowNavigationBar = remember(navBackStackEntry, active) {
                         navBackStackEntry?.destination?.route == null ||
@@ -751,7 +755,7 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings") {
+                        if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings" && inSelectMode?.value != true && isSearching?.value != true) {
                             TopAppBar(
                                 title = {
                                     Text(

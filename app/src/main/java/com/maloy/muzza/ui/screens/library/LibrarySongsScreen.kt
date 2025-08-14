@@ -194,6 +194,14 @@ fun LibrarySongsScreen(
         }
     }
 
+    LaunchedEffect(inSelectMode) {
+        backStackEntry?.savedStateHandle?.set("inSelectMode", inSelectMode)
+    }
+
+    LaunchedEffect(isSearching) {
+        backStackEntry?.savedStateHandle?.set("isSearching", isSearching)
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -207,7 +215,7 @@ fun LibrarySongsScreen(
             ) {
                 Row {
                     Spacer(Modifier.width(12.dp))
-                    if (appDesignVariant == AppDesignVariantType.NEW) {
+                    if (appDesignVariant == AppDesignVariantType.NEW && !isSearching && !inSelectMode) {
                         FilterChip(
                             label = { Text(stringResource(R.string.songs)) },
                             selected = true,
@@ -222,20 +230,22 @@ fun LibrarySongsScreen(
                             },
                         )
                     }
-                    ChipsRow(
-                        chips =
-                            listOf(
-                                SongFilter.LIKED to stringResource(R.string.filter_liked),
-                                SongFilter.LIBRARY to stringResource(R.string.filter_library),
-                                SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
-                                SongFilter.CACHED to stringResource(R.string.cached)
-                            ),
-                        currentValue = filter,
-                        onValueUpdate = {
-                            filter = it
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (!isSearching && !inSelectMode) {
+                        ChipsRow(
+                            chips =
+                                listOf(
+                                    SongFilter.LIKED to stringResource(R.string.filter_liked),
+                                    SongFilter.LIBRARY to stringResource(R.string.filter_library),
+                                    SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                                    SongFilter.CACHED to stringResource(R.string.cached)
+                                ),
+                            currentValue = filter,
+                            onValueUpdate = {
+                                filter = it
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
 
@@ -307,7 +317,10 @@ fun LibrarySongsScreen(
                             }
                         } else {
                             IconButton(
-                                onClick = { isSearching = false },
+                                onClick = {
+                                    isSearching = false
+                                    searchQuery = TextFieldValue("")
+                                },
                                 Modifier.size(20.dp)
                             ) {
                                 Icon(

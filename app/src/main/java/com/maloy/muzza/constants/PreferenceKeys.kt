@@ -22,8 +22,6 @@ val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
 
 val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
 
-val showNoInternetDialogKey = booleanPreferencesKey("showNoInternetDialog")
-
 val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
 val ShowRecentActivityKey = booleanPreferencesKey("showRecentActivity")
 

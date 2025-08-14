@@ -44,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -86,7 +87,6 @@ import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
-import com.maloy.muzza.constants.showNoInternetDialogKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
@@ -173,7 +173,8 @@ fun HomeScreen(
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val context = LocalContext.current
-    var showNoInternetDialog by rememberPreference(showNoInternetDialogKey,defaultValue = false)
+
+    var showNoInternetDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {

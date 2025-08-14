@@ -336,15 +336,6 @@ fun LibrarySongsScreen(
                                 }
                             }
                         }
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.n_song,
-                                filteredSongs.size,
-                                filteredSongs.size
-                            ),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
                     }
                 }
             }

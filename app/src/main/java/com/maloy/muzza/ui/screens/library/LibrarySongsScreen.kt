@@ -272,26 +272,31 @@ fun LibrarySongsScreen(
                                 }
                             }
                         )
-                        Spacer(Modifier.weight(1f))
-                        if (!isSearching) {
-                            IconButton(
-                                onClick = { isSearching = true },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = { isSearching = false },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
+                        if (!inSelectMode) {
+                            Spacer(Modifier.weight(1f))
+                            if (!isSearching) {
+                                IconButton(
+                                    onClick = { isSearching = true },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
+                            } else {
+                                IconButton(
+                                    onClick = {
+                                        isSearching = false
+                                        searchQuery = TextFieldValue("")
+                                    },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
                         Spacer(Modifier.weight(1f))

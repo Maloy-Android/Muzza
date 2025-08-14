@@ -496,7 +496,10 @@ fun ArtistScreen(
                                             is AlbumItem -> mediaMetadata?.album?.id == item.id
                                             else -> false
                                         },
-                                        test = false,
+                                        test = when (item) {
+                                            is SongItem -> false
+                                            else -> true
+                                        },
                                         isPlaying = isPlaying,
                                         coroutineScope = coroutineScope,
                                         modifier = Modifier

@@ -290,7 +290,7 @@ fun LibrarySongsScreen(
                             }
                         }
                     } else {
-                        if (!inSelectMode) {
+                        if (filteredSongs.isNotEmpty() && !inSelectMode) {
                             IconButton(
                                 onClick = {
                                     isSearching = !isSearching

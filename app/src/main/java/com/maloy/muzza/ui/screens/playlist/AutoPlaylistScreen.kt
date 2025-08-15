@@ -252,7 +252,7 @@ fun AutoPlaylistScreen(
                 TextButton(
                     onClick = {
                         showRemoveDownloadDialog = false
-                        songs!!.forEach { song ->
+                        songs?.forEach { song ->
                             DownloadService.sendRemoveDownload(
                                 context,
                                 ExoDownloadService::class.java,
@@ -294,7 +294,7 @@ fun AutoPlaylistScreen(
                 }
             }
             if (songs != null) {
-                if (songs!!.isEmpty() && !isSearching) {
+                if (songs?.isEmpty() == true && !isSearching) {
                     item {
                         EmptyPlaceholder(
                             icon = R.drawable.music_note,
@@ -371,7 +371,7 @@ fun AutoPlaylistScreen(
                                             Download.STATE_DOWNLOADING -> {
                                                 Button(
                                                     onClick = {
-                                                        songs!!.forEach { song ->
+                                                        songs?.forEach { song ->
                                                             DownloadService.sendRemoveDownload(
                                                                 context,
                                                                 ExoDownloadService::class.java,
@@ -392,7 +392,7 @@ fun AutoPlaylistScreen(
                                             else -> {
                                                 Button(
                                                     onClick = {
-                                                        songs!!.forEach { song ->
+                                                        songs?.forEach { song ->
                                                             val downloadRequest =
                                                                 DownloadRequest.Builder(
                                                                     song.song.id,
@@ -446,9 +446,14 @@ fun AutoPlaylistScreen(
                                         }
                                         Button(
                                             onClick = {
-                                                playerConnection.addToQueue(
-                                                    items = songs!!.map { it.toMediaItem() },
-                                                )
+                                                songs?.let { songs ->
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = context.getString(R.string.liked),
+                                                            items = songs.map { it.toMediaItem() }
+                                                        )
+                                                    )
+                                                }
                                             },
                                             modifier = Modifier
                                                 .weight(1f)
@@ -465,12 +470,14 @@ fun AutoPlaylistScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = context.getString(R.string.liked),
-                                                    items = songs!!.map { it.toMediaItem() }
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = context.getString(R.string.liked),
+                                                        items = songs.map { it.toMediaItem() }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
@@ -485,13 +492,15 @@ fun AutoPlaylistScreen(
                                     }
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist,
-                                                    items = songs!!.shuffled()
-                                                        .map { it.toMediaItem() }
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist,
+                                                        items = songs.shuffled()
+                                                            .map { it.toMediaItem() }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
@@ -508,7 +517,7 @@ fun AutoPlaylistScreen(
                             }
                         }
                     }
-                    if (filteredSongs!!.isNotEmpty()) {
+                    if (filteredSongs?.isNotEmpty() == true) {
                         item {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -603,13 +612,15 @@ fun AutoPlaylistScreen(
                                         } else if (songWrapper.id == mediaMetadata?.id) {
                                             playerConnection.player.togglePlayPause()
                                         } else {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist,
-                                                    items = songs!!.map { it.toMediaItem() },
-                                                    startIndex = songs!!.indexOfFirst { it.song.id == songWrapper.id }
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist,
+                                                        items = songs.map { it.toMediaItem() },
+                                                        startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         }
                                     },
                                     onLongClick = {

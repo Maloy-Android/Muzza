@@ -272,7 +272,7 @@ fun LibrarySongsScreen(
                                 }
                             }
                         )
-                        if (songs.isNotEmpty() && !inSelectMode) {
+                        if (filteredSongs.isNotEmpty() && !inSelectMode) {
                             Spacer(Modifier.weight(1f))
                             if (!isSearching) {
                                 IconButton(

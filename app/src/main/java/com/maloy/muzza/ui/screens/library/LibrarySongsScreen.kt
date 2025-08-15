@@ -276,18 +276,8 @@ fun LibrarySongsScreen(
                             Spacer(Modifier.weight(1f))
                             if (!isSearching) {
                                 IconButton(
-                                    onClick = { isSearching = true },
-                                    Modifier.size(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.search),
-                                        contentDescription = null
-                                    )
-                                }
-                            } else {
-                                IconButton(
                                     onClick = {
-                                        isSearching = false
+                                        isSearching = !isSearching
                                         searchQuery = TextFieldValue("")
                                     },
                                     Modifier.size(20.dp)
@@ -299,44 +289,32 @@ fun LibrarySongsScreen(
                                 }
                             }
                         }
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.n_song,
-                                filteredSongs.size,
-                                filteredSongs.size
-                            ),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
                     } else {
                         if (!inSelectMode) {
-                            if (!isSearching) {
-                                IconButton(
-                                    onClick = { isSearching = true },
-                                    Modifier.size(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.search),
-                                        contentDescription = null
-                                    )
-                                }
-                            } else {
-                                IconButton(
-                                    onClick = {
-                                        isSearching = false
-                                        searchQuery = TextFieldValue("")
-                                    },
-                                    Modifier.size(20.dp)
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.search),
-                                        contentDescription = null
-                                    )
-                                }
+                            IconButton(
+                                onClick = {
+                                    isSearching = !isSearching
+                                    searchQuery = TextFieldValue("")
+                                },
+                                Modifier.size(20.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
                             }
                         }
                     }
+                    Spacer(Modifier.weight(1f))
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.n_song,
+                            filteredSongs.size,
+                            filteredSongs.size
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
                 }
             }
             if (filteredSongs.isEmpty() && !isSearching) {

@@ -216,7 +216,39 @@ fun YouTubePlaylistMenu(
                 )
             }
         }
-        playlist.playEndpoint?.let {
+        if (!playlist.id.startsWith("RDAT")) {
+            playlist.playEndpoint?.let {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            playerConnection.playQueue(YouTubeQueue(it))
+                            onDismiss()
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.play),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            }
+        } else {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -226,19 +258,67 @@ fun YouTubePlaylistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.playQueue(YouTubeQueue(it))
+                        coroutineScope.launch {
+                            songs.ifEmpty {
+                                withContext(Dispatchers.IO) {
+                                    YouTube.playlist(playlist.id).completed()
+                                        .getOrNull()?.songs.orEmpty()
+                                }
+                            }.let { songs ->
+                                playerConnection.playNext(songs.map { it.toMediaItem() })
+                            }
+                        }
                         onDismiss()
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(R.drawable.playlist_play),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play),
+                    text = stringResource(R.string.play_next),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+        }
+        if (playlist.id.startsWith("RDAT")) {
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        coroutineScope.launch {
+                            songs.ifEmpty {
+                                withContext(Dispatchers.IO) {
+                                    YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
+                                }
+                            }.let { songs ->
+                                playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                            }
+                        }
+                        onDismiss()
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.queue_music),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.add_to_queue),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
@@ -278,46 +358,6 @@ fun YouTubePlaylistMenu(
                             .padding(top = 4.dp),
                     )
                 }
-            }
-        }
-        if (playlist.id.startsWith("RDAT")) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        coroutineScope.launch {
-                            songs.ifEmpty {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist(playlist.id).completed()
-                                        .getOrNull()?.songs.orEmpty()
-                                }
-                            }.let { songs ->
-                                playerConnection.playNext(songs.map { it.toMediaItem() })
-                            }
-                        }
-                        onDismiss()
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.playlist_play),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.play_next),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
             }
         }
         if (playlist.id != "LM") {

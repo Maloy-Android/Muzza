@@ -378,19 +378,21 @@ fun LibraryPlaylistsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp)
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        PlaylistSortType.NAME -> R.string.sort_by_name
-                        PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
+            if (playlists?.size != 0) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            PlaylistSortType.NAME -> R.string.sort_by_name
+                            PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
+                        }
                     }
-                }
-            )
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 

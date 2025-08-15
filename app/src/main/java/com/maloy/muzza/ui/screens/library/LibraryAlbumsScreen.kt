@@ -171,23 +171,25 @@ fun LibraryAlbumsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        AlbumSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        AlbumSortType.NAME -> R.string.sort_by_name
-                        AlbumSortType.ARTIST -> R.string.sort_by_artist
-                        AlbumSortType.YEAR -> R.string.sort_by_year
-                        AlbumSortType.SONG_COUNT -> R.string.sort_by_song_count
-                        AlbumSortType.LENGTH -> R.string.sort_by_length
-                        AlbumSortType.PLAY_TIME -> R.string.sort_by_play_time
+            if (albums?.size != 0) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            AlbumSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            AlbumSortType.NAME -> R.string.sort_by_name
+                            AlbumSortType.ARTIST -> R.string.sort_by_artist
+                            AlbumSortType.YEAR -> R.string.sort_by_year
+                            AlbumSortType.SONG_COUNT -> R.string.sort_by_song_count
+                            AlbumSortType.LENGTH -> R.string.sort_by_length
+                            AlbumSortType.PLAY_TIME -> R.string.sort_by_play_time
+                        }
                     }
-                }
-            )
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 

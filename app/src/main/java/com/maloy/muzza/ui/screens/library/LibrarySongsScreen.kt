@@ -257,7 +257,7 @@ fun LibrarySongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    if (filter != SongFilter.CACHED) {
+                    if (songs.isNotEmpty() || filter != SongFilter.CACHED) {
                         SortHeader(
                             sortType = sortType,
                             sortDescending = sortDescending,

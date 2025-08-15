@@ -343,20 +343,22 @@ fun LibraryMixScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp),
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        MixSortType.DEFAULT -> R.string.default_
-                        MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                        MixSortType.NAME -> R.string.sort_by_name
-                    }
-                },
-            )
+            if (allItems.isNotEmpty()) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            MixSortType.DEFAULT -> R.string.default_
+                            MixSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                            MixSortType.NAME -> R.string.sort_by_name
+                        }
+                    },
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 

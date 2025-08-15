@@ -164,20 +164,22 @@ fun LibraryArtistsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        ArtistSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        ArtistSortType.NAME -> R.string.sort_by_name
-                        ArtistSortType.SONG_COUNT -> R.string.sort_by_song_count
-                        ArtistSortType.PLAY_TIME -> R.string.sort_by_play_time
+            if (artists?.size != 0) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            ArtistSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            ArtistSortType.NAME -> R.string.sort_by_name
+                            ArtistSortType.SONG_COUNT -> R.string.sort_by_song_count
+                            ArtistSortType.PLAY_TIME -> R.string.sort_by_play_time
+                        }
                     }
-                }
-            )
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 

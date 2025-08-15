@@ -323,7 +323,7 @@ fun YouTubePlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (playlist.id != "LM") {
+        if (playlist.id != "LM" && !playlist.id.startsWith("RDAT")) {
             playlist.shuffleEndpoint.let {
                 ListMenuItem(
                     icon = R.drawable.shuffle, title = R.string.shuffle

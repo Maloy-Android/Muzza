@@ -582,7 +582,11 @@ fun OnlinePlaylistScreen(
                                     playlist.radioEndpoint?.let { radioEndpoint ->
                                         Button(
                                             onClick = {
-                                                playerConnection.playQueue(YouTubeQueue(radioEndpoint))
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        radioEndpoint
+                                                    )
+                                                )
                                             },
                                             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                             modifier = Modifier.weight(1f)
@@ -596,20 +600,22 @@ fun OnlinePlaylistScreen(
                                             Text(stringResource(R.string.radio))
                                         }
                                     }
-                                    Button(
-                                        onClick = {
-                                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-                                        },
-                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.shuffle),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                                        )
-                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.shuffle))
+                                    if (!playlist.id.startsWith("RDAT")) {
+                                        Button(
+                                            onClick = {
+                                                playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
+                                            },
+                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.shuffle),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                            Text(stringResource(R.string.shuffle))
+                                        }
                                     }
                                 }
                             }

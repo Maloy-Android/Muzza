@@ -257,7 +257,7 @@ fun LibrarySongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    if (songs.isNotEmpty() || filter != SongFilter.CACHED) {
+                    if (songs.isNotEmpty() && filter != SongFilter.CACHED) {
                         SortHeader(
                             sortType = sortType,
                             sortDescending = sortDescending,
@@ -272,7 +272,7 @@ fun LibrarySongsScreen(
                                 }
                             }
                         )
-                        if (!inSelectMode) {
+                        if (songs.isNotEmpty() && !inSelectMode) {
                             Spacer(Modifier.weight(1f))
                             if (!isSearching) {
                                 IconButton(

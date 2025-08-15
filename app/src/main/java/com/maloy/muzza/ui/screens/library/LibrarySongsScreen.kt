@@ -257,7 +257,7 @@ fun LibrarySongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    if (songs.isNotEmpty() && filter != SongFilter.CACHED) {
+                    if (filteredSongs.isNotEmpty() && filter != SongFilter.CACHED) {
                         SortHeader(
                             sortType = sortType,
                             sortDescending = sortDescending,
@@ -305,16 +305,18 @@ fun LibrarySongsScreen(
                             }
                         }
                     }
-                    Spacer(Modifier.weight(1f))
-                    Text(
-                        text = pluralStringResource(
-                            R.plurals.n_song,
-                            filteredSongs.size,
-                            filteredSongs.size
-                        ),
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.secondary
-                    )
+                    if (filteredSongs.isNotEmpty()) {
+                        Spacer(Modifier.weight(1f))
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                filteredSongs.size,
+                                filteredSongs.size
+                            ),
+                            style = MaterialTheme.typography.titleSmall,
+                            color = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
             if (filteredSongs.isEmpty() && !isSearching) {

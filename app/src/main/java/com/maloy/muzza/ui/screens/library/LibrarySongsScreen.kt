@@ -291,17 +291,19 @@ fun LibrarySongsScreen(
                         }
                     } else {
                         if (filteredSongs.isNotEmpty() && !inSelectMode) {
-                            IconButton(
-                                onClick = {
-                                    isSearching = !isSearching
-                                    searchQuery = TextFieldValue("")
-                                },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
+                            if (!isSearching) {
+                                IconButton(
+                                    onClick = {
+                                        isSearching = !isSearching
+                                        searchQuery = TextFieldValue("")
+                                    },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
                     }

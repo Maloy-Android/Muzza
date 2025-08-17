@@ -468,22 +468,24 @@ fun YouTubePlaylistMenu(
                 HorizontalDivider()
             }
         }
-        ListMenuItem(
-            icon = R.drawable.queue_music, title = R.string.add_to_queue
-        ) {
-            coroutineScope.launch {
-                songs.ifEmpty {
-                    withContext(Dispatchers.IO) {
-                        YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
+        if (!playlist.id.startsWith("RDAT")) {
+            ListMenuItem(
+                icon = R.drawable.queue_music, title = R.string.add_to_queue
+            ) {
+                coroutineScope.launch {
+                    songs.ifEmpty {
+                        withContext(Dispatchers.IO) {
+                            YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
+                        }
+                    }.let { songs ->
+                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
                     }
-                }.let { songs ->
-                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
                 }
+                onDismiss()
             }
-            onDismiss()
-        }
-        item {
-            HorizontalDivider()
+            item {
+                HorizontalDivider()
+            }
         }
         ListMenuItem(
             icon = R.drawable.playlist_add, title = R.string.add_to_playlist

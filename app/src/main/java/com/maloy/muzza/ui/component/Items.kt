@@ -1085,14 +1085,13 @@ fun YouTubeCardItem(
                 modifier = Modifier.size(ListThumbnailSize)
             ) {
                 val thumbnailShape = RoundedCornerShape(ThumbnailCornerRadius)
-                val thumbnailRatio = 1f
-
                 AsyncImage(
                     model = item.thumbnail,
+                    contentScale = ContentScale.Crop,
                     contentDescription = null,
                     modifier = Modifier
                         .fillMaxSize()
-                        .aspectRatio(thumbnailRatio)
+                        .aspectRatio(1f)
                         .clip(thumbnailShape)
                 )
             }

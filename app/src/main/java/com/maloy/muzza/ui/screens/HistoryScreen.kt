@@ -281,13 +281,11 @@ fun HistoryScreen(
                                             if (song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
-                                                val songs = filteredRemoteContent.map { it.songs }.flatten()
-                                                val index = songs.indexOfFirst { it.id == song.id }
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = context.getString(R.string.history_queue_title_online),
-                                                        items = songs.map { it.toMediaItem() },
-                                                        startIndex = index.coerceAtLeast(0)
+                                                        items = filteredRemoteContent.map { it.songs }.flatten().map { it.toMediaItem() },
+                                                        startIndex = filteredRemoteContent.map { it.songs }.flatten().indexOfFirst { it.id == song.id }
                                                     )
                                                 )
                                             }
@@ -382,13 +380,11 @@ fun HistoryScreen(
                                             } else if (event.song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
-                                                val songs = filteredEventIndex.values.map { it.song }
-                                                val index = songs.indexOfFirst { it.id == event.song.id }
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = context.getString(R.string.history_queue_title_local),
                                                         items = filteredEventIndex.values.map { it.song.toMediaItem() },
-                                                        startIndex = index.coerceAtLeast(0)
+                                                        startIndex = filteredEventIndex.values.map { it.song }.indexOfFirst { it.id == event.song.id }
                                                     )
                                                 )
                                             }

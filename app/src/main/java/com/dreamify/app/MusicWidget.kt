@@ -1,4 +1,4 @@
-package com.maloy.muzza
+package com.dreamify.app
 
 import android.annotation.SuppressLint
 import android.app.PendingIntent
@@ -14,7 +14,7 @@ import androidx.core.graphics.drawable.toBitmap
 import androidx.media3.common.Player
 import coil.ImageLoader
 import coil.request.ImageRequest
-import com.maloy.muzza.playback.PlayerConnection
+import com.dreamify.app.playback.PlayerConnection
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

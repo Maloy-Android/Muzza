@@ -112,6 +112,13 @@ ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
 }
 
+configurations.all {
+    resolutionStrategy {
+        force("com.google.protobuf:protobuf-javalite:3.25.5")
+    }
+    exclude(group = "com.google.protobuf", module = "protobuf-java")
+}
+
 dependencies {
     implementation(libs.guava)
     implementation(libs.coroutines.guava)

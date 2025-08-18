@@ -1,18 +1,18 @@
-# Muzza
+# Dreamify
 
-<img src="https://github.com/Maloy-Android/Muzza/blob/main/assets/Muzza-icon.jpg" height="72">
+<img src="https://github.com/Maloy-Android/Dreamify/blob/main/assets/Dreamify-icon.jpg" height="72">
 
 A Material 3 YouTube Music client for Android
 
-- Website: https://muzza.infinityfreeapp.com
-- Telegram channel: https://t.me/appmuzzaupdatesnews
-- Downloads: https://t.me/muzzaapks
+- Website: https://dreamify.infinityfreeapp.com
+- Telegram channel: https://t.me/appdreamifyupdatesnews
+- Downloads: https://t.me/dreamifyapks
 
-[![Latest release](https://img.shields.io/github/v/release/Maloy-Android/Muzza?include_prereleases)](https://github.com/Maloy-Android/Muzza/releases)
-[![License](https://img.shields.io/github/license/Maloy-Android/Muzza)](https://www.gnu.org/licenses/gpl-3.0)
-[![Downloads](https://img.shields.io/github/downloads/Maloy-Android/Muzza/total)](https://github.com/Maloy-Android/Muzza/releases)
+[![Latest release](https://img.shields.io/github/v/release/Maloy-Android/Dreamify?include_prereleases)](https://github.com/Maloy-Android/Dreamify/releases)
+[![License](https://img.shields.io/github/license/Maloy-Android/Dreamify)](https://www.gnu.org/licenses/gpl-3.0)
+[![Downloads](https://img.shields.io/github/downloads/Maloy-Android/Dreamify/total)](https://github.com/Maloy-Android/Dreamify/releases)
 
-[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="80">](https://github.com/Maloy-Android/Muzza/releases/latest)
+[<img src="https://github.com/machiav3lli/oandbackupx/blob/034b226cea5c1b30eb4f6a6f313e4dadcbb0ece4/badge_github.png" alt="Get it on GitHub" height="80">](https://github.com/Maloy-Android/Dreamify/releases/latest)
 
 ## Features
 
@@ -37,14 +37,14 @@ A Material 3 YouTube Music client for Android
 ## Screenshots
 
 <p float="left">
-  <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/01.png" width="200" />
-  <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/02.png" width="200" />
-  <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/03.png" width="200" />
+  <img src="https://github.com/Maloy-Android/Dreamify/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/01.png" width="200" />
+  <img src="https://github.com/Maloy-Android/Dreamify/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/02.png" width="200" />
+  <img src="https://github.com/Maloy-Android/Dreamify/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/03.png" width="200" />
 </p>
 <p float="left">
-  <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/04.png" width="200" />
-  <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/05.png" width="200" />
-    <img src="https://github.com/Maloy-Android/Muzza/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/06.png" width="200" />
+  <img src="https://github.com/Maloy-Android/Dreamify/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/04.png" width="200" />
+  <img src="https://github.com/Maloy-Android/Dreamify/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/05.png" width="200" />
+    <img src="https://github.com/Maloy-Android/Dreamify/blob/main/fastlane/metadata/android/en-US/images/phoneScreenshots/06.png" width="200" />
 </p>
 
 > **Warning**
@@ -52,7 +52,7 @@ A Material 3 YouTube Music client for Android
 >If you're in a region where YouTube Music is not supported, you won't be able to use this app
 ***unless*** you have a proxy or VPN to connect to a YTM supported region.
 
-### Q: Why Muzza isn't showing in Android Auto?
+### Q: Why Dreamify isn't showing in Android Auto?
 
 1. Go to Android Auto's settings and tap multiple times on the version in the bottom to enable
    developer settings
@@ -61,7 +61,7 @@ A Material 3 YouTube Music client for Android
 
 ## Donate
 
-If you like Muzza, you're welcome to send a donation. Donations will support the development,
+If you like Dreamify, you're welcome to send a donation. Donations will support the development,
 including bug fixes and new features.
 
 - Boosty: https://boosty.to/maloybegonia/donate

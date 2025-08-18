@@ -1,5 +1,5 @@
-import com.maloy.kugou.KuGou
-import com.maloy.kugou.KuGou.generateKeyword
+import com.dreamify.kugou.KuGou
+import com.dreamify.kugou.KuGou.generateKeyword
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.assertTrue
 import org.junit.Test

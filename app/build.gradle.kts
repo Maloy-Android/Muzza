@@ -19,11 +19,11 @@ if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
 }
 
 android {
-    namespace = "com.maloy.muzza"
+    namespace = "com.dreamify.app"
     compileSdk = 36
     buildToolsVersion = "35.0.0"
     defaultConfig {
-        applicationId = "com.maloy.muzza"
+        applicationId = "com.dreamify.app"
         minSdk = 24
         targetSdk = 36
         versionCode = 42

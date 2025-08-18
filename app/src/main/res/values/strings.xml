@@ -1,7 +1,7 @@
 <resources>
 
     <!-- Setup wizard -->
-    <string name="welcome_to_muzza">Welcome to Muzza</string>
+    <string name="welcome_to_dreamify">Welcome to Dreamify</string>
     <string name="yt_music_fingertips">YouTube Music at your fingertips</string>
     <string name="ytm_account_sync">YouTube-Music account synchronization</string>
     <string name="ad_free_playback">AD free playback</string>
@@ -78,7 +78,7 @@
 
     <!-- Search -->
     <string name="search">Search</string>
-    <string name="search_yt_music">Search Muzza</string>
+    <string name="search_yt_music">Search Dreamify</string>
     <string name="search_library">Search library…</string>
     <string name="SearchHistory">Search History</string>
     <string name="Sujestions">Suggestions</string>
@@ -286,7 +286,7 @@
     <!-- Notifications settings -->
     <string name="notifications">Notifications</string>
     <string name="keep_alive_title">Prevent system killing app</string>
-    <string name="keep_alive_description">Use a foreground notification to prevent Muzza from being randomly closed by the system.</string>
+    <string name="keep_alive_description">Use a foreground notification to prevent Dreamify from being randomly closed by the system.</string>
     <string name="notifications_settings">Notifications settings</string>
     <string name="notification_permission_is_required">Notification permission is required</string>
     <string name="advanced_notification_settings_title">Advanced notification settings</string>
@@ -305,9 +305,9 @@
     <string name="pure_black">Pure black</string>
     <string name="app_design_variant">App design</string>
     <string name="listen_youtube_music">Listen on YouTube Music</string>
-    <string name="visit_muzza">Visit Muzza</string>
+    <string name="visit_dreamify">Visit Dreamify</string>
     <string name="artist">Artist</string>
-    <string name="listen_to_muzza">Listen to Muzza</string>
+    <string name="listen_to_dreamify">Listen to Dreamify</string>
     <string name="enable_swipe_thumbnail">Enable swipe on thumbnail to change song</string>
     <string name="customize_navigation_tabs">Customize navigation tabs</string>
     <string name="player">Player</string>
@@ -368,8 +368,8 @@
     <string name="help_text">Contact Dev ❯</string>
     <string name="contribution">Contribution ?</string>
     <string name="contribution_text">If you want to contribute, click here ❯</string>
-    <string name="donate_help">Please support me with a donation to further developing Muzza ❯</string>
-    <string name="telegram_info">Official channel with new news and Muzza development process ❯</string>
+    <string name="donate_help">Please support me with a donation to further developing Dreamify ❯</string>
+    <string name="telegram_info">Official channel with new news and Dreamify development process ❯</string>
     <string name="my_channel">My Telegram channel</string>
     <string name="my_channel_info">A channel about my life ❯</string>
     <string name="Developer">Developer ❯</string>
@@ -491,7 +491,7 @@
     <string name="restore_failed">Failed to restore backup</string>
 
     <string name="discord_integration">Discord Integration</string>
-    <string name="discord_information">Muzza uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nMuzza will only extract your token, and everything else is stored locally.</string>
+    <string name="discord_information">Dreamify uses the KizzyRPC library to set your Discord account\'s status. This involves using the Discord Gateway connection, which may be considered a violation of Discord\'s TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.\n\nDreamify will only extract your token, and everything else is stored locally.</string>
     <string name="dismiss">Dismiss</string>
     <string name="options">Options</string>
     <string name="preview">Preview</string>

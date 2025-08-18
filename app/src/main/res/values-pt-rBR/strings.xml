@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 <!-- Setup wizard -->
-<string name="welcome_to_muzza">Bem-vindo ao Muzza</string>
+<string name="welcome_to_dreamify">Bem-vindo ao Dreamify</string>
 <string name="yt_music_fingertips">YouTube Music na ponta dos seus dedos</string>
 <string name="ytm_account_sync">Sincronização de conta do YouTube-Music</string>
 <string name="ad_free_playback">Suas músicas livres de anúncios</string>
@@ -48,7 +48,7 @@
 <string name="most_played_albums">Álbuns mais tocados</string>
 <!--  Search  -->
 <string name="search">Pesquisar</string>
-<string name="search_yt_music">Pesquisar no Muzza</string>
+<string name="search_yt_music">Pesquisar no Dreamify</string>
 <string name="search_library">Pesquisar na biblioteca…</string>
 <string name="SearchHistory">Histórico de pesquisa</string>
 <string name="filter_library">Biblioteca</string>
@@ -208,7 +208,7 @@
 <!--  Notifications settings  -->
 <string name="notifications">Notificações</string>
 <string name="keep_alive_title">Impedir que o sistema mate o aplicativo</string>
-<string name="keep_alive_description">Use uma notificação em primeiro plano para evitar que o Muzza seja fechado aleatoriamente pelo sistema.</string>
+<string name="keep_alive_description">Use uma notificação em primeiro plano para evitar que o Dreamify seja fechado aleatoriamente pelo sistema.</string>
 <string name="notifications_settings">Configurações de notificações</string>
 <!--  Settings  -->
 <string name="settings">Configurações</string>
@@ -221,9 +221,9 @@
 <string name="pure_black">Preto puro</string>
 <string name="default_open_tab">Aba padrão ao abrir o app</string>
 <string name="listen_youtube_music">Ouça no YouTube Music</string>
-<string name="visit_muzza">Visite Muzza</string>
+<string name="visit_dreamify">Visite Dreamify</string>
 <string name="artist">Artista</string>
-<string name="listen_to_muzza">Ouça no Muzza</string>
+<string name="listen_to_dreamify">Ouça no Dreamify</string>
 <string name="customize_navigation_tabs">Customizar abas de navegação</string>
 <string name="auto_playlists_customization">Personalização da playlists</string>
 <string name="show_liked_auto_playlist">Mostrar músicas curtidas</string>
@@ -319,7 +319,7 @@
 <string name="logout">Sair</string>
 <string name="enable_discord_rpc">Ativar Rich Presence</string>
 <string name="not_logged_in">Não logado</string>
-<string name="discord_information">O Muzza usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco. \n \nO Muzza extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
+<string name="discord_information">O Dreamify usa a biblioteca KizzyRPC para definir o status da sua conta do Discord. Isto envolve o uso da conexão Discord Gateway, que pode ser considerado uma violação dos termos de serviço do Discord. Porém, não há nenhum caso conhecido de contas de usuários sendo suspensas por esta razão. Use por sua conta e risco. \n \nO Dreamify extrairá somente o seu token, e todo o resto é armazenado localmente.</string>
 <string name="my_channel">Canal do Telegram</string>
 <string name="my_channel_info">Um canal sobre mim ❯</string>
 <string name="player_style">Estilo do Player</string>
@@ -328,10 +328,10 @@
 <string name="web_site">Website</string>
 <string name="web_site_info">Site oficial ❯</string>
 <string name="Telegramchanel">Canal Oficial</string>
-<string name="telegram_info">Canal oficial com novas notícias e processo de desenvolvimento do Muzza ❯</string>
+<string name="telegram_info">Canal oficial com novas notícias e processo de desenvolvimento do Dreamify ❯</string>
 <string name="Donate">Doação</string>
 <string name="player_background_style">Estilo de fundo do Player</string>
-<string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o Muzza ❯</string>
+<string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o Dreamify ❯</string>
 <string name="code">Source code</string>
 <string name="code_text">Acesse o código fonte do aplicativo ❯</string>
 <string name="bugs">Bugs</string>

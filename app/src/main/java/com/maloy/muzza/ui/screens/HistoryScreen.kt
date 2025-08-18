@@ -66,9 +66,7 @@ import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.EventWithSong
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
@@ -283,8 +281,14 @@ fun HistoryScreen(
                                             if (song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
+                                                val songs = filteredRemoteContent.map { it.songs }.flatten()
+                                                val index = songs.indexOfFirst { it.id == song.id }
                                                 playerConnection.playQueue(
-                                                    (YouTubeQueue.radio(song.toMediaMetadata()))
+                                                    ListQueue(
+                                                        title = context.getString(R.string.history_queue_title_online),
+                                                        items = songs.map { it.toMediaItem() },
+                                                        startIndex = index.coerceAtLeast(0)
+                                                    )
                                                 )
                                             }
                                         },
@@ -378,8 +382,14 @@ fun HistoryScreen(
                                             } else if (event.song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
+                                                val songs = filteredEventIndex.values.map { it.song }
+                                                val index = songs.indexOfFirst { it.id == event.song.id }
                                                 playerConnection.playQueue(
-                                                    YouTubeQueue.radio(event.song.toMediaMetadata())
+                                                    ListQueue(
+                                                        title = context.getString(R.string.history_queue_title_local),
+                                                        items = filteredEventIndex.values.map { it.song.toMediaItem() },
+                                                        startIndex = index.coerceAtLeast(0)
+                                                    )
                                                 )
                                             }
                                         },onLongClick = {

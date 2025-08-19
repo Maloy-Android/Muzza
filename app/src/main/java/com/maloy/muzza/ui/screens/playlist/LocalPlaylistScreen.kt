@@ -733,7 +733,7 @@ fun LocalPlaylistScreen(
                             contentDescription = null
                         )
                     }
-                } else if (!isSearching) {
+                } else if (songs.isNotEmpty() && !isSearching) {
                     IconButton(
                         onClick = { isSearching = true }
                     ) {

@@ -696,7 +696,7 @@ fun AutoPlaylistLocalScreen(
                     }
                 },
                 actions = {
-                    if (!isSearching && !inSelectMode) {
+                    if (filteredItems.subdirs.isNotEmpty() && !isSearching && !inSelectMode) {
                         IconButton(
                             onClick = { isSearching = true }
                         ) {

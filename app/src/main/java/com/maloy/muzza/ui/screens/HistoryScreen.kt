@@ -226,7 +226,7 @@ fun HistoryScreen(
             } else if (historySource == HistorySource.REMOTE && filteredRemoteContent?.isNotEmpty() == true ||
                 historySource == HistorySource.LOCAL && filteredEventsMap.isNotEmpty()) {
                 item {
-                    if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+                    if (ytmSync && isLoggedIn && isInternetAvailable(context) && !isSearching && !inSelectMode) {
                         ChipsRow(
                             chips = listOf(
                                 HistorySource.LOCAL to stringResource(R.string.local_history),

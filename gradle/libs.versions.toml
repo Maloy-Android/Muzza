@@ -1,39 +1,37 @@
 [versions]
 androidGradlePlugin = "8.11.1"
-annotation = "1.9.1"
 json = "20250517"
 kotlin = "2.1.0"
-compose = "1.8.3"
-lifecycle = "2.9.1"
+compose = "1.9.0"
+lifecycle = "2.9.2"
 material3 = "1.3.2"
-materialKolor = "3.0.0"
-media3 = "1.7.1"
+materialKolor = "3.0.1"
+media3 = "1.8.0"
 room = "2.7.2"
-hilt = "2.56.2"
-ktor = "3.1.2"
+hilt = "2.57"
+ktor = "3.2.3"
 ksp = "2.1.0-1.0.29"
 kotlinVersion = "2.0.20"
 cardview = "1.0.0"
 
 [libraries]
-annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 guava = { group = "com.google.guava", name = "guava", version = "33.4.8-android" }
 coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.2" }
-concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
+concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.3.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
 activity = { group = "androidx.activity", name = "activity-compose", version = "1.10.1" }
 material-kolor = { module = "com.materialkolor:material-kolor", version.ref = "materialKolor" }
-navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.9.0" }
+navigation = { group = "androidx.navigation", name = "navigation-compose", version = "2.9.3" }
 hilt-navigation = { group = "androidx.hilt", name = "hilt-navigation-compose", version = "1.2.0" }
 datastore = { group = "androidx.datastore", name = "datastore-preferences", version = "1.1.4" }
 
 compose-runtime = { group = "androidx.compose.runtime", name = "runtime", version.ref = "compose" }
-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version = "1.8.3" }
+compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version = "1.9.0" }
 compose-ui = { group = "androidx.compose.ui", name = "ui", version.ref = "compose" }
 compose-ui-util = { group = "androidx.compose.ui", name = "ui-util", version.ref = "compose" }
 compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", version.ref = "compose" }
-compose-reorderable1 = { module = "sh.calvin.reorderable:reorderable", version = "2.5.1" }
+compose-reorderable1 = { module = "sh.calvin.reorderable:reorderable", version = "3.0.0" }
 compose-reorderable2 = { group = "org.burnoutcrew.composereorderable", name = "reorderable", version = "0.9.6" }
 compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.8" }
 
@@ -57,7 +55,7 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 
-apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.17.0" }
+apache-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.18.0" }
 
 hilt = { group = "com.google.dagger", name = "hilt-android", version.ref = "hilt" }
 hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", version.ref = "hilt" }
@@ -81,13 +79,13 @@ junit = { group = "junit", name = "junit", version = "4.13.2" }
 timber = { group = "com.jakewharton.timber", name = "timber", version = "5.0.1" }
 
 google-services = { module = "com.google.gms:google-services", version = "4.4.3" }
-firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "33.16.0" }
+firebase-bom = { group = "com.google.firebase", name = "firebase-bom", version = "34.1.0" }
 firebase-analytics = { group = "com.google.firebase", name = "firebase-analytics-ktx" }
 firebase-crashlytics = { group = "com.google.firebase", name = "firebase-crashlytics-ktx" }
-firebase-crashlytics-plugin = { module = "com.google.firebase:firebase-crashlytics-gradle", version = "3.0.4" }
+firebase-crashlytics-plugin = { module = "com.google.firebase:firebase-crashlytics-gradle", version = "3.0.6" }
 firebase-config = { group = "com.google.firebase", name = "firebase-config-ktx" }
 firebase-perf = { group = "com.google.firebase", name = "firebase-perf-ktx" }
-firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "1.4.2" }
+firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "2.0.1" }
 
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }

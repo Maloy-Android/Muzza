@@ -617,7 +617,7 @@ fun CachePlaylistScreen(
                     }
                 },
                 actions = {
-                    if (!isSearching && !inSelectMode) {
+                    if (filteredSongs.isNotEmpty() && !isSearching && !inSelectMode) {
                         IconButton(
                             onClick = { isSearching = true }
                         ) {

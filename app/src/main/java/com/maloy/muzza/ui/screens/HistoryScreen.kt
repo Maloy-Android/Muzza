@@ -78,6 +78,7 @@ import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
+import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
@@ -130,7 +131,7 @@ fun HistoryScreen(
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
-        saver = listSaver<MutableList<Long>, Long>(
+        saver = listSaver<MutableList<String>, String>(
             save = { it.toList() },
             restore = { it.toMutableStateList() }
         )
@@ -155,9 +156,9 @@ fun HistoryScreen(
             }
             .filterValues { it.isNotEmpty() }
     }
-    val filteredEventIndex: Map<Long, EventWithSong> by remember(filteredEventsMap) {
+    val filteredEventIndex: Map<String, EventWithSong> by remember(filteredEventsMap) {
         derivedStateOf {
-            filteredEventsMap.flatMap { it.value }.associateBy { it.event.id }
+            filteredEventsMap.flatMap { it.value }.associateBy { it.event.id.toString() }
         }
     }
 
@@ -226,7 +227,7 @@ fun HistoryScreen(
             } else if (historySource == HistorySource.REMOTE && filteredRemoteContent?.isNotEmpty() == true ||
                 historySource == HistorySource.LOCAL && filteredEventsMap.isNotEmpty()) {
                 item {
-                    if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+                    if (ytmSync && isLoggedIn && isInternetAvailable(context) && !isSearching && !inSelectMode) {
                         ChipsRow(
                             chips = listOf(
                                 HistorySource.LOCAL to stringResource(R.string.local_history),
@@ -252,26 +253,41 @@ fun HistoryScreen(
                             items = section.songs,
                             key = { it.id }
                         ) { song ->
+                            val onCheckedChange: (Boolean) -> Unit = { checked ->
+                                if (checked) {
+                                    selection.add(song.id)
+                                } else {
+                                    selection.remove(song.id)
+                                }
+                            }
+
                             YouTubeListItem(
                                 item = song,
                                 isActive = song.id == mediaMetadata?.id,
                                 isPlaying = isPlaying,
                                 trailingContent = {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                YouTubeSongMenu(
-                                                    song = song,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null
+                                    if (inSelectMode) {
+                                        Checkbox(
+                                            checked = song.id in selection,
+                                            onCheckedChange = onCheckedChange
                                         )
+                                    } else {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    YouTubeSongMenu(
+                                                        song = song,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
                                     }
                                 },
                                 modifier = Modifier
@@ -291,15 +307,10 @@ fun HistoryScreen(
                                             }
                                         },
                                         onLongClick = {
-                                            haptic.performHapticFeedback(
-                                                HapticFeedbackType.LongPress,
-                                            )
-                                            menuState.show {
-                                                YouTubeSongMenu(
-                                                    song = song,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                )
+                                            if (!inSelectMode) {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                inSelectMode = true
+                                                onCheckedChange(true)
                                             }
                                         }
                                     )
@@ -330,13 +341,13 @@ fun HistoryScreen(
 
                         items(
                             items = events,
-                            key = { it.event.id }
+                            key = { it.event.id.toString() }
                         ) { event ->
-                            val onCheckedChange: (Boolean) -> Unit = {
-                                if (it) {
-                                    selection.add(event.event.id)
+                            val onCheckedChange: (Boolean) -> Unit = { checked ->
+                                if (checked) {
+                                    selection.add(event.event.id.toString())
                                 } else {
-                                    selection.remove(event.event.id)
+                                    selection.remove(event.event.id.toString())
                                 }
                             }
 
@@ -347,10 +358,10 @@ fun HistoryScreen(
                                 showInLibraryIcon = true,
                                 trailingContent = {
                                     if (inSelectMode) {
-                                            Checkbox(
-                                                checked = event.event.id in selection,
-                                                onCheckedChange = onCheckedChange
-                                            )
+                                        Checkbox(
+                                            checked = event.event.id.toString() in selection,
+                                            onCheckedChange = onCheckedChange
+                                        )
                                     } else {
                                         IconButton(
                                             onClick = {
@@ -376,7 +387,7 @@ fun HistoryScreen(
                                     .combinedClickable(
                                         onClick = {
                                             if (inSelectMode) {
-                                                onCheckedChange(event.event.id !in selection)
+                                                onCheckedChange(event.event.id.toString() !in selection)
                                             } else if (event.song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
@@ -388,7 +399,8 @@ fun HistoryScreen(
                                                     )
                                                 )
                                             }
-                                        },onLongClick = {
+                                        },
+                                        onLongClick = {
                                             if (!inSelectMode) {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                 inSelectMode = true
@@ -515,7 +527,7 @@ fun HistoryScreen(
             }
         },
         actions = {
-            if (inSelectMode) {
+            if (inSelectMode && historySource == HistorySource.LOCAL) {
                 Checkbox(
                     checked = selection.size == filteredEventIndex.size && selection.isNotEmpty(),
                     onCheckedChange = {
@@ -523,8 +535,8 @@ fun HistoryScreen(
                             selection.clear()
                         } else {
                             selection.clear()
-                            selection.addAll(filteredEventsMap.flatMap { group ->
-                                group.value.map { it.event.id }
+                            selection.addAll(filteredEventsMap.flatMap { (_, events) ->
+                                events.map { it.event.id.toString() }
                             })
                         }
                     }
@@ -548,7 +560,42 @@ fun HistoryScreen(
                                             delete(it)
                                         }
                                     }
+                                    onExitSelectionMode()
                                 },
+                                onExitSelectionMode = onExitSelectionMode
+                            )
+                        }
+                    }
+                ) {
+                    Icon(
+                        painterResource(R.drawable.more_vert),
+                        contentDescription = null
+                    )
+                }
+            } else if (inSelectMode && historySource == HistorySource.REMOTE) {
+                val allRemoteSongIds = filteredRemoteContent?.flatMap { section -> section.songs.map { it.id } } ?: emptyList()
+                Checkbox(
+                    checked = selection.size == allRemoteSongIds.size && selection.isNotEmpty(),
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            selection.clear()
+                            selection.addAll(allRemoteSongIds)
+                        } else {
+                            selection.clear()
+                        }
+                    }
+                )
+                IconButton(
+                    enabled = selection.isNotEmpty(),
+                    onClick = {
+                        menuState.show {
+                            YouTubeSongSelectionMenu(
+                                navController = navController,
+                                showPlayNextButton = false,
+                                selection = selection.mapNotNull { songId ->
+                                    filteredRemoteContent?.flatMap { it.songs }?.find { it.id == songId }
+                                },
+                                onDismiss = menuState::dismiss,
                                 onExitSelectionMode = onExitSelectionMode
                             )
                         }

@@ -752,14 +752,16 @@ fun AutoPlaylistScreen(
                 }
             },
             actions = {
-                if (!isSearching && !inSelectMode) {
-                    IconButton(
-                        onClick = { isSearching = true }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.search),
-                            contentDescription = null
-                        )
+                filteredSongs?.let { songs ->
+                    if (songs.isNotEmpty() && !isSearching && !inSelectMode) {
+                        IconButton(
+                            onClick = { isSearching = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
                     }
                 }
             },

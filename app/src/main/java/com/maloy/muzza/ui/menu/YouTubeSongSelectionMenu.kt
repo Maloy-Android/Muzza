@@ -29,6 +29,7 @@ fun YouTubeSongSelectionMenu(
     selection: List<SongItem>,
     onDismiss: () -> Unit,
     onExitSelectionMode: () -> Unit,
+    showPlayNextButton : Boolean = true
 ) {
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -91,16 +92,18 @@ fun YouTubeSongSelectionMenu(
         item {
             HorizontalDivider()
         }
-        ListMenuItem(
-            icon = R.drawable.playlist_play,
-            title = R.string.play_next,
-        ) {
-            onDismiss()
-            playerConnection.playNext(selection.map { it.toMediaItem() })
-            onExitSelectionMode()
-        }
-        item {
-            HorizontalDivider()
+        if (showPlayNextButton) {
+            ListMenuItem(
+                icon = R.drawable.playlist_play,
+                title = R.string.play_next,
+            ) {
+                onDismiss()
+                playerConnection.playNext(selection.map { it.toMediaItem() })
+                onExitSelectionMode()
+            }
+            item {
+                HorizontalDivider()
+            }
         }
         ListMenuItem(
             icon = R.drawable.queue_music,

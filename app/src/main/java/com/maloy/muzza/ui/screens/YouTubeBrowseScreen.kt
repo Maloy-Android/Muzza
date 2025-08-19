@@ -51,9 +51,9 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.playback.queues.YouTubeQueue
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
@@ -179,8 +179,10 @@ fun YouTubeBrowseScreen(
                                                             playerConnection.player.togglePlayPause()
                                                         } else {
                                                             playerConnection.playQueue(
-                                                                YouTubeQueue.radio(
-                                                                    song.toMediaMetadata()
+                                                                ListQueue(
+                                                                    title = browseResult?.title.orEmpty(),
+                                                                    items = listOf(song.toMediaItem()),
+                                                                    startIndex = song.id.indexOfFirst { song.id == mediaMetadata?.id }
                                                                 )
                                                             )
                                                         }

@@ -392,9 +392,11 @@ fun LibraryPlaylistsScreen(
                         }
                     }
                 )
+            }
 
-                Spacer(Modifier.weight(1f))
+            Spacer(Modifier.weight(1f))
 
+            if (playlists?.size != 0) {
                 playlists?.let { playlists ->
                     Text(
                         text = pluralStringResource(

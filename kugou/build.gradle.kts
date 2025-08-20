@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+    @Suppress("DSL_SCOPE_VIOLATION")
     alias(libs.plugins.kotlin.serialization)
 }
 

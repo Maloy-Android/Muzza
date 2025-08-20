@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 plugins {
     alias(libs.plugins.hilt) apply (false)
     alias(libs.plugins.kotlin.ksp) apply (false)
@@ -32,14 +34,11 @@ tasks.register<Delete>("Clean") {
 
 subprojects {
     tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-        compilerOptions {
+        kotlinOptions {
             if (project.findProperty("enableComposeCompilerReports") == "true") {
                 arrayOf("reports", "metrics").forEach {
-                    freeCompilerArgs.addAll(
-                        listOf(
-                            "-P",
-                            "plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${project.rootDir.absolutePath}/compose_metrics"
-                        )
+                    freeCompilerArgs = freeCompilerArgs + listOf(
+                        "-P", "plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${project.rootDir.absolutePath}/compose_metrics"
                     )
                 }
             }

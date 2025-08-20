@@ -34,6 +34,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -56,8 +57,10 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.SearchFilterHeight
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -79,6 +82,7 @@ fun OnlineSearchResult(
     navController: NavController,
     viewModel: OnlineSearchViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
@@ -162,8 +166,17 @@ fun OnlineSearchResult(
                             is SongItem -> {
                                 if (item.id == mediaMetadata?.id) {
                                     playerConnection.player.togglePlayPause()
-                                } else {
+                                } else if (searchFilter == null) {
                                     playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                                } else {
+                                    val allSongs = itemsPage?.items?.filterIsInstance<SongItem>() ?: emptyList()
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = if (searchFilter == FILTER_SONG) context.getString(R.string.filter_songs) else context.getString(R.string.filter_videos),
+                                            items = allSongs.map { it.toMediaItem() },
+                                            startIndex = allSongs.indexOfFirst { it.id == item.id }
+                                        )
+                                    )
                                 }
                             }
 

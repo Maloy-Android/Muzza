@@ -392,20 +392,20 @@ fun LibraryPlaylistsScreen(
                         }
                     }
                 )
-            }
 
-            Spacer(Modifier.weight(1f))
+                Spacer(Modifier.weight(1f))
 
-            playlists?.let { playlists ->
-                Text(
-                    text = pluralStringResource(
-                        R.plurals.n_playlist,
-                        playlists.size,
-                        playlists.size
-                    ),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
+                playlists?.let { playlists ->
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.n_playlist,
+                            playlists.size,
+                            playlists.size
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
             }
 
             IconButton(

@@ -77,6 +77,11 @@ fun CachePlaylistScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val lazyListState = rememberLazyListState()
+    val showTopBarTitle by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     val likeLength = remember(cachedSongs) {
         cachedSongs.fastSumBy { it.song.duration }
@@ -590,6 +595,8 @@ fun CachePlaylistScreen(
                                 }
                             }
                         )
+                    } else if (showTopBarTitle) {
+                        Text(stringResource(R.string.cached))
                     }
                 },
                 navigationIcon = {

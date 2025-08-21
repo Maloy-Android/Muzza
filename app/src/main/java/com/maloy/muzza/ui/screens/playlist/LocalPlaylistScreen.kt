@@ -17,18 +17,16 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -59,6 +57,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -248,6 +247,11 @@ fun LocalPlaylistScreen(
             }
         }
     )
+    val showTopBarTitle by remember {
+        derivedStateOf {
+            reorderableState.listState.firstVisibleItemIndex > 0
+        }
+    }
             dragInfo?.let { (from, to) ->
                 database.transaction {
                     move(viewModel.playlistId, from, to)
@@ -648,6 +652,10 @@ fun LocalPlaylistScreen(
                             }
                         }
                     )
+                } else if (showTopBarTitle) {
+                    playlist?.let { playlist ->
+                        Text(playlist.playlist.name)
+                    }
                 }
             },
             navigationIcon = {
@@ -746,13 +754,16 @@ fun LocalPlaylistScreen(
             },
             scrollBehavior = scrollBehavior
         )
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime))
-                .align(Alignment.BottomCenter)
-        )
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                    .align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 

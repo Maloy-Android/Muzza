@@ -36,6 +36,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -185,6 +186,12 @@ fun AutoPlaylistLocalScreen(
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
+
+    val showTopBarTitle by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     val searchQueryStr = searchQuery.text.trim()
     val filteredItems = remember(currDir, searchQueryStr) {
@@ -668,7 +675,7 @@ fun AutoPlaylistLocalScreen(
                             }
                         )
                     } else {
-                        Text(if (viewModel.folderPositionStack.size > 1) currDir.currentDir else "Internal Storage")
+                        Text(if (showTopBarTitle) stringResource(R.string.local) else "Internal Storage")
                     }
                 },
                 navigationIcon = {

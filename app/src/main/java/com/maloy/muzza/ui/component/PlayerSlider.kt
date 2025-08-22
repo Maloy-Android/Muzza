@@ -9,13 +9,14 @@ import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.SliderState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.lerp
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.drawscope.clipRect
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -24,23 +25,18 @@ fun PlayerSliderTrack(
     sliderState: SliderState,
     modifier: Modifier = Modifier,
     colors: SliderColors = SliderDefaults.colors(),
-    trackHeight: Dp = 10.dp
+    trackHeight: Dp = 12.dp
 ) {
-    val inactiveTrackColor = colors.inactiveTrackColor
+    val inactiveTrackColor = colors.inactiveTrackColor.copy(alpha = 0.3f)
     val activeTrackColor = colors.activeTrackColor
-    val inactiveTickColor = colors.inactiveTickColor
-    val activeTickColor = colors.activeTickColor
-
     val valueRange = sliderState.valueRange
 
     Canvas(
         modifier
             .fillMaxWidth()
-            .height(trackHeight)
+            .height(28.dp)
     ) {
         drawTrack(
-            stepsToTickFractions(sliderState.steps),
-            0f,
             calcFraction(
                 valueRange.start,
                 valueRange.endInclusive,
@@ -48,69 +44,73 @@ fun PlayerSliderTrack(
             ),
             inactiveTrackColor,
             activeTrackColor,
-            inactiveTickColor,
-            activeTickColor,
             trackHeight
         )
     }
 }
 
 private fun DrawScope.drawTrack(
-    tickFractions: FloatArray,
-    activeRangeStart: Float,
     activeRangeEnd: Float,
     inactiveTrackColor: Color,
     activeTrackColor: Color,
-    inactiveTickColor: Color,
-    activeTickColor: Color,
-    trackHeight: Dp = 2.dp
+    trackHeight: Dp = 12.dp
 ) {
-    val isRtl = layoutDirection == LayoutDirection.Rtl
-    val sliderLeft = Offset(0f, center.y)
-    val sliderRight = Offset(size.width, center.y)
-    val sliderStart = if (isRtl) sliderRight else sliderLeft
-    val sliderEnd = if (isRtl) sliderLeft else sliderRight
-    val tickSize = 2.0.dp.toPx()
     val trackStrokeWidth = trackHeight.toPx()
-    drawLine(
-        inactiveTrackColor,
-        sliderStart,
-        sliderEnd,
-        trackStrokeWidth,
-        StrokeCap.Round
-    )
-    val sliderValueEnd = Offset(
-        sliderStart.x +
-                (sliderEnd.x - sliderStart.x) * activeRangeEnd,
-        center.y
+    val trackCornerRadius = trackStrokeWidth / 2
+    val centerY = center.y
+
+    drawRoundRect(
+        color = inactiveTrackColor,
+        topLeft = Offset(0f, centerY - trackStrokeWidth / 2),
+        size = Size(size.width, trackStrokeWidth),
+        cornerRadius = CornerRadius(trackCornerRadius, trackCornerRadius)
     )
 
-    val sliderValueStart = Offset(
-        sliderStart.x +
-                (sliderEnd.x - sliderStart.x) * activeRangeStart,
-        center.y
-    )
+    val activeTrackWidth = size.width * activeRangeEnd
 
-    drawLine(
-        activeTrackColor,
-        sliderValueStart,
-        sliderValueEnd,
-        trackStrokeWidth,
-        StrokeCap.Round
-    )
+    if (activeTrackWidth > 0) {
+        clipRect(
+            left = 0f,
+            top = centerY - trackStrokeWidth / 2,
+            right = activeTrackWidth,
+            bottom = centerY + trackStrokeWidth / 2
+        ) {
+            drawRoundRect(
+                color = activeTrackColor,
+                topLeft = Offset(0f, centerY - trackStrokeWidth / 2),
+                size = Size(size.width, trackStrokeWidth),
+                cornerRadius = CornerRadius(trackCornerRadius, trackCornerRadius)
+            )
+        }
 
-    for (tick in tickFractions) {
-        val outsideFraction = tick > activeRangeEnd || tick < activeRangeStart
         drawCircle(
-            color = if (outsideFraction) inactiveTickColor else activeTickColor,
-            center = Offset(lerp(sliderStart, sliderEnd, tick).x, center.y),
-            radius = tickSize / 2f
+            color = activeTrackColor,
+            center = Offset(activeTrackWidth, centerY),
+            radius = trackStrokeWidth / 2
         )
     }
-}
 
-private fun stepsToTickFractions(steps: Int): FloatArray {
-    return if (steps == 0) floatArrayOf() else FloatArray(steps + 2) { it.toFloat() / (steps + 1) }
+    val thumbSize = 18.dp.toPx()
+    val thumbStrokeWidth = 2.dp.toPx()
+
+    drawCircle(
+        color = Color.White,
+        center = Offset(activeTrackWidth, centerY),
+        radius = thumbSize / 2
+    )
+
+    drawCircle(
+        color = activeTrackColor,
+        center = Offset(activeTrackWidth, centerY),
+        radius = thumbSize / 2 - thumbStrokeWidth / 2,
+        style = Stroke(width = thumbStrokeWidth)
+    )
+
+    drawCircle(
+        color = activeTrackColor,
+        center = Offset(activeTrackWidth, centerY),
+        radius = thumbSize / 4
+    )
 }
 
 private fun calcFraction(a: Float, b: Float, pos: Float) =

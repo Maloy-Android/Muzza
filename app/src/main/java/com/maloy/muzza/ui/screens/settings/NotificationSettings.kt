@@ -152,11 +152,10 @@ fun NotificationSettings(
             onCheckedChange = { toggleKeepAlive(it) }
         )
 
-        PreferenceGroupTitle(
-            stringResource(R.string.misc)
-        )
-
         AnimatedVisibility(permissionGranted) {
+            PreferenceGroupTitle(
+                stringResource(R.string.misc)
+            )
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 PreferenceEntry(
                     title = { Text(stringResource(R.string.advanced_notification_settings_title)) },

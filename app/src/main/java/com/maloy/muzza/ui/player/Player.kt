@@ -331,11 +331,7 @@ fun BottomSheetPlayer(
             thumbnailLazyGridState.scrollToItem(index)
     }
 
-    LaunchedEffect(!showLyrics) {
-        fullScreenLyrics = true
-    }
-
-    LaunchedEffect(!showLyrics && !fullScreenLyrics) {
+    LaunchedEffect(!showLyrics && !fullScreenLyrics || !showLyrics) {
         fullScreenLyrics = true
     }
 

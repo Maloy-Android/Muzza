@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
+import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.RepeatMode
@@ -12,6 +13,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,7 +56,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.platform.UriHandler
 import androidx.compose.ui.res.painterResource
@@ -67,6 +71,9 @@ import coil.compose.rememberAsyncImagePainter
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
@@ -183,6 +190,7 @@ fun AboutScreen(
     scrollBehavior: TopAppBarScrollBehavior,
 
     ) {
+    val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
     val shimmerBrush = shimmerEffect()
     var showDonateCard by rememberSaveable {
@@ -214,7 +222,12 @@ fun AboutScreen(
                 colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                 modifier = Modifier
                     .matchParentSize()
-                    .clickable { }
+                    .combinedClickable(
+                        onClick = {},
+                        onLongClick = {
+                            Toast.makeText(context, "Muzza",Toast.LENGTH_LONG).show()
+                        }
+                    )
             )
 
             Box(
@@ -287,7 +300,7 @@ fun AboutScreen(
             }
         }
 
-        Spacer(Modifier.height(4.dp))
+        Spacer(Modifier.height(20.dp))
 
         CardItem(
             icon = R.drawable.person,

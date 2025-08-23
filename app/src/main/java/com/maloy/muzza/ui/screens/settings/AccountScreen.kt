@@ -67,7 +67,8 @@ fun AccountSettings(
     }
 
     LaunchedEffect(Unit) {
-        YouTube.useLoginForBrowse = isLoggedIn
+        if (isLoggedIn) YouTube.useLoginForBrowse = true
+        if (!isLoggedIn) YouTube.useLoginForBrowse = false
     }
 
     Column(

@@ -98,6 +98,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
@@ -235,7 +236,7 @@ fun TopPlaylistScreen(
         }
     }
     val state = rememberLazyListState()
-    val showTopBarTitle by remember {
+    val lazyChecker by remember {
         derivedStateOf {
             state.firstVisibleItemIndex > 0
         }
@@ -571,7 +572,11 @@ fun TopPlaylistScreen(
                 }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = state,
+            )
+        }
         if (inSelectMode) {
             TopAppBar(
                 title = {
@@ -658,7 +663,7 @@ fun TopPlaylistScreen(
                                 }
                             }
                         )
-                    } else if (showTopBarTitle) {
+                    } else if (lazyChecker) {
                         Text(stringResource(R.string.my_top))
                     }
                 },

@@ -57,6 +57,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -94,6 +95,12 @@ fun ArtistSongsScreen(
     }
 
     val lazyListState = rememberLazyListState()
+
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
@@ -225,6 +232,11 @@ fun ArtistSongsScreen(
                         .animateItem()
                 )
             }
+        }
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState
+            )
         }
 
         TopAppBar(

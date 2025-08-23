@@ -64,6 +64,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.YouTubeListItem
@@ -91,6 +92,11 @@ fun OnlineSearchResult(
 
     val coroutineScope = rememberCoroutineScope()
     val lazyListState = rememberLazyListState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -256,6 +262,12 @@ fun OnlineSearchResult(
                 }
             }
         }
+    }
+
+    if (lazyChecker) {
+        LazyColumnScrollbar(
+            state = lazyListState
+        )
     }
 
     Box(

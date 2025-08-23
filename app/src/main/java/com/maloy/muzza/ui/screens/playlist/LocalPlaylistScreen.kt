@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -127,6 +126,7 @@ import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -247,7 +247,7 @@ fun LocalPlaylistScreen(
             }
         }
     )
-    val showTopBarTitle by remember {
+    val lazyChecker by remember {
         derivedStateOf {
             reorderableState.listState.firstVisibleItemIndex > 0
         }
@@ -611,7 +611,11 @@ fun LocalPlaylistScreen(
                 }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = reorderableState.listState,
+            )
+        }
         TopAppBar(
             title = {
                 if (inSelectMode) {
@@ -652,7 +656,7 @@ fun LocalPlaylistScreen(
                             }
                         }
                     )
-                } else if (showTopBarTitle) {
+                } else if (lazyChecker) {
                     playlist?.let { playlist ->
                         Text(playlist.playlist.name)
                     }

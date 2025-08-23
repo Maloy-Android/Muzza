@@ -31,6 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +81,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -166,6 +168,11 @@ fun LibrarySongsScreen(
             song.song.title.contains(searchQueryStr, ignoreCase = true) ||
                     song.artists.joinToString("")
                         .contains(searchQueryStr, ignoreCase = true)
+        }
+    }
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
         }
     }
 
@@ -435,6 +442,11 @@ fun LibrarySongsScreen(
                         )
                         .animateItem()
                 )
+                if (lazyChecker) {
+                    LazyColumnScrollbar(
+                        state = lazyListState
+                    )
+                }
             }
         }
 

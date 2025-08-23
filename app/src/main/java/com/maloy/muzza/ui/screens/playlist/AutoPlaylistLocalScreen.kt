@@ -81,6 +81,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
@@ -187,7 +188,7 @@ fun AutoPlaylistLocalScreen(
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
 
-    val showTopBarTitle by remember {
+    val lazyChecker by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex > 0
         }
@@ -587,6 +588,11 @@ fun AutoPlaylistLocalScreen(
                 )
             }
         }
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState,
+            )
+        }
         if (inSelectMode) {
             TopAppBar(
                 title = {
@@ -675,7 +681,7 @@ fun AutoPlaylistLocalScreen(
                             }
                         )
                     } else {
-                        Text(if (showTopBarTitle) stringResource(R.string.local) else "Internal Storage")
+                        Text(if (lazyChecker) stringResource(R.string.local) else "Internal Storage")
                     }
                 },
                 navigationIcon = {

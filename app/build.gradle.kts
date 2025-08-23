@@ -139,6 +139,8 @@ dependencies {
     implementation(libs.squigglyslider)
     implementation(libs.compose.icons.extended)
 
+    implementation(libs.lazycolumnscrollbar)
+
     implementation(libs.coil)
 
     implementation(libs.shimmer)

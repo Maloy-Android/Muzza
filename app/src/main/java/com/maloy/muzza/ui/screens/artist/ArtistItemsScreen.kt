@@ -61,6 +61,7 @@ import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.YouTubeListItem
@@ -104,6 +105,12 @@ fun ArtistItemsScreen(
     }
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
@@ -205,9 +212,15 @@ fun ArtistItemsScreen(
                                     playerConnection.playQueue(
                                         ListQueue(
                                             title = title,
-                                            items = itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().map { it.toMediaItem() },
-                                            startIndex = if (itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().indexOfFirst { it.id == song.id } >= 0)
-                                                itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().indexOfFirst { it.id == song.id } else 0
+                                            items = itemsPage?.items?.filterIsInstance<SongItem>()
+                                                .orEmpty().map { it.toMediaItem() },
+                                            startIndex = if (itemsPage?.items?.filterIsInstance<SongItem>()
+                                                    .orEmpty()
+                                                    .indexOfFirst { it.id == song.id } >= 0
+                                            )
+                                                itemsPage?.items?.filterIsInstance<SongItem>()
+                                                    .orEmpty()
+                                                    .indexOfFirst { it.id == song.id } else 0
                                         )
                                     )
                                 }
@@ -258,7 +271,13 @@ fun ArtistItemsScreen(
                         .combinedClickable(
                             onClick = {
                                 when (item) {
-                                    is SongItem -> playerConnection.playQueue(YouTubeQueue(item.endpoint ?: WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                                    is SongItem -> playerConnection.playQueue(
+                                        YouTubeQueue(
+                                            item.endpoint ?: WatchEndpoint(videoId = item.id),
+                                            item.toMediaMetadata()
+                                        )
+                                    )
+
                                     is AlbumItem -> navController.navigate("album/${item.id}")
                                     is ArtistItem -> navController.navigate("artist/${item.id}")
                                     is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
@@ -306,6 +325,12 @@ fun ArtistItemsScreen(
                 }
             }
         }
+    }
+
+    if (lazyChecker) {
+        LazyColumnScrollbar(
+            state = lazyListState
+        )
     }
 
     TopAppBar(

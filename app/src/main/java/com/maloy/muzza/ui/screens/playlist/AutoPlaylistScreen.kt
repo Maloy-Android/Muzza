@@ -104,6 +104,7 @@ import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -279,7 +280,7 @@ fun AutoPlaylistScreen(
         }
     }
     val state = rememberLazyListState()
-    val showTopBarTitle by remember {
+    val lazyChecker by remember {
         derivedStateOf {
             state.firstVisibleItemIndex > 0
         }
@@ -643,7 +644,11 @@ fun AutoPlaylistScreen(
                 }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = state,
+            )
+        }
         if (inSelectMode) {
             TopAppBar(
                 title = {
@@ -731,7 +736,7 @@ fun AutoPlaylistScreen(
                             }
                         )
                     }
-                    else if (showTopBarTitle) {
+                    else if (lazyChecker) {
                         Text(playlist)
                     }
                 },

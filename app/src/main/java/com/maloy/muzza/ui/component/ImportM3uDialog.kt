@@ -114,7 +114,7 @@ fun ImportM3uDialog(
         icon = { Icon(painterResource(R.drawable.playlist_add), null) },
         title = { Text(stringResource(R.string.import_playlist)) },
     ) {
-        if (importedSongs.isNotEmpty()) {
+        if (importedSongs.isEmpty()) {
             EnumListPreference(
                 title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
                 icon = { Icon(Icons.Rounded.GraphicEq, null) },

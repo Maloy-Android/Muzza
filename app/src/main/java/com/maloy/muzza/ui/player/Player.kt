@@ -280,11 +280,7 @@ fun BottomSheetPlayer(
             }
         }
     }
-    LaunchedEffect(canSkipPrevious, canSkipNext) {
-        sliderPosition = 0
-        position = 0
-        duration = 0
-    }
+
     val thumbnailLazyGridState = rememberLazyGridState()
     val horizontalLazyGridItemWidthFactor = 1f
     val thumbnailSnapLayoutInfoProvider = remember(thumbnailLazyGridState) {

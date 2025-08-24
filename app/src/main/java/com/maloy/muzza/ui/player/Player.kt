@@ -280,7 +280,7 @@ fun BottomSheetPlayer(
             }
         }
     }
-    LaunchedEffect(mediaMetadata, canSkipPrevious, canSkipNext) {
+    LaunchedEffect(canSkipPrevious, canSkipNext) {
         sliderPosition = 0
         position = 0
         duration = 0

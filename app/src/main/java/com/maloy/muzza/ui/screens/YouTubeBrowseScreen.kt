@@ -32,6 +32,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -55,6 +56,8 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.YouTubeGridItem
@@ -92,6 +95,11 @@ fun YouTubeBrowseScreen(
     ) {
         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
         val lazyGridState = rememberLazyGridState()
+        val gridChecker by remember {
+            derivedStateOf {
+                lazyGridState.firstVisibleItemIndex > 0
+            }
+        }
         val snapLayoutInfoProvider = remember(lazyGridState) {
             SnapLayoutInfoProvider(
                 lazyGridState = lazyGridState,
@@ -275,6 +283,11 @@ fun YouTubeBrowseScreen(
                     }
                 }
             }
+        }
+        if (gridChecker) {
+            LazyVerticalGridScrollbar(
+                state = lazyGridState
+            )
         }
     }
 

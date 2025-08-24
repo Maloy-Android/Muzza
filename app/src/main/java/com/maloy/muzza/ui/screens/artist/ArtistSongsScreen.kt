@@ -95,13 +95,6 @@ fun ArtistSongsScreen(
     }
 
     val lazyListState = rememberLazyListState()
-
-    val lazyChecker by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
-
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
         saver = listSaver<MutableList<String>, String>(
@@ -207,21 +200,22 @@ fun ArtistSongsScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable(onClick = {
-                            if (inSelectMode) {
-                                onCheckedChange(song.id !in selection)
-                            } else if (song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = context.getString(R.string.queue_all_songs),
-                                        items = songs.map { it.toMediaItem() },
-                                        startIndex = index
+                        .combinedClickable(
+                            onClick = {
+                                if (inSelectMode) {
+                                    onCheckedChange(song.id !in selection)
+                                } else if (song.id == mediaMetadata?.id) {
+                                    playerConnection.player.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = context.getString(R.string.queue_all_songs),
+                                            items = songs.map { it.toMediaItem() },
+                                            startIndex = index
+                                        )
                                     )
-                                )
-                            }
-                        },
+                                }
+                            },
                             onLongClick = {
                                 if (!inSelectMode) {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -233,11 +227,9 @@ fun ArtistSongsScreen(
                 )
             }
         }
-        if (lazyChecker) {
-            LazyColumnScrollbar(
-                state = lazyListState
-            )
-        }
+        LazyColumnScrollbar(
+            state = lazyListState
+        )
 
         TopAppBar(
             title = {

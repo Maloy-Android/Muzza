@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -151,7 +152,14 @@ fun ListDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
                 modifier = modifier.padding(vertical = 24.dp)
             ) {
-                LazyColumn(content = content)
+                val lazyListState = rememberLazyListState()
+                LazyColumn(
+                    state = lazyListState,
+                    content = content
+                )
+                LazyColumnScrollbar(
+                    state = lazyListState,
+                )
             }
         }
     }

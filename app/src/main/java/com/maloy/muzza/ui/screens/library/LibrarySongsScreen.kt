@@ -442,14 +442,13 @@ fun LibrarySongsScreen(
                         )
                         .animateItem()
                 )
-                if (lazyChecker) {
-                    LazyColumnScrollbar(
-                        state = lazyListState
-                    )
-                }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState
+            )
+        }
         HideOnScrollFAB(
             visible = songs.isNotEmpty(),
             lazyListState = lazyListState,

@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -72,6 +73,7 @@ import com.maloy.muzza.ui.component.ArtistListItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.ArtistMenu
@@ -155,6 +157,11 @@ fun LibraryArtistsScreen(
             lazyListState.firstVisibleItemIndex > 0
         }
     }
+    val gridChecker by remember {
+        derivedStateOf {
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -220,7 +227,7 @@ fun LibraryArtistsScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         when (viewType) {
-            LibraryViewType.LIST ->
+            LibraryViewType.LIST -> {
                 LazyColumn(
                     state = lazyListState,
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
@@ -294,16 +301,17 @@ fun LibraryArtistsScreen(
                                     )
                                     .animateItem(),
                             )
-                            if (lazyChecker) {
-                                LazyColumnScrollbar(
-                                    state = lazyListState
-                                )
-                            }
                         }
                     }
                 }
+                if (lazyChecker) {
+                    LazyColumnScrollbar(
+                        state = lazyListState
+                    )
+                }
+            }
 
-            LibraryViewType.GRID ->
+            LibraryViewType.GRID -> {
                 LazyVerticalGrid(
                     state = lazyGridState,
                     columns = GridCells.Adaptive(
@@ -371,6 +379,12 @@ fun LibraryArtistsScreen(
                         }
                     }
                 }
+                if (gridChecker) {
+                    LazyVerticalGridScrollbar(
+                        state = lazyGridState
+                    )
+                }
+            }
         }
     }
 }

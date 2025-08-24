@@ -17,8 +17,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -40,6 +42,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -96,6 +99,8 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.PlaylistListItem
@@ -253,6 +258,16 @@ fun LibraryPlaylistsScreen(
 
     val lazyListState = rememberLazyListState()
     val lazyGridState = rememberLazyGridState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
+    val gridChecker by remember {
+        derivedStateOf{
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop =
         backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
@@ -611,6 +626,11 @@ fun LibraryPlaylistsScreen(
                                 )
                             }
                         }
+                        if (lazyChecker) {
+                            LazyColumnScrollbar(
+                                state = lazyListState
+                            )
+                        }
                     }
                     HideOnScrollFAB(
                         lazyListState = lazyListState,
@@ -797,6 +817,11 @@ fun LibraryPlaylistsScreen(
                                         .animateItem()
                                 )
                             }
+                        }
+                        if (gridChecker) {
+                            LazyVerticalGridScrollbar(
+                                state = lazyGridState
+                            )
                         }
                     }
                     HideOnScrollFAB(

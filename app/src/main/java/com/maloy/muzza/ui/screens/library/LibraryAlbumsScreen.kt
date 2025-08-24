@@ -74,6 +74,7 @@ import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.AlbumMenu
@@ -163,6 +164,11 @@ fun LibraryAlbumsScreen(
             lazyListState.firstVisibleItemIndex > 0
         }
     }
+    val gridChecker by remember {
+        derivedStateOf {
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -231,7 +237,7 @@ fun LibraryAlbumsScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         when (viewType) {
-            LibraryViewType.LIST ->
+            LibraryViewType.LIST -> {
                 LazyColumn(
                     state = lazyListState,
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
@@ -306,16 +312,17 @@ fun LibraryAlbumsScreen(
                                         },
                                     ).animateItem(),
                             )
-                            if (lazyChecker) {
-                                LazyColumnScrollbar(
-                                    state = lazyListState
-                                )
-                            }
                         }
                     }
                 }
+                if (lazyChecker) {
+                    LazyColumnScrollbar(
+                        state = lazyListState
+                    )
+                }
+            }
 
-            LibraryViewType.GRID ->
+            LibraryViewType.GRID -> {
                 LazyVerticalGrid(
                     state = lazyGridState,
                     columns = GridCells.Adaptive(
@@ -386,6 +393,12 @@ fun LibraryAlbumsScreen(
                         }
                     }
                 }
+                if (gridChecker) {
+                    LazyVerticalGridScrollbar(
+                        state = lazyGridState
+                    )
+                }
+            }
         }
     }
 }

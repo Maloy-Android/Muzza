@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,7 @@ import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ArtistListItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.PlaylistListItem
@@ -249,6 +251,11 @@ fun LibraryMixScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop =
         backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val gridChecker by remember {
+        derivedStateOf{
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -651,6 +658,11 @@ fun LibraryMixScreen(
                     }
                 }
             }
+            if (gridChecker) {
+                LazyVerticalGridScrollbar(
+                    state = lazyGridState
+                )
+            }
         }
     } else {
         Box(
@@ -882,6 +894,11 @@ fun LibraryMixScreen(
                         }
                     }
                 }
+            }
+            if (gridChecker) {
+                LazyVerticalGridScrollbar(
+                    state = lazyGridState
+                )
             }
         }
     }

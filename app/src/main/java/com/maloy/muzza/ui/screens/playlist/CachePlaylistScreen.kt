@@ -77,6 +77,11 @@ fun CachePlaylistScreen(
 
     val snackbarHostState = remember { SnackbarHostState() }
     val lazyListState = rememberLazyListState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     val likeLength = remember(cachedSongs) {
         cachedSongs.fastSumBy { it.song.duration }
@@ -496,7 +501,11 @@ fun CachePlaylistScreen(
                 }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState,
+            )
+        }
         if (inSelectMode) {
             TopAppBar(
                 title = {
@@ -590,6 +599,8 @@ fun CachePlaylistScreen(
                                 }
                             }
                         )
+                    } else if (lazyChecker) {
+                        Text(stringResource(R.string.cached))
                     }
                 },
                 navigationIcon = {

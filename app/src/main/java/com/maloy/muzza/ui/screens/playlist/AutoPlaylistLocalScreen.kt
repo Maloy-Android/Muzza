@@ -36,6 +36,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +81,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
@@ -185,6 +187,12 @@ fun AutoPlaylistLocalScreen(
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val focusRequester = remember { FocusRequester() }
+
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     val searchQueryStr = searchQuery.text.trim()
     val filteredItems = remember(currDir, searchQueryStr) {
@@ -580,6 +588,11 @@ fun AutoPlaylistLocalScreen(
                 )
             }
         }
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState,
+            )
+        }
         if (inSelectMode) {
             TopAppBar(
                 title = {
@@ -668,7 +681,7 @@ fun AutoPlaylistLocalScreen(
                             }
                         )
                     } else {
-                        Text(if (viewModel.folderPositionStack.size > 1) currDir.currentDir else "Internal Storage")
+                        Text(if (lazyChecker) stringResource(R.string.local) else "Internal Storage")
                     }
                 },
                 navigationIcon = {
@@ -696,7 +709,7 @@ fun AutoPlaylistLocalScreen(
                     }
                 },
                 actions = {
-                    if (filteredItems.subdirs.isNotEmpty() && !isSearching && !inSelectMode) {
+                    if (filteredItems.subdirs.isNotEmpty() || filteredItems.files.isNotEmpty() && !isSearching && !inSelectMode) {
                         IconButton(
                             onClick = { isSearching = true }
                         ) {

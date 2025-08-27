@@ -97,6 +97,7 @@ import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import com.maloy.muzza.ui.component.PlayerSliderTrack
@@ -606,6 +607,10 @@ fun Queue(
                     }
                 }
             }
+
+            LazyColumnScrollbar(
+                state = lazyListState
+            )
 
             Box(
                 modifier = Modifier

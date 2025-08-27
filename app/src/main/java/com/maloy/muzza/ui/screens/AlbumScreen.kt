@@ -92,6 +92,7 @@ import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongListItem
@@ -136,7 +137,7 @@ fun AlbumScreen(
     }
 
     val state = rememberLazyListState()
-    val showTopBarTitle by remember {
+    val lazyChecker by remember {
         derivedStateOf {
             state.firstVisibleItemIndex > 0
         }
@@ -568,12 +569,16 @@ fun AlbumScreen(
             }
         }
     }
-
+    if (lazyChecker) {
+        LazyColumnScrollbar(
+            state = state,
+        )
+    }
     TopAppBar(
         title = {
             if (inSelectMode) {
                 Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
-            } else if (showTopBarTitle) {
+            } else if (lazyChecker) {
                 Text(albumWithSongs?.album?.title.orEmpty())
             }
         },

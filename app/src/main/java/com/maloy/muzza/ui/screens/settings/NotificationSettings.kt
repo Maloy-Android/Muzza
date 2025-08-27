@@ -10,6 +10,7 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
@@ -35,7 +36,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
-import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
@@ -156,27 +156,28 @@ fun NotificationSettings(
             stringResource(R.string.misc)
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.advanced_notification_settings_title)) },
-                icon = { Icon(painterResource(R.drawable.notification_on), null) },
-                onClick = {
-                    try {
-                        context.startActivity(
-                            Intent(
-                                Settings.ACTION_APP_NOTIFICATION_SETTINGS,
-                                "package:${context.packageName}".toUri()
+        AnimatedVisibility(permissionGranted) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                PreferenceEntry(
+                    title = { Text(stringResource(R.string.advanced_notification_settings_title)) },
+                    icon = { Icon(painterResource(R.drawable.notification_on), null) },
+                    onClick = {
+                        try {
+                            context.startActivity(
+                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                                }
                             )
-                        )
-                    } catch (e: ActivityNotFoundException) {
-                        Toast.makeText(
-                            context,
-                            R.string.intent_advanced_notification_settings_not_found,
-                            Toast.LENGTH_LONG
-                        ).show()
+                        } catch (e: ActivityNotFoundException) {
+                            Toast.makeText(
+                                context,
+                                R.string.intent_advanced_notification_settings_not_found,
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
                     }
-                }
-            )
+                )
+            }
         }
     }
 

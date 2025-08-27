@@ -8,6 +8,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.pages.ArtistPage
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.db.MusicDatabase
@@ -36,9 +37,15 @@ class ArtistViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            YouTube.artist(artistId)
-                .onSuccess {
-                    artistPage = it.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+            YouTube.artist(artistId).onSuccess { page ->
+                    val filteredSections = page.sections.filterNot { section ->
+                            section.title.equals("From your library", ignoreCase = true)
+                            section.moreEndpoint?.browseId?.startsWith("MPLAUC") == true
+                        }.map { section ->
+                            section.copy(items = section.items.filterExplicit(hideExplicit))
+                        }
+                    artistPage = page.copy(sections = filteredSections)
                 }.onFailure {
                     reportException(it)
                 }

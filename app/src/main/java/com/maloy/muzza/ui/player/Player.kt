@@ -280,6 +280,7 @@ fun BottomSheetPlayer(
             }
         }
     }
+
     val thumbnailLazyGridState = rememberLazyGridState()
     val horizontalLazyGridItemWidthFactor = 1f
     val thumbnailSnapLayoutInfoProvider = remember(thumbnailLazyGridState) {
@@ -326,11 +327,7 @@ fun BottomSheetPlayer(
             thumbnailLazyGridState.scrollToItem(index)
     }
 
-    LaunchedEffect(!showLyrics) {
-        fullScreenLyrics = true
-    }
-
-    LaunchedEffect(!showLyrics && !fullScreenLyrics) {
+    LaunchedEffect(!showLyrics && !fullScreenLyrics || !showLyrics) {
         fullScreenLyrics = true
     }
 
@@ -344,7 +341,7 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = when {
-            pureBlack && darkTheme == DarkMode.ON -> Color.Black
+            pureBlack && darkTheme == DarkMode.AUTO == isSystemInDarkTheme || pureBlack && darkTheme == DarkMode.ON -> Color.Black
             useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
                 MaterialTheme.colorScheme.surfaceContainer
 

@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -71,6 +72,7 @@ import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongListItem
@@ -186,6 +188,11 @@ fun HistoryScreen(
     }
 
     val lazyListState = rememberLazyListState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     Box(Modifier.fillMaxSize()) {
         LazyColumn(
@@ -450,7 +457,11 @@ fun HistoryScreen(
             )
         }
     }
-
+    if (lazyChecker) {
+        LazyColumnScrollbar(
+            state = lazyListState
+        )
+    }
     TopAppBar(
         title = {
             if (inSelectMode) {

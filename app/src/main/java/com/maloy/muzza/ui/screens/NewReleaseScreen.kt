@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -13,7 +14,9 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -28,6 +31,7 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
@@ -49,6 +53,12 @@ fun NewReleaseScreen(
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val lazyGridState = rememberLazyGridState()
+    val gridChecker by remember {
+        derivedStateOf {
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
 
     val newReleaseAlbums by viewModel.newReleaseAlbums.collectAsState()
 
@@ -56,7 +66,8 @@ fun NewReleaseScreen(
 
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
-        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+        state = lazyGridState
     ) {
         items(
             items = newReleaseAlbums,
@@ -94,6 +105,12 @@ fun NewReleaseScreen(
                 }
             }
         }
+    }
+
+    if (gridChecker) {
+        LazyVerticalGridScrollbar(
+            state = lazyGridState
+        )
     }
 
     TopAppBar(

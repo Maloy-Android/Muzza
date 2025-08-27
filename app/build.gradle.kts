@@ -26,8 +26,8 @@ android {
         applicationId = "com.maloy.muzza"
         minSdk = 24
         targetSdk = 36
-        versionCode = 42
-        versionName = "0.7.0"
+        versionCode = 43
+        versionName = "0.7.1"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -138,6 +138,8 @@ dependencies {
     implementation(libs.material.kolor)
     implementation(libs.squigglyslider)
     implementation(libs.compose.icons.extended)
+
+    implementation(libs.lazycolumnscrollbar)
 
     implementation(libs.coil)
 

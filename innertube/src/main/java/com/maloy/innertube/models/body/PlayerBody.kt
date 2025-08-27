@@ -11,6 +11,7 @@ data class PlayerBody(
     val playbackContext: PlaybackContext? = null,
     val contentCheckOk: Boolean = true,
     val racyCheckOk: Boolean = true,
+    val serviceIntegrityDimensions: ServiceIntegrityDimensions? = null,
 ) {
     @Serializable
     data class PlaybackContext(
@@ -21,4 +22,8 @@ data class PlayerBody(
             val signatureTimestamp: Int
         )
     }
+    @Serializable
+    data class ServiceIntegrityDimensions(
+        val poToken: String
+    )
 }

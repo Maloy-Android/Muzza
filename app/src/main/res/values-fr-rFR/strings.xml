@@ -292,7 +292,7 @@
     <string name="advanced_notification_settings_title">Paramètres de notification avancés</string>
     <string name="intent_advanced_notification_settings_not_found">Impossible de trouver les paramètres de notifications avancés. Veuillez les configurer manuellement.</string>
 
-    <!-- Settings -->
+<!-- Settings -->
     <string name="settings">Paramètres</string>
     <string name="appearance">Apparence</string>
     <string name="theme">Thème</string>

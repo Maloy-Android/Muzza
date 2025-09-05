@@ -176,7 +176,7 @@ fun AppearanceSettings(
                 initialValue = thumbnailCornerRadius,
                 upperBound = 10,
                 lowerBound = 0,
-                resetValue = 6,
+                resetValue = 3,
                 unitDisplay = if (thumbnailCornerRadius.toFloat() != 0.toFloat()) "0%" else "%",
                 onConfirm = {
                     showCornerRadiusDialog = false

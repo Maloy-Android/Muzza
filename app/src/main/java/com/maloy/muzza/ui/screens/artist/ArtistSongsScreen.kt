@@ -57,6 +57,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -94,7 +95,6 @@ fun ArtistSongsScreen(
     }
 
     val lazyListState = rememberLazyListState()
-
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
         saver = listSaver<MutableList<String>, String>(
@@ -200,21 +200,22 @@ fun ArtistSongsScreen(
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .combinedClickable(onClick = {
-                            if (inSelectMode) {
-                                onCheckedChange(song.id !in selection)
-                            } else if (song.id == mediaMetadata?.id) {
-                                playerConnection.player.togglePlayPause()
-                            } else {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = context.getString(R.string.queue_all_songs),
-                                        items = songs.map { it.toMediaItem() },
-                                        startIndex = index
+                        .combinedClickable(
+                            onClick = {
+                                if (inSelectMode) {
+                                    onCheckedChange(song.id !in selection)
+                                } else if (song.id == mediaMetadata?.id) {
+                                    playerConnection.player.togglePlayPause()
+                                } else {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = context.getString(R.string.queue_all_songs),
+                                            items = songs.map { it.toMediaItem() },
+                                            startIndex = index
+                                        )
                                     )
-                                )
-                            }
-                        },
+                                }
+                            },
                             onLongClick = {
                                 if (!inSelectMode) {
                                     haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -226,6 +227,9 @@ fun ArtistSongsScreen(
                 )
             }
         }
+        LazyColumnScrollbar(
+            state = lazyListState
+        )
 
         TopAppBar(
             title = {

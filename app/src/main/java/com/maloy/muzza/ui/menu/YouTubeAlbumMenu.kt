@@ -191,6 +191,7 @@ fun YouTubeAlbumMenu(
                 onClick = {
                     database.query {
                         album?.album?.toggleLike()?.let(::update)
+                        album?.album?.localToggleLike()?.let(::update)
                     }
                 }
             ) {
@@ -366,7 +367,7 @@ fun YouTubeAlbumMenu(
         }
         albumItem.artists?.let { artists ->
             ListMenuItem(
-                icon = R.drawable.artist,
+                icon = if (artists.size == 1) R.drawable.artist else R.drawable.artists,
                 title = R.string.view_artist
             ) {
                 if (artists.size == 1) {

@@ -317,6 +317,7 @@ fun PlaylistMenu(
                     onClick = {
                         database.query {
                             dbPlaylist?.playlist?.toggleLike()?.let { update(it) }
+                            dbPlaylist?.playlist?.localToggleLike()?.let { update(it) }
                         }
                     }
                 ) {

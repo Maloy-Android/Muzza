@@ -40,7 +40,6 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -136,7 +135,7 @@ fun AppearanceSettings(
     val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
-    val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 6)
+    val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 3)
     val (nowPlayingEnable,onNowPlayingEnableChange) = rememberPreference(NowPlayingEnableKey, defaultValue = true)
     val (nowPlayingPadding,onNowPlayingPadding) = rememberPreference(NowPlayingPaddingKey, defaultValue = 35)
     val (showContentFilter, onShowContentFilterChange) = rememberPreference(ShowContentFilterKey, defaultValue = true)
@@ -177,8 +176,8 @@ fun AppearanceSettings(
                 initialValue = thumbnailCornerRadius,
                 upperBound = 10,
                 lowerBound = 0,
-                resetValue = 6,
-                unitDisplay = "0%",
+                resetValue = 3,
+                unitDisplay = if (thumbnailCornerRadius.toFloat() != 0.toFloat()) "0%" else "%",
                 onConfirm = {
                     showCornerRadiusDialog = false
                     onThumbnailCornerRadius(it)
@@ -493,7 +492,7 @@ fun AppearanceSettings(
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.thumbnail_corner_radius)) },
-            description = "$thumbnailCornerRadius" + "0%",
+            description = "$thumbnailCornerRadius" + if (thumbnailCornerRadius.toFloat() != 0.toFloat()) "0%" else "%",
             icon = { Icon(Icons.Rounded.Image, null) },
             onClick = { showCornerRadiusDialog = true }
         )

@@ -499,8 +499,6 @@
     <string name="pause_search_history">Приостановить историю поиска</string>
     <string name="clear_search_history">Очистить историю поиска</string>
     <string name="clear_search_history_confirm">Вы уверены, что хотите очистить всю историю поиска?</string>
-    <string name="use_login_for_browse">Использовать логин для просмотра контента</string>
-    <string name="use_login_for_browse_desc">Это может повлиять на то, какой контент вы видите, и, например, показывать альбомы только премиум-класса, если вы вошли в систему с премиум-аккаунтом</string>
     <string name="disable_screenshot">Отключить снимок экрана</string>
     <string name="disable_screenshot_desc">При включении этой опции скриншоты и отображение приложения в списке последних отключаются.</string>
     <string name="ignore_battery_optimizations">Игнорировать оптимизацию батареи</string>

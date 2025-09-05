@@ -17,15 +17,12 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -59,6 +56,7 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -128,6 +126,7 @@ import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -248,6 +247,11 @@ fun LocalPlaylistScreen(
             }
         }
     )
+    val lazyChecker by remember {
+        derivedStateOf {
+            reorderableState.listState.firstVisibleItemIndex > 0
+        }
+    }
             dragInfo?.let { (from, to) ->
                 database.transaction {
                     move(viewModel.playlistId, from, to)
@@ -607,7 +611,11 @@ fun LocalPlaylistScreen(
                 }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = reorderableState.listState,
+            )
+        }
         TopAppBar(
             title = {
                 if (inSelectMode) {
@@ -648,6 +656,10 @@ fun LocalPlaylistScreen(
                             }
                         }
                     )
+                } else if (lazyChecker) {
+                    playlist?.let { playlist ->
+                        Text(playlist.playlist.name)
+                    }
                 }
             },
             navigationIcon = {
@@ -733,7 +745,7 @@ fun LocalPlaylistScreen(
                             contentDescription = null
                         )
                     }
-                } else if (!isSearching) {
+                } else if (songs.isNotEmpty() && !isSearching) {
                     IconButton(
                         onClick = { isSearching = true }
                     ) {
@@ -746,13 +758,16 @@ fun LocalPlaylistScreen(
             },
             scrollBehavior = scrollBehavior
         )
-
-        SnackbarHost(
-            hostState = snackbarHostState,
-            modifier = Modifier
-                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime))
-                .align(Alignment.BottomCenter)
-        )
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            SnackbarHost(
+                hostState = snackbarHostState,
+                modifier = Modifier
+                    .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                    .align(Alignment.BottomCenter)
+            )
+        }
     }
 }
 

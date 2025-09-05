@@ -31,6 +31,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -80,6 +81,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -168,6 +170,11 @@ fun LibrarySongsScreen(
                         .contains(searchQueryStr, ignoreCase = true)
         }
     }
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -194,6 +201,14 @@ fun LibrarySongsScreen(
         }
     }
 
+    LaunchedEffect(inSelectMode) {
+        backStackEntry?.savedStateHandle?.set("inSelectMode", inSelectMode)
+    }
+
+    LaunchedEffect(isSearching) {
+        backStackEntry?.savedStateHandle?.set("isSearching", isSearching)
+    }
+
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -207,7 +222,7 @@ fun LibrarySongsScreen(
             ) {
                 Row {
                     Spacer(Modifier.width(12.dp))
-                    if (appDesignVariant == AppDesignVariantType.NEW) {
+                    if (appDesignVariant == AppDesignVariantType.NEW && !isSearching && !inSelectMode) {
                         FilterChip(
                             label = { Text(stringResource(R.string.songs)) },
                             selected = true,
@@ -222,20 +237,22 @@ fun LibrarySongsScreen(
                             },
                         )
                     }
-                    ChipsRow(
-                        chips =
-                            listOf(
-                                SongFilter.LIKED to stringResource(R.string.filter_liked),
-                                SongFilter.LIBRARY to stringResource(R.string.filter_library),
-                                SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
-                                SongFilter.CACHED to stringResource(R.string.cached)
-                            ),
-                        currentValue = filter,
-                        onValueUpdate = {
-                            filter = it
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
+                    if (!isSearching && !inSelectMode) {
+                        ChipsRow(
+                            chips =
+                                listOf(
+                                    SongFilter.LIKED to stringResource(R.string.filter_liked),
+                                    SongFilter.LIBRARY to stringResource(R.string.filter_library),
+                                    SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
+                                    SongFilter.CACHED to stringResource(R.string.cached)
+                                ),
+                            currentValue = filter,
+                            onValueUpdate = {
+                                filter = it
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
 
@@ -247,7 +264,7 @@ fun LibrarySongsScreen(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
-                    if (filter != SongFilter.CACHED) {
+                    if (filteredSongs.isNotEmpty() && filter != SongFilter.CACHED) {
                         SortHeader(
                             sortType = sortType,
                             sortDescending = sortDescending,
@@ -262,60 +279,43 @@ fun LibrarySongsScreen(
                                 }
                             }
                         )
-                        Spacer(Modifier.weight(1f))
-                        if (!isSearching) {
-                            IconButton(
-                                onClick = { isSearching = true },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = { isSearching = false },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
+                        if (filteredSongs.isNotEmpty() && !inSelectMode) {
+                            Spacer(Modifier.weight(1f))
+                            if (!isSearching) {
+                                IconButton(
+                                    onClick = {
+                                        isSearching = !isSearching
+                                        searchQuery = TextFieldValue("")
+                                    },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
-                        Spacer(Modifier.weight(1f))
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.n_song,
-                                filteredSongs.size,
-                                filteredSongs.size
-                            ),
-                            style = MaterialTheme.typography.titleSmall,
-                            color = MaterialTheme.colorScheme.secondary
-                        )
                     } else {
-                        if (!isSearching) {
-                            IconButton(
-                                onClick = { isSearching = true },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
-                            }
-                        } else {
-                            IconButton(
-                                onClick = { isSearching = false },
-                                Modifier.size(20.dp)
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.search),
-                                    contentDescription = null
-                                )
+                        if (filteredSongs.isNotEmpty() && !inSelectMode) {
+                            if (!isSearching) {
+                                IconButton(
+                                    onClick = {
+                                        isSearching = !isSearching
+                                        searchQuery = TextFieldValue("")
+                                    },
+                                    Modifier.size(20.dp)
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.search),
+                                        contentDescription = null
+                                    )
+                                }
                             }
                         }
+                    }
+                    if (filteredSongs.isNotEmpty()) {
+                        Spacer(Modifier.weight(1f))
                         Text(
                             text = pluralStringResource(
                                 R.plurals.n_song,
@@ -444,7 +444,11 @@ fun LibrarySongsScreen(
                 )
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState
+            )
+        }
         HideOnScrollFAB(
             visible = songs.isNotEmpty(),
             lazyListState = lazyListState,

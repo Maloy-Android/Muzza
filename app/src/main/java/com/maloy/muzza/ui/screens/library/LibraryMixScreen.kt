@@ -31,6 +31,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -88,6 +89,7 @@ import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ArtistListItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.PlaylistListItem
@@ -249,6 +251,11 @@ fun LibraryMixScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop =
         backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val gridChecker by remember {
+        derivedStateOf{
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -343,20 +350,22 @@ fun LibraryMixScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp),
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        MixSortType.DEFAULT -> R.string.default_
-                        MixSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
-                        MixSortType.NAME -> R.string.sort_by_name
-                    }
-                },
-            )
+            if (allItems.isNotEmpty()) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            MixSortType.DEFAULT -> R.string.default_
+                            MixSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            MixSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                            MixSortType.NAME -> R.string.sort_by_name
+                        }
+                    },
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 
@@ -649,6 +658,11 @@ fun LibraryMixScreen(
                     }
                 }
             }
+            if (gridChecker) {
+                LazyVerticalGridScrollbar(
+                    state = lazyGridState
+                )
+            }
         }
     } else {
         Box(
@@ -880,6 +894,11 @@ fun LibraryMixScreen(
                         }
                     }
                 }
+            }
+            if (gridChecker) {
+                LazyVerticalGridScrollbar(
+                    state = lazyGridState
+                )
             }
         }
     }

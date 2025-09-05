@@ -2,6 +2,7 @@
 
 package com.maloy.muzza.ui.menu
 
+
 import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -112,7 +113,6 @@ fun PlayerMenu(
     mediaMetadata ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val activityResultLauncher =
@@ -135,12 +135,6 @@ fun PlayerMenu(
 
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
-    }
-
-    LaunchedEffect(librarySong?.song?.liked) {
-        librarySong?.let {
-            downloadUtil.autoDownloadIfLiked(it.song)
-        }
     }
 
     LaunchedEffect(sleepTimerEnabled) {
@@ -625,7 +619,7 @@ fun PlayerMenu(
             }
             if (artists.isNotEmpty()) {
                 ListMenuItem(
-                    icon = R.drawable.artist,
+                    icon = if (artists.size == 1) R.drawable.artist else R.drawable.artists,
                     title = R.string.view_artist
                 ) {
                     if (artists.size == 1) {

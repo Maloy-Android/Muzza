@@ -114,42 +114,44 @@ fun ImportM3uDialog(
         icon = { Icon(painterResource(R.drawable.playlist_add), null) },
         title = { Text(stringResource(R.string.import_playlist)) },
     ) {
-        EnumListPreference(
-            title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
-            icon = { Icon(Icons.Rounded.GraphicEq, null) },
-            selectedValue = scannerSensitivity,
-            onValueSelected = { scannerSensitivity = it },
-            valueText = {
-                when (it) {
-                    ScannerM3uMatchCriteria.LEVEL_1 -> stringResource(R.string.scanner_sensitivity_L1)
-                    ScannerM3uMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
+        if (importedSongs.isEmpty()) {
+            EnumListPreference(
+                title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
+                icon = { Icon(Icons.Rounded.GraphicEq, null) },
+                selectedValue = scannerSensitivity,
+                onValueSelected = { scannerSensitivity = it },
+                valueText = {
+                    when (it) {
+                        ScannerM3uMatchCriteria.LEVEL_1 -> stringResource(R.string.scanner_sensitivity_L1)
+                        ScannerM3uMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
+                    }
                 }
-            }
-        )
-        Row(
-            horizontalArrangement = Arrangement.End,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = 8.dp)
-        ) {
-            if (isLoading) {
-                CircularProgressIndicator(
-                    strokeWidth = 2.dp,
-                    modifier = Modifier.size(24.dp)
-                )
-                Spacer(Modifier.width(8.dp))
-            }
-
-            Button(
-                onClick = {
-                    importedSongs.clear()
-                    rejectedSongs.clear()
-                    importM3uLauncher.launch(arrayOf("audio/*"))
-                },
-                enabled = !isLoading
+            )
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp)
             ) {
-                Text(stringResource(R.string.m3u_import_playlist))
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        strokeWidth = 2.dp,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                }
+
+                Button(
+                    onClick = {
+                        importedSongs.clear()
+                        rejectedSongs.clear()
+                        importM3uLauncher.launch(arrayOf("audio/*"))
+                    },
+                    enabled = !isLoading
+                ) {
+                    Text(stringResource(R.string.m3u_import_playlist))
+                }
             }
         }
 

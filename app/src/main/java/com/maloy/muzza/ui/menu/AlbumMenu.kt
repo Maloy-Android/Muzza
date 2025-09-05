@@ -217,6 +217,7 @@ fun AlbumMenu(
                 onClick = {
                     database.query {
                         update(album.album.toggleLike())
+                        update(album.album.localToggleLike())
                     }
                 }
             ) {
@@ -407,7 +408,7 @@ fun AlbumMenu(
             ListMenuDivider()
         }
         ListMenuItem(
-            icon = R.drawable.artist,
+            icon = if (album.artists.size == 1) R.drawable.artist else R.drawable.artists,
             title = R.string.view_artist
         ) {
             if (album.artists.size == 1) {

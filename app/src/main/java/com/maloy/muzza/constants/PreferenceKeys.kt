@@ -22,8 +22,6 @@ val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
 
 val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
 
-val showNoInternetDialogKey = booleanPreferencesKey("showNoInternetDialog")
-
 val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
 val ShowRecentActivityKey = booleanPreferencesKey("showRecentActivity")
 
@@ -96,7 +94,6 @@ val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")
 
 val PauseListenHistoryKey = booleanPreferencesKey("pauseListenHistory")
 val PauseSearchHistoryKey = booleanPreferencesKey("pauseSearchHistory")
-val UseLoginForBrowse = booleanPreferencesKey("useLoginForBrowse")
 val DisableScreenshotKey = booleanPreferencesKey("disableScreenshot")
 
 val DiscordTokenKey = stringPreferencesKey("discordToken")

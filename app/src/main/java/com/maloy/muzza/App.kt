@@ -23,7 +23,6 @@ import com.maloy.muzza.constants.ProxyEnabledKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
 import com.maloy.muzza.constants.SYSTEM_DEFAULT
-import com.maloy.muzza.constants.UseLoginForBrowse
 import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.extensions.toInetSocketAddress
@@ -75,7 +74,7 @@ class App : Application(), ImageLoaderFactory {
             }
         }
 
-        if (dataStore[UseLoginForBrowse] == true) {
+        if (dataStore[InnerTubeCookieKey] != null) {
             YouTube.useLoginForBrowse = true
         }
 

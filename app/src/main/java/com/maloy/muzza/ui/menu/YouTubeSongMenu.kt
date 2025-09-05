@@ -1,6 +1,9 @@
 package com.maloy.muzza.ui.menu
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -10,6 +13,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -24,7 +28,6 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -35,6 +38,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,6 +57,8 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
@@ -69,6 +75,7 @@ import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
+import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -79,8 +86,13 @@ fun YouTubeSongMenu(
     navController: NavController,
     onDismiss: () -> Unit,
 ) {
-    val downloadUtil = LocalDownloadUtil.current
     val context = LocalContext.current
+    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val isWifiConnected = remember {
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+    }
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(song.id).collectAsState(initial = null)
@@ -96,12 +108,6 @@ fun YouTubeSongMenu(
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
-    }
-
-    LaunchedEffect(librarySong?.song?.liked) {
-        librarySong?.let {
-            downloadUtil.autoDownloadIfLiked(it.song)
-        }
     }
 
     AddToPlaylistDialog(
@@ -177,10 +183,12 @@ fun YouTubeSongMenu(
         thumbnailContent = {
             AsyncImage(
                 model = song.thumbnail,
+                contentScale = ContentScale.Crop,
                 contentDescription = null,
                 modifier = Modifier
                     .size(ListThumbnailSize)
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .aspectRatio(1f)
             )
         },
         trailingContent = {
@@ -192,6 +200,20 @@ fun YouTubeSongMenu(
                                 insert(song.toMediaMetadata(), SongEntity::toggleLike)
                             } else {
                                 update(librarySong.song.toggleLike())
+                                update(librarySong.song.localToggleLike())
+                            }
+                            if (likedAutoDownload == LikedAutodownloadMode.ON && librarySong?.song?.liked == false && librarySong.song.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && librarySong?.song?.liked == false && librarySong.song.dateDownload == null && isWifiConnected) {
+                                val downloadRequest = DownloadRequest
+                                    .Builder(librarySong.song.id, librarySong.song.id.toUri())
+                                    .setCustomCacheKey(librarySong.song.id)
+                                    .setData(librarySong.song.title.toByteArray())
+                                    .build()
+                                DownloadService.sendAddDownload(
+                                    context,
+                                    ExoDownloadService::class.java,
+                                    downloadRequest,
+                                    false
+                                )
                             }
                         }
                     }
@@ -390,7 +412,7 @@ fun YouTubeSongMenu(
         }
         if (artists.isNotEmpty()) {
             ListMenuItem(
-                icon = R.drawable.artist,
+                icon = if (artists.size == 1) R.drawable.artist else R.drawable.artists,
                 title = R.string.view_artist
             ) {
                 if (artists.size == 1) {

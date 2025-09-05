@@ -605,7 +605,6 @@ class MusicService : MediaLibraryService(),
             currentSong.value?.let {
                 val song = it.song.toggleLike()
                 update(song)
-                downloadUtil.autoDownloadIfLiked(song)
             }
         }
     }

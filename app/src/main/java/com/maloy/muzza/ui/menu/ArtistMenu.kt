@@ -63,6 +63,7 @@ fun ArtistMenu(
             onClick = {
                 database.transaction {
                     update(artist.artist.toggleLike())
+                    update(artist.artist.localToggleLike())
                 }
             }) {
             Icon(

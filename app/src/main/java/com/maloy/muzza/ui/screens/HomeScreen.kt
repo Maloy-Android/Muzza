@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,6 +44,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -51,6 +53,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -84,7 +87,6 @@ import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
-import com.maloy.muzza.constants.showNoInternetDialogKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
@@ -171,7 +173,8 @@ fun HomeScreen(
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val context = LocalContext.current
-    var showNoInternetDialog by rememberPreference(showNoInternetDialogKey,defaultValue = false)
+
+    var showNoInternetDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -691,7 +694,7 @@ fun HomeScreen(
                 }
             }
 
-            if (ytmSync && selectedChip == null) {
+            if (isLoggedIn && ytmSync && selectedChip == null) {
                 accountPlaylists?.takeIf { it.isNotEmpty() }?.let { accountPlaylists ->
                     item {
                         NavigationTitle(
@@ -733,9 +736,11 @@ fun HomeScreen(
                                     AsyncImage(
                                         model = thumbnailUrl,
                                         contentDescription = null,
+                                        contentScale = ContentScale.Crop,
                                         modifier = Modifier
                                             .size(ListThumbnailSize)
                                             .clip(shape)
+                                            .aspectRatio(1f)
                                     )
                                 }
                             },
@@ -777,9 +782,11 @@ fun HomeScreen(
                                 AsyncImage(
                                     model = thumbnailUrl,
                                     contentDescription = null,
+                                    contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .size(ListThumbnailSize)
                                         .clip(shape)
+                                        .aspectRatio(1f)
                                 )
                             }
                         },

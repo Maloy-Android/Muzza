@@ -44,6 +44,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
@@ -103,6 +104,7 @@ import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
@@ -252,7 +254,7 @@ fun AutoPlaylistScreen(
                 TextButton(
                     onClick = {
                         showRemoveDownloadDialog = false
-                        songs!!.forEach { song ->
+                        songs?.forEach { song ->
                             DownloadService.sendRemoveDownload(
                                 context,
                                 ExoDownloadService::class.java,
@@ -278,6 +280,11 @@ fun AutoPlaylistScreen(
         }
     }
     val state = rememberLazyListState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            state.firstVisibleItemIndex > 0
+        }
+    }
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -294,7 +301,7 @@ fun AutoPlaylistScreen(
                 }
             }
             if (songs != null) {
-                if (songs!!.isEmpty() && !isSearching) {
+                if (songs?.isEmpty() == true && !isSearching) {
                     item {
                         EmptyPlaceholder(
                             icon = R.drawable.music_note,
@@ -371,7 +378,7 @@ fun AutoPlaylistScreen(
                                             Download.STATE_DOWNLOADING -> {
                                                 Button(
                                                     onClick = {
-                                                        songs!!.forEach { song ->
+                                                        songs?.forEach { song ->
                                                             DownloadService.sendRemoveDownload(
                                                                 context,
                                                                 ExoDownloadService::class.java,
@@ -392,7 +399,7 @@ fun AutoPlaylistScreen(
                                             else -> {
                                                 Button(
                                                     onClick = {
-                                                        songs!!.forEach { song ->
+                                                        songs?.forEach { song ->
                                                             val downloadRequest =
                                                                 DownloadRequest.Builder(
                                                                     song.song.id,
@@ -446,9 +453,14 @@ fun AutoPlaylistScreen(
                                         }
                                         Button(
                                             onClick = {
-                                                playerConnection.addToQueue(
-                                                    items = songs!!.map { it.toMediaItem() },
-                                                )
+                                                songs?.let { songs ->
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = context.getString(R.string.liked),
+                                                            items = songs.map { it.toMediaItem() }
+                                                        )
+                                                    )
+                                                }
                                             },
                                             modifier = Modifier
                                                 .weight(1f)
@@ -465,12 +477,14 @@ fun AutoPlaylistScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = context.getString(R.string.liked),
-                                                    items = songs!!.map { it.toMediaItem() }
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = context.getString(R.string.liked),
+                                                        items = songs.map { it.toMediaItem() }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
@@ -485,13 +499,15 @@ fun AutoPlaylistScreen(
                                     }
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist,
-                                                    items = songs!!.shuffled()
-                                                        .map { it.toMediaItem() }
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist,
+                                                        items = songs.shuffled()
+                                                            .map { it.toMediaItem() }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
@@ -508,7 +524,7 @@ fun AutoPlaylistScreen(
                             }
                         }
                     }
-                    if (filteredSongs!!.isNotEmpty()) {
+                    if (filteredSongs?.isNotEmpty() == true) {
                         item {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -603,13 +619,15 @@ fun AutoPlaylistScreen(
                                         } else if (songWrapper.id == mediaMetadata?.id) {
                                             playerConnection.player.togglePlayPause()
                                         } else {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist,
-                                                    items = songs!!.map { it.toMediaItem() },
-                                                    startIndex = songs!!.indexOfFirst { it.song.id == songWrapper.id }
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist,
+                                                        items = songs.map { it.toMediaItem() },
+                                                        startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         }
                                     },
                                     onLongClick = {
@@ -626,143 +644,152 @@ fun AutoPlaylistScreen(
                 }
             }
         }
-    }
-
-    if (inSelectMode) {
-        TopAppBar(
-            title = {
-                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
-            },
-            navigationIcon = {
-                IconButton(onClick = onExitSelectionMode) {
-                    Icon(
-                        painter = painterResource(R.drawable.close),
-                        contentDescription = null,
-                    )
-                }
-            },
-            actions = {
-                Checkbox(
-                    checked = selection.size == filteredSongs?.size && selection.isNotEmpty(),
-                    onCheckedChange = {
-                        if (selection.size == filteredSongs?.size) {
-                            selection.clear()
-                        } else {
-                            selection.clear()
-                            selection.addAll(filteredSongs?.map { it.id }.orEmpty())
-                        }
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = state,
+            )
+        }
+        if (inSelectMode) {
+            TopAppBar(
+                title = {
+                    Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+                },
+                navigationIcon = {
+                    IconButton(onClick = onExitSelectionMode) {
+                        Icon(
+                            painter = painterResource(R.drawable.close),
+                            contentDescription = null,
+                        )
                     }
-                )
-                IconButton(
-                    enabled = selection.isNotEmpty(),
-                    onClick = {
-                        menuState.show {
-                            SongSelectionMenu(
-                                navController = navController,
-                                selection = selection.mapNotNull { songId ->
-                                    songs?.find { it.id == songId }
-                                },
-                                onDismiss = menuState::dismiss,
-                                onExitSelectionMode = onExitSelectionMode
-                            )
-                        }
-                    }
-                ) {
-                    Icon(
-                        painterResource(R.drawable.more_vert),
-                        contentDescription = null
-                    )
-                }
-            }
-        )
-    } else {
-        TopAppBar(
-            title = {
-                if (isSearching) {
-                    TextField(
-                        value = searchQuery,
-                        onValueChange = { searchQuery = it },
-                        placeholder = {
-                            Text(
-                                text = stringResource(R.string.search),
-                                style = MaterialTheme.typography.titleLarge
-                            )
-                        },
-                        singleLine = true,
-                        textStyle = MaterialTheme.typography.titleLarge,
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        colors = TextFieldDefaults.colors(
-                            focusedContainerColor = Color.Transparent,
-                            unfocusedContainerColor = Color.Transparent,
-                            focusedIndicatorColor = Color.Transparent,
-                            unfocusedIndicatorColor = Color.Transparent,
-                            disabledIndicatorColor = Color.Transparent,
-                        ),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .focusRequester(focusRequester),
-                        trailingIcon = {
-                            if (searchQuery.text.isNotEmpty()) {
-                                IconButton(
-                                    onClick = { searchQuery = TextFieldValue("") }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.close),
-                                        contentDescription = null
-                                    )
-                                }
+                },
+                actions = {
+                    Checkbox(
+                        checked = selection.size == filteredSongs?.size && selection.isNotEmpty(),
+                        onCheckedChange = {
+                            if (selection.size == filteredSongs?.size) {
+                                selection.clear()
+                            } else {
+                                selection.clear()
+                                selection.addAll(filteredSongs?.map { it.id }.orEmpty())
                             }
                         }
                     )
-                }
-            },
-            navigationIcon = {
-                com.maloy.muzza.ui.component.IconButton(
-                    onClick = {
-                        if (isSearching) {
-                            isSearching = false
-                            searchQuery = TextFieldValue()
-                        } else {
-                           navController.navigateUp()
-                        }
-                    },
-                    onLongClick = { 
-                        if (!isSearching) {
-                            navController.backToMain() 
-                        }
-                    }
-                ) {
-                    Icon(
-                        painter = painterResource(
-                            R.drawable.arrow_back
-                        ),
-                        contentDescription = null
-                    )
-                }
-            },
-            actions = {
-                if (!isSearching && !inSelectMode) {
                     IconButton(
-                        onClick = { isSearching = true }
+                        enabled = selection.isNotEmpty(),
+                        onClick = {
+                            menuState.show {
+                                SongSelectionMenu(
+                                    navController = navController,
+                                    selection = selection.mapNotNull { songId ->
+                                        songs?.find { it.id == songId }
+                                    },
+                                    onDismiss = menuState::dismiss,
+                                    onExitSelectionMode = onExitSelectionMode
+                                )
+                            }
+                        }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.search),
+                            painterResource(R.drawable.more_vert),
                             contentDescription = null
                         )
                     }
                 }
-            },
-            scrollBehavior = if (!isSearching) scrollBehavior else null
-        )
-         Box(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            SnackbarHost(
-                hostState = snackbarHostState,
-                modifier = Modifier
-                    .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
-                    .align(Alignment.BottomCenter)
             )
+        } else {
+            TopAppBar(
+                title = {
+                    if (isSearching) {
+                        TextField(
+                            value = searchQuery,
+                            onValueChange = { searchQuery = it },
+                            placeholder = {
+                                Text(
+                                    text = stringResource(R.string.search),
+                                    style = MaterialTheme.typography.titleLarge
+                                )
+                            },
+                            singleLine = true,
+                            textStyle = MaterialTheme.typography.titleLarge,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                            colors = TextFieldDefaults.colors(
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Transparent,
+                                unfocusedIndicatorColor = Color.Transparent,
+                                disabledIndicatorColor = Color.Transparent,
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .focusRequester(focusRequester),
+                            trailingIcon = {
+                                if (searchQuery.text.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { searchQuery = TextFieldValue("") }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.close),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
+                            }
+                        )
+                    }
+                    else if (lazyChecker) {
+                        Text(playlist)
+                    }
+                },
+                navigationIcon = {
+                    com.maloy.muzza.ui.component.IconButton(
+                        onClick = {
+                            if (isSearching) {
+                                isSearching = false
+                                searchQuery = TextFieldValue()
+                            } else {
+                                navController.navigateUp()
+                            }
+                        },
+                        onLongClick = {
+                            if (!isSearching) {
+                                navController.backToMain()
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                R.drawable.arrow_back
+                            ),
+                            contentDescription = null
+                        )
+                    }
+                },
+                actions = {
+                    filteredSongs?.let { songs ->
+                        if (songs.isNotEmpty() && !isSearching && !inSelectMode) {
+                            IconButton(
+                                onClick = { isSearching = true }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+                },
+                scrollBehavior = if (!isSearching) scrollBehavior else null
+            )
+            Box(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier
+                        .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                        .align(Alignment.BottomCenter)
+                )
+            }
         }
     }
 }

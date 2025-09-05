@@ -24,6 +24,7 @@ import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
@@ -33,6 +34,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.navigation.NavController
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
@@ -74,9 +78,23 @@ fun PrivacySettings(
             "SAPISID" in parseCookieString(innerTubeCookie)
         }
 
-    val powerManager = context.getSystemService<PowerManager>()
-    val isIgnoringOptimizations =
-        powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: false
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val isIgnoringOptimizations by produceState(initialValue = false) {
+        fun checkOptimizationStatus(): Boolean {
+            val powerManager = context.getSystemService<PowerManager>()
+            return powerManager?.isIgnoringBatteryOptimizations(context.packageName) ?: false
+        }
+        value = checkOptimizationStatus()
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                value = checkOptimizationStatus()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        awaitDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     if (showClearListenHistoryDialog) {
         DefaultDialog(

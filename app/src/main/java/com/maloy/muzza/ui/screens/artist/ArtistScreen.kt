@@ -254,6 +254,7 @@ fun ArtistScreen(
                                             val artist = libraryArtist?.artist
                                             if (artist != null) {
                                                 update(artist.toggleLike())
+                                                update(artist.localToggleLike())
                                             } else {
                                                 artistPage.artist.let {
                                                     insert(
@@ -263,6 +264,7 @@ fun ArtistScreen(
                                                             channelId = it.channelId,
                                                             thumbnailUrl = it.thumbnail,
                                                         ).toggleLike()
+                                                            .localToggleLike()
                                                     )
                                                 }
                                             }
@@ -493,6 +495,10 @@ fun ArtistScreen(
                                             is SongItem -> mediaMetadata?.id == item.id
                                             is AlbumItem -> mediaMetadata?.album?.id == item.id
                                             else -> false
+                                        },
+                                        test = when (item) {
+                                            is SongItem -> false
+                                            else -> true
                                         },
                                         isPlaying = isPlaying,
                                         coroutineScope = coroutineScope,

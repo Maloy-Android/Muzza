@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -65,6 +66,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -80,6 +82,7 @@ import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
@@ -101,6 +104,7 @@ import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -110,6 +114,7 @@ import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.ButtonPlaceholder
@@ -120,6 +125,7 @@ import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.OnlinePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
@@ -171,6 +177,9 @@ fun OnlinePlaylistScreen(
                         song.artists.any { it.name.contains(query.text, ignoreCase = true) })
             }
     }
+    val songsLength = remember(songs) {
+        songs.fastSumBy { it.duration!! }
+    }
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -193,7 +202,7 @@ fun OnlinePlaylistScreen(
             }
     }
 
-    val showTopBarTitle by remember {
+    val lazyChecker by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex > 0
         }
@@ -287,11 +296,13 @@ fun OnlinePlaylistScreen(
                             ) {
                                     AsyncImage(
                                         model = playlist.thumbnail,
+                                        contentScale = ContentScale.Crop,
                                         contentDescription = null,
                                         modifier = Modifier
                                             .size(AlbumThumbnailSize)
                                             .clip(RoundedCornerShape(ThumbnailCornerRadius))
                                             .align(alignment = Alignment.CenterHorizontally)
+                                            .aspectRatio(1f)
                                     )
 
                                     Spacer(Modifier.width(12.dp))
@@ -343,6 +354,14 @@ fun OnlinePlaylistScreen(
 
                                         Spacer(Modifier.height(12.dp))
 
+                                        Text(
+                                            text = makeTimeString(songsLength * 1000L),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Normal
+                                        )
+
+                                        Spacer(Modifier.height(12.dp))
+
                                         Row {
                                             if (playlist.id != "LM") {
                                                 Button(
@@ -378,6 +397,7 @@ fun OnlinePlaylistScreen(
                                                         } else {
                                                             database.transaction {
                                                                 update(dbPlaylist!!.playlist.toggleLike())
+                                                                update(dbPlaylist!!.playlist.localToggleLike())
                                                             }
                                                         }
                                                     },
@@ -481,7 +501,6 @@ fun OnlinePlaylistScreen(
                                                     }
                                                 }
                                             }
-
                                             Button(
                                                 onClick = {
                                                     scope.launch(Dispatchers.IO) {
@@ -507,6 +526,23 @@ fun OnlinePlaylistScreen(
                                                 } else {
                                                     Icon(
                                                         painterResource(R.drawable.sync),
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            }
+                                            if (playlist.id == "LM") {
+                                                Button(
+                                                    onClick = {
+                                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                    },
+                                                    enabled = !isLoading,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painterResource(R.drawable.queue_music),
                                                         contentDescription = null
                                                     )
                                                 }
@@ -547,7 +583,11 @@ fun OnlinePlaylistScreen(
                                     playlist.radioEndpoint?.let { radioEndpoint ->
                                         Button(
                                             onClick = {
-                                                playerConnection.playQueue(YouTubeQueue(radioEndpoint))
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        radioEndpoint
+                                                    )
+                                                )
                                             },
                                             contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                             modifier = Modifier.weight(1f)
@@ -561,20 +601,22 @@ fun OnlinePlaylistScreen(
                                             Text(stringResource(R.string.radio))
                                         }
                                     }
-                                    Button(
-                                        onClick = {
-                                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-                                        },
-                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                        modifier = Modifier.weight(1f)
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.shuffle),
-                                            contentDescription = null,
-                                            modifier = Modifier.size(ButtonDefaults.IconSize)
-                                        )
-                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.shuffle))
+                                    if (!playlist.id.startsWith("RDAT")) {
+                                        Button(
+                                            onClick = {
+                                                playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
+                                            },
+                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.shuffle),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                            Text(stringResource(R.string.shuffle))
+                                        }
                                     }
                                 }
                             }
@@ -721,7 +763,11 @@ fun OnlinePlaylistScreen(
                 }
             }
         }
-
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState,
+            )
+        }
         TopAppBar(
             title = {
                 if (inSelectMode) {
@@ -763,7 +809,7 @@ fun OnlinePlaylistScreen(
                         }
                     )
                 } else {
-                    if (showTopBarTitle) Text(playlist?.title.orEmpty())
+                    if (lazyChecker) Text(playlist?.title.orEmpty())
                 }
             },
             navigationIcon = {

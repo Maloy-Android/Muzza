@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -28,6 +29,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -71,6 +73,8 @@ import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.AlbumMenu
@@ -155,6 +159,16 @@ fun LibraryAlbumsScreen(
     val lazyGridState = rememberLazyGridState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
+    val gridChecker by remember {
+        derivedStateOf {
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -171,48 +185,50 @@ fun LibraryAlbumsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            SortHeader(
-                sortType = sortType,
-                sortDescending = sortDescending,
-                onSortTypeChange = onSortTypeChange,
-                onSortDescendingChange = onSortDescendingChange,
-                sortTypeText = { sortType ->
-                    when (sortType) {
-                        AlbumSortType.CREATE_DATE -> R.string.sort_by_create_date
-                        AlbumSortType.NAME -> R.string.sort_by_name
-                        AlbumSortType.ARTIST -> R.string.sort_by_artist
-                        AlbumSortType.YEAR -> R.string.sort_by_year
-                        AlbumSortType.SONG_COUNT -> R.string.sort_by_song_count
-                        AlbumSortType.LENGTH -> R.string.sort_by_length
-                        AlbumSortType.PLAY_TIME -> R.string.sort_by_play_time
-                    }
-                }
-            )
-
-            Spacer(Modifier.weight(1f))
-
-            albums?.let { albums ->
-                Text(
-                    text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-            IconButton(
-                onClick = {
-                    viewType = viewType.toggle()
-                },
-                modifier = Modifier.padding(start = 6.dp)
-            ) {
-                Icon(
-                    painter = painterResource(
-                        when (viewType) {
-                            LibraryViewType.LIST -> R.drawable.list
-                            LibraryViewType.GRID -> R.drawable.grid_view
+            if (albums?.size != 0) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            AlbumSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            AlbumSortType.NAME -> R.string.sort_by_name
+                            AlbumSortType.ARTIST -> R.string.sort_by_artist
+                            AlbumSortType.YEAR -> R.string.sort_by_year
+                            AlbumSortType.SONG_COUNT -> R.string.sort_by_song_count
+                            AlbumSortType.LENGTH -> R.string.sort_by_length
+                            AlbumSortType.PLAY_TIME -> R.string.sort_by_play_time
                         }
-                    ),
-                    contentDescription = null
+                    }
                 )
+
+                Spacer(Modifier.weight(1f))
+
+                albums?.let { albums ->
+                    Text(
+                        text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        viewType = viewType.toggle()
+                    },
+                    modifier = Modifier.padding(start = 6.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            when (viewType) {
+                                LibraryViewType.LIST -> R.drawable.list
+                                LibraryViewType.GRID -> R.drawable.grid_view
+                            }
+                        ),
+                        contentDescription = null
+                    )
+                }
             }
         }
     }
@@ -221,7 +237,7 @@ fun LibraryAlbumsScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         when (viewType) {
-            LibraryViewType.LIST ->
+            LibraryViewType.LIST -> {
                 LazyColumn(
                     state = lazyListState,
                     contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
@@ -299,8 +315,14 @@ fun LibraryAlbumsScreen(
                         }
                     }
                 }
+                if (lazyChecker) {
+                    LazyColumnScrollbar(
+                        state = lazyListState
+                    )
+                }
+            }
 
-            LibraryViewType.GRID ->
+            LibraryViewType.GRID -> {
                 LazyVerticalGrid(
                     state = lazyGridState,
                     columns = GridCells.Adaptive(
@@ -371,6 +393,12 @@ fun LibraryAlbumsScreen(
                         }
                     }
                 }
+                if (gridChecker) {
+                    LazyVerticalGridScrollbar(
+                        state = lazyGridState
+                    )
+                }
+            }
         }
     }
 }

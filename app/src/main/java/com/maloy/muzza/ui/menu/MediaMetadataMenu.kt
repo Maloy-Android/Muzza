@@ -1,7 +1,10 @@
 package com.maloy.muzza.ui.menu
 
 
+import android.content.Context
 import android.content.Intent
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -51,6 +54,8 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.LikedAutoDownloadKey
+import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.extensions.toMediaItem
@@ -62,6 +67,7 @@ import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.MediaMetadataListItem
+import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -90,6 +96,14 @@ fun MediaMetadataMenu(
     }
 
     val coroutineScope = rememberCoroutineScope()
+
+    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
+    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val isWifiConnected = remember {
+        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
+        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
+    }
+
 
     AddToPlaylistDialog(
         navController = navController,
@@ -156,6 +170,20 @@ fun MediaMetadataMenu(
                             insert(mediaMetadata, SongEntity::toggleLike)
                         } else {
                             update(currentSong.song.toggleLike())
+                            update(currentSong.song.localToggleLike())
+                        }
+                        if (likedAutoDownload == LikedAutodownloadMode.ON && song?.song?.liked == false && song?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && song?.song?.liked == false && song?.song?.dateDownload == null && isWifiConnected) {
+                            val downloadRequest = DownloadRequest
+                                .Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                                .setCustomCacheKey(mediaMetadata.id)
+                                .setData(mediaMetadata.title.toByteArray())
+                                .build()
+                            DownloadService.sendAddDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false
+                            )
                         }
                     }
                 }
@@ -423,7 +451,7 @@ fun MediaMetadataMenu(
         }
         if (!mediaMetadata.isLocal && artists.isNotEmpty()) {
             ListMenuItem(
-                icon = R.drawable.artist,
+                icon = if (artists.size == 1) R.drawable.artist else R.drawable.artists,
                 title = R.string.view_artist
             ) {
                 if (artists.size == 1) {

@@ -601,7 +601,7 @@ fun OnlinePlaylistScreen(
                                             Text(stringResource(R.string.radio))
                                         }
                                     }
-                                    if (playlist.id.startsWith("RDATMKAK5")) {
+                                    if (playlist.id.startsWith("RDTMAK5uy")) {
                                         Button(
                                             onClick = {
                                                 playerConnection.playQueue(

@@ -601,6 +601,28 @@ fun OnlinePlaylistScreen(
                                             Text(stringResource(R.string.radio))
                                         }
                                     }
+                                    if (playlist.id.startsWith("RDATMKAK5")) {
+                                        Button(
+                                            onClick = {
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        songs.first().endpoint ?: WatchEndpoint(videoId = songs.first().id),
+                                                        songs.first().toMediaMetadata()
+                                                    )
+                                                )
+                                            },
+                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.play),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                            Text(stringResource(R.string.play))
+                                        }
+                                    }
                                     if (!playlist.id.startsWith("RDAT")) {
                                         Button(
                                             onClick = {

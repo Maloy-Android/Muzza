@@ -55,6 +55,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -127,7 +128,6 @@ import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SongDurationTimeSkip
 import com.maloy.muzza.constants.SongDurationTimeSkipKey
-import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.togglePlayPause
@@ -295,7 +295,6 @@ fun BottomSheetPlayer(
             }
         )
     }
-    val (swipeThumbnail) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val previousMediaMetadata =
         if (playerConnection.player.hasPreviousMediaItem()) {
             val previousIndex = playerConnection.player.previousMediaItemIndex
@@ -884,13 +883,12 @@ fun BottomSheetPlayer(
                         rows = GridCells.Fixed(1),
                         contentPadding = PaddingValues(vertical = 16.dp),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = state.isExpanded && swipeThumbnail && !showLyrics
+                        userScrollEnabled = state.isExpanded && !showLyrics
                     ) {
-
                         items(
-                            count = mediaItems.size,
-                            key = { index -> mediaItems[index].id }
-                        ) { index ->
+                            items = mediaItems,
+                            key = { it.id }
+                        ) {
                             Thumbnail(
                                 sliderPositionProvider = { sliderPosition },
                                 modifier = Modifier
@@ -898,9 +896,9 @@ fun BottomSheetPlayer(
                                     .animateContentSize(),
                                 contentScale = ContentScale.Crop,
                                 showLyricsOnClick = true,
-                                customMediaMetadata = mediaItems[index]
+                                customMediaMetadata = it
                             )
-                            }
+                        }
                     }
                 }
 
@@ -939,12 +937,12 @@ fun BottomSheetPlayer(
                         state = thumbnailLazyGridState,
                         rows = GridCells.Fixed(1),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = swipeThumbnail && state.isExpanded && !showLyrics
+                        userScrollEnabled = state.isExpanded && !showLyrics
                     ) {
                         items(
-                            count = mediaItems.size,
-                            key = { index -> mediaItems[index].id }
-                        ) { index ->
+                            items = mediaItems,
+                            key = { it.id }
+                        ) {
                             Thumbnail(
                                 modifier = Modifier
                                     .width(horizontalLazyGridItemWidth)
@@ -952,7 +950,7 @@ fun BottomSheetPlayer(
                                 contentScale = ContentScale.Crop,
                                 sliderPositionProvider = { sliderPosition },
                                 showLyricsOnClick = true,
-                                customMediaMetadata = mediaItems[index]
+                                customMediaMetadata = it
                             )
                         }
                     }

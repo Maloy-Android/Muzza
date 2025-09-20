@@ -93,7 +93,7 @@ firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "
 
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
-newpipe-extractor = { group = "com.github.teamnewpipe", name = "NewPipeExtractor", version = "v0.24.8" }
+newpipe-extractor = { group = "com.github.InfinityLoop1308", name = "PipePipeExtractor", version = "4240401" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 
 [plugins]

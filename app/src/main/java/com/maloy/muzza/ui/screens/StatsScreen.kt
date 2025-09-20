@@ -18,9 +18,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -43,7 +41,6 @@ import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongListItem
@@ -70,11 +67,6 @@ fun StatsScreen(
     val mostPlayedArtists by viewModel.mostPlayedArtists.collectAsState()
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
     val lazylistState = rememberLazyListState()
-    val lazyChecker by remember {
-        derivedStateOf {
-            lazylistState.firstVisibleItemIndex > 0
-        }
-    }
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -257,12 +249,6 @@ fun StatsScreen(
                 }
             }
         }
-    }
-
-    if (lazyChecker) {
-        LazyColumnScrollbar(
-            state = lazylistState
-        )
     }
 
     TopAppBar(

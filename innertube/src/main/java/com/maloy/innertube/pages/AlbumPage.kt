@@ -5,6 +5,7 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.utils.parseTime
 
 data class AlbumPage(
@@ -17,12 +18,12 @@ data class AlbumPage(
             return SongItem(
                 id = renderer.playlistItemData?.videoId ?: return null,
                 title = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_VIDEO").firstOrNull()?.text ?: return null,
-                artists = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_PAGE_TYPE_ARTIST").map{
+                artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
                     Artist(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
-                },
+                } ?: return null,
                 album = album?.let {
                     Album(it.title, it.browseId)
                 } ?: renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {

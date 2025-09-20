@@ -39,6 +39,8 @@ import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
+import com.maloy.muzza.constants.SongDurationTimeSkip
+import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
 import com.maloy.muzza.constants.minPlaybackDurKey
@@ -62,6 +64,8 @@ fun PlayerSettings(
     val (persistentQueue, onPersistentQueueChange) = rememberPreference(PersistentQueueKey, defaultValue = true)
     val (skipSilence, onSkipSilenceChange) = rememberPreference(SkipSilenceKey, defaultValue = false)
     val (audioNormalization, onAudioNormalizationChange) = rememberPreference(AudioNormalizationKey, defaultValue = true)
+    val (songDurationTimeSkip, onSongDurationTimeSkipChange) = rememberEnumPreference(
+        SongDurationTimeSkipKey, defaultValue = SongDurationTimeSkip.FIVE)
     val (autoPlaySongWhenBluetoothDeviceConnected,onAutoPlaySongWhenBluetoothDeviceConnectedChange) = rememberPreference(
         AutoPlaySongWhenBluetoothDeviceConnectedKey,defaultValue = true)
     val (stopPlayingSongWhenMinimumVolume,onStopPlayingSongWhenMinimumVolumeChange) = rememberPreference(
@@ -153,6 +157,23 @@ fun PlayerSettings(
             icon = { Icon(Icons.AutoMirrored.Rounded.VolumeUp, null) },
             checked = audioNormalization,
             onCheckedChange = onAudioNormalizationChange
+        )
+
+        EnumListPreference(
+            title = { Text(stringResource(R.string.seek_value)) },
+            icon = { Icon(painterResource(R.drawable.fast_forward), null) },
+            selectedValue = songDurationTimeSkip,
+            onValueSelected = onSongDurationTimeSkipChange,
+            valueText = {
+                when (it) {
+                    SongDurationTimeSkip.FIVE -> stringResource(R.string.seek_value_5)
+                    SongDurationTimeSkip.TEN -> stringResource(R.string.seek_value_10)
+                    SongDurationTimeSkip.FIFTEEN -> stringResource(R.string.seek_value_15)
+                    SongDurationTimeSkip.TWENTY -> stringResource(R.string.seek_value_20)
+                    SongDurationTimeSkip.TWENTYFIVE -> stringResource(R.string.seek_value_25)
+                    SongDurationTimeSkip.THIRTY -> stringResource(R.string.seek_value_30)
+                }
+            }
         )
 
 

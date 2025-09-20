@@ -60,6 +60,8 @@ import com.maloy.muzza.constants.PlayerHorizontalPadding
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
+import com.maloy.muzza.constants.SongDurationTimeSkip
+import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.models.MediaMetadata
@@ -79,6 +81,8 @@ fun Thumbnail(
     contentScale: ContentScale = ContentScale.Fit,
     customMediaMetadata: MediaMetadata? = null
 ) {
+    val (songDurationTimeSkip) = rememberEnumPreference(
+        SongDurationTimeSkipKey, defaultValue = SongDurationTimeSkip.FIVE)
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentView = LocalView.current
     val context = LocalContext.current
@@ -189,20 +193,48 @@ fun Thumbnail(
                                                 (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
                                             ) {
                                                 playerConnection.player.seekTo(
-                                                    (currentPosition - 5000).coerceAtLeast(
+                                                    (currentPosition - when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> 5000
+                                                        SongDurationTimeSkip.TEN -> 10000
+                                                        SongDurationTimeSkip.FIFTEEN -> 15000
+                                                        SongDurationTimeSkip.TWENTY -> 20000
+                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                        SongDurationTimeSkip.THIRTY -> 30000
+                                                    }).coerceAtLeast(
                                                         0
                                                     )
                                                 )
                                                 seekDirection =
-                                                    context.getString(R.string.seek_backward)
+                                                    context.getString(when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                                        SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
+                                                    })
                                             } else {
                                                 playerConnection.player.seekTo(
-                                                    (currentPosition + 5000).coerceAtMost(
+                                                    (currentPosition + when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> 5000
+                                                        SongDurationTimeSkip.TEN -> 10000
+                                                        SongDurationTimeSkip.FIFTEEN -> 15000
+                                                        SongDurationTimeSkip.TWENTY -> 20000
+                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                        SongDurationTimeSkip.THIRTY -> 30000
+                                                    }).coerceAtMost(
                                                         playerConnection.player.duration
                                                     )
                                                 )
                                                 seekDirection =
-                                                    context.getString(R.string.seek_forward)
+                                                    context.getString(when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                                        SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                                    })
                                             }
                                             showSeekEffect = true
                                         }
@@ -256,20 +288,48 @@ fun Thumbnail(
                                                         (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
                                                     ) {
                                                         playerConnection.player.seekTo(
-                                                            (currentPosition - 5000).coerceAtLeast(
+                                                            (currentPosition - when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> 5000
+                                                                SongDurationTimeSkip.TEN -> 10000
+                                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                                SongDurationTimeSkip.THIRTY -> 30000
+                                                            }).coerceAtLeast(
                                                                 0
                                                             )
                                                         )
                                                         seekDirection =
-                                                            context.getString(R.string.seek_backward)
+                                                            context.getString(when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                                                SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                                                SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                                                SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                                                SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                                                SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
+                                                            })
                                                     } else {
                                                         playerConnection.player.seekTo(
-                                                            (currentPosition + 5000).coerceAtMost(
+                                                            (currentPosition + when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> 5000
+                                                                SongDurationTimeSkip.TEN -> 10000
+                                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                                SongDurationTimeSkip.THIRTY -> 30000
+                                                            }).coerceAtMost(
                                                                 playerConnection.player.duration
                                                             )
                                                         )
                                                         seekDirection =
-                                                            context.getString(R.string.seek_forward)
+                                                            context.getString(when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                                                SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                                                SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                                                SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                                                SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                                                SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                                            })
                                                     }
                                                     showSeekEffect = true
                                                 }

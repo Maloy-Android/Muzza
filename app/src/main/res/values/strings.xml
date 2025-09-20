@@ -261,9 +261,25 @@
     <string name="error_no_internet">No network connection</string>
     <string name="error_timeout">Timeout</string>
     <string name="error_unknown">Unknown error</string>
-
-    <string name="seek_backward">5 seconds backward</string>
-    <string name="seek_forward">5 seconds forward</string>
+    <string name="seek_value">Seek value</string>
+    <string name="seek_value_5">5 seconds</string>
+    <string name="seek_value_10">10 seconds</string>
+    <string name="seek_value_15">15 seconds</string>
+    <string name="seek_value_20">20 seconds</string>
+    <string name="seek_value_25">25 seconds</string>
+    <string name="seek_value_30">30 seconds</string>
+    <string name="seek_backward_5">5 seconds backward</string>
+    <string name="seek_forward_5">5 seconds forward</string>
+    <string name="seek_backward_10">10 seconds backward</string>
+    <string name="seek_forward_10">10 seconds forward</string>
+    <string name="seek_backward_15">15 seconds backward</string>
+    <string name="seek_forward_15">15 seconds forward</string>
+    <string name="seek_backward_20">20 seconds backward</string>
+    <string name="seek_forward_20">20 seconds forward</string>
+    <string name="seek_backward_25">25 seconds backward</string>
+    <string name="seek_forward_25">25 seconds forward</string>
+    <string name="seek_backward_30">30 seconds backward</string>
+    <string name="seek_forward_30">30 seconds forward</string>
 
     <!-- Player action -->
     <string name="action_like">Like</string>

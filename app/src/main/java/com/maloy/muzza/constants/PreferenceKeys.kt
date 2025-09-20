@@ -19,6 +19,11 @@ val minPlaybackDurKey = intPreferencesKey("minPlaybackDur")
 val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 val NowPlayingEnableKey = booleanPreferencesKey("nowPlayingEnable")
 val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
+val SongDurationTimeSkipKey = stringPreferencesKey("songDurationTimeSkip")
+
+enum class SongDurationTimeSkip {
+    FIVE,TEN,FIFTEEN,TWENTY,TWENTYFIVE,THIRTY
+}
 
 val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
 

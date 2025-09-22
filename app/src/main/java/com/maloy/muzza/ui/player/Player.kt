@@ -344,10 +344,8 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = when {
-            pureBlack && darkTheme == DarkMode.AUTO == isSystemInDarkTheme || pureBlack && darkTheme == DarkMode.ON -> Color.Black
-            useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
-                MaterialTheme.colorScheme.surfaceContainer
-
+            pureBlack && (darkTheme == DarkMode.ON || useBlackBackground) -> Color.Black
+            useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surfaceContainer
             else -> MaterialTheme.colorScheme.onSurfaceVariant
         },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceContainer,

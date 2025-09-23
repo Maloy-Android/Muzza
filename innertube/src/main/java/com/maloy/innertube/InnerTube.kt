@@ -446,6 +446,19 @@ class InnerTube {
         )
     }
 
+    suspend fun feedback(
+        client: YouTubeClient,
+        tokens: List<String>
+    ) = httpClient.post("feedback") {
+        ytClient(client, setLogin = true)
+        setBody(
+            FeedbackBody(
+                context = client.toContext(locale, visitorData, dataSyncId),
+                feedbackTokens = tokens
+            )
+        )
+    }
+
     suspend fun getSwJsData() = httpClient.get("https://music.youtube.com/sw.js_data")
 
     suspend fun accountMenu(client: YouTubeClient) = httpClient.post("account/account_menu") {

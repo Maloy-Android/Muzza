@@ -25,6 +25,7 @@ import com.maloy.innertube.models.response.AccountMenuResponse
 import com.maloy.innertube.models.response.AddItemYouTubePlaylistResponse
 import com.maloy.innertube.models.response.BrowseResponse
 import com.maloy.innertube.models.response.CreatePlaylistResponse
+import com.maloy.innertube.models.response.FeedbackResponse
 import com.maloy.innertube.models.response.GetQueueResponse
 import com.maloy.innertube.models.response.GetSearchSuggestionsResponse
 import com.maloy.innertube.models.response.GetTranscriptResponse
@@ -835,6 +836,9 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     }
     suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String) = runCatching {
         innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
+    }
+    suspend fun feedback(tokens: List<String>): Result<Boolean> = runCatching {
+        innerTube.feedback(WEB_REMIX, tokens).body<FeedbackResponse>().feedbackResponses.all { it.isProcessed }
     }
     @JvmInline
     value class SearchFilter(val value: String) {

@@ -102,7 +102,7 @@ fun HistoryScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val historyPage by viewModel.historyPage
+    val historyPage by viewModel.historyPage.collectAsState()
     val historySource by viewModel.historySource.collectAsState()
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
@@ -284,7 +284,10 @@ fun HistoryScreen(
                                                     YouTubeSongMenu(
                                                         song = song,
                                                         navController = navController,
-                                                        onDismiss = menuState::dismiss
+                                                        onDismiss = menuState::dismiss,
+                                                        onHistoryRemoved = {
+                                                            viewModel.fetchRemoteHistory()
+                                                        }
                                                     )
                                                 }
                                             }

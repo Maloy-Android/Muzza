@@ -7,6 +7,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.ui.utils.resize
 
 val MediaItem.metadata: MediaMetadata?
     get() = localConfiguration?.tag as? MediaMetadata
@@ -21,7 +22,7 @@ fun Song.toMediaItem() = MediaItem.Builder()
             .setTitle(song.title)
             .setSubtitle(artists.joinToString { it.name })
             .setArtist(artists.joinToString { it.name })
-            .setArtworkUri(song.thumbnailUrl?.toUri())
+            .setArtworkUri(song.thumbnailUrl?.resize(544, 544)?.toUri())
             .setAlbumTitle(song.albumName)
             .setMediaType(MEDIA_TYPE_MUSIC)
             .build()

@@ -32,11 +32,13 @@
 <!--  Home  -->
 <string name="history">Histórico</string>
 <string name="stats">Estatísticas</string>
+<string name="recent_activity">Atividade recente</string>
 <string name="mood_and_genres">Momentos e Gêneros</string>
 <string name="account">Conta</string>
 <string name="quick_picks">Escolhas rápidas</string>
 <string name="quick_picks_empty">Escute à mais música para gerar suas escolhas rápidas</string>
 <string name="new_release_albums">Novos álbuns lançados</string>
+  
 <!--  History  -->
 <string name="today">Hoje</string>
 <string name="yesterday">Ontem</string>
@@ -180,6 +182,7 @@
 <string name="playlist_synced">A playlist foi sincronizada</string>
 <string name="undo">Desfazer</string>
 <!--  Player  -->
+<string name="now_playing">Tocando agora</string>
 <string name="lyrics_not_found">Letras não encontradas</string>
 <string name="sleep_timer">Timer para dormir</string>
 <string name="end_of_song">Fim da música</string>
@@ -238,6 +241,8 @@
 <string name="content">Conteúdo</string>
 <string name="default_lib_chips">Lista padrão da biblioteca</string>
 <string name="login">Login</string>
+<string name="play_song_when_bluetooth_device_connected">Continuar tocando quando o Bluetooth conectar</string>
+<string name="stop_playing_when_song_sound_minimum_volume">Parar a música quando o volume estiver no mínimo</string>
 <string name="content_language">Idioma padrão</string>
 <string name="content_country">País de Origem</string>
 <string name="system_default">Padrão do sistema</string>
@@ -263,6 +268,8 @@
 <string name="equalizer">Equalizador</string>
 <string name="storage">Armazenamento</string>
 <string name="cache">Cache</string>
+<string name="ignore_battery_optimizations">Ignorar otimizações de bateria</string>
+<string name="ignore_battery_optimizations_description">Habilite esta opção para impedir que o sistema restrinja a atividade em segundo plano. Isso garante que o aplicativo funcione corretamente mesmo quando não estiver em uso.</string>  
 <string name="image_cache">Cache de Imagens</string>
 <string name="song_cache">Cache de Músicas</string>
 <string name="max_cache_size">Tamanho máximo do cache</string>
@@ -328,10 +335,12 @@
 <string name="web_site">Website</string>
 <string name="web_site_info">Site oficial ❯</string>
 <string name="Telegramchanel">Canal Oficial</string>
+<string name="now_playing_padding">Ajuste o espaço da tela de música</string>
 <string name="telegram_info">Canal oficial com novas notícias e processo de desenvolvimento do Muzza ❯</string>
 <string name="Donate">Doação</string>
 <string name="player_background_style">Estilo de fundo do Player</string>
 <string name="donate_help">Por favor, apoie-me com uma doação para ajudar a desenvolver ainda mais o Muzza ❯</string>
+<string name="show_content_filter">Mostrar filtro de conteúdo</string>
 <string name="code">Source code</string>
 <string name="code_text">Acesse o código fonte do aplicativo ❯</string>
 <string name="bugs">Bugs</string>
@@ -409,6 +418,11 @@
 <string name="scanner_sensitivity_L1">Combinar Título</string>
 <string name="scanner_sensitivity_L2">Combinar Título e Artista</string>
 <string name="scanner_sensitivity_L3">Combinar Título, Artista e Álbuns</string>
+<!--M3U IMPORT-->
+<string name="import_failed_songs">Não foi possível importar</string>
+<string name="import_success_songs">Importado com sucesso</string>
+<string name="m3u_import_playlist">Importar uma playlist (m3u)</string>
+<string name="m3u_import_playlist_failed">Falha na importação</string>
 <!--Folders-->
 <string name="folders_settings_title">Pastas</string>
 <string name="flat_subfolders_title">Comprimir subpastas</string>

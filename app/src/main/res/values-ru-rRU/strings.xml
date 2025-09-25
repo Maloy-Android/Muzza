@@ -22,6 +22,7 @@
     <string name="offline">Загруженная музыка</string>
     <string name="cached">Кэшированная музыка</string>
     <string name="local">Локальная музыка</string>
+    <string name="uploaded_playlist">Загруженная музыка (онлайн)</string>
 
     <string name="content_filter">Фильтр контента</string>
 
@@ -89,6 +90,7 @@
     <string name="filter_community_playlists">Плейлисты сообщества</string>
     <string name="filter_featured_playlists">Избранные плейлисты</string>
     <string name="filter_bookmarked">Добавлено в закладки</string>
+    <string name="filter_uploaded">Загруженная (онлайн)</string>
     <string name="no_results_found">Результаты не найдены</string>
 
     <!-- Artist screen -->
@@ -369,6 +371,7 @@
     <string name="show_top_auto_playlist">Показывать автоматический плейлист «Топ»</string>
     <string name="show_cached_auto_playlist">Показывать автоматический плейлист «Кэшированные»</string>
     <string name="show_local_auto_playlist">Показывать автоматический плейлист «Локальные»</string>
+    <string name="show_uploaded_auto_playlist">Показывать автоматический плейлист «Загруженная музыка (онлайн)»</string>
     <string name="swipe_song_to_dismiss">Проведите по песне вправо для следующего воспроизведения или влево для добавления в очередь</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
     <string name="default_lib_chips">Вкладка библиотеки по умолчанию</string>

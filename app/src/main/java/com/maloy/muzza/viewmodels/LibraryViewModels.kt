@@ -128,6 +128,9 @@ class LibrarySongsViewModel @Inject constructor(
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
+    fun syncUploadedSongs() {
+        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
+    }
 
 
     /**
@@ -156,6 +159,7 @@ class LibrarySongsViewModel @Inject constructor(
                 when (filter) {
                     SongFilter.LIBRARY -> database.songs(sortType, descending)
                     SongFilter.LIKED -> database.likedSongs(sortType, descending)
+                    SongFilter.UPLOADED -> database.uploadedSongs(sortType, descending)
                     SongFilter.DOWNLOADED -> downloadUtil.downloads.flatMapLatest { downloads ->
                         database.allSongs()
                             .flowOn(Dispatchers.IO)
@@ -247,6 +251,7 @@ class LibraryAlbumsViewModel @Inject constructor(
             when (filter) {
                 AlbumFilter.LIBRARY -> database.albums(sortType, descending)
                 AlbumFilter.LIKED -> database.albumsLiked(sortType, descending)
+                AlbumFilter.UPLOADED -> database.albumsUploaded(sortType, descending)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -427,6 +432,8 @@ class LibraryMixViewModel @Inject constructor(
             syncUtils.syncArtistsSubscriptions()
             syncUtils.syncLikedAlbums()
             syncUtils.syncSavedPlaylists()
+            syncUtils.syncUploadedSongs()
+            syncUtils.syncUploadedAlbums()
         }
     }
     var artists =

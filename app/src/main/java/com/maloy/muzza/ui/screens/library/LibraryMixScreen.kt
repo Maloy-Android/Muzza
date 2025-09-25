@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
@@ -76,6 +77,7 @@ import com.maloy.muzza.constants.MixViewTypeKey
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
+import com.maloy.muzza.constants.ShowUploadedPlaylistKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
@@ -168,6 +170,9 @@ fun LibraryMixScreen(
     val (autoPlaylistLocal) = rememberPreference(
         AutoPlaylistLocalPlaylistShowKey, defaultValue = true
     )
+    val (uploadedPlaylists) = rememberPreference(
+        ShowUploadedPlaylistKey, defaultValue = true
+    )
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
@@ -227,6 +232,16 @@ fun LibraryMixScreen(
         songCount = cachedSongs.size,
         songThumbnails = emptyList()
     )
+
+    val uploadedPlaylist =
+        Playlist(
+            playlist = PlaylistEntity(
+                id = UUID.randomUUID().toString(),
+                name = stringResource(R.string.uploaded_playlist)
+            ),
+            songCount = 0,
+            songThumbnails = emptyList(),
+        )
 
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
@@ -524,6 +539,24 @@ fun LibraryMixScreen(
                             )
                         }
                     }
+                    if (uploadedPlaylists) {
+                        item(
+                            key = "uploadedPlaylist",
+                            contentType = { CONTENT_TYPE_PLAYLIST },
+                        ) {
+                            PlaylistListItem(
+                                playlist = uploadedPlaylist,
+                                thumbnail = Icons.Rounded.Backup,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("auto_playlist/uploaded") }
+                                        )
+                                        .animateItem()
+                            )
+                        }
+                    }
                     items(
                         allItems,
                         key = { it.id },
@@ -805,6 +838,24 @@ fun LibraryMixScreen(
                                             navController.navigate("AutoPlaylistLocal")
                                         })
                                     .animateItem()
+                            )
+                        }
+                    }
+                    if (uploadedPlaylists) {
+                        item(
+                            key = "uploadedPlaylist",
+                            contentType = { CONTENT_TYPE_PLAYLIST },
+                        ) {
+                            PlaylistGridItem(
+                                playlist = uploadedPlaylist,
+                                thumbnail = Icons.Rounded.Backup,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = { navController.navigate("auto_playlist/uploaded") }
+                                        )
+                                        .animateItem()
                             )
                         }
                     }

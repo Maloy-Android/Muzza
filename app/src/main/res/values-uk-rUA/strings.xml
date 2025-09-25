@@ -135,6 +135,7 @@
     <string name="edit">Редагувати</string>
     <string name="edit_playlist_thumbnail">Редагувати обкладинку плейлиста</string>
     <string name="remove_custom_playlist_thumbnail">Видалити настроковану мініатюру списку відтворення</string>
+    <string name="remove_custom_playlist_thumbnail_confirm">Ви дійсно хочете видалити індивідуальне зображення плейлиста для плейлиста \"%s\"?</string>
     <string name="start_radio">Увімкнути радіо</string>
     <string name="play">Відтворити</string>
     <string name="play_next">Відтворити наступним</string>

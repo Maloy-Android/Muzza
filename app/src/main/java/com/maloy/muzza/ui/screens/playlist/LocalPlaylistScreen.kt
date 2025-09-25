@@ -838,7 +838,7 @@ fun LocalPlaylistHeader(
     }
     if (showClearPlaylistThumbnailDialog) {
         ConfirmationDialog(
-            title = R.string.remove_custom_playlist_thumbnail,
+            title = R.string.remove_custom_playlist_thumbnail_confirm,
             icon = Icons.Rounded.HideImage,
             onDismiss = { showClearPlaylistThumbnailDialog = false },
             onConfirm = {

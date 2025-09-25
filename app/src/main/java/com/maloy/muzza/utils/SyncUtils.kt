@@ -18,6 +18,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -26,65 +27,72 @@ import javax.inject.Singleton
 class SyncUtils @Inject constructor(
     val database: MusicDatabase,
 ) {
-    suspend fun syncLikedSongs() {
+    suspend fun syncLikedSongs() = coroutineScope {
         YouTube.playlist("LM").completed().onSuccess { page ->
-            val songs = page.songs.reversed()
-            database.likedSongsByNameAsc().first()
-                .filter {
-                    !it.song.isLocal && it.id !in songs.map(SongItem::id)
-                }
+            val remoteSongs = page.songs
+            val remoteIds = remoteSongs.map { it.id }
+            val localSongs = database.likedSongsByNameAsc().first()
+
+            localSongs.filterNot { it.id in remoteIds }
                 .forEach { database.update(it.song.localToggleLike()) }
 
-            songs.forEach { song ->
-                val dbSong = database.song(song.id).firstOrNull()
-                database.transaction {
-                    when (dbSong) {
-                        null -> insert(song.toMediaMetadata(), SongEntity::localToggleLike)
-                        else -> if (!dbSong.song.liked && !dbSong.song.isLocal) {
-                            update(dbSong.song.localToggleLike())
+            remoteSongs.forEachIndexed { index, song ->
+                launch {
+                    val dbSong = database.song(song.id).firstOrNull()
+                    val timestamp = LocalDateTime.now().minusSeconds(index.toLong())
+                    database.transaction {
+                        if (dbSong == null) {
+                            insert(song.toMediaMetadata()) { it.copy(liked = true, likedDate = timestamp) }
+                        } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp) {
+                            update(dbSong.song.copy(liked = true, likedDate = timestamp))
                         }
                     }
                 }
             }
         }
     }
-    suspend fun syncLikedAlbums() {
-        YouTube.library("FEmusic_liked_albums").completedLibraryPage().onSuccess { page ->
-            val albums = page.items.filterIsInstance<AlbumItem>().reversed()
 
-            database.albumsLikedByNameAsc().first()
-                .filterNot { it.id in albums.map(AlbumItem::id) }
+    suspend fun syncLikedAlbums() = coroutineScope {
+        YouTube.library("FEmusic_liked_albums").completedLibraryPage().onSuccess { page ->
+            val remoteAlbums = page.items.filterIsInstance<AlbumItem>().reversed()
+            val remoteIds = remoteAlbums.map { it.id }.toSet()
+            val localAlbums = database.albumsLikedByNameAsc().first()
+
+            localAlbums.filterNot { it.id in remoteIds }
                 .forEach { database.update(it.album.localToggleLike()) }
 
-            albums.forEach { album ->
-                val dbAlbum = database.album(album.id).firstOrNull()
-                YouTube.album(album.browseId).onSuccess { albumPage ->
-                    when (dbAlbum) {
-                        null -> {
+            remoteAlbums.forEach { album ->
+                launch {
+                    val dbAlbum = database.album(album.id).firstOrNull()
+                    YouTube.album(album.browseId).onSuccess { albumPage ->
+                        if (dbAlbum == null) {
                             database.insert(albumPage)
-                            database.album(album.id).firstOrNull()?.let {
-                                database.update(it.album.localToggleLike())
+                            database.album(album.id).firstOrNull()?.let { newDbAlbum ->
+                                database.update(newDbAlbum.album.localToggleLike())
                             }
-                        }
-                        else -> if (dbAlbum.album.bookmarkedAt == null)
+                        } else if (dbAlbum.album.bookmarkedAt == null) {
                             database.update(dbAlbum.album.localToggleLike())
+                        }
                     }
                 }
             }
         }
     }
-    suspend fun syncArtistsSubscriptions() {
-        YouTube.library("FEmusic_library_corpus_artists").completedLibraryPage().onSuccess { page ->
-            val artists = page.items.filterIsInstance<ArtistItem>()
 
-            database.artistsBookmarkedByNameAsc().first()
-                .filterNot { it.id in artists.map(ArtistItem::id) }
+    suspend fun syncArtistsSubscriptions() = coroutineScope {
+        YouTube.library("FEmusic_library_corpus_artists").completedLibraryPage().onSuccess { page ->
+            val remoteArtists = page.items.filterIsInstance<ArtistItem>()
+            val remoteIds = remoteArtists.map { it.id }.toSet()
+            val localArtists = database.artistsBookmarkedByNameAsc().first()
+
+            localArtists.filterNot { it.id in remoteIds }
                 .forEach { database.update(it.artist.localToggleLike()) }
-            artists.forEach { artist ->
-                val dbArtist = database.artist(artist.id).firstOrNull()
-                database.transaction {
-                    when (dbArtist) {
-                        null -> {
+
+            remoteArtists.forEach { artist ->
+                launch {
+                    val dbArtist = database.artist(artist.id).firstOrNull()
+                    database.transaction {
+                        if (dbArtist == null) {
                             insert(
                                 ArtistEntity(
                                     id = artist.id,
@@ -94,65 +102,81 @@ class SyncUtils @Inject constructor(
                                     bookmarkedAt = LocalDateTime.now()
                                 )
                             )
-                        }
-                        else -> if (dbArtist.artist.bookmarkedAt == null)
+                        } else if (dbArtist.artist.bookmarkedAt == null) {
                             update(dbArtist.artist.localToggleLike())
+                        }
                     }
                 }
             }
         }
     }
-    suspend fun syncSavedPlaylists() {
+
+    suspend fun syncSavedPlaylists() = coroutineScope {
         YouTube.library("FEmusic_liked_playlists").completedLibraryPage().onSuccess { page ->
-            val playlistList = page.items.filterIsInstance<PlaylistItem>()
+            val remotePlaylists = page.items.filterIsInstance<PlaylistItem>()
                 .filterNot { it.id == "LM" || it.id == "SE" }
                 .reversed()
-            val dbPlaylists = database.playlistsByNameAsc().first()
+            val remoteIds = remotePlaylists.map { it.id }.toSet()
+            val localPlaylists = database.playlistsByNameAsc().first()
 
-            dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
+            localPlaylists.filterNot { it.playlist.browseId in remoteIds }
                 .filterNot { it.playlist.browseId == null }
-                .filterNot { it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
-            playlistList.onEach { playlist ->
-                var playlistEntity =
-                    dbPlaylists.find { playlist.id == it.playlist.browseId }?.playlist
-                if (playlistEntity == null) {
-                    playlistEntity = PlaylistEntity(
-                        name = playlist.title,
-                        browseId = playlist.id,
-                        thumbnailUrl = playlist.thumbnail,
-                        isEditable = playlist.isEditable,
-                        bookmarkedAt = LocalDateTime.now(),
-                        remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
-                        playEndpointParams = playlist.playEndpoint?.params,
-                        shuffleEndpointParams = playlist.shuffleEndpoint.params,
-                        radioEndpointParams = playlist.radioEndpoint?.params
-                    )
-
-                    database.insert(playlistEntity)
-                } else database.update(playlistEntity, playlist)
-
-                syncPlaylist(playlist.id, playlistEntity.id)
+            remotePlaylists.forEach { playlist ->
+                launch {
+                    var playlistEntity = localPlaylists.find { it.playlist.browseId == playlist.id }?.playlist
+                    if (playlistEntity == null) {
+                        playlistEntity = PlaylistEntity(
+                            name = playlist.title,
+                            browseId = playlist.id,
+                            thumbnailUrl = playlist.thumbnail,
+                            isEditable = playlist.isEditable,
+                            bookmarkedAt = LocalDateTime.now(),
+                            remoteSongCount = playlist.songCountText?.let { Regex("""\\d+""").find(it)?.value?.toIntOrNull() },
+                            playEndpointParams = playlist.playEndpoint?.params,
+                            shuffleEndpointParams = playlist.shuffleEndpoint.params,
+                            radioEndpointParams = playlist.radioEndpoint?.params
+                        )
+                        database.insert(playlistEntity)
+                    } else {
+                        database.update(playlistEntity, playlist)
+                    }
+                    syncPlaylist(playlist.id, playlistEntity.id)
+                }
             }
         }
     }
-    suspend fun syncPlaylist(browseId: String, playlistId: String) {
-        val playlistPage = YouTube.playlist(browseId).completed().getOrNull() ?: return
-        database.transaction {
-            clearPlaylist(playlistId)
-            playlistPage.songs
-                .map(SongItem::toMediaMetadata)
-                .onEach(::insert)
-                .mapIndexed { position, song ->
-                    PlaylistSongMap(
-                        songId = song.id,
-                        playlistId = playlistId,
-                        position = position,
-                        setVideoId = song.setVideoId
-                    )
+
+    suspend fun syncPlaylist(browseId: String, playlistId: String) = coroutineScope {
+        YouTube.playlist(browseId).completed().onSuccess { page ->
+            val songs = page.songs.map(SongItem::toMediaMetadata)
+
+            val remoteIds = songs.map { it.id }
+            val localIds = database.playlistSongs(playlistId).first()
+                .sortedBy { it.map.position }
+                .map { it.song.id }
+
+            if (remoteIds == localIds) return@onSuccess
+
+            database.transaction {
+                runBlocking {
+                    database.clearPlaylist(playlistId)
+                    songs.forEachIndexed { idx, song ->
+                        if (database.song(song.id).firstOrNull() == null) {
+                            database.insert(song)
+                        }
+                        database.insert(
+                            PlaylistSongMap(
+                                songId = song.id,
+                                playlistId = playlistId,
+                                position = idx,
+                                setVideoId = song.setVideoId
+                            )
+                        )
+                    }
                 }
-                .forEach(::insert)
+            }
         }
     }
     suspend fun syncRecentActivity() {

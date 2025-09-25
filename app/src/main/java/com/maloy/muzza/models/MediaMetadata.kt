@@ -5,6 +5,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.db.entities.*
 import com.maloy.muzza.ui.utils.resize
 import java.io.Serializable
+import java.time.LocalDateTime
 
 @Immutable
 data class MediaMetadata(
@@ -15,6 +16,8 @@ data class MediaMetadata(
     val thumbnailUrl: String? = null,
     val album: Album? = null,
     val setVideoId: String? = null,
+    val liked: Boolean = false,
+    val likedDate: LocalDateTime? = null,
     val isLocal: Boolean = false,
     val localPath: String? = null,
     val explicit: Boolean = false,
@@ -38,6 +41,8 @@ data class MediaMetadata(
         thumbnailUrl = thumbnailUrl,
         albumId = album?.id,
         albumName = album?.title,
+        liked = liked,
+        likedDate = likedDate,
         isLocal = isLocal,
         localPath = localPath
     )

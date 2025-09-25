@@ -148,7 +148,6 @@ fun OnlinePlaylistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val scope = rememberCoroutineScope()
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
@@ -503,14 +502,9 @@ fun OnlinePlaylistScreen(
                                             }
                                             Button(
                                                 onClick = {
-                                                    scope.launch(Dispatchers.IO) {
-                                                        viewModel.loadRemainingSongs()
-                                                        snackbarHostState.showSnackbar(
-                                                            context.getString(
-                                                                R.string.playlist_synced
-                                                            )
-                                                        )
-                                                    }
+                                                    playerConnection.addToQueue(
+                                                        items = songs.map { it.toMediaItem() }
+                                                    )
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier
@@ -518,17 +512,10 @@ fun OnlinePlaylistScreen(
                                                     .padding(4.dp)
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
-                                                if (isLoading) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(16.dp),
-                                                        strokeWidth = 2.dp
-                                                    )
-                                                } else {
-                                                    Icon(
-                                                        painterResource(R.drawable.sync),
-                                                        contentDescription = null
-                                                    )
-                                                }
+                                                Icon(
+                                                    painter = painterResource(R.drawable.queue_music),
+                                                    contentDescription = null
+                                                )
                                             }
                                             if (playlist.id == "LM") {
                                                 Button(

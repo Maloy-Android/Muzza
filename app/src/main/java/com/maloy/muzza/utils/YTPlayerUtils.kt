@@ -4,8 +4,12 @@ import android.net.ConnectivityManager
 import androidx.media3.common.PlaybackException
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YouTubeClient
+import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
+import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
+import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.maloy.innertube.models.YouTubeClient.Companion.IOS
+import com.maloy.innertube.models.YouTubeClient.Companion.IPADOS
 import com.maloy.innertube.models.YouTubeClient.Companion.MOBILE
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
@@ -25,8 +29,12 @@ object YTPlayerUtils {
         .proxy(YouTube.proxy)
         .build()
 
-    private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
+    private val MAIN_CLIENT: YouTubeClient = ANDROID_VR_1_43_32
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
+        ANDROID_VR_1_61_48,
+        WEB_REMIX,
+        ANDROID_CREATOR,
+        IPADOS,
         ANDROID_VR_NO_AUTH,
         MOBILE,
         TVHTML5,

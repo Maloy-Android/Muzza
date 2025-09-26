@@ -500,22 +500,44 @@ fun OnlinePlaylistScreen(
                                                     }
                                                 }
                                             }
-                                            Button(
-                                                onClick = {
-                                                    playerConnection.addToQueue(
-                                                        items = songs.map { it.toMediaItem() }
+                                            if (playlist.id == "LM") {
+                                                Button(
+                                                    onClick = {
+                                                        playerConnection.playQueue(
+                                                            YouTubeQueue(
+                                                                songs.first().endpoint
+                                                                    ?: WatchEndpoint(videoId = songs.first().id),
+                                                                songs.first().toMediaMetadata()
+                                                            )
+                                                        )
+                                                    },
+                                                    enabled = !isLoading,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.play),
+                                                        contentDescription = null
                                                     )
-                                                },
-                                                enabled = !isLoading,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(4.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.queue_music),
-                                                    contentDescription = null
-                                                )
+                                                }
+                                            } else {
+                                                Button(
+                                                    onClick = {
+                                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                    },
+                                                    enabled = !isLoading,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.queue_music),
+                                                        contentDescription = null
+                                                    )
+                                                }
                                             }
                                             if (playlist.id == "LM") {
                                                 Button(

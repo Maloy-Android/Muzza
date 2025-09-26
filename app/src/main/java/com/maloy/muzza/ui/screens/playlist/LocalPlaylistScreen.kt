@@ -133,7 +133,6 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
-import com.maloy.muzza.ui.screens.settings.ConfirmationDialog
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
@@ -837,13 +836,31 @@ fun LocalPlaylistHeader(
         mutableStateOf(false)
     }
     if (showClearPlaylistThumbnailDialog) {
-        ConfirmationDialog(
-            title = R.string.remove_custom_playlist_thumbnail_confirm,
-            icon = Icons.Rounded.HideImage,
+        DefaultDialog(
             onDismiss = { showClearPlaylistThumbnailDialog = false },
-            onConfirm = {
-                showClearPlaylistThumbnailDialog = false
-                deletePlaylistCover(context = context, playlistId = playlist.playlist.id)
+            icon = { Icons.Rounded.HideImage},
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_custom_playlist_thumbnail_confirm, playlist.title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = { showClearPlaylistThumbnailDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearPlaylistThumbnailDialog = false
+                        deletePlaylistCover(context = context, playlistId = playlist.id)
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
             }
         )
     }

@@ -211,10 +211,7 @@ data class HomePage(
                                 ?: return null,
                             explicit = renderer.badges?.any {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                            } == true,
-                            historyRemoveToken = renderer.menu?.menuRenderer?.items?.find {
-                                it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_HISTORY"
-                            }?.menuServiceItemRenderer?.serviceEndpoint?.feedbackEndpoint?.feedbackToken
+                            } == true
                         )
                     }
 

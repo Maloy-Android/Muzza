@@ -55,7 +55,10 @@ data class HistoryPage(
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,
                 endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
-                    ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint
+                    ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
+                historyRemoveToken = renderer.menu?.menuRenderer?.items?.find {
+                    it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_HISTORY"
+                }?.menuServiceItemRenderer?.serviceEndpoint?.feedbackEndpoint?.feedbackToken
             )
         }
     }

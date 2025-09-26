@@ -11,7 +11,6 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
-import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -43,7 +42,7 @@ class SyncUtils @Inject constructor(
                     database.transaction {
                         if (dbSong == null) {
                             insert(song.toMediaMetadata()) { it.copy(liked = true, likedDate = timestamp) }
-                        } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp) {
+                        } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp && !dbSong.song.isLocal) {
                             update(dbSong.song.copy(liked = true, likedDate = timestamp))
                         }
                     }

@@ -849,6 +849,7 @@ fun LibraryMixScreen(
                             PlaylistGridItem(
                                 playlist = uploadedPlaylist,
                                 thumbnail = Icons.Rounded.Backup,
+                                fillMaxWidth = true,
                                 modifier =
                                     Modifier
                                         .fillMaxWidth()

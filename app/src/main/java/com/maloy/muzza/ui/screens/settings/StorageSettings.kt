@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
 import android.annotation.SuppressLint
-import androidx.annotation.StringRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -16,11 +15,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CloudDownload
-import androidx.compose.material.icons.outlined.CloudOff
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.HideImage
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.MusicOff
 import androidx.compose.material.icons.rounded.Translate
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenuItem
@@ -63,6 +63,7 @@ import com.maloy.muzza.constants.MaxImageCacheSizeKey
 import com.maloy.muzza.constants.MaxSongCacheSizeKey
 import com.maloy.muzza.extensions.tryOrNull
 import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.formatFileSize
@@ -283,68 +284,140 @@ fun StorageSettings(
         }
     }
     if (showClearAllDownloadsDialog) {
-        ConfirmationDialog(
-            title = R.string.clear_all_downloads,
-            icon = Icons.Outlined.CloudOff,
+        DefaultDialog(
             onDismiss = { showClearAllDownloadsDialog = false },
-            onConfirm = {
-                showClearAllDownloadsDialog = false
-                coroutineScope.launch(Dispatchers.IO) {
-                    downloadCache.keys.forEach { key ->
-                        DownloadService.sendRemoveDownload(
-                            context,
-                            ExoDownloadService::class.java,
-                            key,
-                            false
-                        )
-                    }
-                    downloadCache.keys.forEach { key ->
-                        downloadCache.removeResource(key)
-                    }
-                    downloadCacheSize = 0
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_all_downloads_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icons.Rounded.CloudOff },
+            buttons = {
+                TextButton(
+                    onClick = { showClearAllDownloadsDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
                 }
+
+                TextButton(
+                    onClick = {
+                        showClearAllDownloadsDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            downloadCache.keys.forEach { key ->
+                                DownloadService.sendRemoveDownload(
+                                    context,
+                                    ExoDownloadService::class.java,
+                                    key,
+                                    false
+                                )
+                            }
+                            downloadCache.keys.forEach { key ->
+                                downloadCache.removeResource(key)
+                            }
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+                downloadCacheSize = 0
             }
         )
     }
     if (showClearImagesCacheDialog) {
-        ConfirmationDialog(
-            title = R.string.clear_image_cache,
-            icon = Icons.Rounded.Image,
+        DefaultDialog(
             onDismiss = { showClearImagesCacheDialog = false },
-            onConfirm = {
-                showClearImagesCacheDialog = false
-                coroutineScope.launch(Dispatchers.IO) {
-                    imageDiskCache.clear()
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_images_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icons.Rounded.HideImage },
+            buttons = {
+                TextButton(
+                    onClick = { showClearImagesCacheDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearImagesCacheDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            imageDiskCache.clear()
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
                 }
                 imageCacheSize = 0
             }
         )
     }
     if (showClearSongCacheDialog) {
-        ConfirmationDialog(
-            title = R.string.clear_song_cache,
-            icon = Icons.Rounded.MusicNote,
+        DefaultDialog(
             onDismiss = { showClearSongCacheDialog = false },
-            onConfirm = {
-                showClearSongCacheDialog = false
-                coroutineScope.launch(Dispatchers.IO) {
-                    playerCache.keys.forEach { key ->
-                        playerCache.removeResource(key)
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_song_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icons.Rounded.MusicOff },
+            buttons = {
+                TextButton(
+                    onClick = { showClearSongCacheDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearSongCacheDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            playerCache.keys.forEach { key ->
+                                playerCache.removeResource(key)
+                            }
+                        }
                     }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
                 }
                 playerCacheSize = 0
             }
         )
     }
     if (showClearTranslationModels) {
-        ConfirmationDialog(
-            title = R.string.clear_translation_models,
-            icon = Icons.Rounded.Translate,
+        DefaultDialog(
             onDismiss = { showClearTranslationModels = false },
-            onConfirm = {
-                showClearTranslationModels = false
-                coroutineScope.launch(Dispatchers.IO) {
-                    TranslationHelper.clearModels()
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_translation_models_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icons.Rounded.Translate },
+            buttons = {
+                TextButton(
+                    onClick = { showClearTranslationModels = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearTranslationModels = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            TranslationHelper.clearModels()
+                            }
+                        }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
                 }
             }
         )
@@ -486,33 +559,6 @@ private fun ModelManagementCard(onClear: () -> Unit) {
             }
         }
     }
-}
-
-@Composable
-fun ConfirmationDialog(
-    @StringRes title: Int,
-    icon: ImageVector,
-    onDismiss: () -> Unit,
-    onConfirm: () -> Unit
-) {
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        icon = { Icon(icon, null) },
-        title = { Text(stringResource(title)) },
-        confirmButton = {
-            TextButton(onClick = {
-                onConfirm()
-                onDismiss()
-            }) {
-                Text(stringResource(android.R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(android.R.string.cancel))
-            }
-        }
-    )
 }
 
 private fun calculateProgress(used: Long, total: Long): Float {

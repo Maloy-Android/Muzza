@@ -42,6 +42,7 @@ data class MediaMetadata(
         albumId = album?.id,
         albumName = album?.title,
         liked = liked,
+        likedDate = likedDate,
         isLocal = isLocal,
         localPath = localPath
     )

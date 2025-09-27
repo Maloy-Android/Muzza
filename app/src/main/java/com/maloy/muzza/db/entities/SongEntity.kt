@@ -30,6 +30,7 @@ data class SongEntity(
     val albumId: String? = null,
     val albumName: String? = null,
     val liked: Boolean = false,
+    val likedDate: LocalDateTime? = null,
     val totalPlayTime: Long = 0,
     val inLibrary: LocalDateTime? = null,
     val dateDownload: LocalDateTime? = null,
@@ -41,6 +42,7 @@ data class SongEntity(
 ) {
     fun localToggleLike() = copy(
         liked = !liked,
+        likedDate = if (!liked) LocalDateTime.now() else null,
         inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
     ).also {
         CoroutineScope(Dispatchers.IO).launch() {
@@ -56,7 +58,11 @@ data class SongEntity(
         }
     }
 
-    fun toggleLibrary() = copy(inLibrary = if (inLibrary == null) LocalDateTime.now() else null)
+    fun toggleLibrary() = copy(
+        liked = if (inLibrary == null) liked else false,
+        likedDate = if (!liked) LocalDateTime.now() else null,
+        inLibrary = if (inLibrary == null) LocalDateTime.now() else null
+    )
 
     fun toggleUploaded() = copy(
         isUploaded = !isUploaded

@@ -11,7 +11,6 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
-import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
@@ -29,20 +28,22 @@ class SyncUtils @Inject constructor(
 ) {
     suspend fun syncLikedSongs() = coroutineScope {
         YouTube.playlist("LM").completed().onSuccess { page ->
-            val songs = page.songs.reversed()
-            database.likedSongsByNameAsc().first()
-                .filter {
-                    !it.song.isLocal && it.id !in songs.map(SongItem::id)
-                }
+            val remoteSongs = page.songs
+            val remoteIds = remoteSongs.map { it.id }
+            val localSongs = database.likedSongsByNameAsc().first()
+
+            localSongs.filterNot { it.id in remoteIds }
                 .forEach { database.update(it.song.localToggleLike()) }
 
-            songs.forEach { song ->
-                val dbSong = database.song(song.id).firstOrNull()
-                database.transaction {
-                    when (dbSong) {
-                        null -> insert(song.toMediaMetadata(), SongEntity::localToggleLike)
-                        else -> if (!dbSong.song.liked && !dbSong.song.isLocal) {
-                            update(dbSong.song.localToggleLike())
+            remoteSongs.forEachIndexed { index, song ->
+                launch {
+                    val dbSong = database.song(song.id).firstOrNull()
+                    val timestamp = LocalDateTime.now().minusSeconds(index.toLong())
+                    database.transaction {
+                        if (dbSong == null) {
+                            insert(song.toMediaMetadata()) { it.copy(liked = true, likedDate = timestamp) }
+                        } else if (!dbSong.song.liked || dbSong.song.likedDate != timestamp && !dbSong.song.isLocal) {
+                            update(dbSong.song.copy(liked = true, likedDate = timestamp))
                         }
                     }
                 }

@@ -8,12 +8,10 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
@@ -23,8 +21,6 @@ import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
 @Composable
@@ -38,7 +34,6 @@ fun YouTubeSongSelectionMenu(
 ) {
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-    val coroutineScope = rememberCoroutineScope()
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -144,24 +139,6 @@ fun YouTubeSongSelectionMenu(
                 }
             }
             onDismiss()
-        }
-        selection.forEach { songs ->
-            if (songs.historyRemoveToken != null) {
-                item {
-                    HorizontalDivider()
-                }
-                ListMenuItem(
-                    icon = R.drawable.delete_history,
-                    title = R.string.remove_from_history
-                ) {
-                    coroutineScope.launch {
-                        YouTube.feedback(listOf(songs.historyRemoveToken!!))
-                        delay(500)
-                        onHistoryRemoved()
-                        onDismiss()
-                    }
-                }
-            }
         }
     }
 }

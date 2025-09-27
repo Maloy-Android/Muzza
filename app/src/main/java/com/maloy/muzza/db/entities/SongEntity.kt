@@ -30,7 +30,6 @@ data class SongEntity(
     val albumId: String? = null,
     val albumName: String? = null,
     val liked: Boolean = false,
-    val likedDate: LocalDateTime? = null,
     val totalPlayTime: Long = 0,
     val inLibrary: LocalDateTime? = null,
     val dateDownload: LocalDateTime? = null,
@@ -40,9 +39,12 @@ data class SongEntity(
     @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
     val isUploaded: Boolean = false
 ) {
+
+    val isLocalSong: Boolean
+        get() = id.startsWith("LA")
+
     fun localToggleLike() = copy(
         liked = !liked,
-        likedDate = if (!liked) LocalDateTime.now() else null,
         inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
     ).also {
         CoroutineScope(Dispatchers.IO).launch() {
@@ -58,11 +60,7 @@ data class SongEntity(
         }
     }
 
-    fun toggleLibrary() = copy(
-        liked = if (inLibrary == null) liked else false,
-        likedDate = if (!liked) LocalDateTime.now() else null,
-        inLibrary = if (inLibrary == null) LocalDateTime.now() else null
-    )
+    fun toggleLibrary() = copy(inLibrary = if (inLibrary == null) LocalDateTime.now() else null)
 
     fun toggleUploaded() = copy(
         isUploaded = !isUploaded

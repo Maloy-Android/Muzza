@@ -17,15 +17,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -109,6 +113,7 @@ import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
+import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.PlaylistEditLockKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
@@ -143,10 +148,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.io.File
 import java.io.FileOutputStream
 
@@ -233,22 +236,28 @@ fun LocalPlaylistScreen(
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
+    val lazyListState = rememberLazyListState()
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
-            if (to.index >= headerItems && from.index >= headerItems) {
-                val currentDragInfo = dragInfo
-                dragInfo = if (currentDragInfo == null) {
-                    (from.index - headerItems) to (to.index - headerItems)
-                } else {
-                    currentDragInfo.first to (to.index - headerItems)
-                }
-                mutableSongs.move(from.index - headerItems, to.index - headerItems)
+            val currentDragInfo = dragInfo
+            dragInfo = if (currentDragInfo == null) {
+                (from.index - headerItems) to (to.index - headerItems)
+            } else {
+                currentDragInfo.first to (to.index - headerItems)
             }
-        }
+            mutableSongs.move(from.index - headerItems, to.index - headerItems)
+        },
+        lazyListState = lazyListState,
+        scrollThresholdPadding = WindowInsets.systemBars.add(
+            WindowInsets(
+                top = ListItemHeight,
+                bottom = ListItemHeight
+            )
+        ).asPaddingValues()
     )
     val lazyChecker by remember {
         derivedStateOf {
-            reorderableState.listState.firstVisibleItemIndex > 0
+            lazyListState.firstVisibleItemIndex > 0
         }
     }
             dragInfo?.let { (from, to) ->
@@ -259,19 +268,9 @@ fun LocalPlaylistScreen(
                     val from = from
                     val to = to
                     val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
-
-                    var fromIndex = from //- headerItems
-                    val toIndex = to //- headerItems
-
+                    var fromIndex = from
+                    val toIndex = to
                     var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
-
-                    /*
-                        * Because of how YouTube Music handles playlist changes, you necessarily need to
-                        * have the SetVideoId of the successor when trying to move a song inside of a
-                        * playlist.
-                        * For this reason, if we are trying to move a song to the last element of a playlist,
-                        * we need to first move it as penultimate and then move the last element before it.
-                        */
                     if (successorIndex >= playlistSongMap.size) {
                         playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
                             playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
@@ -367,9 +366,9 @@ fun LocalPlaylistScreen(
         modifier = Modifier.fillMaxSize()
     ) {
         LazyColumn(
-            state = reorderableState.listState,
+            state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
-            modifier = Modifier.reorderable(reorderableState)
+            modifier = Modifier
         ) {
             if (filteredSongs.isEmpty() && isSearching) {
                 item {
@@ -559,7 +558,7 @@ fun LocalPlaylistScreen(
                                     if (sortType == PlaylistSongSortType.CUSTOM && !locked && !isSearching) {
                                         IconButton(
                                             onClick = { },
-                                            modifier = Modifier.detectReorder(reorderableState)
+                                            modifier = Modifier.draggableHandle()
                                         ) {
                                             Icon(
                                                 painter = painterResource(R.drawable.drag_handle),
@@ -612,7 +611,7 @@ fun LocalPlaylistScreen(
         }
         if (lazyChecker) {
             LazyColumnScrollbar(
-                state = reorderableState.listState,
+                state = lazyListState,
             )
         }
         TopAppBar(

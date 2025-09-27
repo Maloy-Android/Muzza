@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material.icons.rounded.HideImage
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -189,7 +190,7 @@ fun PlaylistMenu(
     if (showClearPlaylistThumbnailDialog) {
         DefaultDialog(
             onDismiss = { showClearPlaylistThumbnailDialog = false },
-            icon = { Icons.Rounded.HideImage},
+            icon = { Icon(Icons.Rounded.HideImage,null)},
             content = {
                 Text(
                     text = stringResource(R.string.remove_custom_playlist_thumbnail_confirm, playlist.title),
@@ -268,6 +269,7 @@ fun PlaylistMenu(
     if (showDeletePlaylistDialog) {
         DefaultDialog(
             onDismiss = { showDeletePlaylistDialog = false },
+            icon = { Icon(Icons.Rounded.Delete,null) },
             content = {
                 Text(
                     text = stringResource(R.string.delete_playlist_confirm, playlist.playlist.name),

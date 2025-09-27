@@ -838,7 +838,7 @@ fun LocalPlaylistHeader(
     if (showClearPlaylistThumbnailDialog) {
         DefaultDialog(
             onDismiss = { showClearPlaylistThumbnailDialog = false },
-            icon = { Icons.Rounded.HideImage},
+            icon = { Icon(Icons.Rounded.HideImage,null)},
             content = {
                 Text(
                     text = stringResource(R.string.remove_custom_playlist_thumbnail_confirm, playlist.title),

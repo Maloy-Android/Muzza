@@ -293,7 +293,7 @@ fun StorageSettings(
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
-            icon = { Icons.Rounded.CloudOff },
+            icon = { Icon(Icons.Rounded.CloudOff,null) },
             buttons = {
                 TextButton(
                     onClick = { showClearAllDownloadsDialog = false }
@@ -335,7 +335,7 @@ fun StorageSettings(
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
-            icon = { Icons.Rounded.HideImage },
+            icon = { Icon(Icons.Rounded.HideImage,null) },
             buttons = {
                 TextButton(
                     onClick = { showClearImagesCacheDialog = false }
@@ -367,7 +367,7 @@ fun StorageSettings(
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
-            icon = { Icons.Rounded.MusicOff },
+            icon = { Icon(Icons.Rounded.MusicOff,null) },
             buttons = {
                 TextButton(
                     onClick = { showClearSongCacheDialog = false }
@@ -401,7 +401,7 @@ fun StorageSettings(
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
             },
-            icon = { Icons.Rounded.Translate },
+            icon = { Icon(Icons.Rounded.Translate,null) },
             buttons = {
                 TextButton(
                     onClick = { showClearTranslationModels = false }

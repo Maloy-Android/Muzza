@@ -6,11 +6,14 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -69,12 +72,15 @@ import com.maloy.muzza.constants.CONTENT_TYPE_SONG
 import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryFilter
+import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.SongFilter
 import com.maloy.muzza.constants.SongFilterKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
@@ -91,6 +97,8 @@ import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibrarySongsViewModel
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -175,6 +183,21 @@ fun LibrarySongsScreen(
             lazyListState.firstVisibleItemIndex > 0
         }
     }
+    val mutableSongs = remember {
+        mutableStateListOf<Song>()
+    }
+    val reorderableState = rememberReorderableLazyListState(
+        onMove = { from, to ->
+            mutableSongs.move(from.index - 2, to.index - 2)
+        },
+        lazyListState = lazyListState,
+        scrollThresholdPadding = WindowInsets.systemBars.add(
+            WindowInsets(
+                top = ListItemHeight,
+                bottom = ListItemHeight
+            )
+        ).asPaddingValues()
+    )
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -360,90 +383,95 @@ fun LibrarySongsScreen(
                     }
                 }
 
-                SongListItem(
-                    song = song,
-                    isActive = song.id == mediaMetadata?.id,
-                    showInLibraryIcon = true,
-                    isPlaying = isPlaying,
-                    trailingContent = {
-                        if (inSelectMode) {
-                            Checkbox(
-                                checked = song.id in selection,
-                                onCheckedChange = onCheckedChange
-                            )
-                        } else {
-                            if (filter == SongFilter.CACHED) {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            SongMenu(
-                                                originalSong = song,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                                isFromCache = true
-                                            )
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
-                                    )
-                                }
+                ReorderableItem(
+                    state = reorderableState,
+                    key = filteredSongs
+                ) {
+                    SongListItem(
+                        song = song,
+                        isActive = song.id == mediaMetadata?.id,
+                        showInLibraryIcon = true,
+                        isPlaying = isPlaying,
+                        trailingContent = {
+                            if (inSelectMode) {
+                                Checkbox(
+                                    checked = song.id in selection,
+                                    onCheckedChange = onCheckedChange
+                                )
                             } else {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            SongMenu(
-                                                originalSong = song,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
+                                if (filter == SongFilter.CACHED) {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                SongMenu(
+                                                    originalSong = song,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss,
+                                                    isFromCache = true
+                                                )
+                                            }
                                         }
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
-                                    )
-                                }
-                            }
-                        }
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .combinedClickable(
-                            onClick = {
-                                if (inSelectMode) {
-                                    onCheckedChange(song.id !in selection)
-                                } else if (song.id == mediaMetadata?.id) {
-                                    playerConnection.player.togglePlayPause()
-                                } else {
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = when (filter) {
-                                                SongFilter.LIKED -> context.getString(R.string.liked)
-                                                SongFilter.LIBRARY -> context.getString(R.string.filter_library)
-                                                SongFilter.DOWNLOADED -> context.getString(R.string.downloaded_songs)
-                                                SongFilter.CACHED -> context.getString(R.string.cached)
-                                                SongFilter.UPLOADED -> context.getString(R.string.uploaded_playlist)
-                                            },
-                                            items = songs.map { it.toMediaItem() },
-                                            startIndex = songs.indexOfFirst { it.song.id == song.id }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null
                                         )
-                                    )
-                                }
-                            },
-                            onLongClick = {
-                                if (!inSelectMode) {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    inSelectMode = true
-                                    onCheckedChange(true)
+                                    }
+                                } else {
+                                    IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                SongMenu(
+                                                    originalSong = song,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             }
-                        )
-                        .animateItem()
-                )
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    if (inSelectMode) {
+                                        onCheckedChange(song.id !in selection)
+                                    } else if (song.id == mediaMetadata?.id) {
+                                        playerConnection.player.togglePlayPause()
+                                    } else {
+                                        playerConnection.playQueue(
+                                            ListQueue(
+                                                title = when (filter) {
+                                                    SongFilter.LIKED -> context.getString(R.string.liked)
+                                                    SongFilter.LIBRARY -> context.getString(R.string.filter_library)
+                                                    SongFilter.DOWNLOADED -> context.getString(R.string.downloaded_songs)
+                                                    SongFilter.CACHED -> context.getString(R.string.cached)
+                                                    SongFilter.UPLOADED -> context.getString(R.string.uploaded_playlist)
+                                                },
+                                                items = songs.map { it.toMediaItem() },
+                                                startIndex = songs.indexOfFirst { it.song.id == song.id }
+                                            )
+                                        )
+                                    }
+                                },
+                                onLongClick = {
+                                    if (!inSelectMode) {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        inSelectMode = true
+                                        onCheckedChange(true)
+                                    }
+                                }
+                            )
+                            .animateItem()
+                    )
+                }
             }
         }
         if (lazyChecker) {

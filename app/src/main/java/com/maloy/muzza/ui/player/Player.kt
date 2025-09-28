@@ -66,6 +66,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -307,6 +308,19 @@ fun BottomSheetPlayer(
 
     val mediaItems = listOfNotNull(previousMediaMetadata, mediaMetadata, nextMediaMetadata)
     val currentMediaIndex = mediaItems.indexOf(mediaMetadata)
+
+    val currentItem by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemIndex } }
+    val itemScrollOffset by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemScrollOffset } }
+
+    LaunchedEffect(itemScrollOffset) {
+        if (!thumbnailLazyGridState.isScrollInProgress || itemScrollOffset != 0) return@LaunchedEffect
+
+        if (currentItem > currentMediaIndex)
+            playerConnection.player.seekToNext()
+        else if (currentItem < currentMediaIndex)
+            playerConnection.player.seekToPreviousMediaItem()
+    }
+
 
     LaunchedEffect(mediaMetadata, canSkipPrevious, canSkipNext) {
         val index = maxOf(0, currentMediaIndex)

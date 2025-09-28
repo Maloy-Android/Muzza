@@ -8,6 +8,7 @@ import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
+import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -54,6 +55,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -124,7 +126,8 @@ import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
-import com.maloy.muzza.constants.SwipeThumbnailKey
+import com.maloy.muzza.constants.SongDurationTimeSkip
+import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.togglePlayPause
@@ -261,6 +264,7 @@ fun BottomSheetPlayer(
     var duration by rememberSaveable(playbackState) {
         mutableLongStateOf(playerConnection.player.duration)
     }
+    val (songDurationTimeSkip) = rememberEnumPreference(SongDurationTimeSkipKey, defaultValue = SongDurationTimeSkip.FIVE)
     var sliderPosition by remember {
         mutableStateOf<Long?>(null)
     }
@@ -291,7 +295,6 @@ fun BottomSheetPlayer(
             }
         )
     }
-    val (swipeThumbnail) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val previousMediaMetadata =
         if (playerConnection.player.hasPreviousMediaItem()) {
             val previousIndex = playerConnection.player.previousMediaItemIndex
@@ -341,10 +344,8 @@ fun BottomSheetPlayer(
         state = state,
         modifier = modifier,
         backgroundColor = when {
-            pureBlack && darkTheme == DarkMode.AUTO == isSystemInDarkTheme || pureBlack && darkTheme == DarkMode.ON -> Color.Black
-            useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT ->
-                MaterialTheme.colorScheme.surfaceContainer
-
+            pureBlack && (darkTheme == DarkMode.ON || useBlackBackground) -> Color.Black
+            useDarkTheme || playerBackground == PlayerBackgroundStyle.DEFAULT -> MaterialTheme.colorScheme.surfaceContainer
             else -> MaterialTheme.colorScheme.onSurfaceVariant
         },
         collapsedBackgroundColor = MaterialTheme.colorScheme.surfaceContainer,
@@ -646,7 +647,22 @@ fun BottomSheetPlayer(
                                     .combinedClickable(onClick = {
                                         (playerConnection.player::seekToPrevious)()
                                     }, onLongClick = {
-                                        playerConnection.player.seekTo(playerConnection.player.currentPosition - 5000)
+                                        Toast.makeText(context,                                                     context.getString(when (songDurationTimeSkip) {
+                                            SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                            SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                            SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                            SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                            SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                            SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
+                                        }), Toast.LENGTH_LONG).show()
+                                        playerConnection.player.seekTo(playerConnection.player.currentPosition - when (songDurationTimeSkip) {
+                                            SongDurationTimeSkip.FIVE -> 5000
+                                            SongDurationTimeSkip.TEN -> 10000
+                                            SongDurationTimeSkip.FIFTEEN -> 15000
+                                            SongDurationTimeSkip.TWENTY -> 20000
+                                            SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                            SongDurationTimeSkip.THIRTY -> 30000
+                                        })
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     })
                             )
@@ -706,7 +722,22 @@ fun BottomSheetPlayer(
                                     .combinedClickable(onClick = {
                                         (playerConnection.player::seekToNext)()
                                     }, onLongClick = {
-                                        playerConnection.player.seekTo(playerConnection.player.currentPosition + 5000)
+                                        Toast.makeText(context,                                                     context.getString(when (songDurationTimeSkip) {
+                                            SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                            SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                            SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                            SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                            SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                            SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                        }), Toast.LENGTH_LONG).show()
+                                        playerConnection.player.seekTo(playerConnection.player.currentPosition + when (songDurationTimeSkip) {
+                                            SongDurationTimeSkip.FIVE -> 5000
+                                            SongDurationTimeSkip.TEN -> 10000
+                                            SongDurationTimeSkip.FIFTEEN -> 15000
+                                            SongDurationTimeSkip.TWENTY -> 20000
+                                            SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                            SongDurationTimeSkip.THIRTY -> 30000
+                                        })
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     })
                             )
@@ -850,13 +881,12 @@ fun BottomSheetPlayer(
                         rows = GridCells.Fixed(1),
                         contentPadding = PaddingValues(vertical = 16.dp),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = state.isExpanded && swipeThumbnail && !showLyrics
+                        userScrollEnabled = state.isExpanded && !showLyrics
                     ) {
-
                         items(
-                            count = mediaItems.size,
-                            key = { index -> mediaItems[index].id }
-                        ) { index ->
+                            items = mediaItems,
+                            key = { it.id }
+                        ) {
                             Thumbnail(
                                 sliderPositionProvider = { sliderPosition },
                                 modifier = Modifier
@@ -864,9 +894,9 @@ fun BottomSheetPlayer(
                                     .animateContentSize(),
                                 contentScale = ContentScale.Crop,
                                 showLyricsOnClick = true,
-                                customMediaMetadata = mediaItems[index]
+                                customMediaMetadata = it
                             )
-                            }
+                        }
                     }
                 }
 
@@ -905,12 +935,12 @@ fun BottomSheetPlayer(
                         state = thumbnailLazyGridState,
                         rows = GridCells.Fixed(1),
                         flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = swipeThumbnail && state.isExpanded && !showLyrics
+                        userScrollEnabled = state.isExpanded && !showLyrics
                     ) {
                         items(
-                            count = mediaItems.size,
-                            key = { index -> mediaItems[index].id }
-                        ) { index ->
+                            items = mediaItems,
+                            key = { it.id }
+                        ) {
                             Thumbnail(
                                 modifier = Modifier
                                     .width(horizontalLazyGridItemWidth)
@@ -918,7 +948,7 @@ fun BottomSheetPlayer(
                                 contentScale = ContentScale.Crop,
                                 sliderPositionProvider = { sliderPosition },
                                 showLyricsOnClick = true,
-                                customMediaMetadata = mediaItems[index]
+                                customMediaMetadata = it
                             )
                         }
                     }

@@ -21,9 +21,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -52,11 +50,6 @@ fun MoodAndGenresScreen(
     viewModel: MoodAndGenresViewModel = hiltViewModel(),
 ) {
     val lazyListState = rememberLazyListState()
-    val lazyChecker by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
     val localConfiguration = LocalConfiguration.current
     val itemsPerRow = if (localConfiguration.orientation == ORIENTATION_LANDSCAPE) 3 else 2
 
@@ -107,12 +100,6 @@ fun MoodAndGenresScreen(
                 }
             }
         }
-    }
-
-    if (lazyChecker) {
-        LazyColumnScrollbar(
-            state = lazyListState
-        )
     }
 
     TopAppBar(

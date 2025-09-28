@@ -22,6 +22,7 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
@@ -152,7 +153,11 @@ fun AutoPlaylistScreen(
         }
     }
 
-    val playlist = if (viewModel.playlist == "liked") stringResource(R.string.liked) else stringResource(R.string.offline)
+    val playlist = when (viewModel.playlist) {
+        "liked" -> stringResource(R.string.liked)
+        "uploaded" -> stringResource(R.string.uploaded_playlist)
+        else -> stringResource(R.string.offline)
+    }
     val songs by viewModel.likedSongs.collectAsState(null)
     val mutableSongs = remember {
         mutableStateListOf<Song>()
@@ -164,6 +169,7 @@ fun AutoPlaylistScreen(
     val playlistType = when (playlistId) {
         "liked" -> PlaylistType.LIKE
         "downloaded" -> PlaylistType.DOWNLOAD
+        "uploaded" -> PlaylistType.UPLOADED
         else -> PlaylistType.OTHER
     }
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
@@ -207,7 +213,12 @@ fun AutoPlaylistScreen(
     LaunchedEffect(Unit) {
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             withContext(Dispatchers.IO) {
-                if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
+                when (playlistType) {
+                    PlaylistType.LIKE -> viewModel.syncLikedSongs()
+                    PlaylistType.UPLOADED -> viewModel.syncUploadedSongs()
+                    PlaylistType.DOWNLOAD -> return@withContext
+                    PlaylistType.OTHER -> return@withContext
+                }
             }
         }
     }
@@ -326,7 +337,11 @@ fun AutoPlaylistScreen(
                                         )
                                 ) {
                                     Icon(
-                                        imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                        imageVector = when (viewModel.playlist) {
+                                            "liked" -> Icons.Rounded.Favorite
+                                            "uploaded" -> Icons.Rounded.Backup
+                                            else -> Icons.Rounded.CloudDownload
+                                        },
                                         contentDescription = null,
                                         tint = LocalContentColor.current.copy(alpha = 0.8f),
                                         modifier = Modifier
@@ -795,6 +810,6 @@ fun AutoPlaylistScreen(
 }
 
 enum class PlaylistType {
-    LIKE, DOWNLOAD, OTHER
+    LIKE, DOWNLOAD, UPLOADED, OTHER
 }
 

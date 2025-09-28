@@ -77,6 +77,7 @@ import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 
@@ -85,6 +86,7 @@ fun YouTubeSongMenu(
     song: SongItem,
     navController: NavController,
     onDismiss: () -> Unit,
+    onHistoryRemoved: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
@@ -444,6 +446,22 @@ fun YouTubeSongMenu(
         ) {
             val intent = Intent(Intent.ACTION_VIEW, song.shareLink.toUri())
             context.startActivity(intent)
+        }
+        if (song.historyRemoveToken != null) {
+            item {
+                HorizontalDivider()
+            }
+            ListMenuItem(
+                icon = R.drawable.delete_history,
+                title = R.string.remove_from_history
+            ) {
+                coroutineScope.launch {
+                    YouTube.feedback(listOf(song.historyRemoveToken!!))
+                    delay(500)
+                    onHistoryRemoved()
+                    onDismiss()
+                }
+            }
         }
     }
 }

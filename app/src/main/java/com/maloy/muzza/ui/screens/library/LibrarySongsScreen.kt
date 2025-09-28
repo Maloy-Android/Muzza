@@ -91,8 +91,6 @@ import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibrarySongsViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -131,8 +129,10 @@ fun LibrarySongsScreen(
 
     LaunchedEffect(Unit) {
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
-            withContext(Dispatchers.IO) {
-                viewModel.syncLikedSongs()
+            when (filter) {
+                SongFilter.LIKED -> viewModel.syncLikedSongs()
+                SongFilter.UPLOADED -> viewModel.syncUploadedSongs()
+                else -> return@LaunchedEffect
             }
         }
     }
@@ -244,7 +244,8 @@ fun LibrarySongsScreen(
                                     SongFilter.LIKED to stringResource(R.string.filter_liked),
                                     SongFilter.LIBRARY to stringResource(R.string.filter_library),
                                     SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
-                                    SongFilter.CACHED to stringResource(R.string.cached)
+                                    SongFilter.CACHED to stringResource(R.string.cached),
+                                    SongFilter.UPLOADED to stringResource(R.string.filter_uploaded)
                                 ),
                             currentValue = filter,
                             onValueUpdate = {
@@ -425,6 +426,7 @@ fun LibrarySongsScreen(
                                                 SongFilter.LIBRARY -> context.getString(R.string.filter_library)
                                                 SongFilter.DOWNLOADED -> context.getString(R.string.downloaded_songs)
                                                 SongFilter.CACHED -> context.getString(R.string.cached)
+                                                SongFilter.UPLOADED -> context.getString(R.string.uploaded_playlist)
                                             },
                                             items = songs.map { it.toMediaItem() },
                                             startIndex = songs.indexOfFirst { it.song.id == song.id }

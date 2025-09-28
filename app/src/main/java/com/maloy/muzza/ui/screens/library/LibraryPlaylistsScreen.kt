@@ -17,10 +17,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
@@ -30,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
@@ -92,6 +91,7 @@ import com.maloy.muzza.constants.PlaylistViewTypeKey
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
+import com.maloy.muzza.constants.ShowUploadedPlaylistKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
@@ -229,6 +229,16 @@ fun LibraryPlaylistsScreen(
         songThumbnails = emptyList()
     )
 
+    val uploadedPlaylist =
+        Playlist(
+            playlist = PlaylistEntity(
+                id = UUID.randomUUID().toString(),
+                name = stringResource(R.string.uploaded_playlist)
+            ),
+            songCount = 0,
+            songThumbnails = emptyList(),
+        )
+
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
@@ -254,6 +264,9 @@ fun LibraryPlaylistsScreen(
     )
     val (autoPlaylistLocal) = rememberPreference(
         AutoPlaylistLocalPlaylistShowKey, defaultValue = true
+    )
+    val (uploadedPlaylists) = rememberPreference(
+        ShowUploadedPlaylistKey, defaultValue = true
     )
 
     val lazyListState = rememberLazyListState()
@@ -578,6 +591,24 @@ fun LibraryPlaylistsScreen(
                                     )
                                 }
                             }
+                            if (uploadedPlaylists) {
+                                item(
+                                    key = "uploadedPlaylist",
+                                    contentType = { CONTENT_TYPE_PLAYLIST },
+                                ) {
+                                    PlaylistListItem(
+                                        playlist = uploadedPlaylist,
+                                        thumbnail = Icons.Rounded.Backup,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .combinedClickable(
+                                                    onClick = { navController.navigate("auto_playlist/uploaded") }
+                                                )
+                                                .animateItem()
+                                    )
+                                }
+                            }
                             items(
                                 items = playlists,
                                 key = { it.id },
@@ -785,6 +816,25 @@ fun LibraryPlaylistsScreen(
                                                 }
                                             )
                                             .animateItem()
+                                    )
+                                }
+                            }
+                            if (uploadedPlaylists) {
+                                item(
+                                    key = "uploadedPlaylist",
+                                    contentType = { CONTENT_TYPE_PLAYLIST },
+                                ) {
+                                    PlaylistGridItem(
+                                        playlist = uploadedPlaylist,
+                                        thumbnail = Icons.Rounded.Backup,
+                                        fillMaxWidth = true,
+                                        modifier =
+                                            Modifier
+                                                .fillMaxWidth()
+                                                .combinedClickable(
+                                                    onClick = { navController.navigate("auto_playlist/uploaded") }
+                                                )
+                                                .animateItem()
                                     )
                                 }
                             }

@@ -15,7 +15,6 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -103,7 +102,7 @@ fun HistoryScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
-    val historyPage by viewModel.historyPage
+    val historyPage by viewModel.historyPage.collectAsState()
     val historySource by viewModel.historySource.collectAsState()
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
@@ -285,7 +284,10 @@ fun HistoryScreen(
                                                     YouTubeSongMenu(
                                                         song = song,
                                                         navController = navController,
-                                                        onDismiss = menuState::dismiss
+                                                        onDismiss = menuState::dismiss,
+                                                        onHistoryRemoved = {
+                                                            viewModel.fetchRemoteHistory()
+                                                        }
                                                     )
                                                 }
                                             }
@@ -304,13 +306,19 @@ fun HistoryScreen(
                                             if (song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = context.getString(R.string.history_queue_title_online),
-                                                        items = filteredRemoteContent.map { it.songs }.flatten().map { it.toMediaItem() },
-                                                        startIndex = filteredRemoteContent.map { it.songs }.flatten().indexOfFirst { it.id == song.id }
+                                                historyPage?.sections.let { songs ->
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = context.getString(R.string.history_queue_title_online),
+                                                            items = songs?.map { it.songs }
+                                                                ?.flatten()?.map { it.toMediaItem() }
+                                                                ?: return@let,
+                                                            startIndex = songs.map { it.songs }
+                                                                .flatten()
+                                                                .indexOfFirst { it.id == song.id }
+                                                        )
                                                     )
-                                                )
+                                                }
                                             }
                                         },
                                         onLongClick = {
@@ -398,13 +406,18 @@ fun HistoryScreen(
                                             } else if (event.song.id == mediaMetadata?.id) {
                                                 playerConnection.player.togglePlayPause()
                                             } else {
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = context.getString(R.string.history_queue_title_local),
-                                                        items = filteredEventIndex.values.map { it.song.toMediaItem() },
-                                                        startIndex = filteredEventIndex.values.map { it.song }.indexOfFirst { it.id == event.song.id }
+                                                eventsMap.let { songs ->
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = context.getString(R.string.history_queue_title_local),
+                                                            items = songs.flatMap { it.value }
+                                                                .map { it.song.toMediaItem() },
+                                                            startIndex = songs.flatMap { it.value }
+                                                                .map { it.song }
+                                                                .indexOfFirst { it.id == event.song.id }
+                                                        )
                                                     )
-                                                )
+                                                }
                                             }
                                         },
                                         onLongClick = {

@@ -148,7 +148,6 @@ fun OnlinePlaylistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val scope = rememberCoroutineScope()
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
@@ -501,31 +500,41 @@ fun OnlinePlaylistScreen(
                                                     }
                                                 }
                                             }
-                                            Button(
-                                                onClick = {
-                                                    scope.launch(Dispatchers.IO) {
-                                                        viewModel.loadRemainingSongs()
-                                                        snackbarHostState.showSnackbar(
-                                                            context.getString(
-                                                                R.string.playlist_synced
+                                            if (playlist.id == "LM") {
+                                                Button(
+                                                    onClick = {
+                                                        playerConnection.playQueue(
+                                                            YouTubeQueue(
+                                                                songs.first().endpoint
+                                                                    ?: WatchEndpoint(videoId = songs.first().id),
+                                                                songs.first().toMediaMetadata()
                                                             )
                                                         )
-                                                    }
-                                                },
-                                                enabled = !isLoading,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(4.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                            ) {
-                                                if (isLoading) {
-                                                    CircularProgressIndicator(
-                                                        modifier = Modifier.size(16.dp),
-                                                        strokeWidth = 2.dp
-                                                    )
-                                                } else {
+                                                    },
+                                                    enabled = !isLoading,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
                                                     Icon(
-                                                        painterResource(R.drawable.sync),
+                                                        painter = painterResource(R.drawable.play),
+                                                        contentDescription = null
+                                                    )
+                                                }
+                                            } else {
+                                                Button(
+                                                    onClick = {
+                                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                    },
+                                                    enabled = !isLoading,
+                                                    modifier = Modifier
+                                                        .weight(1f)
+                                                        .padding(4.dp)
+                                                        .clip(RoundedCornerShape(12.dp))
+                                                ) {
+                                                    Icon(
+                                                        painter = painterResource(R.drawable.queue_music),
                                                         contentDescription = null
                                                     )
                                                 }
@@ -599,6 +608,28 @@ fun OnlinePlaylistScreen(
                                             )
                                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                             Text(stringResource(R.string.radio))
+                                        }
+                                    }
+                                    if (playlist.id.startsWith("RDTMAK5uy")) {
+                                        Button(
+                                            onClick = {
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        songs.first().endpoint ?: WatchEndpoint(videoId = songs.first().id),
+                                                        songs.first().toMediaMetadata()
+                                                    )
+                                                )
+                                            },
+                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                            modifier = Modifier.weight(1f)
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.play),
+                                                contentDescription = null,
+                                                modifier = Modifier.size(ButtonDefaults.IconSize)
+                                            )
+                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                            Text(stringResource(R.string.play))
                                         }
                                     }
                                     if (!playlist.id.startsWith("RDAT")) {

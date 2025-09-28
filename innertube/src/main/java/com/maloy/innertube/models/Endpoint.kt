@@ -98,3 +98,8 @@ data class DefaultServiceEndpoint(
         val params: String? = null,
     ) : Endpoint()
 }
+
+@Serializable
+data class FeedbackEndpoint(
+    val feedbackToken: String
+) : Endpoint()

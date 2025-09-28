@@ -24,6 +24,7 @@
     <string name="my_top">My top music</string>
     <string name="cached">Cached music</string>
     <string name="local">Local music</string>
+    <string name="uploaded_playlist">Uploaded music</string>
 
     <string name="content_filter">Content filter</string>
 
@@ -95,6 +96,7 @@
     <string name="filter_community_playlists">Community playlists</string>
     <string name="filter_featured_playlists">Featured playlists</string>
     <string name="filter_bookmarked">Bookmarked</string>
+    <string name="filter_uploaded">Uploaded</string>
     <string name="no_results_found">No results found</string>
 
     <!-- Library -->
@@ -132,6 +134,7 @@
     <string name="edit">Edit</string>
     <string name="edit_playlist_thumbnail">Edit playlist thumbnail</string>
     <string name="remove_custom_playlist_thumbnail">Remove custom playlist thumbnail</string>
+    <string name="remove_custom_playlist_thumbnail_confirm">Do you really want to delete the custom thumbnail for playlist \"%s\"?</string>
     <string name="start_radio">Start radio</string>
     <string name="play">Play</string>
     <string name="play_next">Play next</string>
@@ -261,9 +264,25 @@
     <string name="error_no_internet">No network connection</string>
     <string name="error_timeout">Timeout</string>
     <string name="error_unknown">Unknown error</string>
-
-    <string name="seek_backward">5 seconds backward</string>
-    <string name="seek_forward">5 seconds forward</string>
+    <string name="seek_value">Seek value</string>
+    <string name="seek_value_5">5 seconds</string>
+    <string name="seek_value_10">10 seconds</string>
+    <string name="seek_value_15">15 seconds</string>
+    <string name="seek_value_20">20 seconds</string>
+    <string name="seek_value_25">25 seconds</string>
+    <string name="seek_value_30">30 seconds</string>
+    <string name="seek_backward_5">5 seconds backward</string>
+    <string name="seek_forward_5">5 seconds forward</string>
+    <string name="seek_backward_10">10 seconds backward</string>
+    <string name="seek_forward_10">10 seconds forward</string>
+    <string name="seek_backward_15">15 seconds backward</string>
+    <string name="seek_forward_15">15 seconds forward</string>
+    <string name="seek_backward_20">20 seconds backward</string>
+    <string name="seek_forward_20">20 seconds forward</string>
+    <string name="seek_backward_25">25 seconds backward</string>
+    <string name="seek_forward_25">25 seconds forward</string>
+    <string name="seek_backward_30">30 seconds backward</string>
+    <string name="seek_forward_30">30 seconds forward</string>
 
     <!-- Player action -->
     <string name="action_like">Like</string>
@@ -341,6 +360,7 @@
     <string name="show_top_auto_playlist">Show auto-playlist top</string>
     <string name="show_cached_auto_playlist">Show auto-playlist cached</string>
     <string name="show_local_auto_playlist">Show auto-playlist local</string>
+    <string name="show_uploaded_auto_playlist">Show auto-playlist uploaded music</string>
     <string name="swipe_song_to_dismiss">Swipe song to right for play next or left for adding to queue</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="default_lib_chips">Default library chips</string>

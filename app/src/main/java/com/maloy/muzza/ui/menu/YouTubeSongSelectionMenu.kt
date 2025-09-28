@@ -29,7 +29,8 @@ fun YouTubeSongSelectionMenu(
     selection: List<SongItem>,
     onDismiss: () -> Unit,
     onExitSelectionMode: () -> Unit,
-    showPlayNextButton : Boolean = true
+    showPlayNextButton : Boolean = true,
+    onHistoryRemoved: () -> Unit = {}
 ) {
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return

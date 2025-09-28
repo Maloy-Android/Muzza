@@ -6,12 +6,17 @@ import kotlinx.serialization.Serializable
 data class Context(
     val client: Client,
     val thirdParty: ThirdParty? = null,
+    private val user: User = User()
 ) {
     @Serializable
     data class Client(
         val clientName: String,
         val clientVersion: String,
         val osVersion: String?,
+        val osName: String? = null,
+        val deviceMake: String? = null,
+        val deviceModel: String? = null,
+        val androidSdkVersion: String? = null,
         val gl: String,
         val hl: String,
         val visitorData: String?,
@@ -20,5 +25,10 @@ data class Context(
     @Serializable
     data class ThirdParty(
         val embedUrl: String,
+    )
+    @Serializable
+    data class User(
+        val lockedSafetyMode: Boolean = false,
+        val onBehalfOfUser: String? = null,
     )
 }

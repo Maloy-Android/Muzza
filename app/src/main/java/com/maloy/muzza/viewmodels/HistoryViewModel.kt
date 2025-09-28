@@ -27,7 +27,7 @@ class HistoryViewModel @Inject constructor(
     private val thisMonday = today.with(DayOfWeek.MONDAY)
     private val lastMonday = thisMonday.minusDays(7)
     var historySource = MutableStateFlow(HistorySource.LOCAL)
-    val historyPage = mutableStateOf<HistoryPage?>(null)
+    val historyPage = MutableStateFlow<HistoryPage?>(null)
 
     val events = database.events()
         .map { events ->
@@ -54,7 +54,12 @@ class HistoryViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyMap())
+
     init {
+        fetchRemoteHistory()
+    }
+
+    fun fetchRemoteHistory() {
         viewModelScope.launch(Dispatchers.IO) {
             historyPage.value = YouTube.musicHistory().getOrNull()
         }

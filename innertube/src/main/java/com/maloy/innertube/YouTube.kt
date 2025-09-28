@@ -25,6 +25,7 @@ import com.maloy.innertube.models.response.AccountMenuResponse
 import com.maloy.innertube.models.response.AddItemYouTubePlaylistResponse
 import com.maloy.innertube.models.response.BrowseResponse
 import com.maloy.innertube.models.response.CreatePlaylistResponse
+import com.maloy.innertube.models.response.FeedbackResponse
 import com.maloy.innertube.models.response.GetQueueResponse
 import com.maloy.innertube.models.response.GetSearchSuggestionsResponse
 import com.maloy.innertube.models.response.GetTranscriptResponse
@@ -82,7 +83,7 @@ object YouTube {
         set(value) {
             innerTube.locale = value
         }
-    var visitorData: String
+    var visitorData: String?
         get() = innerTube.visitorData
         set(value) {
             innerTube.visitorData = value
@@ -175,27 +176,61 @@ object YouTube {
 
     suspend fun album(browseId: String, withSongs: Boolean = true): Result<AlbumPage> = runCatching {
         val response = innerTube.browse(WEB_REMIX, browseId).body<BrowseResponse>()
-        val playlistId = response.microformat?.microformatDataRenderer?.urlCanonical?.substringAfterLast('=')!!
-        AlbumPage(
-            album = AlbumItem(
+        if (browseId.contains("FEmusic_library_privately_owned_release_detail")) {
+            val playlistId =
+                response.header?.musicDetailHeaderRenderer?.menu?.menuRenderer?.topLevelButtons?.firstOrNull()?.buttonRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.playlistId!!
+            val albumItem = AlbumItem(
                 browseId = browseId,
                 playlistId = playlistId,
-                title = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.title?.runs?.firstOrNull()?.text!!,
-                artists = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.straplineTextOne?.runs?.oddElements()?.map {
+                title = response.header.musicDetailHeaderRenderer.title.runs?.firstOrNull()?.text!!,
+                artists = response.header.musicDetailHeaderRenderer.subtitle.runs?.filter { it.navigationEndpoint != null }?.map {
                     Artist(
                         name = it.text,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
-                }!!,
+                },
+                year = response.header.musicDetailHeaderRenderer.subtitle.runs?.lastOrNull()?.text?.toIntOrNull(),
+                thumbnail = response.header.musicDetailHeaderRenderer.thumbnail.croppedSquareThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()!!.url,
+                explicit = false,
+            )
+            return@runCatching AlbumPage(
+                album = albumItem,
+                songs = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicShelfRenderer?.contents?.getItems()?.mapNotNull {
+                    AlbumPage.getSong(it, albumItem)
+                }!!.toMutableList(),
+                otherVersions = emptyList()
+            )
+        } else {
+            val playlistId =
+                response.microformat?.microformatDataRenderer?.urlCanonical?.substringAfterLast('=')!!
+            val albumItem = AlbumItem(
+                browseId = browseId,
+                playlistId = playlistId,
+                title = response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.title?.runs?.firstOrNull()?.text!!,
+                artists = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.straplineTextOne?.runs?.oddElements()
+                    ?.map {
+                        Artist(
+                            name = it.text,
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                        )
+                    }!!,
                 year = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.subtitle?.runs?.lastOrNull()?.text?.toIntOrNull(),
                 thumbnail = response.contents.twoColumnBrowseResultsRenderer.tabs.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.musicResponsiveHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url!!,
-            ),
-            songs = if (withSongs) albumSongs(playlistId).getOrThrow() else emptyList(),
-            otherVersions = response.contents.twoColumnBrowseResultsRenderer.secondaryContents?.sectionListRenderer?.contents?.getOrNull(1)?.musicCarouselShelfRenderer?.contents
-                ?.mapNotNull { it.musicTwoRowItemRenderer }
-                ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
-                .orEmpty()
-        )
+                explicit = false,
+            )
+            return@runCatching AlbumPage(
+                album = albumItem,
+                songs = if (withSongs) albumSongs(
+                    playlistId
+                ).getOrThrow() else emptyList(),
+                otherVersions = response.contents.twoColumnBrowseResultsRenderer.secondaryContents?.sectionListRenderer?.contents?.getOrNull(
+                    1
+                )?.musicCarouselShelfRenderer?.contents
+                    ?.mapNotNull { it.musicTwoRowItemRenderer }
+                    ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
+                    .orEmpty()
+            )
+        }
     }
 
     suspend fun albumSongs(playlistId: String): Result<List<SongItem>> = runCatching {
@@ -657,8 +692,8 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         )
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, webPlayerPot: String? = null): Result<PlayerResponse> = runCatching {
-        innerTube.player(client, videoId, playlistId, signatureTimestamp, webPlayerPot).body<PlayerResponse>()
+    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null): Result<PlayerResponse> = runCatching {
+        innerTube.player(client, videoId, playlistId, signatureTimestamp).body<PlayerResponse>()
     }
 
     suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
@@ -835,6 +870,9 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     }
     suspend fun removeFromPlaylist(playlistId: String, videoId: String, setVideoId: String) = runCatching {
         innerTube.removeFromPlaylist(WEB_REMIX, playlistId, videoId, setVideoId)
+    }
+    suspend fun feedback(tokens: List<String>): Result<Boolean> = runCatching {
+        innerTube.feedback(WEB_REMIX, tokens).body<FeedbackResponse>().feedbackResponses.all { it.isProcessed }
     }
     @JvmInline
     value class SearchFilter(val value: String) {

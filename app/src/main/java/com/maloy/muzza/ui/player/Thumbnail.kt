@@ -18,19 +18,13 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -52,7 +46,6 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
@@ -67,6 +60,8 @@ import com.maloy.muzza.constants.PlayerHorizontalPadding
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
+import com.maloy.muzza.constants.SongDurationTimeSkip
+import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.models.MediaMetadata
@@ -86,6 +81,8 @@ fun Thumbnail(
     contentScale: ContentScale = ContentScale.Fit,
     customMediaMetadata: MediaMetadata? = null
 ) {
+    val (songDurationTimeSkip) = rememberEnumPreference(
+        SongDurationTimeSkipKey, defaultValue = SongDurationTimeSkip.FIVE)
     val playerConnection = LocalPlayerConnection.current ?: return
     val currentView = LocalView.current
     val context = LocalContext.current
@@ -196,20 +193,48 @@ fun Thumbnail(
                                                 (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
                                             ) {
                                                 playerConnection.player.seekTo(
-                                                    (currentPosition - 5000).coerceAtLeast(
+                                                    (currentPosition - when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> 5000
+                                                        SongDurationTimeSkip.TEN -> 10000
+                                                        SongDurationTimeSkip.FIFTEEN -> 15000
+                                                        SongDurationTimeSkip.TWENTY -> 20000
+                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                        SongDurationTimeSkip.THIRTY -> 30000
+                                                    }).coerceAtLeast(
                                                         0
                                                     )
                                                 )
                                                 seekDirection =
-                                                    context.getString(R.string.seek_backward)
+                                                    context.getString(when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                                        SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
+                                                    })
                                             } else {
                                                 playerConnection.player.seekTo(
-                                                    (currentPosition + 5000).coerceAtMost(
+                                                    (currentPosition + when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> 5000
+                                                        SongDurationTimeSkip.TEN -> 10000
+                                                        SongDurationTimeSkip.FIFTEEN -> 15000
+                                                        SongDurationTimeSkip.TWENTY -> 20000
+                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                        SongDurationTimeSkip.THIRTY -> 30000
+                                                    }).coerceAtMost(
                                                         playerConnection.player.duration
                                                     )
                                                 )
                                                 seekDirection =
-                                                    context.getString(R.string.seek_forward)
+                                                    context.getString(when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                                        SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                                    })
                                             }
                                             showSeekEffect = true
                                         }
@@ -263,20 +288,48 @@ fun Thumbnail(
                                                         (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
                                                     ) {
                                                         playerConnection.player.seekTo(
-                                                            (currentPosition - 5000).coerceAtLeast(
+                                                            (currentPosition - when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> 5000
+                                                                SongDurationTimeSkip.TEN -> 10000
+                                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                                SongDurationTimeSkip.THIRTY -> 30000
+                                                            }).coerceAtLeast(
                                                                 0
                                                             )
                                                         )
                                                         seekDirection =
-                                                            context.getString(R.string.seek_backward)
+                                                            context.getString(when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                                                SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                                                SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                                                SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                                                SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                                                SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
+                                                            })
                                                     } else {
                                                         playerConnection.player.seekTo(
-                                                            (currentPosition + 5000).coerceAtMost(
+                                                            (currentPosition + when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> 5000
+                                                                SongDurationTimeSkip.TEN -> 10000
+                                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                                SongDurationTimeSkip.THIRTY -> 30000
+                                                            }).coerceAtMost(
                                                                 playerConnection.player.duration
                                                             )
                                                         )
                                                         seekDirection =
-                                                            context.getString(R.string.seek_forward)
+                                                            context.getString(when (songDurationTimeSkip) {
+                                                                SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                                                SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                                                SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                                                SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                                                SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                                                SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                                            })
                                                     }
                                                     showSeekEffect = true
                                                 }
@@ -361,53 +414,10 @@ fun Thumbnail(
         ) {
             error?.let { playbackException ->
                 PlaybackError(
-                    error = playbackException.message ?: context.getString(R.string.error_unknown),
-                    retry = { playerConnection.player.prepare() },
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.errorContainer)
+                    error = playbackException,
+                    retry = playerConnection.player::prepare ,
                 )
             }
-        }
-    }
-}
-
-@Composable
-fun PlaybackError(
-    error: String,
-    retry: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = modifier
-            .padding(24.dp)
-    ) {
-        Text(
-            text = stringResource(R.string.error_unknown),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onErrorContainer
-        )
-
-        Spacer(modifier = Modifier.height(8.dp))
-
-        Text(
-            text = error,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.8f),
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Button(
-            onClick = retry,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer
-            )
-        ) {
-            Text(text = stringResource(R.string.retry))
         }
     }
 }

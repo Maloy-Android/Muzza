@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -134,6 +133,7 @@ fun LibraryAlbumsScreen(
                 listOf(
                     AlbumFilter.LIKED to stringResource(R.string.filter_liked),
                     AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
+                    AlbumFilter.UPLOADED to stringResource(R.string.filter_uploaded)
                 ),
                 currentValue = filter,
                 onValueUpdate = {

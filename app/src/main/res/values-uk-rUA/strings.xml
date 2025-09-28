@@ -21,6 +21,7 @@
     <string name="offline">Завантажена музика</string>
     <string name="cached">Кешована музика</string>
     <string name="local">Локальна музика</string>
+    <string name="uploaded_playlist">Завантажена музика (онлайн)</string>
 
     <string name="content_filter">Фільтр контенту</string>
 
@@ -85,6 +86,7 @@
     <string name="filter_community_playlists">Плейлисти спільноти</string>
     <string name="filter_featured_playlists">Обрані плейлисти</string>
     <string name="filter_bookmarked">Додано в закладки</string>
+    <string name="filter_uploaded">Завантажена (онлайн)</string>
     <string name="no_results_found">Результатів не знайдено</string>
     <string name="SearchHistory">Історія пошуку</string>
     <string name="Sujestions">Пропозиції</string>
@@ -133,6 +135,7 @@
     <string name="edit">Редагувати</string>
     <string name="edit_playlist_thumbnail">Редагувати обкладинку плейлиста</string>
     <string name="remove_custom_playlist_thumbnail">Видалити настроковану мініатюру списку відтворення</string>
+    <string name="remove_custom_playlist_thumbnail_confirm">Ви дійсно хочете видалити індивідуальне зображення плейлиста для плейлиста \"%s\"?</string>
     <string name="start_radio">Увімкнути радіо</string>
     <string name="play">Відтворити</string>
     <string name="play_next">Відтворити наступним</string>
@@ -279,8 +282,25 @@
     <string name="error_timeout">Тайм-аут</string>
     <string name="error_unknown">Невідома помилка</string>
 
-    <string name="seek_backward">5 секунд тому</string>
-    <string name="seek_forward">5 секунд вперед</string>
+    <string name="seek_value">Значення перемотування</string>
+    <string name="seek_value_5">5 секунд</string>
+    <string name="seek_value_10">10 секунд</string>
+    <string name="seek_value_15">15 секунд</string>
+    <string name="seek_value_20">20 секунд</string>
+    <string name="seek_value_25">25 секунд</string>
+    <string name="seek_value_30">30 секунд</string>
+    <string name="seek_backward_5">На 5 секунд назад</string>
+    <string name="seek_forward_5">На 5 секунд уперед</string>
+    <string name="seek_backward_10">На 10 секунд назад</string>
+    <string name="seek_forward_10">На 10 секунд уперед</string>
+    <string name="seek_backward_15">На 15 секунд назад</string>
+    <string name="seek_forward_15">На 15 секунд уперед</string>
+    <string name="seek_backward_20">На 20 секунд назад</string>
+    <string name="seek_forward_20">На 20 секунд уперед</string>
+    <string name="seek_backward_25">На 25 секунд назад</string>
+    <string name="seek_forward_25">На 25 секунд уперед</string>
+    <string name="seek_backward_30">На 30 секунд назад</string>
+    <string name="seek_forward_30">На 30 секунд уперед</string>
 
     <!-- Player action -->
     <string name="action_like">Поставити «Подобається»</string>
@@ -351,6 +371,7 @@
     <string name="show_top_auto_playlist">Показувати автоматичний плейлист «Топ»</string>
     <string name="show_cached_auto_playlist">Показувати автоматичний плейлист «Кешовані»</string>
     <string name="show_local_auto_playlist">Показувати автоматичний плейлист «Локальні»</string>
+    <string name="show_uploaded_auto_playlist">Показувати автоматичний плейлист «Завантажена (онлайн)»</string>
     <string name="swipe_song_to_dismiss">Проведіть по пісні вправо для наступного відтворення або вліво для додавання в чергу</string>
     <string name="default_open_tab">Основна вкладка навігації</string>
     <string name="default_lib_chips">Вкладка бібліотеки за замовчуванням</string>

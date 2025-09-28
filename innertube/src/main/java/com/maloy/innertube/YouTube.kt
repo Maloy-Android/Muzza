@@ -380,60 +380,39 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {
                     PlaylistPage.fromMusicResponsiveListItemRenderer(it)
-                } ?: emptyList(),
-            songsContinuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
-                ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getContinuation(),
-            continuation = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
-                ?.continuations?.getContinuation()
+                }!!,
+            songsContinuation = response.contents.twoColumnBrowseResultsRenderer.secondaryContents.sectionListRenderer
+                .contents.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getContinuation(),
+            continuation = response.contents.twoColumnBrowseResultsRenderer.secondaryContents.sectionListRenderer
+                .continuations?.getContinuation()
         )
     }
 
-    suspend fun playlistContinuation(continuation: String): Result<PlaylistContinuationPage> = runCatching {
+    suspend fun playlistContinuation(continuation: String) = runCatching {
         val response = innerTube.browse(
             client = WEB_REMIX,
             continuation = continuation,
-            browseId = "",
             setLogin = true
         ).body<BrowseResponse>()
 
-        val mainContents = response.continuationContents?.sectionListContinuation?.contents
-            ?.flatMap { it.musicPlaylistShelfRenderer?.contents.orEmpty() }
-            ?: emptyList()
-
-        val appendedContents = response.onResponseReceivedActions
-            ?.firstOrNull()
-            ?.appendContinuationItemsAction
-            ?.continuationItems
-            .orEmpty()
-
-        val allContents = mainContents + appendedContents
-
-        val songs = allContents
-            .mapNotNull { it.musicResponsiveListItemRenderer }
-            .mapNotNull { PlaylistPage.fromMusicResponsiveListItemRenderer(it) }
-
-        val nextContinuation = response.continuationContents
-            ?.sectionListContinuation
-            ?.continuations
-            ?.getContinuation()
-            ?: response.continuationContents
-                ?.musicPlaylistShelfContinuation
-                ?.continuations
-                ?.getContinuation()
-            ?: response.continuationContents
-                ?.musicShelfContinuation
-                ?.continuations
-                ?.getContinuation()
-            ?: response.onResponseReceivedActions
-                ?.firstOrNull()
-                ?.appendContinuationItemsAction
-                ?.continuationItems
-                ?.getContinuation()
-
-        PlaylistContinuationPage(
-            songs = songs,
-            continuation = nextContinuation
-        )
+        val musicPlaylistShelfContinuation = response.continuationContents?.musicPlaylistShelfContinuation
+        if (musicPlaylistShelfContinuation != null) {
+            PlaylistContinuationPage(
+                songs = musicPlaylistShelfContinuation.contents.getItems().mapNotNull {
+                    PlaylistPage.fromMusicResponsiveListItemRenderer(it)
+                },
+                continuation = musicPlaylistShelfContinuation.continuations?.getContinuation()
+            )
+        } else {
+            val continuationItems = response.onResponseReceivedActions?.firstOrNull()
+                ?.appendContinuationItemsAction?.continuationItems
+            PlaylistContinuationPage(
+                songs = continuationItems?.getItems()?.mapNotNull {
+                    PlaylistPage.fromMusicResponsiveListItemRenderer(it)
+                }!!,
+                continuation = continuationItems.getContinuation()
+            )
+        }
     }
 
     suspend fun addPlaylistToPlaylist(playlistId: String, addPlaylistId: String) = runCatching {

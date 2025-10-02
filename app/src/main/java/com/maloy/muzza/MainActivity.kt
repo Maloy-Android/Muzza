@@ -78,6 +78,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -101,12 +102,15 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.valentinilk.shimmer.LocalShimmerTheme
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.constants.AccountChannelHandleKey
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.AppDesignVariantKey
 import com.maloy.muzza.constants.AppDesignVariantType
@@ -117,6 +121,7 @@ import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.FirstSetupPassed
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.NavigationBarAnimationSpec
@@ -755,6 +760,13 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
+                        val accountImageUrl by rememberPreference(AccountChannelHandleKey, "")
+                        val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(
+                            InnerTubeCookieKey, "")
+                        val isLoggedIn = remember(innerTubeCookie) {
+                            "SAPISID" in parseCookieString(innerTubeCookie)
+                        }
+
                         if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings" && inSelectMode?.value != true && isSearching?.value != true) {
                             TopAppBar(
                                 title = {
@@ -787,6 +799,16 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 }
                                             ) {
+                                                if (isLoggedIn && accountImageUrl.isNotEmpty()) {
+                                                    AsyncImage(
+                                                        model = (accountImageUrl),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier
+                                                            .size(30.dp)
+                                                            .clip(CircleShape)
+                                                    )
+                                                }
                                                 Icon(painterResource(R.drawable.more_vert), null)
                                             }
                                             DropdownMenu(

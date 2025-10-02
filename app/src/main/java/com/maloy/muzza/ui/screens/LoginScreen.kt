@@ -47,6 +47,7 @@ fun LoginScreen(
     var accountName by rememberPreference(AccountNameKey, "")
     var accountEmail by rememberPreference(AccountEmailKey, "")
     var accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
+    var accountImageUrl by rememberPreference(AccountChannelHandleKey, "")
 
     var webView: WebView? = null
 
@@ -65,6 +66,7 @@ fun LoginScreen(
                                     accountName = it.name
                                     accountEmail = it.email.orEmpty()
                                     accountChannelHandle = it.channelHandle.orEmpty()
+                                    accountImageUrl = it.thumbnailUrl.orEmpty()
                                 }.onFailure {
                                     reportException(it)
                                 }

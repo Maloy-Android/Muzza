@@ -808,8 +808,12 @@ class MainActivity : ComponentActivity() {
                                                             .size(30.dp)
                                                             .clip(CircleShape)
                                                     )
+                                                } else {
+                                                    Icon(
+                                                        painterResource(R.drawable.more_vert),
+                                                        null
+                                                    )
                                                 }
-                                                Icon(painterResource(R.drawable.more_vert), null)
                                             }
                                             DropdownMenu(
                                                 expanded = showOptionsDropdown,

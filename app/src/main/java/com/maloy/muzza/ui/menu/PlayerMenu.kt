@@ -81,7 +81,6 @@ import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
-import com.maloy.muzza.ui.component.BigSeekBar
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
@@ -335,12 +334,36 @@ fun PlayerMenu(
                 modifier = Modifier.size(28.dp)
             )
         }
-
-        BigSeekBar(
-            progressProvider = playerVolume::value,
-            onProgressChange = { playerConnection.service.playerVolume.value = it },
-            modifier = Modifier.weight(1f)
-        )
+        when (sliderStyle) {
+            SliderStyle.DEFAULT -> {
+                Slider(
+                    value = playerVolume.value,
+                    onValueChange = { playerConnection.service.playerVolume.value = it },
+                    valueRange = 0f..1f,
+                    thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                    track = { sliderState ->
+                        PlayerSliderTrack(
+                            sliderState = sliderState,
+                            colors = SliderDefaults.colors()
+                        )
+                    }
+                )
+            }
+            SliderStyle.SQUIGGLY -> {
+                SquigglySlider(
+                    value = playerVolume.value,
+                    onValueChange = { playerConnection.service.playerVolume.value = it },
+                    valueRange = 0f..1f,
+                )
+            }
+            SliderStyle.COMPOSE -> {
+                Slider(
+                    value = playerVolume.value,
+                    onValueChange = { playerConnection.service.playerVolume.value = it },
+                    valueRange = 0f..1f,
+                )
+            }
+        }
     }
 
     Spacer(modifier = Modifier.height(20.dp))

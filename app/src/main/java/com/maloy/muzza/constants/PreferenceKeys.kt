@@ -20,7 +20,6 @@ val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 val NowPlayingEnableKey = booleanPreferencesKey("nowPlayingEnable")
 val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
 val SongDurationTimeSkipKey = stringPreferencesKey("songDurationTimeSkip")
-val ShowUploadedPlaylistKey = booleanPreferencesKey("show_uploaded_playlist")
 
 enum class SongDurationTimeSkip {
     FIVE,TEN,FIFTEEN,TWENTY,TWENTYFIVE,THIRTY
@@ -187,7 +186,7 @@ enum class PlaylistSortType {
 }
 
 enum class SongFilter {
-    LIBRARY, LIKED, DOWNLOADED, CACHED, UPLOADED
+    LIBRARY, LIKED, DOWNLOADED, CACHED
 }
 
 enum class ArtistFilter {
@@ -195,7 +194,7 @@ enum class ArtistFilter {
 }
 
 enum class AlbumFilter {
-    LIBRARY, LIKED, UPLOADED
+    LIBRARY, LIKED
 }
 
 enum class LibraryFilter {

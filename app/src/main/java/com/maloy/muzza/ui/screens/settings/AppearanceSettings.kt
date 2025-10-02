@@ -22,7 +22,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.DesignServices
@@ -87,7 +86,6 @@ import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
-import com.maloy.muzza.constants.ShowUploadedPlaylistKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SlimNavBarKey
@@ -130,9 +128,6 @@ fun AppearanceSettings(
         AutoPlaylistCachedPlaylistShowKey, defaultValue = true)
     val (autoPlaylistLocal, onAutoPlaylistLocalChange) = rememberPreference(
         AutoPlaylistLocalPlaylistShowKey, defaultValue = true)
-    val (uploadedPlaylists, onUploadedPlaylist) = rememberPreference(
-        ShowUploadedPlaylistKey, defaultValue = true
-    )
     val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTabOld, onDefaultOpenTabOldChange) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
@@ -574,14 +569,6 @@ fun AppearanceSettings(
                 icon = { Icon(Icons.Rounded.MusicNote, null) },
                 checked = autoPlaylistLocal,
                 onCheckedChange = onAutoPlaylistLocalChange
-            )
-        }
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_uploaded_auto_playlist)) },
-                icon = { Icon(Icons.Rounded.Backup, null) },
-                checked = uploadedPlaylists,
-                onCheckedChange = onUploadedPlaylist
             )
         }
         SwitchPreference(

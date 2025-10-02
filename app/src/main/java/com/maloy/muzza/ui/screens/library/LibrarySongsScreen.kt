@@ -139,7 +139,6 @@ fun LibrarySongsScreen(
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             when (filter) {
                 SongFilter.LIKED -> viewModel.syncLikedSongs()
-                SongFilter.UPLOADED -> viewModel.syncUploadedSongs()
                 else -> return@LaunchedEffect
             }
         }
@@ -267,8 +266,7 @@ fun LibrarySongsScreen(
                                     SongFilter.LIKED to stringResource(R.string.filter_liked),
                                     SongFilter.LIBRARY to stringResource(R.string.filter_library),
                                     SongFilter.DOWNLOADED to stringResource(R.string.filter_downloaded),
-                                    SongFilter.CACHED to stringResource(R.string.cached),
-                                    SongFilter.UPLOADED to stringResource(R.string.filter_uploaded)
+                                    SongFilter.CACHED to stringResource(R.string.cached)
                                 ),
                             currentValue = filter,
                             onValueUpdate = {
@@ -453,7 +451,6 @@ fun LibrarySongsScreen(
                                                     SongFilter.LIBRARY -> context.getString(R.string.filter_library)
                                                     SongFilter.DOWNLOADED -> context.getString(R.string.downloaded_songs)
                                                     SongFilter.CACHED -> context.getString(R.string.cached)
-                                                    SongFilter.UPLOADED -> context.getString(R.string.uploaded_playlist)
                                                 },
                                                 items = songs.map { it.toMediaItem() },
                                                 startIndex = songs.indexOfFirst { it.song.id == song.id }

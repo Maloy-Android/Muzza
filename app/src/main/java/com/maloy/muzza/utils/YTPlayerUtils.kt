@@ -11,7 +11,6 @@ import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.IPADOS
 import com.maloy.innertube.models.YouTubeClient.Companion.MOBILE
-import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_CREATOR
@@ -37,7 +36,6 @@ object YTPlayerUtils {
         IPADOS,
         ANDROID_VR_NO_AUTH,
         MOBILE,
-        TVHTML5,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         IOS,
         WEB,

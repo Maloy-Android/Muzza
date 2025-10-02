@@ -91,7 +91,6 @@ import com.maloy.muzza.constants.PlaylistViewTypeKey
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
-import com.maloy.muzza.constants.ShowUploadedPlaylistKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
@@ -229,16 +228,6 @@ fun LibraryPlaylistsScreen(
         songThumbnails = emptyList()
     )
 
-    val uploadedPlaylist =
-        Playlist(
-            playlist = PlaylistEntity(
-                id = UUID.randomUUID().toString(),
-                name = stringResource(R.string.uploaded_playlist)
-            ),
-            songCount = 0,
-            songThumbnails = emptyList(),
-        )
-
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
@@ -264,9 +253,6 @@ fun LibraryPlaylistsScreen(
     )
     val (autoPlaylistLocal) = rememberPreference(
         AutoPlaylistLocalPlaylistShowKey, defaultValue = true
-    )
-    val (uploadedPlaylists) = rememberPreference(
-        ShowUploadedPlaylistKey, defaultValue = true
     )
 
     val lazyListState = rememberLazyListState()
@@ -591,24 +577,6 @@ fun LibraryPlaylistsScreen(
                                     )
                                 }
                             }
-                            if (uploadedPlaylists) {
-                                item(
-                                    key = "uploadedPlaylist",
-                                    contentType = { CONTENT_TYPE_PLAYLIST },
-                                ) {
-                                    PlaylistListItem(
-                                        playlist = uploadedPlaylist,
-                                        thumbnail = Icons.Rounded.Backup,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .combinedClickable(
-                                                    onClick = { navController.navigate("auto_playlist/uploaded") }
-                                                )
-                                                .animateItem()
-                                    )
-                                }
-                            }
                             items(
                                 items = playlists,
                                 key = { it.id },
@@ -816,25 +784,6 @@ fun LibraryPlaylistsScreen(
                                                 }
                                             )
                                             .animateItem()
-                                    )
-                                }
-                            }
-                            if (uploadedPlaylists) {
-                                item(
-                                    key = "uploadedPlaylist",
-                                    contentType = { CONTENT_TYPE_PLAYLIST },
-                                ) {
-                                    PlaylistGridItem(
-                                        playlist = uploadedPlaylist,
-                                        thumbnail = Icons.Rounded.Backup,
-                                        fillMaxWidth = true,
-                                        modifier =
-                                            Modifier
-                                                .fillMaxWidth()
-                                                .combinedClickable(
-                                                    onClick = { navController.navigate("auto_playlist/uploaded") }
-                                                )
-                                                .animateItem()
                                     )
                                 }
                             }

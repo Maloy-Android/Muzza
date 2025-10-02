@@ -36,8 +36,6 @@ data class SongEntity(
     val artistName: String? = null,
     @ColumnInfo(name = "isLocal", defaultValue = "false") val isLocal: Boolean = false,
     val localPath: String?,
-    @ColumnInfo(name = "isUploaded", defaultValue = false.toString())
-    val isUploaded: Boolean = false
 ) {
 
     val isLocalSong: Boolean
@@ -61,8 +59,4 @@ data class SongEntity(
     }
 
     fun toggleLibrary() = copy(inLibrary = if (inLibrary == null) LocalDateTime.now() else null)
-
-    fun toggleUploaded() = copy(
-        isUploaded = !isUploaded
-    )
 }

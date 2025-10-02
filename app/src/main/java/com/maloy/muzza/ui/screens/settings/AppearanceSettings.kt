@@ -30,6 +30,7 @@ import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Padding
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -178,6 +179,7 @@ fun AppearanceSettings(
             CounterDialog(
                 title = stringResource(R.string.thumbnail_corner_radius),
                 onDismiss = { showCornerRadiusDialog = false },
+                icon = { Icon(Icons.Rounded.Image, null) },
                 initialValue = thumbnailCornerRadius,
                 upperBound = 10,
                 lowerBound = 0,
@@ -209,6 +211,7 @@ fun AppearanceSettings(
             CounterDialog(
                 title = stringResource(R.string.now_playing_padding),
                 onDismiss = { showNowPlayingPaddingDialog  = false },
+                icon = { Icon(Icons.Rounded.Padding, null) },
                 initialValue = nowPlayingPadding,
                 upperBound = 100,
                 lowerBound = 0,

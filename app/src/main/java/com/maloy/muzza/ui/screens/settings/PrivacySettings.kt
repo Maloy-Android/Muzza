@@ -99,6 +99,7 @@ fun PrivacySettings(
     if (showClearListenHistoryDialog) {
         DefaultDialog(
             onDismiss = { showClearListenHistoryDialog = false },
+            icon = { Icon(painterResource(R.drawable.delete_history), null)},
             content = {
                 Text(
                     text = stringResource(R.string.clear_listen_history_confirm),
@@ -132,6 +133,7 @@ fun PrivacySettings(
     if (showClearSearchHistoryDialog) {
         DefaultDialog(
             onDismiss = { showClearSearchHistoryDialog = false },
+            icon = { Icon(painterResource(R.drawable.delete_history), null)},
             content = {
                 Text(
                     text = stringResource(R.string.clear_search_history_confirm),

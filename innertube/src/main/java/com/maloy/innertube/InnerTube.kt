@@ -219,6 +219,24 @@ class InnerTube {
         parameter("ctoken", continuation)
     }
 
+    suspend fun searchUnlogged(
+        client: YouTubeClient,
+        query: String? = null,
+        params: String? = null,
+        continuation: String? = null,
+    ) = httpClient.post("search") {
+        ytClient(client, setLogin = false)
+        setBody(
+            SearchBody(
+                context = client.toContext(locale, visitorData, dataSyncId),
+                query = query,
+                params = params
+            )
+        )
+        parameter("continuation", continuation)
+        parameter("ctoken", continuation)
+    }
+
     suspend fun player(
         client: YouTubeClient,
         videoId: String,

@@ -111,6 +111,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.constants.AccountChannelHandleKey
+import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.AppDesignVariantKey
 import com.maloy.muzza.constants.AppDesignVariantType
@@ -760,8 +761,8 @@ class MainActivity : ComponentActivity() {
                             }
                         }
 
-                        val accountImageUrl by rememberPreference(AccountChannelHandleKey, "")
-                        val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(
+                        val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
+                        val (innerTubeCookie) = rememberPreference(
                             InnerTubeCookieKey, "")
                         val isLoggedIn = remember(innerTubeCookie) {
                             "SAPISID" in parseCookieString(innerTubeCookie)

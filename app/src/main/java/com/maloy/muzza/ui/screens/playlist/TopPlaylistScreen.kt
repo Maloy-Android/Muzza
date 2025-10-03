@@ -91,6 +91,8 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.SongMenu
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.TextField
@@ -201,6 +203,7 @@ fun TopPlaylistScreen(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
+            icon = { Icon(Icons.Rounded.CloudOff,null) },
             content = {
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, stringResource(R.string.my_top)),

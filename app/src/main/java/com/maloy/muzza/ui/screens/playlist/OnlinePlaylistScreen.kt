@@ -242,10 +242,13 @@ fun OnlinePlaylistScreen(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
-            icon = { Icon(Icons.Rounded.CloudOff,null) },
+            icon = { Icon(Icons.Rounded.CloudOff, null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist?.title!!),
+                    text = stringResource(
+                        R.string.remove_download_playlist_confirm,
+                        playlist?.title!!
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -300,7 +303,8 @@ fun OnlinePlaylistScreen(
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues()
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime)
+                .asPaddingValues()
         ) {
             if (filteredSongs.isEmpty() && isSearching) {
                 item {
@@ -318,221 +322,220 @@ fun OnlinePlaylistScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.padding(12.dp)
                             ) {
-                                    AsyncImage(
-                                        model = playlist.thumbnail,
-                                        contentScale = ContentScale.Crop,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(AlbumThumbnailSize)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                            .align(alignment = Alignment.CenterHorizontally)
-                                            .aspectRatio(1f)
+                                AsyncImage(
+                                    model = playlist.thumbnail,
+                                    contentScale = ContentScale.Crop,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(AlbumThumbnailSize)
+                                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                        .align(alignment = Alignment.CenterHorizontally)
+                                        .aspectRatio(1f)
+                                )
+
+                                Spacer(Modifier.width(12.dp))
+
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally
+                                ) {
+                                    AutoResizeText(
+                                        text = playlist.title,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 2,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSizeRange = FontSizeRange(16.sp, 22.sp)
                                     )
 
-                                    Spacer(Modifier.width(12.dp))
-
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        AutoResizeText(
-                                            text = playlist.title,
-                                            fontWeight = FontWeight.Bold,
-                                            maxLines = 2,
-                                            overflow = TextOverflow.Ellipsis,
-                                            fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                                        )
-
-                                        if (playlist.id != "LM") {
-                                            playlist.author?.let { artist ->
-                                                Text(buildAnnotatedString {
-                                                    withStyle(
-                                                        style = MaterialTheme.typography.titleMedium.copy(
-                                                            fontWeight = FontWeight.Normal,
-                                                            color = MaterialTheme.colorScheme.onBackground
-                                                        ).toSpanStyle()
-                                                    ) {
-                                                        if (artist.id != null) {
-                                                            val link =
-                                                                LinkAnnotation.Clickable(artist.id!!) {
-                                                                    navController.navigate("artist/${artist.id!!}")
-                                                                }
-                                                            withLink(link) {
-                                                                append(artist.name)
+                                    if (playlist.id != "LM") {
+                                        playlist.author?.let { artist ->
+                                            Text(buildAnnotatedString {
+                                                withStyle(
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Normal,
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    ).toSpanStyle()
+                                                ) {
+                                                    if (artist.id != null) {
+                                                        val link =
+                                                            LinkAnnotation.Clickable(artist.id!!) {
+                                                                navController.navigate("artist/${artist.id!!}")
                                                             }
-                                                        } else {
+                                                        withLink(link) {
                                                             append(artist.name)
                                                         }
+                                                    } else {
+                                                        append(artist.name)
                                                     }
-                                                })
-                                            }
-                                        } else if (accountName.isNotEmpty()) {
-                                            Text(
-                                                text = accountName,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.Normal,
-                                                    color = MaterialTheme.colorScheme.onBackground
-                                                )
+                                                }
+                                            })
+                                        }
+                                    } else if (accountName.isNotEmpty()) {
+                                        Text(
+                                            text = accountName,
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Normal,
+                                                color = MaterialTheme.colorScheme.onBackground
                                             )
+                                        )
+                                    }
+
+                                    Spacer(Modifier.height(12.dp))
+
+                                    Text(
+                                        text = makeTimeString(songsLength * 1000L),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Normal
+                                    )
+
+                                    Spacer(Modifier.height(12.dp))
+
+                                    Row {
+                                        if (playlist.id != "LM") {
+                                            Button(
+                                                onClick = {
+                                                    if (dbPlaylist?.playlist == null) {
+                                                        database.transaction {
+                                                            val playlistEntity = PlaylistEntity(
+                                                                name = playlist.title,
+                                                                browseId = playlist.id,
+                                                                thumbnailUrl = playlist.thumbnail,
+                                                                isEditable = playlist.isEditable,
+                                                                remoteSongCount = playlist.songCountText?.let {
+                                                                    Regex(
+                                                                        """\d+"""
+                                                                    ).find(it)?.value?.toIntOrNull()
+                                                                },
+                                                                playEndpointParams = playlist.playEndpoint?.params,
+                                                                shuffleEndpointParams = playlist.shuffleEndpoint.params,
+                                                                radioEndpointParams = playlist.radioEndpoint?.params
+                                                            ).toggleLike()
+                                                            insert(playlistEntity)
+                                                            songs.map(SongItem::toMediaMetadata)
+                                                                .onEach(::insert)
+                                                                .mapIndexed { index, song ->
+                                                                    PlaylistSongMap(
+                                                                        songId = song.id,
+                                                                        playlistId = playlistEntity.id,
+                                                                        position = index
+                                                                    )
+                                                                }
+                                                                .forEach(::insert)
+                                                        }
+                                                    } else {
+                                                        database.transaction {
+                                                            update(dbPlaylist!!.playlist.toggleLike())
+                                                            update(dbPlaylist!!.playlist.localToggleLike())
+                                                        }
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(
+                                                        if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
+                                                    ),
+                                                    contentDescription = null
+                                                )
+                                            }
                                         }
 
-                                        Spacer(Modifier.height(12.dp))
-
-                                        Text(
-                                            text = makeTimeString(songsLength * 1000L),
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Normal
-                                        )
-
-                                        Spacer(Modifier.height(12.dp))
-
-                                        Row {
-                                            if (playlist.id != "LM") {
-                                                Button(
-                                                    onClick = {
-                                                        if (dbPlaylist?.playlist == null) {
-                                                            database.transaction {
-                                                                val playlistEntity = PlaylistEntity(
-                                                                    name = playlist.title,
-                                                                    browseId = playlist.id,
-                                                                    thumbnailUrl = playlist.thumbnail,
-                                                                    isEditable = playlist.isEditable,
-                                                                    remoteSongCount = playlist.songCountText?.let {
-                                                                        Regex(
-                                                                            """\d+"""
-                                                                        ).find(it)?.value?.toIntOrNull()
-                                                                    },
-                                                                    playEndpointParams = playlist.playEndpoint?.params,
-                                                                    shuffleEndpointParams = playlist.shuffleEndpoint.params,
-                                                                    radioEndpointParams = playlist.radioEndpoint?.params
-                                                                ).toggleLike()
-                                                                insert(playlistEntity)
-                                                                songs.map(SongItem::toMediaMetadata)
-                                                                    .onEach(::insert)
-                                                                    .mapIndexed { index, song ->
-                                                                        PlaylistSongMap(
-                                                                            songId = song.id,
-                                                                            playlistId = playlistEntity.id,
-                                                                            position = index
-                                                                        )
-                                                                    }
-                                                                    .forEach(::insert)
-                                                            }
-                                                        } else {
-                                                            database.transaction {
-                                                                update(dbPlaylist!!.playlist.toggleLike())
-                                                                update(dbPlaylist!!.playlist.localToggleLike())
-                                                            }
-                                                        }
-                                                    },
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .padding(4.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(
-                                                            if (dbPlaylist?.playlist?.bookmarkedAt != null) R.drawable.favorite else R.drawable.favorite_border
-                                                        ),
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            }
-
-                                            if (dbPlaylist != null) {
-                                                when (downloadState) {
-                                                    Download.STATE_COMPLETED -> {
-                                                        Button(
-                                                            onClick = {
-                                                                showRemoveDownloadDialog = true
-                                                            },
-                                                            modifier = Modifier
-                                                                .weight(1f)
-                                                                .padding(4.dp)
-                                                                .clip(RoundedCornerShape(12.dp))
-                                                        ) {
-                                                            Icon(
-                                                                painterResource(R.drawable.offline),
-                                                                contentDescription = null
-                                                            )
-                                                        }
+                                        if (dbPlaylist != null) {
+                                            when (downloadState) {
+                                                Download.STATE_COMPLETED -> {
+                                                    Button(
+                                                        onClick = {
+                                                            showRemoveDownloadDialog = true
+                                                        },
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .padding(4.dp)
+                                                            .clip(RoundedCornerShape(12.dp))
+                                                    ) {
+                                                        Icon(
+                                                            painterResource(R.drawable.offline),
+                                                            contentDescription = null
+                                                        )
                                                     }
+                                                }
 
-                                                    Download.STATE_DOWNLOADING -> {
-                                                        Button(
-                                                            onClick = {
-                                                                songs.forEach { song ->
-                                                                    DownloadService.sendRemoveDownload(
-                                                                        context,
-                                                                        ExoDownloadService::class.java,
+                                                Download.STATE_DOWNLOADING -> {
+                                                    Button(
+                                                        onClick = {
+                                                            songs.forEach { song ->
+                                                                DownloadService.sendRemoveDownload(
+                                                                    context,
+                                                                    ExoDownloadService::class.java,
+                                                                    song.id,
+                                                                    false
+                                                                )
+                                                            }
+                                                        },
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .padding(4.dp)
+                                                            .clip(RoundedCornerShape(12.dp))
+                                                    ) {
+                                                        CircularProgressIndicator(
+                                                            strokeWidth = 2.dp,
+                                                            modifier = Modifier.size(24.dp),
+                                                            color = MaterialTheme.colorScheme.surfaceContainer
+                                                        )
+                                                    }
+                                                }
+
+                                                else -> {
+                                                    Button(
+                                                        onClick = {
+                                                            viewModel.viewModelScope.launch(
+                                                                Dispatchers.IO
+                                                            ) {
+                                                                syncUtils.syncPlaylist(
+                                                                    playlist.id,
+                                                                    dbPlaylist!!.id
+                                                                )
+                                                            }
+
+                                                            songs.forEach { song ->
+                                                                val downloadRequest =
+                                                                    DownloadRequest.Builder(
                                                                         song.id,
-                                                                        false
+                                                                        song.id.toUri()
                                                                     )
-                                                                }
-                                                            },
-                                                            modifier = Modifier
-                                                                .weight(1f)
-                                                                .padding(4.dp)
-                                                                .clip(RoundedCornerShape(12.dp))
-                                                        ) {
-                                                            CircularProgressIndicator(
-                                                                strokeWidth = 2.dp,
-                                                                modifier = Modifier.size(24.dp),
-                                                                color = MaterialTheme.colorScheme.surfaceContainer
-                                                            )
-                                                        }
-                                                    }
-
-                                                    else -> {
-                                                        Button(
-                                                            onClick = {
-                                                                viewModel.viewModelScope.launch(
-                                                                    Dispatchers.IO
-                                                                ) {
-                                                                    syncUtils.syncPlaylist(
-                                                                        playlist.id,
-                                                                        dbPlaylist!!.id
-                                                                    )
-                                                                }
-
-                                                                songs.forEach { song ->
-                                                                    val downloadRequest =
-                                                                        DownloadRequest.Builder(
-                                                                            song.id,
-                                                                            song.id.toUri()
-                                                                        )
-                                                                            .setCustomCacheKey(song.id)
-                                                                            .setData(song.title.toByteArray())
-                                                                            .build()
-                                                                    DownloadService.sendAddDownload(
-                                                                        context,
-                                                                        ExoDownloadService::class.java,
-                                                                        downloadRequest,
-                                                                        false
-                                                                    )
-                                                                }
-                                                            },
-                                                            modifier = Modifier
-                                                                .weight(1f)
-                                                                .padding(4.dp)
-                                                                .clip(RoundedCornerShape(12.dp))
-                                                        ) {
-                                                            Icon(
-                                                                painterResource(R.drawable.download),
-                                                                contentDescription = null
-                                                            )
-                                                        }
+                                                                        .setCustomCacheKey(song.id)
+                                                                        .setData(song.title.toByteArray())
+                                                                        .build()
+                                                                DownloadService.sendAddDownload(
+                                                                    context,
+                                                                    ExoDownloadService::class.java,
+                                                                    downloadRequest,
+                                                                    false
+                                                                )
+                                                            }
+                                                        },
+                                                        modifier = Modifier
+                                                            .weight(1f)
+                                                            .padding(4.dp)
+                                                            .clip(RoundedCornerShape(12.dp))
+                                                    ) {
+                                                        Icon(
+                                                            painterResource(R.drawable.download),
+                                                            contentDescription = null
+                                                        )
                                                     }
                                                 }
                                             }
-                                            if (playlist.id == "LM") {
+                                        }
+                                        if (playlist.id == "LM") {
+                                            playlist.radioEndpoint?.let { radioEndpoint ->
                                                 Button(
                                                     onClick = {
                                                         playerConnection.playQueue(
                                                             YouTubeQueue(
-                                                                songs.first().endpoint
-                                                                    ?: WatchEndpoint(videoId = songs.first().id),
-                                                                songs.first().toMediaMetadata()
+                                                                radioEndpoint
                                                             )
                                                         )
                                                     },
@@ -543,104 +546,86 @@ fun OnlinePlaylistScreen(
                                                         .clip(RoundedCornerShape(12.dp))
                                                 ) {
                                                     Icon(
-                                                        painter = painterResource(R.drawable.play),
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            } else {
-                                                Button(
-                                                    onClick = {
-                                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                                                    },
-                                                    enabled = !isLoading,
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .padding(4.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.queue_music),
+                                                        painter = painterResource(R.drawable.radio),
                                                         contentDescription = null
                                                     )
                                                 }
                                             }
-                                            if (playlist.id == "LM") {
-                                                Button(
-                                                    onClick = {
-                                                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                                                    },
-                                                    enabled = !isLoading,
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .padding(4.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                ) {
-                                                    Icon(
-                                                        painterResource(R.drawable.queue_music),
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            }
-
-                                            if (playlist.id != "LM") {
-                                                Button(
-                                                    onClick = {
-                                                        val intent = Intent().apply {
-                                                            action = Intent.ACTION_SEND
-                                                            type = "text/plain"
-                                                            putExtra(
-                                                                Intent.EXTRA_TEXT,
-                                                                playlist.shareLink
-                                                            )
-                                                        }
-                                                        context.startActivity(
-                                                            Intent.createChooser(
-                                                                intent,
-                                                                null
-                                                            )
-                                                        )
-                                                    },
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .padding(4.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.share),
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    playlist.radioEndpoint?.let { radioEndpoint ->
-                                        Button(
-                                            onClick = {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue(
-                                                        radioEndpoint
-                                                    )
+                                        } else {
+                                            Button(
+                                                onClick = {
+                                                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                },
+                                                enabled = !isLoading,
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.queue_music),
+                                                    contentDescription = null
                                                 )
-                                            },
-                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.radio),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                                            )
-                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                            Text(stringResource(R.string.radio))
+                                            }
+                                        }
+                                        if (playlist.id == "LM") {
+                                            Button(
+                                                onClick = {
+                                                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                },
+                                                enabled = !isLoading,
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            ) {
+                                                Icon(
+                                                    painterResource(R.drawable.queue_music),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
+
+                                        if (playlist.id != "LM") {
+                                            Button(
+                                                onClick = {
+                                                    val intent = Intent().apply {
+                                                        action = Intent.ACTION_SEND
+                                                        type = "text/plain"
+                                                        putExtra(
+                                                            Intent.EXTRA_TEXT,
+                                                            playlist.shareLink
+                                                        )
+                                                    }
+                                                    context.startActivity(
+                                                        Intent.createChooser(
+                                                            intent,
+                                                            null
+                                                        )
+                                                    )
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.share),
+                                                    contentDescription = null
+                                                )
+                                            }
                                         }
                                     }
+                                }
+                                Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     if (playlist.id.startsWith("RDTMAK5uy")) {
                                         Button(
                                             onClick = {
                                                 playerConnection.playQueue(
                                                     YouTubeQueue(
-                                                        songs.first().endpoint ?: WatchEndpoint(videoId = songs.first().id),
+                                                        songs.first().endpoint ?: WatchEndpoint(
+                                                            videoId = songs.first().id
+                                                        ),
                                                         songs.first().toMediaMetadata()
                                                     )
                                                 )
@@ -962,13 +947,13 @@ fun OnlinePlaylistScreen(
                                 )
                             }
                         }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.more_vert),
-                                contentDescription = null
-                            )
-                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_vert),
+                            contentDescription = null
+                        )
                     }
+                }
             },
             scrollBehavior = scrollBehavior
         )

@@ -105,6 +105,8 @@
     <string name="library_artist_empty">Здесь будут отображаться исполнители из вашей библиотеки</string>
     <string name="library_album_empty">Здесь будут отображаться альбомы из вашей библиотеки</string>
     <string name="library_playlist_empty">Здесь будут отображаться ваши плейлисты</string>
+    <string name="also_in_your_collection">Ещё у вас в Коллекции</string>
+    <string name="liked_artists">Любимые исполнители</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Любимые треки</string>

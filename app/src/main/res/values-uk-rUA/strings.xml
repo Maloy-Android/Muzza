@@ -343,7 +343,6 @@
     <string name="dark_theme_on">Увімк.</string>
     <string name="dark_theme_off">Вимк.</string>
     <string name="dark_theme_follow_system">Використовувати налаштування системи</string>
-    <string name="app_design_variant">Дизайн програми</string>
     <string name="pure_black">Режим чистого чорного кольору</string>
     <string name="listen_youtube_music">Слухати в YouTube Music</string>
     <string name="visit_muzza">Відвідавши Muzza</string>
@@ -365,12 +364,6 @@
     <string name="squiggly">Хвилястий</string>
     <string name="misc">Різне</string>
     <string name="main">Основні</string>
-    <string name="auto_playlists_customization">Налаштування автоматичних плейлистів</string>
-    <string name="show_liked_auto_playlist">Показувати автоматичний плейлист «Вподобані»</string>
-    <string name="show_download_auto_playlist">Показувати автоматичний плейлист «Завантаження»</string>
-    <string name="show_top_auto_playlist">Показувати автоматичний плейлист «Топ»</string>
-    <string name="show_cached_auto_playlist">Показувати автоматичний плейлист «Кешовані»</string>
-    <string name="show_local_auto_playlist">Показувати автоматичний плейлист «Локальні»</string>
     <string name="swipe_song_to_dismiss">Проведіть по пісні вправо для наступного відтворення або вліво для додавання в чергу</string>
     <string name="default_open_tab">Основна вкладка навігації</string>
     <string name="default_lib_chips">Вкладка бібліотеки за замовчуванням</string>
@@ -382,12 +375,7 @@
     <string name="blurmv">Розмиття (рух)</string>
     <string name="grid_cell_size">Розмір осередків</string>
     <string name="slim_navbar">Показувати назви кнопок навігаційної панелі</string>
-    <string name="Changelog">Історія змін</string>
-    <string name="no_changes">Останні зміни не знайдено</string>
-    <string name="changelogs">Останні зміни:</string>
-    <string name="closepopup">Закрити</string>
     <string name="NewVersion">Доступна нова версія</string>
-    <string name="Hi">Привіт знову</string>
     <string name="Donate">Пожертвувати</string>
     <string name="Telegramchanel">Офіційний канал</string>
     <string name="web_site">Наш сайт</string>

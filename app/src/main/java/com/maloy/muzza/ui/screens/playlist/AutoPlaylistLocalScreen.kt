@@ -97,7 +97,7 @@ import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
-import com.maloy.muzza.viewmodels.LibrarySongsViewModel
+import com.maloy.muzza.viewmodels.AutoPlaylistLocalViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
@@ -110,7 +110,7 @@ import java.util.Stack
 fun AutoPlaylistLocalScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    viewModel: LibrarySongsViewModel = hiltViewModel(),
+    viewModel: AutoPlaylistLocalViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val menuState = LocalMenuState.current

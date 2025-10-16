@@ -225,12 +225,6 @@
 <string name="artist">Artista</string>
 <string name="listen_to_muzza">Ouça no Muzza</string>
 <string name="customize_navigation_tabs">Customizar abas de navegação</string>
-<string name="auto_playlists_customization">Personalização da playlists</string>
-<string name="show_liked_auto_playlist">Mostrar músicas curtidas</string>
-<string name="show_download_auto_playlist">Mostrar lista de download</string>
-<string name="show_top_auto_playlist">Mostrar músicas favoritas</string>
-<string name="show_cached_auto_playlist">Mostrar músicas em cache</string>
-<string name="show_local_auto_playlist">Mostrar música local</string>
 <string name="lyrics_text_position">Posição do texto das letras</string>
 <string name="left">Esquerda</string>
 <string name="center">Centro</string>
@@ -311,7 +305,6 @@
 <string name="discord_integration">Integração com Discord</string>
 <string name="dismiss">Ignorar</string>
 <string name="options">Opções</string>
-<string name="app_design_variant">Design do Aplicativo</string>
 <string name="preview">Pré-visualização</string>
 <string name="login_failed">Login falhou</string>
 <string name="token_hidden">Toque para mostrar o token</string>
@@ -351,7 +344,6 @@
 <string name="slider_style">Estilo do slider</string>
 <string name="default_">Padrão</string>
 <string name="squiggly">Cobrinha</string>
-<string name="Hi">Bem-vindo de volta!</string>
 <string name="your_youtube_playlists">Suas playlists do YouTube</string>
 <string name="action_like_all">Curtir tudo</string>
 <string name="action_remove_like_all">Remover todos os likes</string>

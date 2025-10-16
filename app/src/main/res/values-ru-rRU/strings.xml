@@ -347,8 +347,7 @@
     <string name="dark_theme">Темная тема</string>
     <string name="dark_theme_on">Вкл.</string>
     <string name="dark_theme_off">Выкл.</string>
-    <string name="dark_theme_follow_system">Использовать настройки системы</string>
-    <string name="app_design_variant">Дизайн приложения</string>
+    <string name="dark_theme_follow_system">Использовать настройки системы</string>>
     <string name="pure_black">Режим чистого черного цвета</string>
     <string name="customize_navigation_tabs">Настройка вкладок навигации</string>
     <string name="player">Плеер</string>
@@ -366,12 +365,6 @@
     <string name="show_content_filter">фильтр контента</string>
     <string name="misc">Разное</string>
     <string name="main">Основное</string>
-    <string name="auto_playlists_customization">Настройка автоматических плейлистов</string>
-    <string name="show_liked_auto_playlist">Показывать автоматический плейлист «Понравившиеся»</string>
-    <string name="show_download_auto_playlist">Показывать автоматический плейлист «Загрузки»</string>
-    <string name="show_top_auto_playlist">Показывать автоматический плейлист «Топ»</string>
-    <string name="show_cached_auto_playlist">Показывать автоматический плейлист «Кэшированные»</string>
-    <string name="show_local_auto_playlist">Показывать автоматический плейлист «Локальные»</string>
     <string name="swipe_song_to_dismiss">Проведите по песне вправо для следующего воспроизведения или влево для добавления в очередь</string>
     <string name="default_open_tab">Вкладка навигации по умолчанию</string>
     <string name="default_lib_chips">Вкладка библиотеки по умолчанию</string>
@@ -385,12 +378,7 @@
     <string name="slim_navbar">Показывать названия кнопок навигационной панели</string>
     <string name="small">Маленький</string>
     <string name="big">Большой</string>
-    <string name="Changelog">История изменений</string>
-    <string name="no_changes">Недавние изменения не найдены</string>
-    <string name="changelogs">Недавние изменения:</string>
-    <string name="closepopup">Закрыть</string>
     <string name="NewVersion">Доступна новая версия</string>
-    <string name="Hi">Привет снова</string>
     <string name="Donate">Пожертвовать</string>
     <string name="Telegramchanel">Официальный канал</string>
     <string name="web_site">Наш сайт</string>

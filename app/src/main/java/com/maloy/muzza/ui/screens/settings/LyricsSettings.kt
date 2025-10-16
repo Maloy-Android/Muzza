@@ -31,6 +31,7 @@ import com.maloy.muzza.constants.EnableKugouKey
 import com.maloy.muzza.constants.EnableLrcLibKey
 import com.maloy.muzza.constants.LyricFontSizeKey
 import com.maloy.muzza.constants.LyricTrimKey
+import com.maloy.muzza.constants.LyricsPosition
 import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PreferredLyricsProvider

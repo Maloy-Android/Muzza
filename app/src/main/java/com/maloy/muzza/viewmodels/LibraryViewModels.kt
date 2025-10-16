@@ -3,7 +3,6 @@
 package com.maloy.muzza.viewmodels
 
 import android.content.Context
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -23,24 +22,16 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
-import com.maloy.muzza.constants.MyTopFilter
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
-import com.maloy.muzza.constants.SongFilter
-import com.maloy.muzza.constants.SongFilterKey
-import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
-import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.di.DownloadCache
 import com.maloy.muzza.di.PlayerCache
-import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
-import com.maloy.muzza.ui.utils.DirectoryTree
-import com.maloy.muzza.ui.utils.refreshLocal
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
@@ -60,128 +51,7 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
-import java.util.Stack
 import javax.inject.Inject
-
-@HiltViewModel
-class LibrarySongsViewModel @Inject constructor(
-    @ApplicationContext context: Context,
-    database: MusicDatabase,
-    downloadUtil: DownloadUtil,
-    private val syncUtils: SyncUtils,
-    @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache
-) : ViewModel() {
-
-    private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
-    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
-
-    init {
-        viewModelScope.launch {
-            while (true) {
-                val cachedIds = playerCache.keys.map { it }.toSet()
-                val downloadedIds = downloadCache.keys.map { it }.toSet()
-                val pureCacheIds = cachedIds.subtract(downloadedIds)
-
-                val songs = if (pureCacheIds.isNotEmpty()) {
-                    database.getSongsByIds(pureCacheIds.toList())
-                } else {
-                    emptyList()
-                }
-
-                val completeSongs = songs.filter {
-                    val contentLength = it.format?.contentLength
-                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
-                }
-
-                if (completeSongs.isNotEmpty()) {
-                    database.query {
-                        completeSongs.forEach {
-                            if (it.song.dateDownload == null) {
-                                update(it.song.copy(dateDownload = LocalDateTime.now()))
-                            }
-                        }
-                    }
-                }
-
-                _cachedSongs.value = completeSongs
-                    .filter { it.song.dateDownload != null }
-                    .sortedByDescending { it.song.dateDownload }
-
-                delay(1000)
-            }
-        }
-    }
-
-    /**
-     * The top of the stack is the folder that the page will render.
-     * Clicking on a folder pushes, while the back button pops.
-     */
-    var folderPositionStack = Stack<DirectoryTree>()
-    val databaseLink = database
-
-    val inLocal = mutableStateOf(false)
-
-    val allSongs = syncAllSongs(context, database, downloadUtil)
-    val localSongDirectoryTree = refreshLocal(context, database)
-
-    fun syncLikedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
-    }
-
-
-    /**
-     * Get local songs
-     *
-     * @return DirectoryTree
-     */
-    fun getLocalSongs(context: Context, database: MusicDatabase): MutableStateFlow<DirectoryTree> {
-        val directoryStructure = refreshLocal(context, database).value
-        localSongDirectoryTree.value = directoryStructure
-        return MutableStateFlow(directoryStructure)
-    }
-
-    fun syncAllSongs(context: Context, database: MusicDatabase, downloadUtil: DownloadUtil): StateFlow<List<Song>> {
-
-        return context.dataStore.data
-            .map {
-                Triple(
-                    it[SongFilterKey].toEnum(SongFilter.LIKED),
-                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
-                    (it[SongSortDescendingKey] ?: true)
-                )
-            }
-            .distinctUntilChanged()
-            .flatMapLatest { (filter, sortType, descending) ->
-                when (filter) {
-                    SongFilter.LIBRARY -> database.songs(sortType, descending)
-                    SongFilter.LIKED -> database.likedSongs(sortType, descending)
-                    SongFilter.DOWNLOADED -> downloadUtil.downloads.flatMapLatest { downloads ->
-                        database.allSongs()
-                            .flowOn(Dispatchers.IO)
-                            .map { songs ->
-                                songs.filter {
-                                    downloads[it.id]?.state == Download.STATE_COMPLETED
-                                }
-                            }
-                            .map { songs ->
-                                when (sortType) {
-                                    SongSortType.CREATE_DATE -> songs.sortedBy { downloads[it.id]?.updateTimeMs ?: 0L }
-                                    SongSortType.NAME -> songs.sortedBy { it.song.title }
-                                    SongSortType.ARTIST -> songs.sortedBy { song ->
-                                        song.artists.joinToString(separator = "") { it.name }
-                                    }
-
-                                    SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                                }.reversed(descending)
-                            }
-                    }
-                    SongFilter.CACHED -> cachedSongs
-                }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    }
-}
-
 
 @HiltViewModel
 class LibraryArtistsViewModel @Inject constructor(
@@ -281,66 +151,9 @@ class LibraryAlbumsViewModel @Inject constructor(
 @HiltViewModel
 class LibraryPlaylistsViewModel @Inject constructor(
     @ApplicationContext context: Context,
-    downloadUtil: DownloadUtil,
     database: MusicDatabase,
-    @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
-    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
-
-    init {
-        viewModelScope.launch {
-            while (true) {
-                val cachedIds = playerCache.keys.map { it }.toSet()
-                val downloadedIds = downloadCache.keys.map { it }.toSet()
-                val pureCacheIds = cachedIds.subtract(downloadedIds)
-
-                val songs = if (pureCacheIds.isNotEmpty()) {
-                    database.getSongsByIds(pureCacheIds.toList())
-                } else {
-                    emptyList()
-                }
-
-                val completeSongs = songs.filter {
-                    val contentLength = it.format?.contentLength
-                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
-                }
-
-                if (completeSongs.isNotEmpty()) {
-                    database.query {
-                        completeSongs.forEach {
-                            if (it.song.dateDownload == null) {
-                                update(it.song.copy(dateDownload = LocalDateTime.now()))
-                            }
-                        }
-                    }
-                }
-
-                _cachedSongs.value = completeSongs
-                    .filter { it.song.dateDownload != null }
-                    .sortedByDescending { it.song.dateDownload }
-
-                delay(1000)
-            }
-        }
-    }
-    val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
-        .stateIn(viewModelScope, SharingStarted.Lazily, null)
-    val downloadSongs =
-        downloadUtil.downloads.flatMapLatest { downloads ->
-            database.allSongs()
-                .flowOn(Dispatchers.IO)
-                .map { songs ->
-                    songs.filter {
-                        downloads[it.id]?.state == Download.STATE_COMPLETED
-                    }
-                }
-        }
-    val topSongs = database.mostPlayedSongs(0, 100)
-    val localSongsCount = database.localSongsCount()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
     fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
     val allPlaylists = context.dataStore.data
         .map {

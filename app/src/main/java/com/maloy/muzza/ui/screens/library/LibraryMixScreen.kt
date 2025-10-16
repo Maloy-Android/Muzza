@@ -364,9 +364,9 @@ fun LibraryMixScreen(
                             .fillMaxWidth()
                             .height(ListItemHeight * 4)
                     ) {
-                        likedSongs?.let  {
+                        likedSongs?.let { songs ->
                             items(
-                                items = it,
+                                items = songs.take(16),
                                 key = { song -> song.id }
                             ) { songWrapper ->
                                 SongListItem(
@@ -422,7 +422,6 @@ fun LibraryMixScreen(
                                                 }
                                             }
                                         )
-                                        .animateItem()
                                 )
                             }
                         }
@@ -475,8 +474,8 @@ fun LibraryMixScreen(
                                             "top" -> navController.navigate("top_playlist/$topSize")
                                             "cached" -> navController.navigate("CachedPlaylist")
                                             "local" -> navController.navigate("AutoPlaylistLocal")
-                                            "user_playlists" -> navController.navigate("playlists")
-                                            "albums" -> navController.navigate("albums")
+                                            "user_playlists" -> navController.navigate("library_playlists")
+                                            "albums" -> navController.navigate("library_albums")
                                         }
                                     },
                                     modifier = Modifier
@@ -525,7 +524,7 @@ fun LibraryMixScreen(
                     maxLines = 1,
                     modifier = Modifier
                         .padding(horizontal = 16.dp, vertical = 16.dp)
-                        .clickable { navController.navigate("artists") }
+                        .clickable { navController.navigate("library_artists") }
                 )
             }
 
@@ -540,7 +539,7 @@ fun LibraryMixScreen(
                         .height(160.dp)
                 ) {
                     items(
-                        items = artists,
+                        items = artists.take(8),
                         key = { it.id }
                     ) { artist ->
                         Column(

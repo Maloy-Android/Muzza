@@ -119,12 +119,12 @@ object YouTube {
     }
 
     suspend fun searchSummary(query: String): Result<SearchSummaryPage> = runCatching {
-        val response = if (useLoginForBrowse) innerTube.search(WEB_REMIX, query).body<SearchResponse>() else innerTube.searchUnlogged(WEB_REMIX, query).body<SearchResponse>()
+        val response = innerTube.search(WEB_REMIX, query).body<SearchResponse>()
         SearchSummaryPage(
             summaries = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.mapNotNull { it ->
                 if (it.musicCardShelfRenderer != null)
                     SearchSummary(
-                        title = it.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text ?: return@mapNotNull null,
+                        title = it.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text ?: "Top result",
                         items = listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(it.musicCardShelfRenderer))
                             .plus(
                                 it.musicCardShelfRenderer.contents
@@ -137,8 +137,8 @@ object YouTube {
                     )
                 else
                     SearchSummary(
-                        title = it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text ?: return@mapNotNull null,
-                        items = it.musicShelfRenderer.contents?.getItems()
+                        title = it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text ?: "Other",
+                        items = it.musicShelfRenderer?.contents?.getItems()
                             ?.mapNotNull {
                                 SearchSummaryPage.fromMusicResponsiveListItemRenderer(it)
                             }

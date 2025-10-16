@@ -618,29 +618,27 @@ fun OnlinePlaylistScreen(
                                     }
                                 }
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                    if (playlist.id.startsWith("RDTMAK5uy")) {
-                                        Button(
-                                            onClick = {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue(
-                                                        songs.first().endpoint ?: WatchEndpoint(
-                                                            videoId = songs.first().id
-                                                        ),
-                                                        songs.first().toMediaMetadata()
-                                                    )
+                                    Button(
+                                        onClick = {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    songs.first().endpoint ?: WatchEndpoint(
+                                                        videoId = songs.first().id
+                                                    ),
+                                                    songs.first().toMediaMetadata()
                                                 )
-                                            },
-                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.play),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(ButtonDefaults.IconSize)
                                             )
-                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                            Text(stringResource(R.string.play))
-                                        }
+                                        },
+                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.play),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(stringResource(R.string.play))
                                     }
                                     if (!playlist.id.startsWith("RDAT")) {
                                         Button(

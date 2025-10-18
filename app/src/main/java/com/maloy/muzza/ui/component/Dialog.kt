@@ -261,6 +261,7 @@ fun CounterDialog(
     onConfirm: (Int) -> Unit,
     onReset: (() -> Unit)? = null,
     onCancel: (() -> Unit)? = null,
+    icon: (@Composable () -> Unit)? = null,
 ) = BasicAlertDialog(
     onDismissRequest = { onDismiss() },
     content = {
@@ -278,6 +279,17 @@ fun CounterDialog(
                 .padding(16.dp)
         ) {
             Column(modifier = Modifier.padding(12.dp)) {
+                if (icon != null) {
+                    CompositionLocalProvider(LocalContentColor provides AlertDialogDefaults.iconContentColor) {
+                        Box(
+                            Modifier.align(Alignment.CenterHorizontally)
+                        ) {
+                            icon()
+                        }
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                }
                 Text(
                     text = title,
                     overflow = TextOverflow.Ellipsis,

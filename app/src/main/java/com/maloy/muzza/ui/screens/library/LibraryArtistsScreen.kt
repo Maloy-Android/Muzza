@@ -9,23 +9,21 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
-import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -49,8 +47,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AppDesignVariantKey
-import com.maloy.muzza.constants.AppDesignVariantType
 import com.maloy.muzza.constants.ArtistFilter
 import com.maloy.muzza.constants.ArtistFilterKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
@@ -59,12 +55,10 @@ import com.maloy.muzza.constants.ArtistSortTypeKey
 import com.maloy.muzza.constants.ArtistViewTypeKey
 import com.maloy.muzza.constants.CONTENT_TYPE_ARTIST
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
-import com.maloy.muzza.constants.ChipSortTypeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
-import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
@@ -77,6 +71,7 @@ import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -84,13 +79,13 @@ import com.maloy.muzza.viewmodels.LibraryArtistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LibraryArtistsScreen(
     navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
     viewModel: LibraryArtistsViewModel = hiltViewModel(),
 ) {
-    var filterType by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
     val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
@@ -101,7 +96,6 @@ fun LibraryArtistsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
-    val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -110,19 +104,6 @@ fun LibraryArtistsScreen(
 
     val filterContent = @Composable {
         Row {
-            Spacer(Modifier.width(12.dp))
-            if (appDesignVariant == AppDesignVariantType.NEW) {
-                FilterChip(
-                    label = { Text(stringResource(R.string.artists)) },
-                    selected = true,
-                    colors = FilterChipDefaults.filterChipColors(containerColor = MaterialTheme.colorScheme.surface),
-                    onClick = { filterType = LibraryFilter.LIBRARY },
-                    shape = RoundedCornerShape(16.dp),
-                    leadingIcon = {
-                        Icon(painter = painterResource(R.drawable.close), contentDescription = "")
-                    },
-                )
-            }
             ChipsRow(
                 chips =
                 listOf(
@@ -386,5 +367,20 @@ fun LibraryArtistsScreen(
                 }
             }
         }
+        TopAppBar(
+            title = { Text(stringResource(R.string.liked_artists)) },
+            navigationIcon = {
+                com.maloy.muzza.ui.component.IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null
+                    )
+                }
+            },
+            scrollBehavior = scrollBehavior
+        )
     }
 }

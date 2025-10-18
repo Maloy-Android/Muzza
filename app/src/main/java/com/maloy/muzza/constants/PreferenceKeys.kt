@@ -7,7 +7,6 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import java.time.LocalDateTime
 import java.time.ZoneOffset
 
-val AppDesignVariantKey = stringPreferencesKey("appDesignVariant")
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
@@ -20,7 +19,19 @@ val ThumbnailCornerRadiusV2Key = intPreferencesKey("cornerRadius")
 val NowPlayingEnableKey = booleanPreferencesKey("nowPlayingEnable")
 val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
 val SongDurationTimeSkipKey = stringPreferencesKey("songDurationTimeSkip")
-val ShowUploadedPlaylistKey = booleanPreferencesKey("show_uploaded_playlist")
+
+enum class DarkMode {
+    ON, OFF, AUTO
+}
+
+
+enum class NavigationTab {
+    HOME, EXPLORE, LIBRARY
+}
+
+enum class LyricsPosition {
+    LEFT, CENTER, RIGHT
+}
 
 enum class SongDurationTimeSkip {
     FIVE,TEN,FIFTEEN,TWENTY,TWENTYFIVE,THIRTY
@@ -30,10 +41,6 @@ val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")
 
 val ShowContentFilterKey = booleanPreferencesKey("showContentFilter")
 val ShowRecentActivityKey = booleanPreferencesKey("showRecentActivity")
-
-enum class AppDesignVariantType {
-    NEW, OLD
-}
 
 enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE
@@ -45,14 +52,7 @@ enum class ScannerM3uMatchCriteria {
 }
 
 
-val AutoPlaylistsCustomizationKey = booleanPreferencesKey("autoPlaylistsCustomization")
-val AutoPlaylistLikedShowKey = booleanPreferencesKey("autoPlaylistLikedShow")
-val AutoPlaylistDownloadShowKey = booleanPreferencesKey("autoPlaylistDownloadShow")
-val AutoPlaylistTopPlaylistShowKey = booleanPreferencesKey("autoPlaylistTopPlaylistShow")
-val AutoPlaylistCachedPlaylistShowKey = booleanPreferencesKey("autoPlaylistCachedPlaylistShow")
-val AutoPlaylistLocalPlaylistShowKey = booleanPreferencesKey("autoPlaylistLocalPlaylistShow")
 val SwipeSongToDismissKey = booleanPreferencesKey("swipe_song_to_dismiss")
-val DefaultOpenTabOldKey = stringPreferencesKey("defaultOpenTabOld")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val GridCellSizeKey = stringPreferencesKey("gridCellSize")
 
@@ -107,7 +107,6 @@ val DiscordUsernameKey = stringPreferencesKey("discordUsername")
 val DiscordNameKey = stringPreferencesKey("discordName")
 val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
 
-val ChipSortTypeKey = stringPreferencesKey("chipSortType")
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
 val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
@@ -120,11 +119,7 @@ val PlaylistSortTypeKey = stringPreferencesKey("playlistSortType")
 val PlaylistSortDescendingKey = booleanPreferencesKey("playlistSortDescending")
 val ArtistSongSortTypeKey = stringPreferencesKey("artistSongSortType")
 val ArtistSongSortDescendingKey = booleanPreferencesKey("artistSongSortDescending")
-val MixSortTypeKey = stringPreferencesKey("mixSortType")
-val MixSortDescendingKey = booleanPreferencesKey("albumSortDescending")
-val MixViewTypeKey = stringPreferencesKey("mixViewType")
 
-val SongFilterKey = stringPreferencesKey("songFilter")
 val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
@@ -143,19 +138,6 @@ enum class LibraryViewType {
         LIST -> GRID
         GRID -> LIST
     }
-}
-
-enum class MixViewType {
-    LIST, GRID;
-
-    fun toggle() = when (this) {
-        LIST -> GRID
-        GRID -> LIST
-    }
-}
-
-enum class MixSortType {
-    DEFAULT, CREATE_DATE, LAST_UPDATED, NAME,
 }
 
 enum class PreferredLyricsProvider {
@@ -186,20 +168,12 @@ enum class PlaylistSortType {
     CREATE_DATE, NAME, SONG_COUNT
 }
 
-enum class SongFilter {
-    LIBRARY, LIKED, DOWNLOADED, CACHED, UPLOADED
-}
-
 enum class ArtistFilter {
     LIBRARY, LIKED
 }
 
 enum class AlbumFilter {
-    LIBRARY, LIKED, UPLOADED
-}
-
-enum class LibraryFilter {
-    SONGS, ARTISTS, ALBUMS, PLAYLISTS , LIBRARY
+    LIBRARY, LIKED
 }
 
 enum class MyTopFilter {
@@ -287,6 +261,7 @@ val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
 val AccountNameKey = stringPreferencesKey("accountName")
 val AccountEmailKey = stringPreferencesKey("accountEmail")
 val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
+val AccountImageUrlKey = stringPreferencesKey("accountImageUrl")
 
 val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
 val AutoSyncLocalSongsKey = booleanPreferencesKey("autosynclocalsongs")

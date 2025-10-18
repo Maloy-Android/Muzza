@@ -84,6 +84,7 @@ fun PlayerSettings(
         CounterDialog(
             title = stringResource(R.string.minimum_playback_duration),
             description = stringResource(R.string.minimum_playback_duration_info),
+            icon = { Icon(Icons.Rounded.Sync,null) },
             initialValue = minPlaybackDur,
             upperBound = 100,
             lowerBound = 0,

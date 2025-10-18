@@ -2,6 +2,7 @@ package com.maloy.innertube.models.response
 
 import com.maloy.innertube.models.AccountInfo
 import com.maloy.innertube.models.Runs
+import com.maloy.innertube.models.Thumbnails
 import kotlinx.serialization.Serializable
 
 @Serializable
@@ -33,11 +34,13 @@ data class AccountMenuResponse(
                             val accountName: Runs,
                             val email: Runs?,
                             val channelHandle: Runs?,
+                            val accountPhoto: Thumbnails,
                         ) {
                             fun toAccountInfo() = AccountInfo(
                                 name = accountName.runs!!.first().text,
                                 email = email?.runs?.first()?.text,
-                                channelHandle = channelHandle?.runs?.first()?.text
+                                channelHandle = channelHandle?.runs?.first()?.text,
+                                thumbnailUrl = accountPhoto.thumbnails.lastOrNull()?.url
                             )
                         }
                     }

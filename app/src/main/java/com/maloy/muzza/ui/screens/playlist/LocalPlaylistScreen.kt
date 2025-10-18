@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.HideImage
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -329,6 +330,7 @@ fun LocalPlaylistScreen(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
+            icon = { Icon(Icons.Rounded.CloudOff,null) },
             content = {
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, playlist?.playlist!!.name),

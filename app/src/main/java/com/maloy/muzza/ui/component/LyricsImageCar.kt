@@ -23,10 +23,10 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
+import coil.compose.AsyncImage
 import com.maloy.muzza.R
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.ui.utils.imageCache
 
 @Composable
 fun rememberAdjustedFontSize(
@@ -134,15 +134,6 @@ fun LyricsImageCard(
     val mainTextColor = textColor ?: if (darkBackground) Color.White else Color.Black
     val secondaryColor = secondaryTextColor ?: if (darkBackground) Color.White.copy(alpha = 0.7f) else Color.Black.copy(alpha = 0.7f)
 
-    val painter = rememberAsyncImagePainter(
-        ImageRequest.Builder(context)
-            .data(mediaMetadata.thumbnailUrl)
-            .crossfade(true)
-            .placeholder(R.drawable.music_note)
-            .error(R.drawable.music_note)
-            .build()
-    )
-
     Box(
         modifier = Modifier
             .background(backgroundGradient)
@@ -169,15 +160,35 @@ fun LyricsImageCard(
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
                 ) {
-                    Image(
-                        painter = painter,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(coverArtSize)
-                            .clip(RoundedCornerShape(12.dp))
-                            .border(1.dp, mainTextColor.copy(alpha = 0.16f), RoundedCornerShape(12.dp))
-                    )
+                    if (mediaMetadata.thumbnailUrl != null || !mediaMetadata.isLocal) {
+                        AsyncImage(
+                            model = mediaMetadata.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(coverArtSize)
+                                .clip(RoundedCornerShape(12.dp))
+                                .border(
+                                    1.dp,
+                                    mainTextColor.copy(alpha = 0.16f),
+                                    RoundedCornerShape(12.dp)
+                                )
+                        )
+                    } else {
+                        AsyncLocalImage(
+                            image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, false) },
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(coverArtSize)
+                                .clip(RoundedCornerShape(12.dp))
+                                .border(
+                                    1.dp,
+                                    mainTextColor.copy(alpha = 0.16f),
+                                    RoundedCornerShape(12.dp)
+                                )
+                        )
+                    }
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(
                         verticalArrangement = Arrangement.Center,

@@ -21,15 +21,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.TrendingUp
-import androidx.compose.material.icons.rounded.Backup
-import androidx.compose.material.icons.rounded.Cached
-import androidx.compose.material.icons.rounded.CloudDownload
-import androidx.compose.material.icons.rounded.DesignServices
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.FilterList
 import androidx.compose.material.icons.rounded.Image
-import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.Padding
 import androidx.compose.material.icons.rounded.QueryStats
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -58,25 +52,16 @@ import androidx.navigation.NavController
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AppDesignVariantKey
-import com.maloy.muzza.constants.AppDesignVariantType
-import com.maloy.muzza.constants.AutoPlaylistCachedPlaylistShowKey
-import com.maloy.muzza.constants.AutoPlaylistDownloadShowKey
-import com.maloy.muzza.constants.AutoPlaylistLikedShowKey
-import com.maloy.muzza.constants.AutoPlaylistLocalPlaylistShowKey
-import com.maloy.muzza.constants.AutoPlaylistTopPlaylistShowKey
-import com.maloy.muzza.constants.AutoPlaylistsCustomizationKey
-import com.maloy.muzza.constants.ChipSortTypeKey
+import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
-import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
-import com.maloy.muzza.constants.LibraryFilter
 import com.maloy.muzza.constants.MiniPlayerStyle
 import com.maloy.muzza.constants.MiniPlayerStyleKey
+import com.maloy.muzza.constants.NavigationTab
 import com.maloy.muzza.constants.NowPlayingEnableKey
 import com.maloy.muzza.constants.NowPlayingPaddingKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
@@ -86,7 +71,6 @@ import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
-import com.maloy.muzza.constants.ShowUploadedPlaylistKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SlimNavBarKey
@@ -114,30 +98,13 @@ fun AppearanceSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val (appDesignVariant, onAppDesignVariantChange) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
     val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
     val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
     val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
-    val (autoPlaylistsCustomization, onAutoPlaylistsCustomizationChange) = rememberPreference(
-        AutoPlaylistsCustomizationKey, defaultValue = false)
-    val (autoPlaylistLiked, onAutoPlaylistLikedChange) = rememberPreference(AutoPlaylistLikedShowKey, defaultValue = true)
-    val (autoPlaylistDownload, onAutoPlaylistDownloadChange) = rememberPreference(
-        AutoPlaylistDownloadShowKey, defaultValue = true)
-    val (autoPlaylistTopPlaylist, onAutoPlaylistTopPlaylistChange) = rememberPreference(
-        AutoPlaylistTopPlaylistShowKey, defaultValue = true)
-    val (autoPlaylistCached, onAutoPlaylistCachedChange) = rememberPreference(
-        AutoPlaylistCachedPlaylistShowKey, defaultValue = true)
-    val (autoPlaylistLocal, onAutoPlaylistLocalChange) = rememberPreference(
-        AutoPlaylistLocalPlaylistShowKey, defaultValue = true)
-    val (uploadedPlaylists, onUploadedPlaylist) = rememberPreference(
-        ShowUploadedPlaylistKey, defaultValue = true
-    )
     val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
-    val (defaultOpenTabOld, onDefaultOpenTabOldChange) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
-    val (defaultChip, onDefaultChipChange) = rememberEnumPreference(key = ChipSortTypeKey, defaultValue = LibraryFilter.LIBRARY)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 3)
@@ -178,6 +145,7 @@ fun AppearanceSettings(
             CounterDialog(
                 title = stringResource(R.string.thumbnail_corner_radius),
                 onDismiss = { showCornerRadiusDialog = false },
+                icon = { Icon(Icons.Rounded.Image, null) },
                 initialValue = thumbnailCornerRadius,
                 upperBound = 10,
                 lowerBound = 0,
@@ -209,6 +177,7 @@ fun AppearanceSettings(
             CounterDialog(
                 title = stringResource(R.string.now_playing_padding),
                 onDismiss = { showNowPlayingPaddingDialog  = false },
+                icon = { Icon(Icons.Rounded.Padding, null) },
                 initialValue = nowPlayingPadding,
                 upperBound = 100,
                 lowerBound = 0,
@@ -357,7 +326,13 @@ fun AppearanceSettings(
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState())
     ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.theme)
@@ -394,19 +369,6 @@ fun AppearanceSettings(
                 }
             )
         }
-
-        EnumListPreference(
-            title = { Text(stringResource(R.string.app_design_variant)) },
-            icon = { Icon(Icons.Rounded.DesignServices,null) },
-            selectedValue = appDesignVariant,
-            onValueSelected = onAppDesignVariantChange,
-            valueText = {
-                when (it) {
-                    AppDesignVariantType.NEW -> stringResource(R.string.player_style_new)
-                    AppDesignVariantType.OLD -> stringResource(R.string.player_style_old)
-                }
-            }
-        )
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.slider_style)) },
@@ -527,103 +489,25 @@ fun AppearanceSettings(
         )
 
         SwitchPreference(
-            title = { Text(stringResource(R.string.auto_playlists_customization)) },
-            icon = { Icon(painterResource(R.drawable.playlist_play), null) },
-            checked = autoPlaylistsCustomization,
-            onCheckedChange = onAutoPlaylistsCustomizationChange
-        )
-
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_liked_auto_playlist)) },
-                icon = { Icon(Icons.Rounded.Favorite, null) },
-                checked = autoPlaylistLiked,
-                onCheckedChange = onAutoPlaylistLikedChange
-            )
-        }
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_download_auto_playlist)) },
-                icon = { Icon(Icons.Rounded.CloudDownload, null) },
-                checked = autoPlaylistDownload,
-                onCheckedChange = onAutoPlaylistDownloadChange
-            )
-        }
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_top_auto_playlist)) },
-                icon = { Icon(Icons.AutoMirrored.Rounded.TrendingUp, null) },
-                checked = autoPlaylistTopPlaylist,
-                onCheckedChange = onAutoPlaylistTopPlaylistChange
-            )
-        }
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_cached_auto_playlist)) },
-                icon = { Icon(Icons.Rounded.Cached, null) },
-                checked = autoPlaylistCached,
-                onCheckedChange = onAutoPlaylistCachedChange
-            )
-        }
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_local_auto_playlist)) },
-                icon = { Icon(Icons.Rounded.MusicNote, null) },
-                checked = autoPlaylistLocal,
-                onCheckedChange = onAutoPlaylistLocalChange
-            )
-        }
-        AnimatedVisibility(autoPlaylistsCustomization) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.show_uploaded_auto_playlist)) },
-                icon = { Icon(Icons.Rounded.Backup, null) },
-                checked = uploadedPlaylists,
-                onCheckedChange = onUploadedPlaylist
-            )
-        }
-        SwitchPreference(
             title = { Text(stringResource(R.string.swipe_song_to_dismiss)) },
             icon = { Icon(painterResource(R.drawable.queue_music), null) },
             checked = swipeSongToDismiss,
             onCheckedChange = onSwipeSongToDismissChange
         )
 
-        if (appDesignVariant == AppDesignVariantType.NEW) {
-            EnumListPreference(
-                title = { Text(stringResource(R.string.default_open_tab)) },
-                icon = { Icon(painterResource(R.drawable.tab), null) },
-                selectedValue = defaultOpenTab,
-                onValueSelected = onDefaultOpenTabChange,
-                valueText = {
-                    when (it) {
-                        NavigationTab.HOME -> stringResource(R.string.home)
-                        NavigationTab.EXPLORE -> stringResource(R.string.explore)
-                        NavigationTab.SONGS -> stringResource(R.string.songs)
-                        NavigationTab.ARTISTS -> stringResource(R.string.artists)
-                        NavigationTab.ALBUMS -> stringResource(R.string.albums)
-                        NavigationTab.PLAYLISTS -> stringResource(R.string.playlists)
-                        NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
-                    }
+        EnumListPreference(
+            title = { Text(stringResource(R.string.default_open_tab)) },
+            icon = { Icon(painterResource(R.drawable.tab), null) },
+            selectedValue = defaultOpenTab,
+            onValueSelected = onDefaultOpenTabChange,
+            valueText = {
+                when (it) {
+                    NavigationTab.HOME -> stringResource(R.string.home)
+                    NavigationTab.EXPLORE -> stringResource(R.string.explore)
+                    NavigationTab.LIBRARY -> stringResource(R.string.filter_library)
                 }
-            )
-        } else {
-            EnumListPreference(
-                title = { Text(stringResource(R.string.default_open_tab)) },
-                icon = { Icon(painterResource(R.drawable.tab), null) },
-                selectedValue = defaultOpenTabOld,
-                onValueSelected = onDefaultOpenTabOldChange,
-                valueText = {
-                    when (it) {
-                        NavigationTabOld.HOME -> stringResource(R.string.home)
-                        NavigationTabOld.EXPLORE -> stringResource(R.string.explore)
-                        NavigationTabOld.SONGS -> stringResource(R.string.songs)
-                        NavigationTabOld.ARTISTS -> stringResource(R.string.artists)
-                        NavigationTabOld.ALBUMS -> stringResource(R.string.albums)
-                        NavigationTabOld.PLAYLISTS -> stringResource(R.string.playlists)
-                    }
-                }
-            )
-        }
+            }
+        )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.slim_navbar)) },
@@ -644,29 +528,6 @@ fun AppearanceSettings(
                 }
             },
         )
-        ListPreference(
-            title = { Text(stringResource(R.string.default_lib_chips)) },
-            icon = { Icon(painterResource(R.drawable.list), null) },
-            selectedValue = defaultChip,
-            values =
-            listOf(
-                LibraryFilter.LIBRARY,
-                LibraryFilter.PLAYLISTS,
-                LibraryFilter.SONGS,
-                LibraryFilter.ALBUMS,
-                LibraryFilter.ARTISTS,
-            ),
-            valueText = {
-                when (it) {
-                    LibraryFilter.SONGS -> stringResource(R.string.songs)
-                    LibraryFilter.ARTISTS -> stringResource(R.string.artists)
-                    LibraryFilter.ALBUMS -> stringResource(R.string.albums)
-                    LibraryFilter.PLAYLISTS -> stringResource(R.string.playlists)
-                    LibraryFilter.LIBRARY -> stringResource(R.string.filter_library)
-                }
-            },
-            onValueSelected = onDefaultChipChange,
-        )
     }
 
     TopAppBar(
@@ -684,20 +545,4 @@ fun AppearanceSettings(
         },
         scrollBehavior = scrollBehavior
     )
-}
-
-enum class DarkMode {
-    ON, OFF, AUTO
-}
-
-enum class NavigationTabOld {
-    HOME, EXPLORE ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
-}
-
-enum class NavigationTab {
-     HOME, LIBRARY, EXPLORE ,SONGS, ARTISTS, ALBUMS, PLAYLISTS
-}
-
-enum class LyricsPosition {
-    LEFT, CENTER, RIGHT
 }

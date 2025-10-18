@@ -18,10 +18,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.PlaybackException
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
-import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.utils.rememberEnumPreference
 
 @Composable

@@ -11,7 +11,6 @@ import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
 import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.IPADOS
 import com.maloy.innertube.models.YouTubeClient.Companion.MOBILE
-import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_CREATOR
@@ -29,15 +28,14 @@ object YTPlayerUtils {
         .proxy(YouTube.proxy)
         .build()
 
-    private val MAIN_CLIENT: YouTubeClient = ANDROID_VR_1_43_32
+    private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
         ANDROID_VR_1_61_48,
-        WEB_REMIX,
+        ANDROID_VR_1_43_32,
         ANDROID_CREATOR,
         IPADOS,
         ANDROID_VR_NO_AUTH,
         MOBILE,
-        TVHTML5,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         IOS,
         WEB,

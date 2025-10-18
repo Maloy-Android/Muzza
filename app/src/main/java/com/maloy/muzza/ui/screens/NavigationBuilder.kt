@@ -8,7 +8,6 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.runtime.Composable
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -19,6 +18,7 @@ import com.maloy.muzza.ui.screens.artist.ArtistScreen
 import com.maloy.muzza.ui.screens.artist.ArtistSongsScreen
 import com.maloy.muzza.ui.screens.library.LibraryAlbumsScreen
 import com.maloy.muzza.ui.screens.library.LibraryArtistsScreen
+import com.maloy.muzza.ui.screens.library.LibraryMixScreen
 import com.maloy.muzza.ui.screens.library.LibraryPlaylistsScreen
 import com.maloy.muzza.ui.screens.playlist.LocalPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.OnlinePlaylistScreen
@@ -33,8 +33,6 @@ import com.maloy.muzza.ui.screens.settings.PlayerSettings
 import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
-import com.maloy.muzza.ui.screens.library.LibraryScreen
-import com.maloy.muzza.ui.screens.library.LibrarySongsScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLocalScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.CachePlaylistScreen
@@ -58,19 +56,16 @@ fun NavGraphBuilder.navigationBuilder(
         ExploreScreen(navController)
     }
     composable(Screens.Library.route) {
-        LibraryScreen(navController)
+        LibraryMixScreen(navController)
     }
-    composable(Screens.Songs.route) {
-        LibrarySongsScreen(navController)
+    composable("library_artists") {
+        LibraryArtistsScreen(navController,scrollBehavior)
     }
-    composable(Screens.Artists.route) {
-        LibraryArtistsScreen(navController)
+    composable("library_albums") {
+        LibraryAlbumsScreen(navController,scrollBehavior)
     }
-    composable(Screens.Albums.route) {
-        LibraryAlbumsScreen(navController)
-    }
-    composable(Screens.Playlists.route) {
-        LibraryPlaylistsScreen(navController)
+    composable("library_playlists") {
+        LibraryPlaylistsScreen(navController,scrollBehavior)
     }
     composable("history") {
         HistoryScreen(navController)

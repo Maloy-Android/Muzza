@@ -25,6 +25,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountChannelHandleKey
 import com.maloy.muzza.constants.AccountEmailKey
+import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.VisitorDataKey
@@ -47,6 +48,7 @@ fun LoginScreen(
     var accountName by rememberPreference(AccountNameKey, "")
     var accountEmail by rememberPreference(AccountEmailKey, "")
     var accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
+    var accountImageUrl by rememberPreference(AccountImageUrlKey, "")
 
     var webView: WebView? = null
 
@@ -65,6 +67,7 @@ fun LoginScreen(
                                     accountName = it.name
                                     accountEmail = it.email.orEmpty()
                                     accountChannelHandle = it.channelHandle.orEmpty()
+                                    accountImageUrl = it.thumbnailUrl.orEmpty()
                                 }.onFailure {
                                     reportException(it)
                                 }

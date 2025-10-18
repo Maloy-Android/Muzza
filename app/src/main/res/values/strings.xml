@@ -24,7 +24,6 @@
     <string name="my_top">My top music</string>
     <string name="cached">Cached music</string>
     <string name="local">Local music</string>
-    <string name="uploaded_playlist">Uploaded music</string>
 
     <string name="content_filter">Content filter</string>
 
@@ -96,7 +95,6 @@
     <string name="filter_community_playlists">Community playlists</string>
     <string name="filter_featured_playlists">Featured playlists</string>
     <string name="filter_bookmarked">Bookmarked</string>
-    <string name="filter_uploaded">Uploaded</string>
     <string name="no_results_found">No results found</string>
 
     <!-- Library -->
@@ -105,6 +103,8 @@
     <string name="library_artist_empty">Library artists will show up here</string>
     <string name="library_album_empty">Library albums will show up here</string>
     <string name="library_playlist_empty">Your playlists will show up here</string>
+    <string name="also_in_your_collection">Also in your Collection</string>
+    <string name="liked_artists">Liked artists</string>
 
     <!-- Artist screen -->
     <string name="from_your_library">From your library</string>
@@ -322,7 +322,6 @@
     <string name="dark_theme_off">Off</string>
     <string name="dark_theme_follow_system">Follow system</string>
     <string name="pure_black">Pure black</string>
-    <string name="app_design_variant">App design</string>
     <string name="listen_youtube_music">Listen on YouTube Music</string>
     <string name="visit_muzza">Visit Muzza</string>
     <string name="artist">Artist</string>
@@ -354,13 +353,6 @@
     <string name="show_content_filter">Show content filter</string>
     <string name="misc">Misc</string>
     <string name="main">Main</string>
-    <string name="auto_playlists_customization">Auto playlists customization</string>
-    <string name="show_liked_auto_playlist">Show auto-playlist liked</string>
-    <string name="show_download_auto_playlist">Show auto-playlist download</string>
-    <string name="show_top_auto_playlist">Show auto-playlist top</string>
-    <string name="show_cached_auto_playlist">Show auto-playlist cached</string>
-    <string name="show_local_auto_playlist">Show auto-playlist local</string>
-    <string name="show_uploaded_auto_playlist">Show auto-playlist uploaded music</string>
     <string name="swipe_song_to_dismiss">Swipe song to right for play next or left for adding to queue</string>
     <string name="default_open_tab">Default open tab</string>
     <string name="default_lib_chips">Default library chips</string>
@@ -368,12 +360,7 @@
     <string name="slim_navbar">Show bottom navigation bar labels</string>
     <string name="small">Small</string>
     <string name="big">Big</string>
-    <string name="Changelog">Changelog</string>
-    <string name="no_changes">No recent changes found</string>
-    <string name="changelogs">Recent changes:</string>
-    <string name="closepopup">Close</string>
     <string name="NewVersion">New version available</string>
-    <string name="Hi">Hello Again</string>
     <string name="Donate">Donate</string>
     <string name="Telegramchanel">Official Channel</string>
     <string name="web_site">Website</string>

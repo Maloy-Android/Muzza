@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.Intent.ACTION_SEARCH
 import android.content.ServiceConnection
 import android.content.pm.PackageManager
 import android.graphics.drawable.BitmapDrawable
@@ -78,6 +79,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -101,26 +103,27 @@ import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import coil.imageLoader
 import coil.request.ImageRequest
 import com.valentinilk.shimmer.LocalShimmerTheme
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AppBarHeight
-import com.maloy.muzza.constants.AppDesignVariantKey
-import com.maloy.muzza.constants.AppDesignVariantType
-import com.maloy.muzza.constants.ChipSortTypeKey
+import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
-import com.maloy.muzza.constants.DefaultOpenTabOldKey
 import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.FirstSetupPassed
-import com.maloy.muzza.constants.LibraryFilter
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.NavigationBarAnimationSpec
 import com.maloy.muzza.constants.NavigationBarHeight
+import com.maloy.muzza.constants.NavigationTab
 import com.maloy.muzza.constants.PauseSearchHistoryKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SearchSource
@@ -148,9 +151,6 @@ import com.maloy.muzza.ui.screens.Screens
 import com.maloy.muzza.ui.screens.navigationBuilder
 import com.maloy.muzza.ui.screens.search.LocalSearchScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
-import com.maloy.muzza.ui.screens.settings.DarkMode
-import com.maloy.muzza.ui.screens.settings.NavigationTab
-import com.maloy.muzza.ui.screens.settings.NavigationTabOld
 import com.maloy.muzza.ui.screens.settings.updateLanguage
 import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
@@ -183,7 +183,6 @@ import java.net.URL
 import java.util.Locale
 import kotlin.time.Duration.Companion.days
 
-@Suppress("NAME_SHADOWING")
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     @Inject
@@ -253,7 +252,7 @@ class MainActivity : ComponentActivity() {
     }
 
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "ObsoleteSdkInt")
+    @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter", "ObsoleteSdkInt", "RememberReturnType")
     @OptIn(ExperimentalMaterial3Api::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -289,11 +288,6 @@ class MainActivity : ComponentActivity() {
             }
 
             val snackbarHostState = remember { SnackbarHostState() }
-            val (appDesignVariant) = rememberEnumPreference(AppDesignVariantKey, defaultValue = AppDesignVariantType.NEW)
-            val (defaultOpenTabOld) = rememberEnumPreference(DefaultOpenTabOldKey, defaultValue = NavigationTabOld.HOME)
-            val navController = rememberNavController()
-            val navBackStackEntry by navController.currentBackStackEntryAsState()
-            val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
             val enableDynamicTheme by rememberPreference(DynamicThemeKey, defaultValue = true)
             val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
             val pureBlack by rememberPreference(PureBlackKey, defaultValue = false)
@@ -368,44 +362,22 @@ class MainActivity : ComponentActivity() {
                     val navBackStackEntry by navController.currentBackStackEntryAsState()
 
                     val (slimNav) = rememberPreference(SlimNavBarKey, defaultValue = true)
-                    val navigationItems = remember(appDesignVariant) {
-                        if (appDesignVariant == AppDesignVariantType.NEW) {
-                            Screens.MainScreens
-                        } else {
-                            Screens.MainScreensOld
-                        }
-                    }
+                    val navigationItems = remember { Screens.MainScreens }
                     val defaultOpenTab = remember {
-                        if (appDesignVariant == AppDesignVariantType.NEW) dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
-                        else dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
+                        dataStore[DefaultOpenTabKey].toEnum(defaultValue = NavigationTab.HOME)
                     }
                     val tabOpenedFromShortcut = remember {
                         when (intent?.action) {
-                            ACTION_SONGS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.SONGS
-                            ACTION_ARTISTS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.ARTISTS
-                            ACTION_ALBUMS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.ALBUMS
-                            ACTION_PLAYLISTS -> if (appDesignVariant == AppDesignVariantType.NEW) NavigationTab.LIBRARY else NavigationTabOld.PLAYLISTS
+                            ACTION_HOME -> NavigationTab.HOME
+                            ACTION_EXPLORE -> NavigationTab.EXPLORE
+                            ACTION_LIBRARY -> NavigationTab.LIBRARY
                             else -> null
-                        }
-                    }
-                    if (tabOpenedFromShortcut != null && appDesignVariant == AppDesignVariantType.NEW) {
-                        var filter by rememberEnumPreference(ChipSortTypeKey, LibraryFilter.LIBRARY)
-                        filter = when (intent?.action) {
-                            ACTION_SONGS -> LibraryFilter.SONGS
-                            ACTION_ARTISTS -> LibraryFilter.ARTISTS
-                            ACTION_ALBUMS -> LibraryFilter.ALBUMS
-                            ACTION_PLAYLISTS -> LibraryFilter.PLAYLISTS
-                            else -> LibraryFilter.LIBRARY
                         }
                     }
                     val topLevelScreens = listOf(
                         Screens.Home.route,
                         Screens.Explore.route,
                         Screens.Library.route,
-                        Screens.Songs.route,
-                        Screens.Artists.route,
-                        Screens.Albums.route,
-                        Screens.Playlists.route,
                         "settings"
                     )
 
@@ -624,17 +596,12 @@ class MainActivity : ComponentActivity() {
                         LocalSyncUtils provides syncUtils,
                         LocalSnackbarHostState provides snackbarHostState
                     ) {
-                        if (appDesignVariant == AppDesignVariantType.NEW) {
                             NavHost(
                                 navController = navController,
                                 startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {
                                     NavigationTab.HOME -> Screens.Home
                                     NavigationTab.EXPLORE -> Screens.Explore
-                                    NavigationTabOld.SONGS -> Screens.Songs
-                                    NavigationTabOld.ARTISTS -> Screens.Artists
-                                    NavigationTabOld.ALBUMS -> Screens.Albums
-                                    NavigationTabOld.PLAYLISTS -> Screens.Playlists
-                                    else -> Screens.Library
+                                    NavigationTab.LIBRARY -> Screens.Library
                                 }.route,
                                 enterTransition = {
                                     if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
@@ -682,77 +649,21 @@ class MainActivity : ComponentActivity() {
                             ) {
                                 navigationBuilder(navController, topAppBarScrollBehavior)
                             }
-                        } else {
-                            NavHost(
-                                navController = navController,
-                                startDestination = when (tabOpenedFromShortcut ?: defaultOpenTabOld) {
-                                    NavigationTabOld.HOME -> Screens.Home
-                                    NavigationTabOld.EXPLORE -> Screens.Explore
-                                    NavigationTabOld.SONGS -> Screens.Songs
-                                    NavigationTabOld.ARTISTS -> Screens.Artists
-                                    NavigationTabOld.ALBUMS -> Screens.Albums
-                                    NavigationTabOld.PLAYLISTS -> Screens.Playlists
-                                    else -> Screens.Library
-                                }.route,
-                                enterTransition = {
-                                    if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
-                                        fadeIn(tween(250))
-                                    } else {
-                                        fadeIn(tween(250)) + slideInHorizontally { it / 2 }
-                                    }
-                                },
-                                exitTransition = {
-                                    if (initialState.destination.route in topLevelScreens && targetState.destination.route in topLevelScreens) {
-                                        fadeOut(tween(200))
-                                    } else {
-                                        fadeOut(tween(200)) + slideOutHorizontally { -it / 2 }
-                                    }
-                                },
-                                popEnterTransition = {
-                                    if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith(
-                                            "search/"
-                                        ) == true) && targetState.destination.route in topLevelScreens
-                                    ) {
-                                        fadeIn(tween(250))
-                                    } else {
-                                        fadeIn(tween(250)) + slideInHorizontally { -it / 2 }
-                                    }
-                                },
-                                popExitTransition = {
-                                    if ((initialState.destination.route in topLevelScreens || initialState.destination.route?.startsWith(
-                                            "search/"
-                                        ) == true) && targetState.destination.route in topLevelScreens
-                                    ) {
-                                        fadeOut(tween(200))
-                                    } else {
-                                        fadeOut(tween(200)) + slideOutHorizontally { it / 2 }
-                                    }
-                                },
-                                modifier = Modifier
-                                    .nestedScroll(
-                                        if (navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
-                                            navBackStackEntry?.destination?.route?.startsWith("search/") == true) {
-                                            searchBarScrollBehavior.nestedScrollConnection
-                                        } else {
-                                            topAppBarScrollBehavior.nestedScrollConnection
-                                        }
-                                    )
-                            ) {
-                                navigationBuilder(navController, topAppBarScrollBehavior)
-                            }
-                        }
 
                         val currentTitle = remember(navBackStackEntry) {
                             when (navBackStackEntry?.destination?.route) {
                                 Screens.Home.route -> R.string.home
                                 Screens.Explore.route -> R.string.explore
                                 Screens.Library.route -> R.string.filter_library
-                                Screens.Songs.route -> R.string.songs
-                                Screens.Artists.route -> R.string.artists
-                                Screens.Albums.route -> R.string.albums
-                                Screens.Playlists.route -> R.string.playlists
                                 else -> null
                             }
+                        }
+
+                        val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
+                        val (innerTubeCookie) = rememberPreference(
+                            InnerTubeCookieKey, "")
+                        val isLoggedIn = remember(innerTubeCookie) {
+                            "SAPISID" in parseCookieString(innerTubeCookie)
                         }
 
                         if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings" && inSelectMode?.value != true && isSearching?.value != true) {
@@ -787,7 +698,21 @@ class MainActivity : ComponentActivity() {
                                                     }
                                                 }
                                             ) {
-                                                Icon(painterResource(R.drawable.more_vert), null)
+                                                if (isLoggedIn && accountImageUrl.isNotEmpty()) {
+                                                    AsyncImage(
+                                                        model = (accountImageUrl),
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier
+                                                            .size(30.dp)
+                                                            .clip(CircleShape)
+                                                    )
+                                                } else {
+                                                    Icon(
+                                                        painterResource(R.drawable.more_vert),
+                                                        null
+                                                    )
+                                                }
                                             }
                                             DropdownMenu(
                                                 expanded = showOptionsDropdown,
@@ -1127,11 +1052,9 @@ class MainActivity : ComponentActivity() {
     }
 
     companion object {
-        const val ACTION_SEARCH = "com.maloy.muzza.action.SEARCH"
-        const val ACTION_SONGS = "com.maloy.muzza.action.SONGS"
-        const val ACTION_ARTISTS = "com.maloy.muzza.action.ARTISTS"
-        const val ACTION_ALBUMS = "com.maloy.muzza.action.ALBUMS"
-        const val ACTION_PLAYLISTS = "com.maloy.muzza.action.PLAYLISTS"
+        const val ACTION_HOME = "com.maloy.muzza.action.HOME"
+        const val ACTION_EXPLORE = "com.maloy.muzza.action.EXPLORE"
+        const val ACTION_LIBRARY = "com.maloy.muzza.action.LIBRARY"
     }
 }
 

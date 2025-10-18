@@ -111,6 +111,7 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.LikedAutoDownloadKey
 import com.maloy.muzza.constants.LikedAutodownloadMode
@@ -143,7 +144,6 @@ import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.ResizableIconButton
 import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
-import com.maloy.muzza.ui.screens.settings.DarkMode
 import com.maloy.muzza.ui.theme.extractGradientColors
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.ui.utils.imageCache
@@ -330,7 +330,11 @@ fun BottomSheetPlayer(
             thumbnailLazyGridState.scrollToItem(index)
     }
 
-    LaunchedEffect(!showLyrics && !fullScreenLyrics || !showLyrics) {
+    LaunchedEffect(!showLyrics && !fullScreenLyrics) {
+        fullScreenLyrics = true
+    }
+
+    LaunchedEffect(!showLyrics) {
         fullScreenLyrics = true
     }
 

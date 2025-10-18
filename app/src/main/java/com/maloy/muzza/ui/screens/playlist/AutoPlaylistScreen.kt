@@ -9,12 +9,15 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -22,8 +25,8 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Backup
 import androidx.compose.material.icons.rounded.CloudDownload
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -91,12 +94,14 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -120,6 +125,8 @@ import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -153,11 +160,7 @@ fun AutoPlaylistScreen(
         }
     }
 
-    val playlist = when (viewModel.playlist) {
-        "liked" -> stringResource(R.string.liked)
-        "uploaded" -> stringResource(R.string.uploaded_playlist)
-        else -> stringResource(R.string.offline)
-    }
+    val playlist = if (viewModel.playlist == "liked") stringResource(R.string.liked) else stringResource(R.string.offline)
     val songs by viewModel.likedSongs.collectAsState(null)
     val mutableSongs = remember {
         mutableStateListOf<Song>()
@@ -169,7 +172,6 @@ fun AutoPlaylistScreen(
     val playlistType = when (playlistId) {
         "liked" -> PlaylistType.LIKE
         "downloaded" -> PlaylistType.DOWNLOAD
-        "uploaded" -> PlaylistType.UPLOADED
         else -> PlaylistType.OTHER
     }
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
@@ -213,12 +215,7 @@ fun AutoPlaylistScreen(
     LaunchedEffect(Unit) {
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             withContext(Dispatchers.IO) {
-                when (playlistType) {
-                    PlaylistType.LIKE -> viewModel.syncLikedSongs()
-                    PlaylistType.UPLOADED -> viewModel.syncUploadedSongs()
-                    PlaylistType.DOWNLOAD -> return@withContext
-                    PlaylistType.OTHER -> return@withContext
-                }
+                if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
             }
         }
     }
@@ -249,6 +246,7 @@ fun AutoPlaylistScreen(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
+            icon = { Icon(Icons.Rounded.CloudOff,null) },
             content = {
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, playlist),
@@ -296,6 +294,18 @@ fun AutoPlaylistScreen(
             state.firstVisibleItemIndex > 0
         }
     }
+    val reorderableState = rememberReorderableLazyListState(
+        onMove = { from, to ->
+            mutableSongs.move(from.index - 2, to.index - 2)
+        },
+        lazyListState = state,
+        scrollThresholdPadding = WindowInsets.systemBars.add(
+            WindowInsets(
+                top = ListItemHeight,
+                bottom = ListItemHeight
+            )
+        ).asPaddingValues()
+    )
     Box(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -337,11 +347,7 @@ fun AutoPlaylistScreen(
                                         )
                                 ) {
                                     Icon(
-                                        imageVector = when (viewModel.playlist) {
-                                            "liked" -> Icons.Rounded.Favorite
-                                            "uploaded" -> Icons.Rounded.Backup
-                                            else -> Icons.Rounded.CloudDownload
-                                        },
+                                        imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
                                         contentDescription = null,
                                         tint = LocalContentColor.current.copy(alpha = 0.8f),
                                         modifier = Modifier
@@ -595,66 +601,71 @@ fun AutoPlaylistScreen(
                                 )
                             }
                         }
-                        SongListItem(
-                            song = songWrapper,
-                            isActive = songWrapper.song.id == mediaMetadata?.id,
-                            showInLibraryIcon = true,
-                            isPlaying = isPlaying,
-                            trailingContent = {
-                                if (inSelectMode) {
-                                    Checkbox(
-                                        checked = songWrapper.id in selection,
-                                        onCheckedChange = onCheckedChange
-                                    )
-                                } else {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                SongMenu(
-                                                    originalSong = songWrapper,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        }
-                                    ) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null
+                        ReorderableItem(
+                            state = reorderableState,
+                            key = filteredSongs
+                        ) {
+                            SongListItem(
+                                song = songWrapper,
+                                isActive = songWrapper.song.id == mediaMetadata?.id,
+                                showInLibraryIcon = true,
+                                isPlaying = isPlaying,
+                                trailingContent = {
+                                    if (inSelectMode) {
+                                        Checkbox(
+                                            checked = songWrapper.id in selection,
+                                            onCheckedChange = onCheckedChange
                                         )
-                                    }
-                                }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .combinedClickable(
-                                    onClick = {
-                                        if (inSelectMode) {
-                                            onCheckedChange(songWrapper.id !in selection)
-                                        } else if (songWrapper.id == mediaMetadata?.id) {
-                                            playerConnection.player.togglePlayPause()
-                                        } else {
-                                            songs?.let { songs ->
-                                                playerConnection.playQueue(
-                                                    ListQueue(
-                                                        title = playlist,
-                                                        items = songs.map { it.toMediaItem() },
-                                                        startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
+                                    } else {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    SongMenu(
+                                                        originalSong = songWrapper,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss
                                                     )
-                                                )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .combinedClickable(
+                                        onClick = {
+                                            if (inSelectMode) {
+                                                onCheckedChange(songWrapper.id !in selection)
+                                            } else if (songWrapper.id == mediaMetadata?.id) {
+                                                playerConnection.player.togglePlayPause()
+                                            } else {
+                                                songs?.let { songs ->
+                                                    playerConnection.playQueue(
+                                                        ListQueue(
+                                                            title = playlist,
+                                                            items = songs.map { it.toMediaItem() },
+                                                            startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        },
+                                        onLongClick = {
+                                            if (!inSelectMode) {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                inSelectMode = true
+                                                onCheckedChange(true)
                                             }
                                         }
-                                    },
-                                    onLongClick = {
-                                        if (!inSelectMode) {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            inSelectMode = true
-                                            onCheckedChange(true)
-                                        }
-                                    }
-                                )
-                                .animateItem()
-                        )
+                                    )
+                                    .animateItem()
+                            )
+                        }
                     }
                 }
             }
@@ -810,6 +821,6 @@ fun AutoPlaylistScreen(
 }
 
 enum class PlaylistType {
-    LIKE, DOWNLOAD, UPLOADED, OTHER
+    LIKE, DOWNLOAD, OTHER
 }
 

@@ -8,7 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.Sort
 import androidx.compose.material.icons.rounded.ContentCut
-import androidx.compose.material.icons.rounded.TextFields
+import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -31,6 +31,7 @@ import com.maloy.muzza.constants.EnableKugouKey
 import com.maloy.muzza.constants.EnableLrcLibKey
 import com.maloy.muzza.constants.LyricFontSizeKey
 import com.maloy.muzza.constants.LyricTrimKey
+import com.maloy.muzza.constants.LyricsPosition
 import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PreferredLyricsProvider
@@ -66,6 +67,7 @@ fun LyricsSettings(
     if (showFontSizeDialog) {
         CounterDialog(
             title = stringResource(R.string.lyrics_font_size),
+            icon = { Icon(Icons.Rounded.FormatSize,null) },
             initialValue = lyricFontSize,
             upperBound = 28,
             lowerBound = 10,
@@ -131,7 +133,7 @@ fun LyricsSettings(
         PreferenceEntry(
             title = { Text( stringResource(R.string.lyrics_font_size)) },
             description = "$lyricFontSize sp",
-            icon = { Icon(Icons.Rounded.TextFields, null) },
+            icon = { Icon(Icons.Rounded.FormatSize, null) },
             onClick = { showFontSizeDialog = true }
         )
 
@@ -141,6 +143,7 @@ fun LyricsSettings(
 
         ListPreference(
             title = { Text(stringResource(R.string.default_lyrics_provider)) },
+            icon = { Icon(painterResource(R.drawable.lyrics), null) },
             selectedValue = preferredProvider,
             values = listOf(PreferredLyricsProvider.KUGOU, PreferredLyricsProvider.LRCLIB),
             valueText = {

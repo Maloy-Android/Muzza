@@ -88,9 +88,11 @@ import coil.ImageLoader
 import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.LyricFontSizeKey
 import com.maloy.muzza.constants.LyricTrimKey
+import com.maloy.muzza.constants.LyricsPosition
 import com.maloy.muzza.constants.LyricsTextPositionKey
 import com.maloy.muzza.constants.MultilineLrcKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
@@ -105,8 +107,6 @@ import com.maloy.muzza.lyrics.LyricsUtils.parseLyrics
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.LyricsMenu
-import com.maloy.muzza.ui.screens.settings.DarkMode
-import com.maloy.muzza.ui.screens.settings.LyricsPosition
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference

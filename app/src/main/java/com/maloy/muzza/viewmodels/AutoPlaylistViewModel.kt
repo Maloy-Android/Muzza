@@ -50,7 +50,6 @@ class AutoPlaylistViewModel  @Inject constructor(
             .flatMapLatest { (sortType, descending) ->
                 when (playlist) {
                     "liked" -> database.likedSongs(sortType, descending)
-                    "uploaded" -> database.uploadedSongs(sortType, descending)
                     "downloaded" -> downloadUtil.downloads.flatMapLatest { downloads ->
                         database.allSongs()
                             .flowOn(Dispatchers.IO)
@@ -81,9 +80,5 @@ class AutoPlaylistViewModel  @Inject constructor(
 
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
-    }
-
-    fun syncUploadedSongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncUploadedSongs() }
     }
 }

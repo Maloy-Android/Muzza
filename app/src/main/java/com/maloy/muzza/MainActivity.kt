@@ -63,7 +63,6 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -416,15 +415,10 @@ class MainActivity : ComponentActivity() {
                         mutableStateOf(intent?.action == ACTION_SEARCH)
                     }
 
-                    val inSelectMode = navBackStackEntry?.savedStateHandle?.getStateFlow("inSelectMode", false)?.collectAsState()
-                    val isSearching = navBackStackEntry?.savedStateHandle?.getStateFlow("isSearching", false)?.collectAsState()
-
-                    val shouldShowSearchBar = remember(active, navBackStackEntry, inSelectMode?.value, isSearching?.value) {
-                        (active ||
-                                navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } ||
-                                navBackStackEntry?.destination?.route?.startsWith("search/") == true) &&
-                                inSelectMode?.value != true &&
-                                isSearching?.value != true
+                    val shouldShowSearchBar = remember(active, navBackStackEntry) {
+                        (active || navigationItems.fastAny { it.route == navBackStackEntry?.destination?.route } || navBackStackEntry?.destination?.route?.startsWith(
+                            "search/"
+                        ) == true)
                     }
                     val shouldShowNavigationBar = remember(navBackStackEntry, active) {
                         navBackStackEntry?.destination?.route == null ||
@@ -666,7 +660,7 @@ class MainActivity : ComponentActivity() {
                             "SAPISID" in parseCookieString(innerTubeCookie)
                         }
 
-                        if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings" && inSelectMode?.value != true && isSearching?.value != true) {
+                        if (!active && navBackStackEntry?.destination?.route in topLevelScreens && navBackStackEntry?.destination?.route != "settings") {
                             TopAppBar(
                                 title = {
                                     Text(

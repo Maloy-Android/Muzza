@@ -24,6 +24,7 @@ import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -57,7 +58,6 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
-import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.YouTubeGridItem
@@ -95,9 +95,10 @@ fun YouTubeBrowseScreen(
     ) {
         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
         val lazyGridState = rememberLazyGridState()
-        val gridChecker by remember {
+        val lazyListState = rememberLazyListState()
+        val lazyChecker by remember {
             derivedStateOf {
-                lazyGridState.firstVisibleItemIndex > 0
+                lazyListState.firstVisibleItemIndex > 0
             }
         }
         val snapLayoutInfoProvider = remember(lazyGridState) {
@@ -110,6 +111,7 @@ fun YouTubeBrowseScreen(
         }
         LazyColumn(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            state = lazyListState
         ) {
             if (browseResult == null) {
                 item {
@@ -284,9 +286,9 @@ fun YouTubeBrowseScreen(
                 }
             }
         }
-        if (gridChecker) {
-            LazyVerticalGridScrollbar(
-                state = lazyGridState
+        if (lazyChecker) {
+            LazyColumnScrollbar(
+                state = lazyListState
             )
         }
     }

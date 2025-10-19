@@ -86,6 +86,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -174,6 +175,7 @@ fun AutoPlaylistScreen(
         "downloaded" -> PlaylistType.DOWNLOAD
         else -> PlaylistType.OTHER
     }
+    val likedMusicThumbnail = viewModel.likedMusicThumbnail
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val downloadUtil = LocalDownloadUtil.current
@@ -346,15 +348,23 @@ fun AutoPlaylistScreen(
                                             shape = RoundedCornerShape(ThumbnailCornerRadius)
                                         )
                                 ) {
-                                    Icon(
-                                        imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
-                                        contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                        modifier = Modifier
-                                            .size(110.dp)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                            .align(Alignment.Center)
-                                    )
+                                    if (isLoggedIn && !likedMusicThumbnail.isNullOrEmpty() && viewModel.playlist == "liked") {
+                                        AsyncImage(
+                                            model = likedMusicThumbnail,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                            contentDescription = null,
+                                            tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                            modifier = Modifier
+                                                .size(110.dp)
+                                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                                .align(Alignment.Center)
+                                        )
+                                    }
                                 }
                                 Spacer(Modifier.height(12.dp))
                                 Column(

@@ -1,9 +1,5 @@
 package com.maloy.muzza.ui.screens.library
 
-import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -53,7 +49,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
@@ -63,7 +58,6 @@ import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
 import com.maloy.muzza.constants.GridCellSize
@@ -75,9 +69,6 @@ import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
 import com.maloy.muzza.constants.PlaylistViewTypeKey
-import com.maloy.muzza.constants.ScannerSensitivity
-import com.maloy.muzza.constants.ScannerSensitivityKey
-import com.maloy.muzza.constants.ScannerStrictExtKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.PlaylistEntity
@@ -92,8 +83,6 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.ui.utils.scanLocal
-import com.maloy.muzza.ui.utils.syncDB
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -113,22 +102,6 @@ fun LibraryPlaylistsScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
-
-    var isScannerActive by remember { mutableStateOf(false) }
-    var isScanFinished by remember { mutableStateOf(false) }
-    var mediaPermission by remember { mutableStateOf(true) }
-    val mediaPermissionLevel =
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
-        else Manifest.permission.READ_EXTERNAL_STORAGE
-    val (autoSyncLocalSongs) = rememberPreference(
-        key = AutoSyncLocalSongsKey,
-        defaultValue = true
-    )
-    val (scannerSensitivity) = rememberEnumPreference(
-        key = ScannerSensitivityKey,
-        defaultValue = ScannerSensitivity.LEVEL_2
-    )
-    val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -180,37 +153,6 @@ fun LibraryPlaylistsScreen(
                 LibraryViewType.GRID -> lazyGridState.animateScrollToItem(0)
             }
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
-        }
-    }
-
-    if (autoSyncLocalSongs) {
-        LaunchedEffect(Unit) {
-            if (isScannerActive) {
-                return@LaunchedEffect
-            }
-            if (context.checkSelfPermission(mediaPermissionLevel)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    context as Activity,
-                    arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
-                )
-                mediaPermission = false
-                return@LaunchedEffect
-            } else if (context.checkSelfPermission(mediaPermissionLevel)
-                == PackageManager.PERMISSION_GRANTED
-            ) {
-                mediaPermission = true
-            }
-            isScanFinished = false
-            isScannerActive = true
-            coroutineScope.launch(Dispatchers.IO) {
-                val directoryStructure = scanLocal(context).value
-                syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
-                isScannerActive = false
-                isScanFinished = true
-                database.localSongsCount()
-            }
         }
     }
 

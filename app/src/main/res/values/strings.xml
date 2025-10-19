@@ -492,7 +492,7 @@
     <string name="backup">Backup</string>
     <string name="backup_description">Save your entire music library with a single tap. This includes all your songs, created playlists, albums, artists, and even your app settings and preferences. Your data is securely saved to your chosen location, allowing you to transfer it to a new device or restore it with ease.</string>
     <string name="restore">Restore</string>
-    <string name="restore_description">Effortlessly bring back your complete music collection. Restore all your music, carefully curated playlists, albums, artists, and personalized app settings from a previous backup. It's the simplest way to get your music experience back exactly the way you like it.</string>
+    <string name="restore_description">Effortlessly bring back your complete music collection. Restore all your music, carefully curated playlists, albums, artists, and personalized app settings from a previous backup. It\'s the simplest way to get your music experience back exactly the way you like it.</string>
     <string name="m3u_import_failed">Failed to import playlist</string>
     <string name="imported_playlist">Imported playlist</string>
     <string name="backup_create_success">Backup created successfully</string>

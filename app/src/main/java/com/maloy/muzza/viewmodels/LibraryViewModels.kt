@@ -267,4 +267,6 @@ class LibraryMixViewModel @Inject constructor(
     val topSongs = database.mostPlayedSongs(0, 100)
     val localSongsCount = database.localSongsCount()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
+    val likedMusicThumbnail: String?
+        get() = syncUtils.likedMusicThumbnail
 }

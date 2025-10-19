@@ -72,6 +72,7 @@ import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -218,6 +219,8 @@ fun LibraryMixScreen(
     val density = LocalDensity.current
     val screenWidth = with(density) { view.width.toDp() }
 
+    val likedMusicThumbnail = viewModel.likedMusicThumbnail
+
     val horizontalLazyGridItemWidthFactor = if (screenWidth * 0.475f >= 320.dp) 0.475f else 0.9f
     val horizontalLazyGridItemWidth = screenWidth * horizontalLazyGridItemWidthFactor
     val quickPicksLazyGridState = rememberLazyGridState()
@@ -301,19 +304,29 @@ fun LibraryMixScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .clip(CircleShape)
-                                        .background(MaterialTheme.colorScheme.primaryContainer),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Rounded.Favorite,
+                                if (isLoggedIn && !likedMusicThumbnail.isNullOrEmpty()) {
+                                    AsyncImage(
+                                        model = likedMusicThumbnail,
                                         contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(16.dp)
+                                        modifier = Modifier
+                                            .size(30.dp)
+                                            .clip(CircleShape)
                                     )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .clip(CircleShape)
+                                            .background(MaterialTheme.colorScheme.primaryContainer),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Rounded.Favorite,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(

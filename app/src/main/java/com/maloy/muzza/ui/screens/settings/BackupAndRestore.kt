@@ -81,6 +81,7 @@ fun BackupAndRestore(
         )
         PreferenceEntry(
             icon = { Icon(painterResource(R.drawable.backup), null) },
+            description = stringResource(R.string.backup_description),
             title = { Text(stringResource(R.string.backup)) },
             onClick = {
                 val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
@@ -96,6 +97,7 @@ fun BackupAndRestore(
 
         PreferenceEntry(
             icon = { Icon(painterResource(R.drawable.restore),null) },
+            description = stringResource(R.string.restore_description),
             title = { Text(stringResource(R.string.restore)) },
             onClick = { restoreLauncher.launch(arrayOf("application/octet-stream")) }
         )
@@ -107,6 +109,7 @@ fun BackupAndRestore(
         )
         PreferenceEntry(
             icon = { Icon(painterResource(R.drawable.playlist_add),null) },
+            description = stringResource(R.string.m3u_import_playlist_description),
             title = { Text(stringResource(R.string.m3u_import_playlist)) },
             onClick = {
                 showImportM3uDialog = true

@@ -83,4 +83,6 @@ class AutoPlaylistViewModel  @Inject constructor(
     }
     val likedMusicThumbnail: String?
         get() = syncUtils.likedMusicThumbnail
+    val likedMusicTitle: String?
+        get() = syncUtils.likedMusicTitle
 }

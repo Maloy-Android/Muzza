@@ -220,6 +220,7 @@ fun LibraryMixScreen(
     val screenWidth = with(density) { view.width.toDp() }
 
     val likedMusicThumbnail = viewModel.likedMusicThumbnail
+    val likedMusicTitle = viewModel.likedMusicTitle
 
     val horizontalLazyGridItemWidthFactor = if (screenWidth * 0.475f >= 320.dp) 0.475f else 0.9f
     val horizontalLazyGridItemWidth = screenWidth * horizontalLazyGridItemWidthFactor
@@ -330,7 +331,7 @@ fun LibraryMixScreen(
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    text = stringResource(R.string.liked) + "    ->",
+                                    text = if (isLoggedIn && !likedMusicTitle.isNullOrEmpty()) likedMusicTitle else { stringResource(R.string.liked_songs) } + "    ->",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.weight(1f)

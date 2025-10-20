@@ -176,6 +176,7 @@ fun AutoPlaylistScreen(
         else -> PlaylistType.OTHER
     }
     val likedMusicThumbnail = viewModel.likedMusicThumbnail
+    val likedMusicTitle = viewModel.likedMusicTitle
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val downloadUtil = LocalDownloadUtil.current
@@ -372,7 +373,7 @@ fun AutoPlaylistScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     AutoResizeText(
-                                        text = playlist,
+                                        text = if (isLoggedIn && !likedMusicTitle.isNullOrEmpty() && viewModel.playlist == "liked") likedMusicTitle else playlist,
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,

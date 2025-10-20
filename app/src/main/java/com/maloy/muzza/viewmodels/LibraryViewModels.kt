@@ -269,4 +269,6 @@ class LibraryMixViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
     val likedMusicThumbnail: String?
         get() = syncUtils.likedMusicThumbnail
+    val likedMusicTitle: String?
+        get() = syncUtils.likedMusicTitle
 }

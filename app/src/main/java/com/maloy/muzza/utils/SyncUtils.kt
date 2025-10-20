@@ -27,9 +27,11 @@ class SyncUtils @Inject constructor(
     val database: MusicDatabase,
 ) {
     var likedMusicThumbnail: String? = null
+    var likedMusicTitle: String? = null
     suspend fun syncLikedSongs() {
         YouTube.playlist("LM").completed().onSuccess { page ->
             likedMusicThumbnail = page.playlist.thumbnail
+            likedMusicTitle = page.playlist.title
             val songs = page.songs.reversed()
             database.likedSongsByNameAsc().first()
                 .filter {

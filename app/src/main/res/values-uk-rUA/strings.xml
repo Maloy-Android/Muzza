@@ -519,9 +519,9 @@
 
     <string name="backup_restore">Резервне копіювання</string>
     <string name="backup">Створити резервну копію</string>
-    <string name="backup_description">Збережіть всю вашу музичну бібліотеку одним дотиком. До резервної копії входять всі ваші пісні, створені плейлисти, альбоми, виконавці, а також налаштування та дані програми. Ваші дані надійно зберігаються у вибраному місці, що дозволяє легко перенести їх на новий пристрій.</string>
+    <string name="backup_description">Збережіть всю вашу музичну бібліотеку одним дотиком.</string>
     <string name="restore">Відновити з резервної копії</string>
-    <string name="restore_description">Без зусиль поверніть свою повну музичну колекцію. Відновіть всю музику, ретельно створені плейлисти, альбоми, виконавців та персональні налаштування програми з попередньої резервної копії. Це найпростіший спосіб повернути ваш музичний досвід таким, яким ви його любите.</string>
+    <string name="restore_description">Без зусиль поверніть свою повну музичну колекцію.</string>
     <string name="imported_playlist">Імпортований плейлист</string>
     <string name="backup_create_success">Резервну копію створено успішно</string>
     <string name="backup_create_failed">Не вдалося створити резервну копію</string>
@@ -571,7 +571,7 @@
     <string name="import_failed_songs">Не вдалося імпортувати</string>
     <string name="import_success_songs">Успішно імпортовано</string>
     <string name="m3u_import_playlist">Імпортувати плейлист (m3u)</string>
-    <string name="m3u_import_playlist_description">Переносьте свої улюблені плейлисти з інших програм та сервісів прямо в цю. Використовуючи стандартний формат M3U, ви можете імпортувати добірку пісень, яка буде створена як новий плейлист або додана до вже існуючого на ваш вибір. Всі імпортовані треки будуть зібрані у вибраному вами плейлисті для зручного доступу.</string>
+    <string name="m3u_import_playlist_description">Переносьте свої улюблені плейлисти з інших програм та сервісів прямо в Muzza.</string>
     <string name="m3u_import_playlist_failed">Помилка імпорту</string>
 
     <string name="generating_image">Генерація зображення</string>

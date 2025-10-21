@@ -490,9 +490,9 @@
 
     <string name="backup_restore">Backup and restore</string>
     <string name="backup">Backup</string>
-    <string name="backup_description">Save your entire music library with a single tap. This includes all your songs, created playlists, albums, artists, and even your app settings and preferences. Your data is securely saved to your chosen location, allowing you to transfer it to a new device or restore it with ease.</string>
+    <string name="backup_description">Save your entire music library with a single tap.</string>
     <string name="restore">Restore</string>
-    <string name="restore_description">Effortlessly bring back your complete music collection. Restore all your music, carefully curated playlists, albums, artists, and personalized app settings from a previous backup. It\'s the simplest way to get your music experience back exactly the way you like it.</string>
+    <string name="restore_description">Effortlessly bring back your complete music collection.</string>
     <string name="m3u_import_failed">Failed to import playlist</string>
     <string name="imported_playlist">Imported playlist</string>
     <string name="backup_create_success">Backup created successfully</string>
@@ -542,7 +542,7 @@
     <string name="import_failed_songs">Could not import</string>
     <string name="import_success_songs">Successfully imported</string>
     <string name="m3u_import_playlist">Import a playlist (m3u)</string>
-    <string name="m3u_import_playlist_description">Bring your favorite playlists from other apps and services directly into this one. Using the standard M3U format, you can import a collection of songs, which will be created as a new playlist or added to an existing one of your choice. All imported tracks will be conveniently gathered in the selected playlist for easy access.</string>
+    <string name="m3u_import_playlist_description">Bring your favorite playlists from other apps and services directly into Muzza.</string>
     <string name="m3u_import_playlist_failed">Failed to import</string>
 
     <!--Folders-->

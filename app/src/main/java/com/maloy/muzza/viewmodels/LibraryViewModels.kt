@@ -3,12 +3,14 @@
 package com.maloy.muzza.viewmodels
 
 import android.content.Context
+import androidx.datastore.preferences.core.edit
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.datasource.cache.SimpleCache
 import androidx.media3.exoplayer.offline.Download
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.LikedMusicPlaylistFragments
 import com.maloy.muzza.constants.AlbumFilter
 import com.maloy.muzza.constants.AlbumFilterKey
 import com.maloy.muzza.constants.AlbumSortDescendingKey
@@ -26,6 +28,8 @@ import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
 import com.maloy.muzza.constants.SongSortType
+import com.maloy.muzza.constants.likedMusicThumbnailKey
+import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.di.DownloadCache
@@ -44,6 +48,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -194,9 +199,19 @@ class LibraryMixViewModel @Inject constructor(
     private val syncUtils: SyncUtils,
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
+    private val _playlistInfo = MutableStateFlow<LikedMusicPlaylistFragments?>(null)
     val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+
+    private val savedLikedMusicThumbnail = context.dataStore.data
+        .map { it[likedMusicThumbnailKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicTitle = context.dataStore.data
+        .map { it[likedMusicTitleKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
 
     init {
         viewModelScope.launch {
@@ -233,6 +248,34 @@ class LibraryMixViewModel @Inject constructor(
                 delay(1000)
             }
         }
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentThumbnail = savedLikedMusicThumbnail.first()
+            val currentTitle = savedLikedMusicTitle.first()
+
+            if (currentThumbnail.isEmpty() || currentTitle.isEmpty()) {
+                try {
+                    val fragments = syncUtils.getLikedMusicPlaylistFragments()
+                    fragments?.let {
+                        _playlistInfo.value = it
+                        saveLikedMusicInfo(it.likedMusicThumbnail, it.likedMusicTitle)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                _playlistInfo.value = LikedMusicPlaylistFragments(
+                    likedMusicThumbnail = currentThumbnail,
+                    likedMusicTitle = currentTitle
+                )
+            }
+        }
+    }
+
+    private suspend fun saveLikedMusicInfo(thumbnail: String?, title: String?) {
+        context.dataStore.edit { preferences ->
+            thumbnail?.let { preferences[likedMusicThumbnailKey] = it }
+            title?.let { preferences[likedMusicTitleKey] = it }
+        }
     }
     val syncAllLibrary = {
         viewModelScope.launch(Dispatchers.IO) {
@@ -267,8 +310,4 @@ class LibraryMixViewModel @Inject constructor(
     val topSongs = database.mostPlayedSongs(0, 100)
     val localSongsCount = database.localSongsCount()
         .stateIn(viewModelScope, SharingStarted.Lazily, 0)
-    val likedMusicThumbnail: String?
-        get() = syncUtils.likedMusicThumbnail
-    val likedMusicTitle: String?
-        get() = syncUtils.likedMusicTitle
 }

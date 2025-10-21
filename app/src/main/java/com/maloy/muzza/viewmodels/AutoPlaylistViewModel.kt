@@ -81,8 +81,4 @@ class AutoPlaylistViewModel  @Inject constructor(
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
     }
-    val likedMusicThumbnail: String?
-        get() = syncUtils.likedMusicThumbnail
-    val likedMusicTitle: String?
-        get() = syncUtils.likedMusicTitle
 }

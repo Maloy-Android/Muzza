@@ -85,6 +85,8 @@ import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicThumbnailKey
+import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.toMediaItem
@@ -219,8 +221,8 @@ fun LibraryMixScreen(
     val density = LocalDensity.current
     val screenWidth = with(density) { view.width.toDp() }
 
-    val likedMusicThumbnail = viewModel.likedMusicThumbnail
-    val likedMusicTitle = viewModel.likedMusicTitle
+    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
+    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
 
     val horizontalLazyGridItemWidthFactor = if (screenWidth * 0.475f >= 320.dp) 0.475f else 0.9f
     val horizontalLazyGridItemWidth = screenWidth * horizontalLazyGridItemWidthFactor
@@ -305,7 +307,7 @@ fun LibraryMixScreen(
                                 verticalAlignment = Alignment.CenterVertically,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                if (isLoggedIn && !likedMusicThumbnail.isNullOrEmpty()) {
+                                if (isLoggedIn && likedMusicThumbnail.isNotEmpty()) {
                                     AsyncImage(
                                         model = likedMusicThumbnail,
                                         contentDescription = null,
@@ -331,7 +333,9 @@ fun LibraryMixScreen(
                                 }
                                 Spacer(modifier = Modifier.width(12.dp))
                                 Text(
-                                    text = if (isLoggedIn && !likedMusicTitle.isNullOrEmpty()) likedMusicTitle else { stringResource(R.string.liked_songs) } + "    ->",
+                                    text = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+                                        stringResource(R.string.liked_songs)
+                                    } + "    ->",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.weight(1f)

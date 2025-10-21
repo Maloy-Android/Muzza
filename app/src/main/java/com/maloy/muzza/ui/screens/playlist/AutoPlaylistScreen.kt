@@ -101,6 +101,8 @@ import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicThumbnailKey
+import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
@@ -175,8 +177,8 @@ fun AutoPlaylistScreen(
         "downloaded" -> PlaylistType.DOWNLOAD
         else -> PlaylistType.OTHER
     }
-    val likedMusicThumbnail = viewModel.likedMusicThumbnail
-    val likedMusicTitle = viewModel.likedMusicTitle
+    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
+    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val downloadUtil = LocalDownloadUtil.current
@@ -349,7 +351,7 @@ fun AutoPlaylistScreen(
                                             shape = RoundedCornerShape(ThumbnailCornerRadius)
                                         )
                                 ) {
-                                    if (isLoggedIn && !likedMusicThumbnail.isNullOrEmpty() && viewModel.playlist == "liked") {
+                                    if (isLoggedIn && likedMusicThumbnail.isNotEmpty() && viewModel.playlist == "liked") {
                                         AsyncImage(
                                             model = likedMusicThumbnail,
                                             contentDescription = null,
@@ -373,7 +375,7 @@ fun AutoPlaylistScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     AutoResizeText(
-                                        text = if (isLoggedIn && !likedMusicTitle.isNullOrEmpty() && viewModel.playlist == "liked") likedMusicTitle else playlist,
+                                        text = if (isLoggedIn && likedMusicTitle.isNotEmpty() && viewModel.playlist == "liked") likedMusicTitle else playlist,
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,

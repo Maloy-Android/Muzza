@@ -3,6 +3,7 @@ package com.maloy.muzza.utils
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
+import com.maloy.innertube.models.LikedMusicPlaylistFragments
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
@@ -26,12 +27,16 @@ import javax.inject.Singleton
 class SyncUtils @Inject constructor(
     val database: MusicDatabase,
 ) {
-    var likedMusicThumbnail: String? = null
-    var likedMusicTitle: String? = null
+    suspend fun getLikedMusicPlaylistFragments(): LikedMusicPlaylistFragments? {
+        return YouTube.playlist("LM").completed().map { fragment ->
+            LikedMusicPlaylistFragments(
+                likedMusicThumbnail = fragment.playlist.thumbnail,
+                likedMusicTitle = fragment.playlist.title
+            )
+        }.getOrNull()
+    }
     suspend fun syncLikedSongs() {
         YouTube.playlist("LM").completed().onSuccess { page ->
-            likedMusicThumbnail = page.playlist.thumbnail
-            likedMusicTitle = page.playlist.title
             val songs = page.songs.reversed()
             database.likedSongsByNameAsc().first()
                 .filter {

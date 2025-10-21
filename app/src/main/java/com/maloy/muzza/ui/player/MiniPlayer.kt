@@ -71,7 +71,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.AsyncLocalImage
-import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt

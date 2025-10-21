@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import com.maloy.muzza.R
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.imageCache
 
 @Composable
 fun rememberAdjustedFontSize(

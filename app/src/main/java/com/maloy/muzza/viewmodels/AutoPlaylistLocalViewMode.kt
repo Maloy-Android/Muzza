@@ -4,8 +4,8 @@ import android.content.Context
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.ui.utils.DirectoryTree
-import com.maloy.muzza.ui.utils.refreshLocal
+import com.maloy.muzza.utils.DirectoryTree
+import com.maloy.muzza.utils.refreshLocal
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow

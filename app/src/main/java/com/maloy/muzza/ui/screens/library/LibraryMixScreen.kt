@@ -98,8 +98,8 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
-import com.maloy.muzza.ui.utils.scanLocal
-import com.maloy.muzza.ui.utils.syncDB
+import com.maloy.muzza.utils.scanLocal
+import com.maloy.muzza.utils.syncDB
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference

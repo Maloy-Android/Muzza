@@ -19,7 +19,7 @@ import com.maloy.muzza.extensions.zipInputStream
 import com.maloy.muzza.extensions.zipOutputStream
 import com.maloy.muzza.playback.MusicService
 import com.maloy.muzza.playback.MusicService.Companion.PERSISTENT_QUEUE_FILE
-import com.maloy.muzza.ui.utils.compareSong
+import com.maloy.muzza.utils.compareSong
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers

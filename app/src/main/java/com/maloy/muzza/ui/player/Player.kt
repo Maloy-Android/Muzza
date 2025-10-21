@@ -146,7 +146,7 @@ import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.theme.extractGradientColors
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
-import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference

@@ -21,7 +21,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.SongFolderItem
-import com.maloy.muzza.ui.utils.DirectoryTree
+import com.maloy.muzza.utils.DirectoryTree
 
 @Composable
 fun FolderMenu(

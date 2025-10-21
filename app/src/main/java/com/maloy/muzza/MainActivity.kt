@@ -158,7 +158,7 @@ import com.maloy.muzza.ui.theme.extractThemeColor
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.ui.utils.appBarScrollBehavior
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.ui.utils.resetHeightOffset
 import com.maloy.muzza.utils.Updater
 import com.maloy.muzza.utils.dataStore

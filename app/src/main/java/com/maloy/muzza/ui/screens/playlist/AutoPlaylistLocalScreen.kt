@@ -87,13 +87,13 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.SongMenu
-import com.maloy.muzza.ui.utils.getDirectorytree
+import com.maloy.muzza.utils.getDirectorytree
 import com.maloy.muzza.ui.component.SongFolderItem
 import com.maloy.muzza.ui.menu.FolderMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.ui.utils.scanLocal
-import com.maloy.muzza.ui.utils.syncDB
+import com.maloy.muzza.utils.scanLocal
+import com.maloy.muzza.utils.syncDB
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference

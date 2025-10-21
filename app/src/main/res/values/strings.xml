@@ -58,7 +58,7 @@
     <string name="your_youtube_playlists">Your YouTube playlists</string>
     <string name="similar_to">Similar to</string>
     <string name="new_release_albums">New release albums</string>
-    <string name="not_internet">No Internet Сoonnection</string>
+    <string name="not_internet">No Internet connection</string>
     <string name="internet_required">It looks like you have no Internet connection. Please check your network.</string>
 
     <!-- History -->

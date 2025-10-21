@@ -447,83 +447,99 @@ fun LibraryMixScreen(
                 }
             }
 
-            item {
-                Text(
-                    text = stringResource(R.string.also_in_your_collection),
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                )
-            }
+            if (!likedSongs.isNullOrEmpty() && artists.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.also_in_your_collection),
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                    )
+                }
 
-            item {
-                val autoPlaylists = listOfNotNull(
+                item {
+                    val autoPlaylists = listOfNotNull(
                         downloadPlaylist to Icons.Rounded.CloudDownload,
                         topPlaylist to Icons.AutoMirrored.Rounded.TrendingUp,
                         cachedPlaylist to Icons.Rounded.Cached,
                         localPlaylist to Icons.Rounded.MusicNote,
                         playlistsPlaylist to Icons.AutoMirrored.Rounded.PlaylistPlay,
                         playlistAlbums to Icons.Rounded.Album
-                )
+                    )
 
-                val rows = autoPlaylists.chunked(2)
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    rows.forEach { rowItems ->
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            rowItems.forEach { (playlist, icon) ->
-                                val countText = when (playlist.id) {
-                                    "albums" -> pluralStringResource(R.plurals.n_album,playlist.songCount,playlist.songCount)
-                                    "user_playlists" -> pluralStringResource(R.plurals.n_playlist,playlist.songCount,playlist.songCount)
-                                    else -> pluralStringResource(R.plurals.n_song,playlist.songCount,playlist.songCount)
-                                }
-                                Card(
-                                    onClick = {
-                                        when (playlist.id) {
-                                            "downloaded" -> navController.navigate("auto_playlist/downloaded")
-                                            "top" -> navController.navigate("top_playlist/$topSize")
-                                            "cached" -> navController.navigate("CachedPlaylist")
-                                            "local" -> navController.navigate("AutoPlaylistLocal")
-                                            "user_playlists" -> navController.navigate("library_playlists")
-                                            "albums" -> navController.navigate("library_albums")
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .height(80.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(horizontal = 16.dp)
-                                    ) {
-                                        Icon(
-                                            imageVector = icon,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(24.dp)
+                    val rows = autoPlaylists.chunked(2)
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    ) {
+                        rows.forEach { rowItems ->
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                rowItems.forEach { (playlist, icon) ->
+                                    val countText = when (playlist.id) {
+                                        "albums" -> pluralStringResource(
+                                            R.plurals.n_album,
+                                            playlist.songCount,
+                                            playlist.songCount
                                         )
-                                        Spacer(modifier = Modifier.width(12.dp))
-                                        Column(
-                                            modifier = Modifier.weight(1f)
+
+                                        "user_playlists" -> pluralStringResource(
+                                            R.plurals.n_playlist,
+                                            playlist.songCount,
+                                            playlist.songCount
+                                        )
+
+                                        else -> pluralStringResource(
+                                            R.plurals.n_song,
+                                            playlist.songCount,
+                                            playlist.songCount
+                                        )
+                                    }
+                                    Card(
+                                        onClick = {
+                                            when (playlist.id) {
+                                                "downloaded" -> navController.navigate("auto_playlist/downloaded")
+                                                "top" -> navController.navigate("top_playlist/$topSize")
+                                                "cached" -> navController.navigate("CachedPlaylist")
+                                                "local" -> navController.navigate("AutoPlaylistLocal")
+                                                "user_playlists" -> navController.navigate("library_playlists")
+                                                "albums" -> navController.navigate("library_albums")
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .height(80.dp)
+                                    ) {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(horizontal = 16.dp)
                                         ) {
-                                            Text(
-                                                text = playlist.playlist.name,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                fontWeight = FontWeight.Medium
+                                            Icon(
+                                                imageVector = icon,
+                                                contentDescription = null,
+                                                modifier = Modifier.size(24.dp)
                                             )
-                                            Text(
-                                                text = countText,
-                                                style = MaterialTheme.typography.bodySmall
-                                            )
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = playlist.playlist.name,
+                                                    style = MaterialTheme.typography.bodyMedium,
+                                                    fontWeight = FontWeight.Medium
+                                                )
+                                                Text(
+                                                    text = countText,
+                                                    style = MaterialTheme.typography.bodySmall
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -532,70 +548,72 @@ fun LibraryMixScreen(
                     }
                 }
             }
-            item {
-                Text(
-                    text = stringResource(R.string.liked_artists) + "    ->",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                        .clickable { navController.navigate("library_artists") }
-                )
-            }
+            if (artists.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.liked_artists) + "    ->",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                            .clickable { navController.navigate("library_artists") }
+                    )
+                }
 
-            item {
-                LazyHorizontalGrid(
-                    rows = GridCells.Fixed(1),
-                    contentPadding = WindowInsets.systemBars
-                        .only(WindowInsetsSides.Horizontal)
-                        .asPaddingValues(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                ) {
-                    items(
-                        items = artists.take(8),
-                        key = { it.id }
-                    ) { artist ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .width(100.dp)
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("artist/${artist.id}")
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            ArtistMenu(
-                                                originalArtist = artist,
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss
-                                            )
+                item {
+                    LazyHorizontalGrid(
+                        rows = GridCells.Fixed(1),
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                    ) {
+                        items(
+                            items = artists.take(8),
+                            key = { it.id }
+                        ) { artist ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("artist/${artist.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                ArtistMenu(
+                                                    originalArtist = artist,
+                                                    coroutineScope = coroutineScope,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
                                         }
-                                    }
+                                    )
+                            ) {
+                                ArtistGridItem(
+                                    artist = artist,
+                                    modifier = Modifier.size(100.dp)
                                 )
-                        ) {
-                            ArtistGridItem(
-                                artist = artist,
-                                modifier = Modifier.size(100.dp)
-                            )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
 
-                            Text(
-                                text = artist.artist.name,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                Text(
+                                    text = artist.artist.name,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }

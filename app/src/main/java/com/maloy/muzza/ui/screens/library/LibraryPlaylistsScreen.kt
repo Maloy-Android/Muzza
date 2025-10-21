@@ -141,7 +141,7 @@ fun LibraryPlaylistsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (ytmSync) {
+        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             viewModel.sync()
         }
     }

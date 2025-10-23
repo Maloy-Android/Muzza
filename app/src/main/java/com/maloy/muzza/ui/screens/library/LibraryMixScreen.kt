@@ -355,7 +355,6 @@ fun LibraryMixScreen(
                         }
                     }
                 }
-
                 item {
                     Text(
                         text = stringResource(R.string.sort_by_create_date),
@@ -447,99 +446,97 @@ fun LibraryMixScreen(
                 }
             }
 
-            if (!likedSongs.isNullOrEmpty() && artists.isNotEmpty()) {
-                item {
-                    Text(
-                        text = stringResource(R.string.also_in_your_collection),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                    )
-                }
+            item {
+                Text(
+                    text = stringResource(R.string.also_in_your_collection),
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    overflow = TextOverflow.Ellipsis,
+                    maxLines = 1,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                )
+            }
 
-                item {
-                    val autoPlaylists = listOfNotNull(
-                        downloadPlaylist to Icons.Rounded.CloudDownload,
-                        topPlaylist to Icons.AutoMirrored.Rounded.TrendingUp,
-                        cachedPlaylist to Icons.Rounded.Cached,
-                        localPlaylist to Icons.Rounded.MusicNote,
-                        playlistsPlaylist to Icons.AutoMirrored.Rounded.PlaylistPlay,
-                        playlistAlbums to Icons.Rounded.Album
-                    )
+            item {
+                val autoPlaylists = listOfNotNull(
+                    downloadPlaylist to Icons.Rounded.CloudDownload,
+                    topPlaylist to Icons.AutoMirrored.Rounded.TrendingUp,
+                    cachedPlaylist to Icons.Rounded.Cached,
+                    localPlaylist to Icons.Rounded.MusicNote,
+                    playlistsPlaylist to Icons.AutoMirrored.Rounded.PlaylistPlay,
+                    playlistAlbums to Icons.Rounded.Album
+                )
 
-                    val rows = autoPlaylists.chunked(2)
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    ) {
-                        rows.forEach { rowItems ->
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                rowItems.forEach { (playlist, icon) ->
-                                    val countText = when (playlist.id) {
-                                        "albums" -> pluralStringResource(
-                                            R.plurals.n_album,
-                                            playlist.songCount,
-                                            playlist.songCount
-                                        )
+                val rows = autoPlaylists.chunked(2)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    rows.forEach { rowItems ->
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            rowItems.forEach { (playlist, icon) ->
+                                val countText = when (playlist.id) {
+                                    "albums" -> pluralStringResource(
+                                        R.plurals.n_album,
+                                        playlist.songCount,
+                                        playlist.songCount
+                                    )
 
-                                        "user_playlists" -> pluralStringResource(
-                                            R.plurals.n_playlist,
-                                            playlist.songCount,
-                                            playlist.songCount
-                                        )
+                                    "user_playlists" -> pluralStringResource(
+                                        R.plurals.n_playlist,
+                                        playlist.songCount,
+                                        playlist.songCount
+                                    )
 
-                                        else -> pluralStringResource(
-                                            R.plurals.n_song,
-                                            playlist.songCount,
-                                            playlist.songCount
-                                        )
-                                    }
-                                    Card(
-                                        onClick = {
-                                            when (playlist.id) {
-                                                "downloaded" -> navController.navigate("auto_playlist/downloaded")
-                                                "top" -> navController.navigate("top_playlist/$topSize")
-                                                "cached" -> navController.navigate("CachedPlaylist")
-                                                "local" -> navController.navigate("AutoPlaylistLocal")
-                                                "user_playlists" -> navController.navigate("library_playlists")
-                                                "albums" -> navController.navigate("library_albums")
-                                            }
-                                        },
+                                    else -> pluralStringResource(
+                                        R.plurals.n_song,
+                                        playlist.songCount,
+                                        playlist.songCount
+                                    )
+                                }
+                                Card(
+                                    onClick = {
+                                        when (playlist.id) {
+                                            "downloaded" -> navController.navigate("auto_playlist/downloaded")
+                                            "top" -> navController.navigate("top_playlist/$topSize")
+                                            "cached" -> navController.navigate("CachedPlaylist")
+                                            "local" -> navController.navigate("AutoPlaylistLocal")
+                                            "user_playlists" -> navController.navigate("library_playlists")
+                                            "albums" -> navController.navigate("library_albums")
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(80.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
-                                            .weight(1f)
-                                            .height(80.dp)
+                                            .fillMaxSize()
+                                            .padding(horizontal = 16.dp)
                                     ) {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .padding(horizontal = 16.dp)
+                                        Icon(
+                                            imageVector = icon,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(12.dp))
+                                        Column(
+                                            modifier = Modifier.weight(1f)
                                         ) {
-                                            Icon(
-                                                imageVector = icon,
-                                                contentDescription = null,
-                                                modifier = Modifier.size(24.dp)
+                                            Text(
+                                                text = playlist.playlist.name,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Medium
                                             )
-                                            Spacer(modifier = Modifier.width(12.dp))
-                                            Column(
-                                                modifier = Modifier.weight(1f)
-                                            ) {
-                                                Text(
-                                                    text = playlist.playlist.name,
-                                                    style = MaterialTheme.typography.bodyMedium,
-                                                    fontWeight = FontWeight.Medium
-                                                )
-                                                Text(
-                                                    text = countText,
-                                                    style = MaterialTheme.typography.bodySmall
-                                                )
-                                            }
+                                            Text(
+                                                text = countText,
+                                                style = MaterialTheme.typography.bodySmall
+                                            )
                                         }
                                     }
                                 }

@@ -284,6 +284,8 @@
     <string name="seek_backward_30">30 seconds backward</string>
     <string name="seek_forward_30">30 seconds forward</string>
 
+    <string name="mrzavka">This is the favorite track of the nasty cat meow ❤️</string>
+
     <!-- Player action -->
     <string name="action_like">Like</string>
     <string name="action_like_all">Like all</string>

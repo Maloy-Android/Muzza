@@ -303,6 +303,8 @@
     <string name="seek_backward_30">На 30 секунд назад</string>
     <string name="seek_forward_30">На 30 секунд вперёд</string>
 
+    <string name="mrzavka">Это любимый трек мерзавки мяу ❤️</string>
+
     <!-- Player action -->
     <string name="action_like">Поставить «Нравится»</string>
     <string name="action_like_all">Отметить все как «Нравится»</string>

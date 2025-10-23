@@ -338,6 +338,15 @@ fun BottomSheetPlayer(
         fullScreenLyrics = true
     }
 
+    LaunchedEffect(currentSong?.song?.id in listOf("0IuRPqAZBi4", "ZNbSs6Z0lkA")) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.mrzavka),
+            Toast.LENGTH_LONG
+        ).show()
+        return@LaunchedEffect
+    }
+
     val queueSheetState = rememberBottomSheetState(
         dismissedBound = QueuePeekHeight + WindowInsets.systemBars.asPaddingValues()
             .calculateBottomPadding(),

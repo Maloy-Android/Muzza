@@ -109,12 +109,12 @@ fun ImportM3uDialog(
         }
 
 
-    DefaultDialog(
-        onDismiss = onDismiss,
-        icon = { Icon(painterResource(R.drawable.playlist_add), null) },
-        title = { Text(stringResource(R.string.import_playlist)) },
-    ) {
-        if (importedSongs.isEmpty()) {
+    if (importedSongs.isEmpty()) {
+        DefaultDialog(
+            onDismiss = onDismiss,
+            icon = { Icon(painterResource(R.drawable.playlist_add), null) },
+            title = { Text(stringResource(R.string.import_playlist)) },
+        ) {
             EnumListPreference(
                 title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
                 icon = { Icon(Icons.Rounded.GraphicEq, null) },
@@ -172,9 +172,11 @@ fun ImportM3uDialog(
                     items = importedSongs,
                     key = { _, song -> song.hashCode() }
                 ) { _, song ->
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
                         Text(
                             text = song.title,
                             fontSize = 14.sp,
@@ -310,14 +312,22 @@ fun loadM3u(
                             allSongs.firstOrNull { dbSong ->
                                 dbSong.title.equals(title, ignoreCase = true) &&
                                         dbSong.artists.any { dbArtist ->
-                                            artists.any { it.equals(dbArtist.name, ignoreCase = true) }
+                                            artists.any {
+                                                it.equals(
+                                                    dbArtist.name,
+                                                    ignoreCase = true
+                                                )
+                                            }
                                         }
                             } ?: allSongs.firstOrNull { dbSong ->
                                 dbSong.title.contains(title, ignoreCase = true) &&
                                         dbSong.artists.any { dbArtist ->
                                             artists.any { artist ->
                                                 dbArtist.name.contains(artist, ignoreCase = true) ||
-                                                        artist.contains(dbArtist.name, ignoreCase = true)
+                                                        artist.contains(
+                                                            dbArtist.name,
+                                                            ignoreCase = true
+                                                        )
                                             }
                                         }
                             } ?: allSongs.firstOrNull { dbSong ->
@@ -336,7 +346,8 @@ fun loadM3u(
 
                                                 ytSong.artists.forEach { artist ->
                                                     val artistEntity = ArtistEntity(
-                                                        id = artist.id ?: ArtistEntity.generateArtistId(),
+                                                        id = artist.id
+                                                            ?: ArtistEntity.generateArtistId(),
                                                         name = artist.name
                                                     )
                                                     database.insert(artistEntity)
@@ -353,7 +364,8 @@ fun loadM3u(
                                                 song = songEntity,
                                                 artists = ytSong.artists.map {
                                                     ArtistEntity(
-                                                        id = it.id ?: ArtistEntity.generateArtistId(),
+                                                        id = it.id
+                                                            ?: ArtistEntity.generateArtistId(),
                                                         name = it.name
                                                     )
                                                 }

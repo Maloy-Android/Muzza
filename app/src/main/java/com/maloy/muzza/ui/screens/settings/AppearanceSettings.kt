@@ -497,6 +497,13 @@ fun AppearanceSettings(
             onCheckedChange = onSwipeSongToDismissChange
         )
 
+        SwitchPreference(
+            title = { Text(stringResource(R.string.two_line_song_item_label)) },
+            icon = { Icon(painterResource(R.drawable.two_line_text), null) },
+            checked = twoLineSongItemLabel,
+            onCheckedChange = onTwoLineSongItemLabelChange
+        )
+
         EnumListPreference(
             title = { Text(stringResource(R.string.default_open_tab)) },
             icon = { Icon(painterResource(R.drawable.tab), null) },
@@ -529,13 +536,6 @@ fun AppearanceSettings(
                     GridCellSize.BIG -> stringResource(R.string.big)
                 }
             },
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.two_line_song_item_label)) },
-            icon = { Icon(painterResource(R.drawable.two_line_text), null) },
-            checked = twoLineSongItemLabel,
-            onCheckedChange = onTwoLineSongItemLabelChange
         )
     }
 

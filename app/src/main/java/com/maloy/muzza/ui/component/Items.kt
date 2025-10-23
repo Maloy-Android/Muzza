@@ -65,6 +65,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
@@ -89,6 +90,7 @@ import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.SwipeSongToDismissKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
@@ -120,7 +122,8 @@ inline fun ListItem(
     noinline subtitle: (@Composable RowScope.() -> Unit)? = null,
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
-    isActive: Boolean = false
+    isActive: Boolean = false,
+    isTwoLineLabel: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -150,7 +153,8 @@ inline fun ListItem(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                maxLines = 1,
+                lineHeight = if(isTwoLineLabel) 17.sp else TextUnit.Unspecified,
+                maxLines = if(isTwoLineLabel) 2 else 1,
                 overflow = TextOverflow.Ellipsis
             )
 
@@ -173,7 +177,8 @@ fun ListItem(
     badges: @Composable RowScope.() -> Unit = {},
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
-    isActive: Boolean = false
+    isActive: Boolean = false,
+    isTwoLineLabel: Boolean = false
 ) = ListItem(
     title = title,
     subtitle = {
@@ -192,7 +197,8 @@ fun ListItem(
     thumbnailContent = thumbnailContent,
     trailingContent = trailingContent,
     modifier = modifier,
-    isActive = isActive
+    isActive = isActive,
+    isTwoLineLabel = isTwoLineLabel
 )
 
 @Composable
@@ -318,6 +324,8 @@ fun SongListItem(
     val colorScheme = MaterialTheme.colorScheme
 
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
+
+    val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
     if (isSwipeable && swipeSongToDismiss) {
         SwipeToDismissBox(
@@ -445,7 +453,8 @@ fun SongListItem(
                 },
                 trailingContent = trailingContent,
                 modifier = modifier,
-                isActive = isActive
+                isActive = isActive,
+                isTwoLineLabel = twoLineLabel
             )
         }
     } else {
@@ -494,7 +503,8 @@ fun SongListItem(
             },
             trailingContent = trailingContent,
             modifier = modifier,
-            isActive = isActive
+            isActive = isActive,
+            isTwoLineLabel = twoLineLabel
         )
     }
 }
@@ -858,6 +868,8 @@ fun PlaylistListItem(
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
+    val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
+
     fun loadSavedImage(): Uri? {
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
@@ -913,7 +925,8 @@ fun PlaylistListItem(
             }
         },
         trailingContent = trailingContent,
-        modifier = modifier
+        modifier = modifier,
+        isTwoLineLabel = twoLineLabel
     )
 }
 @Composable
@@ -1007,9 +1020,10 @@ fun MediaMetadataListItem(
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
+    isTwoLineLabel: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
-    contentScale: ContentScale = ContentScale.Fit,
-    ) = ListItem(
+    contentScale: ContentScale = ContentScale.Fit
+) = ListItem(
     title = mediaMetadata.title,
     subtitle = joinByBullet(
         mediaMetadata.artists.joinToString { it.name },
@@ -1054,7 +1068,8 @@ fun MediaMetadataListItem(
     },
     trailingContent = trailingContent,
     modifier = modifier,
-    isActive = isActive
+    isActive = isActive,
+    isTwoLineLabel = isTwoLineLabel
 )
 
 @SuppressLint("ConfigurationScreenWidthHeight")
@@ -1150,6 +1165,8 @@ fun YouTubeListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
+    val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
+
     if (item is SongItem && isSwipeable && swipeSongToDismiss) {
         val context = LocalContext.current
         val playerConnection = LocalPlayerConnection.current ?: return
@@ -1245,6 +1262,7 @@ fun YouTubeListItem(
                 badges = badges,
                 isActive = isActive,
                 isPlaying = isPlaying,
+                isTwoLineLabel = twoLineLabel,
                 trailingContent = trailingContent
             )
         }
@@ -1256,6 +1274,7 @@ fun YouTubeListItem(
             badges = badges,
             isActive = isActive,
             isPlaying = isPlaying,
+            isTwoLineLabel = twoLineLabel,
             trailingContent = trailingContent
         )
     }
@@ -1269,6 +1288,7 @@ private fun BaseListItemContent(
     badges: @Composable RowScope.() -> Unit,
     isActive: Boolean,
     isPlaying: Boolean,
+    isTwoLineLabel: Boolean,
     trailingContent: @Composable RowScope.() -> Unit
 ) {
     ListItem(
@@ -1292,7 +1312,8 @@ private fun BaseListItemContent(
         },
         trailingContent = trailingContent,
         modifier = modifier,
-        isActive = isActive
+        isActive = isActive,
+        isTwoLineLabel = isTwoLineLabel
     )
 }
 

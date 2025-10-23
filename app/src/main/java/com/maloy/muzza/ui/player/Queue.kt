@@ -91,6 +91,7 @@ import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.move
@@ -522,11 +523,13 @@ fun Queue(
                             }
                         }
 
+                        val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
                         val content = @Composable {
                             MediaMetadataListItem(
                                 mediaMetadata = window.mediaItem.metadata!!,
                                 isActive = index == currentWindowIndex,
                                 isPlaying = isPlaying,
+                                isTwoLineLabel = twoLineLabel,
                                 trailingContent = {
                                     if (inSelectMode) {
                                         Checkbox(

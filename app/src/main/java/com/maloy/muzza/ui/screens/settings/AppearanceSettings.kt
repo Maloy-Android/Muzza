@@ -77,6 +77,7 @@ import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.SwipeSongToDismissKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
+import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EnumListPreference
@@ -107,6 +108,7 @@ fun AppearanceSettings(
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
+    val (twoLineSongItemLabel, onTwoLineSongItemLabelChange) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 3)
     val (nowPlayingEnable,onNowPlayingEnableChange) = rememberPreference(NowPlayingEnableKey, defaultValue = true)
     val (nowPlayingPadding,onNowPlayingPadding) = rememberPreference(NowPlayingPaddingKey, defaultValue = 35)
@@ -527,6 +529,13 @@ fun AppearanceSettings(
                     GridCellSize.BIG -> stringResource(R.string.big)
                 }
             },
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.two_line_song_item_label)) },
+            icon = { Icon(painterResource(R.drawable.two_line_text), null) },
+            checked = twoLineSongItemLabel,
+            onCheckedChange = onTwoLineSongItemLabelChange
         )
     }
 

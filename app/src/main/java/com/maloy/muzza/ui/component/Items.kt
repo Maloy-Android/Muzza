@@ -120,7 +120,7 @@ inline fun ListItem(
     noinline subtitle: (@Composable RowScope.() -> Unit)? = null,
     thumbnailContent: @Composable () -> Unit,
     trailingContent: @Composable RowScope.() -> Unit = {},
-    isActive: Boolean = false,
+    isActive: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

@@ -344,7 +344,6 @@ fun BottomSheetPlayer(
             context.getString(R.string.mrzavka),
             Toast.LENGTH_LONG
         ).show()
-        return@LaunchedEffect
     }
 
     val queueSheetState = rememberBottomSheetState(

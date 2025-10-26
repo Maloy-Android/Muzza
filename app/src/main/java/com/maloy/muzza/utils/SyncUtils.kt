@@ -42,6 +42,7 @@ class SyncUtils @Inject constructor(
                 .filter {
                     !it.song.isLocal && it.id !in songs.map(SongItem::id)
                 }
+                .filterNot { it.song.liked }
                 .forEach { database.update(it.song.localToggleLike()) }
 
             songs.forEach { song ->
@@ -62,7 +63,7 @@ class SyncUtils @Inject constructor(
             val albums = page.items.filterIsInstance<AlbumItem>().reversed()
 
             database.albumsLikedByNameAsc().first()
-                .filterNot { it.id in albums.map(AlbumItem::id) }
+                .filterNot { it.album.bookmarkedAt != null && it.id in albums.map(AlbumItem::id) }
                 .forEach { database.update(it.album.localToggleLike()) }
 
             albums.forEach { album ->
@@ -87,7 +88,7 @@ class SyncUtils @Inject constructor(
             val artists = page.items.filterIsInstance<ArtistItem>()
 
             database.artistsBookmarkedByNameAsc().first()
-                .filterNot { it.id in artists.map(ArtistItem::id) }
+                .filterNot { it.artist.bookmarkedAt != null && it.id in artists.map(ArtistItem::id) }
                 .forEach { database.update(it.artist.localToggleLike()) }
             artists.forEach { artist ->
                 val dbArtist = database.artist(artist.id).firstOrNull()
@@ -119,7 +120,7 @@ class SyncUtils @Inject constructor(
             val dbPlaylists = database.playlistsByNameAsc().first()
 
             dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
-                .filterNot { it.playlist.browseId == null }
+                .filterNot { it.playlist.bookmarkedAt != null && it.playlist.browseId == null }
                 .filterNot { it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 

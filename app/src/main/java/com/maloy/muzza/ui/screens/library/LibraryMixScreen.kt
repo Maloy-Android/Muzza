@@ -290,156 +290,158 @@ fun LibraryMixScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
             modifier = Modifier.fillMaxSize()
         ) {
-            if (!likedSongs.isNullOrEmpty()) {
-                item {
-                    Card(
-                        onClick = {
-                            navController.navigate("auto_playlist/liked")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+            item {
+                Card(
+                    onClick = {
+                        navController.navigate("auto_playlist/liked")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                if (isLoggedIn && likedMusicThumbnail.isNotEmpty()) {
-                                    AsyncImage(
-                                        model = likedMusicThumbnail,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(30.dp)
-                                            .clip(CircleShape)
-                                    )
-                                } else {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .clip(CircleShape)
-                                            .background(MaterialTheme.colorScheme.primaryContainer),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Rounded.Favorite,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
-                                        stringResource(R.string.liked_songs)
-                                    } + "    ->",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.weight(1f)
+                            if (isLoggedIn && likedMusicThumbnail.isNotEmpty()) {
+                                AsyncImage(
+                                    model = likedMusicThumbnail,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape)
                                 )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .size(24.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primaryContainer),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Rounded.Favorite,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
                             }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = pluralStringResource(
-                                    R.plurals.n_song,
-                                    likedSongs!!.size,
-                                    likedSongs!!.size
-                                ),
-                                style = MaterialTheme.typography.bodyMedium
+                                text = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+                                    stringResource(R.string.liked)
+                                } + "    ->",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                likedSongs?.size ?: 0,
+                                likedSongs?.size ?: 0
+                            ),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
-                item {
-                    Text(
-                        text = stringResource(R.string.sort_by_create_date),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                    )
-                }
+            }
+            likedSongs?.let { songs ->
+                if (songs.size > 3) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.sort_by_create_date),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                        )
+                    }
 
-                item {
-                    LazyHorizontalGrid(
-                        state = quickPicksLazyGridState,
-                        rows = GridCells.Fixed(4),
-                        flingBehavior = rememberSnapFlingBehavior(
-                            quickPicksSnapLayoutInfoProvider
-                        ),
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(ListItemHeight * 4)
-                    ) {
-                        likedSongs?.let { songs ->
-                            items(
-                                items = songs.take(16),
-                                key = { song -> song.id }
-                            ) { songWrapper ->
-                                SongListItem(
-                                    song = songWrapper,
-                                    isActive = songWrapper.song.id == mediaMetadata?.id,
-                                    showInLibraryIcon = true,
-                                    isSwipeable = false,
-                                    isPlaying = isPlaying,
-                                    trailingContent = {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = songWrapper,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (songWrapper.id == mediaMetadata?.id) {
-                                                    playerConnection.player.togglePlayPause()
-                                                } else {
-                                                    likedSongs?.let { songs ->
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = context.getString(R.string.liked),
-                                                                items = songs.map { it.toMediaItem() },
-                                                                startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
-                                                            )
+                    item {
+                        LazyHorizontalGrid(
+                            state = quickPicksLazyGridState,
+                            rows = GridCells.Fixed(4),
+                            flingBehavior = rememberSnapFlingBehavior(
+                                quickPicksSnapLayoutInfoProvider
+                            ),
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(ListItemHeight * 4)
+                        ) {
+                            likedSongs?.let { songs ->
+                                items(
+                                    items = songs.take(16),
+                                    key = { song -> song.id }
+                                ) { songWrapper ->
+                                    SongListItem(
+                                        song = songWrapper,
+                                        isActive = songWrapper.song.id == mediaMetadata?.id,
+                                        showInLibraryIcon = true,
+                                        isSwipeable = false,
+                                        isPlaying = isPlaying,
+                                        trailingContent = {
+                                            IconButton(
+                                                onClick = {
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = songWrapper,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
                                                         )
                                                     }
                                                 }
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = songWrapper,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.more_vert),
+                                                    contentDescription = null
+                                                )
                                             }
-                                        )
-                                )
+                                        },
+                                        modifier = Modifier
+                                            .width(horizontalLazyGridItemWidth)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    if (songWrapper.id == mediaMetadata?.id) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        likedSongs?.let { songs ->
+                                                            playerConnection.playQueue(
+                                                                ListQueue(
+                                                                    title = context.getString(R.string.liked),
+                                                                    items = songs.map { it.toMediaItem() },
+                                                                    startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = songWrapper,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                    )
+                                }
                             }
                         }
                     }
@@ -544,6 +546,7 @@ fun LibraryMixScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
             if (artists.isNotEmpty()) {
                 item {

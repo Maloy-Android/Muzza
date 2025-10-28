@@ -124,6 +124,7 @@ fun LyricsMenu(
     if (showDeleteLyric) {
         DefaultDialog(
             onDismiss = { showDeleteLyric = false },
+            icon = { Icon(painterResource(R.drawable.delete), null) },
             content = {
                 Text(
                     text = stringResource(R.string.delete_lyric_confirm, mediaMetadataProvider().title),

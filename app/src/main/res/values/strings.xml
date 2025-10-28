@@ -113,6 +113,7 @@
 
     <!-- Album screen -->
     <string name="other_versions">Other versions</string>
+    <string name="remove_download_album_confirm">Do you really want to remove all \"%s\" album songs from the Downloaded Songs storage?</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Liked songs</string>

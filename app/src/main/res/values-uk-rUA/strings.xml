@@ -97,6 +97,7 @@
 
     <!-- Album screen -->
     <string name="other_versions">Інші версії</string>
+    <string name="remove_download_album_confirm">Ви впевнені, що хочете видалити всі пісні з альбому «%s» зі сховища завантаженої музики?</string>
 
     <!-- Library -->
     <string name="library_empty">Тут відображатиметься ваша бібліотека</string>

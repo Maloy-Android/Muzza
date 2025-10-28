@@ -17,12 +17,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,6 +61,7 @@ import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
+import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
@@ -113,6 +117,45 @@ fun YouTubeAlbumMenu(
                 else
                     Download.STATE_STOPPED
         }
+    }
+
+    var showRemoveDownloadDialog by remember {
+        mutableStateOf(false)
+    }
+    if (showRemoveDownloadDialog) {
+        DefaultDialog(
+            onDismiss = { showRemoveDownloadDialog = false },
+            icon = { Icon(Icons.Rounded.CloudOff,null) },
+            content = {
+                Text(
+                    text = stringResource(R.string.remove_download_album_confirm, albumItem.title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            buttons = {
+                TextButton(
+                    onClick = { showRemoveDownloadDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        showRemoveDownloadDialog = false
+                        album?.songs?.forEach { song ->
+                            DownloadService.sendRemoveDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                song.id,
+                                false
+                            )
+                        }
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
     }
 
     var showChoosePlaylistDialog by rememberSaveable {
@@ -352,14 +395,7 @@ fun YouTubeAlbumMenu(
                 }
             },
             onRemoveDownload = {
-                album?.songs?.forEach { song ->
-                    DownloadService.sendRemoveDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        song.id,
-                        false
-                    )
-                }
+                showRemoveDownloadDialog = true
             }
         )
         item {

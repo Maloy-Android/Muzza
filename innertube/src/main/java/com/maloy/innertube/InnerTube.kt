@@ -225,7 +225,7 @@ class InnerTube {
         playlistId: String?,
         signatureTimestamp: Int?,
     ) = httpClient.post("player") {
-        ytClient(client, setLogin = false)
+        ytClient(client, setLogin = true)
         setBody(
             PlayerBody(
                 context = client.toContext(locale, visitorData, dataSyncId).let {

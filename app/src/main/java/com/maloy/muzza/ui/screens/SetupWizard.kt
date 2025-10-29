@@ -72,7 +72,10 @@ fun SetupWizard(
     val shimmerBrush = shimmerEffect()
     val layoutDirection = LocalLayoutDirection.current
 
-    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(FirstSetupPassed, defaultValue = false)
+    val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(
+        FirstSetupPassed,
+        defaultValue = false
+    )
 
     var position by remember {
         mutableIntStateOf(0)
@@ -186,7 +189,11 @@ fun SetupWizard(
                     .verticalScroll(rememberScrollState()),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(Modifier.height(WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 16.dp))
+                Spacer(
+                    Modifier.height(
+                        WindowInsets.systemBars.asPaddingValues().calculateTopPadding() + 16.dp
+                    )
+                )
 
                 when (position) {
                     0 -> {
@@ -194,12 +201,10 @@ fun SetupWizard(
                             modifier = Modifier
                                 .size(90.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
                         ) {
                             Image(
-                                painter = painterResource(R.drawable.muzza_monochrome),
+                                painter = painterResource(R.mipmap.ic_launcher_foreground),
                                 contentDescription = null,
-                                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                                 modifier = Modifier
                                     .matchParentSize()
                                     .clickable { }

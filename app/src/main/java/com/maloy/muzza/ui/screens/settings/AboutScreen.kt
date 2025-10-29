@@ -207,25 +207,29 @@ fun AboutScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
         Spacer(Modifier.height(4.dp))
 
         Box(
             modifier = Modifier
                 .size(90.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(R.drawable.muzza_monochrome),
+                painter = painterResource(R.mipmap.ic_launcher_foreground),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                 modifier = Modifier
                     .matchParentSize()
                     .combinedClickable(
                         onClick = {},
                         onLongClick = {
-                            Toast.makeText(context, "Muzza",Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Muzza", Toast.LENGTH_LONG).show()
                         }
                     )
             )
@@ -257,7 +261,7 @@ fun AboutScreen(
             )
         }
 
-            Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(4.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -487,7 +491,6 @@ fun UserCards(uriHandler: UriHandler) {
 }
 
 
-
 @Composable
 fun CardItem(
     icon: Int,
@@ -538,7 +541,6 @@ fun CardItem(
     }
 
 }
-
 
 
 @Composable

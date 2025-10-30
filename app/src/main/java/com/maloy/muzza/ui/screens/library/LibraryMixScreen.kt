@@ -421,7 +421,7 @@ fun LibraryMixScreen(
                                                         likedSongs?.let { songs ->
                                                             playerConnection.playQueue(
                                                                 ListQueue(
-                                                                    title = context.getString(R.string.liked),
+                                                                    title = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else { context.getString(R.string.liked) },
                                                                     items = songs.map { it.toMediaItem() },
                                                                     startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                                                 )

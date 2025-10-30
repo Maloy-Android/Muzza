@@ -488,11 +488,8 @@ fun AutoPlaylistScreen(
                                         Button(
                                             onClick = {
                                                 songs?.let { songs ->
-                                                    playerConnection.playQueue(
-                                                        ListQueue(
-                                                            title = context.getString(R.string.liked),
-                                                            items = songs.map { it.toMediaItem() }
-                                                        )
+                                                    playerConnection.addToQueue(
+                                                        items = songs.map { it.toMediaItem() }
                                                     )
                                                 }
                                             },
@@ -536,7 +533,7 @@ fun AutoPlaylistScreen(
                                             songs?.let { songs ->
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = playlist,
+                                                        title = if (isLoggedIn && viewModel.playlist == "liked" && likedMusicTitle.isNotEmpty()) likedMusicTitle else { playlist },
                                                         items = songs.shuffled()
                                                             .map { it.toMediaItem() }
                                                     )
@@ -660,7 +657,9 @@ fun AutoPlaylistScreen(
                                                 songs?.let { songs ->
                                                     playerConnection.playQueue(
                                                         ListQueue(
-                                                            title = playlist,
+                                                            title = if (isLoggedIn && viewModel.playlist == "liked" && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+                                                                playlist
+                                                            },
                                                             items = songs.map { it.toMediaItem() },
                                                             startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                                         )

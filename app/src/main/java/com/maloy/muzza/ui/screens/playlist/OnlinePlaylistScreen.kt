@@ -640,22 +640,20 @@ fun OnlinePlaylistScreen(
                                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                         Text(stringResource(R.string.play))
                                     }
-                                    if (!playlist.id.startsWith("RDAT")) {
-                                        Button(
-                                            onClick = {
-                                                playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-                                            },
-                                            contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
-                                            modifier = Modifier.weight(1f)
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.shuffle),
-                                                contentDescription = null,
-                                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                                            )
-                                            Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                            Text(stringResource(R.string.shuffle))
-                                        }
+                                    Button(
+                                        onClick = {
+                                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
+                                        },
+                                        contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.shuffle),
+                                            contentDescription = null,
+                                            modifier = Modifier.size(ButtonDefaults.IconSize)
+                                        )
+                                        Spacer(Modifier.size(ButtonDefaults.IconSpacing))
+                                        Text(stringResource(R.string.shuffle))
                                     }
                                 }
                             }

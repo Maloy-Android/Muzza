@@ -409,7 +409,7 @@ fun HistoryScreen(
                                                 eventsMap.let { songs ->
                                                     playerConnection.playQueue(
                                                         ListQueue(
-                                                            title = context.getString(R.string.history_queue_title_local),
+                                                            title = if (ytmSync && isLoggedIn && isInternetAvailable(context)) context.getString(R.string.history_queue_title_local) else context.getString(R.string.history),
                                                             items = songs.flatMap { it.value }
                                                                 .map { it.song.toMediaItem() },
                                                             startIndex = songs.flatMap { it.value }

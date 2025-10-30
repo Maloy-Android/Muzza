@@ -94,6 +94,7 @@ val AutoLoadMoreKey = booleanPreferencesKey("autoLoadMore")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")
 val KeepAliveKey = booleanPreferencesKey("keepAlive")
 val SlimNavBarKey = booleanPreferencesKey("slimNavBar")
+val TwoLineSongItemLabelKey = booleanPreferencesKey("twoLineSongItemLabel")
 
 val MaxImageCacheSizeKey = intPreferencesKey("maxImageCacheSize")
 val MaxSongCacheSizeKey = intPreferencesKey("maxSongCacheSize")

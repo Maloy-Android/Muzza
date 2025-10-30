@@ -57,6 +57,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.LikedAutoDownloadKey
 import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ListItemHeight
+import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
@@ -68,6 +69,7 @@ import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import com.maloy.muzza.utils.rememberEnumPreference
+import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -104,6 +106,7 @@ fun MediaMetadataMenu(
         capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
     }
 
+    val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
     AddToPlaylistDialog(
         navController = navController,
@@ -194,7 +197,8 @@ fun MediaMetadataMenu(
                     contentDescription = null
                 )
             }
-        }
+        },
+        isTwoLineLabel = twoLineLabel
     )
     HorizontalDivider()
     Row(

@@ -1,6 +1,6 @@
 @file:Suppress("NAME_SHADOWING")
 
-package com.maloy.muzza.ui.utils
+package com.maloy.muzza.utils
 
 import android.content.ContentResolver
 import android.content.Context
@@ -15,8 +15,6 @@ import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.utils.LmImageCacheMgr
-import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -358,8 +356,8 @@ object CachedBitmap {
             return
         }
 
-        this.path = path
-        this.image = image
+        CachedBitmap.path = path
+        CachedBitmap.image = image
         bitmapCache.add(this)
     }
 

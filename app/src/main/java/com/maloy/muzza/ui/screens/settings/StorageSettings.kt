@@ -317,11 +317,11 @@ fun StorageSettings(
                                 downloadCache.removeResource(key)
                             }
                         }
+                        downloadCacheSize = 0
                     }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-                downloadCacheSize = 0
             }
         )
     }
@@ -349,11 +349,11 @@ fun StorageSettings(
                         coroutineScope.launch(Dispatchers.IO) {
                             imageDiskCache.clear()
                         }
+                        imageCacheSize = 0
                     }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-                imageCacheSize = 0
             }
         )
     }
@@ -383,11 +383,11 @@ fun StorageSettings(
                                 playerCache.removeResource(key)
                             }
                         }
+                        playerCacheSize = 0
                     }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
-                playerCacheSize = 0
             }
         )
     }

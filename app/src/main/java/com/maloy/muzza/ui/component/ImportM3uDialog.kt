@@ -51,7 +51,7 @@ import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongArtistMap
 import com.maloy.muzza.ui.menu.AddToPlaylistDialog
-import com.maloy.muzza.ui.utils.youtubeSongLookup
+import com.maloy.muzza.utils.youtubeSongLookup
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

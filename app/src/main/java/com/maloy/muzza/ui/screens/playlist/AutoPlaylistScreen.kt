@@ -86,6 +86,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -100,6 +101,8 @@ import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicThumbnailKey
+import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
@@ -174,6 +177,8 @@ fun AutoPlaylistScreen(
         "downloaded" -> PlaylistType.DOWNLOAD
         else -> PlaylistType.OTHER
     }
+    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
+    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val downloadUtil = LocalDownloadUtil.current
@@ -228,7 +233,7 @@ fun AutoPlaylistScreen(
         if (songs?.isEmpty() == true) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
             downloadState =
-                if (songs?.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED } == true)
+                if (songs?.all { it.song.isLocal || downloads[it.song.id]?.state == Download.STATE_COMPLETED } == true)
                     Download.STATE_COMPLETED
                 else if (songs?.all {
                         downloads[it.song.id]?.state == Download.STATE_QUEUED
@@ -346,15 +351,23 @@ fun AutoPlaylistScreen(
                                             shape = RoundedCornerShape(ThumbnailCornerRadius)
                                         )
                                 ) {
-                                    Icon(
-                                        imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
-                                        contentDescription = null,
-                                        tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                        modifier = Modifier
-                                            .size(110.dp)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                            .align(Alignment.Center)
-                                    )
+                                    if (isLoggedIn && likedMusicThumbnail.isNotEmpty() && viewModel.playlist == "liked") {
+                                        AsyncImage(
+                                            model = likedMusicThumbnail,
+                                            contentDescription = null,
+                                            modifier = Modifier
+                                        )
+                                    } else {
+                                        Icon(
+                                            imageVector = if (viewModel.playlist == "liked") Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                            contentDescription = null,
+                                            tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                            modifier = Modifier
+                                                .size(110.dp)
+                                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                                .align(Alignment.Center)
+                                        )
+                                    }
                                 }
                                 Spacer(Modifier.height(12.dp))
                                 Column(
@@ -362,7 +375,7 @@ fun AutoPlaylistScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     AutoResizeText(
-                                        text = playlist,
+                                        text = if (isLoggedIn && likedMusicTitle.isNotEmpty() && viewModel.playlist == "liked") likedMusicTitle else playlist,
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
@@ -475,11 +488,8 @@ fun AutoPlaylistScreen(
                                         Button(
                                             onClick = {
                                                 songs?.let { songs ->
-                                                    playerConnection.playQueue(
-                                                        ListQueue(
-                                                            title = context.getString(R.string.liked),
-                                                            items = songs.map { it.toMediaItem() }
-                                                        )
+                                                    playerConnection.addToQueue(
+                                                        items = songs.map { it.toMediaItem() }
                                                     )
                                                 }
                                             },
@@ -523,7 +533,7 @@ fun AutoPlaylistScreen(
                                             songs?.let { songs ->
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = playlist,
+                                                        title = if (isLoggedIn && viewModel.playlist == "liked" && likedMusicTitle.isNotEmpty()) likedMusicTitle else { playlist },
                                                         items = songs.shuffled()
                                                             .map { it.toMediaItem() }
                                                     )
@@ -647,7 +657,9 @@ fun AutoPlaylistScreen(
                                                 songs?.let { songs ->
                                                     playerConnection.playQueue(
                                                         ListQueue(
-                                                            title = playlist,
+                                                            title = if (isLoggedIn && viewModel.playlist == "liked" && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+                                                                playlist
+                                                            },
                                                             items = songs.map { it.toMediaItem() },
                                                             startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                                         )

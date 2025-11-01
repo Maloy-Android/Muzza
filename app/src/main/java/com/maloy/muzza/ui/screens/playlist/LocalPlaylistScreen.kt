@@ -886,7 +886,7 @@ fun LocalPlaylistHeader(
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->
             downloadState =
-                if (songs.all { downloads[it.song.id]?.state == Download.STATE_COMPLETED })
+                if (songs.all { it.song.song.isLocal || downloads[it.song.id]?.state == Download.STATE_COMPLETED })
                     Download.STATE_COMPLETED
                 else if (songs.all {
                         downloads[it.song.id]?.state == Download.STATE_QUEUED

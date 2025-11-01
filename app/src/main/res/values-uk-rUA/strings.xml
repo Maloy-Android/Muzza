@@ -51,8 +51,8 @@
     <string name="your_youtube_playlists">Ваші плейлисти з YouTube</string>
     <string name="similar_to">Схожі на</string>
     <string name="new_release_albums">Нові релізи альбомів</string>
-    <string name="not_internet">Немає підключення до Інтернету</string>
-    <string name="internet_required">Здається, у вас немає підключення до Інтернету. Будь ласка, перевірте свою мережу.</string>
+    <string name="not_internet">Немає підключення до iнтернету</string>
+    <string name="internet_required">Здається, у вас немає підключення до iнтернету. Будь ласка, перевірте свою мережу.</string>
 
     <!-- History -->
     <string name="today">Сьогодні</string>
@@ -97,6 +97,7 @@
 
     <!-- Album screen -->
     <string name="other_versions">Інші версії</string>
+    <string name="remove_download_album_confirm">Ви впевнені, що хочете видалити всі пісні з альбому «%s» зі сховища завантаженої музики?</string>
 
     <!-- Library -->
     <string name="library_empty">Тут відображатиметься ваша бібліотека</string>
@@ -301,6 +302,8 @@
     <string name="seek_forward_25">На 25 секунд уперед</string>
     <string name="seek_backward_30">На 30 секунд назад</string>
     <string name="seek_forward_30">На 30 секунд уперед</string>
+
+    <string name="mrzavka">Це улюблений трек мерзотниці мяу ❤️</string>
 
     <!-- Player action -->
     <string name="action_like">Поставити «Подобається»</string>
@@ -519,7 +522,9 @@
 
     <string name="backup_restore">Резервне копіювання</string>
     <string name="backup">Створити резервну копію</string>
+    <string name="backup_description">Збережіть всю вашу музичну бібліотеку одним дотиком.</string>
     <string name="restore">Відновити з резервної копії</string>
+    <string name="restore_description">Без зусиль поверніть свою повну музичну колекцію.</string>
     <string name="imported_playlist">Імпортований плейлист</string>
     <string name="backup_create_success">Резервну копію створено успішно</string>
     <string name="backup_create_failed">Не вдалося створити резервну копію</string>
@@ -569,6 +574,7 @@
     <string name="import_failed_songs">Не вдалося імпортувати</string>
     <string name="import_success_songs">Успішно імпортовано</string>
     <string name="m3u_import_playlist">Імпортувати плейлист (m3u)</string>
+    <string name="m3u_import_playlist_description">Переносьте свої улюблені плейлисти з інших програм та сервісів прямо в Muzza.</string>
     <string name="m3u_import_playlist_failed">Помилка імпорту</string>
 
     <string name="generating_image">Генерація зображення</string>

@@ -146,7 +146,7 @@ import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.theme.extractGradientColors
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
-import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -336,6 +336,14 @@ fun BottomSheetPlayer(
 
     LaunchedEffect(!showLyrics) {
         fullScreenLyrics = true
+    }
+
+    if (currentSong?.song?.id in listOf("0IuRPqAZBi4", "ZNbSs6Z0lkA")) {
+        Toast.makeText(
+            context,
+            context.getString(R.string.mrzavka),
+            Toast.LENGTH_LONG
+        ).show()
     }
 
     val queueSheetState = rememberBottomSheetState(
@@ -651,22 +659,28 @@ fun BottomSheetPlayer(
                                     .combinedClickable(onClick = {
                                         (playerConnection.player::seekToPrevious)()
                                     }, onLongClick = {
-                                        Toast.makeText(context,                                                     context.getString(when (songDurationTimeSkip) {
-                                            SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
-                                            SongDurationTimeSkip.TEN -> R.string.seek_backward_10
-                                            SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
-                                            SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
-                                            SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
-                                            SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
-                                        }), Toast.LENGTH_LONG).show()
-                                        playerConnection.player.seekTo(playerConnection.player.currentPosition - when (songDurationTimeSkip) {
-                                            SongDurationTimeSkip.FIVE -> 5000
-                                            SongDurationTimeSkip.TEN -> 10000
-                                            SongDurationTimeSkip.FIFTEEN -> 15000
-                                            SongDurationTimeSkip.TWENTY -> 20000
-                                            SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                            SongDurationTimeSkip.THIRTY -> 30000
-                                        })
+                                        Toast.makeText(
+                                            context, context.getString(
+                                                when (songDurationTimeSkip) {
+                                                    SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                                    SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                                    SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                                    SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                                    SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                                    SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
+                                                }
+                                            ), Toast.LENGTH_LONG
+                                        ).show()
+                                        playerConnection.player.seekTo(
+                                            playerConnection.player.currentPosition - when (songDurationTimeSkip) {
+                                                SongDurationTimeSkip.FIVE -> 5000
+                                                SongDurationTimeSkip.TEN -> 10000
+                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                SongDurationTimeSkip.THIRTY -> 30000
+                                            }
+                                        )
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     })
                             )
@@ -726,22 +740,28 @@ fun BottomSheetPlayer(
                                     .combinedClickable(onClick = {
                                         (playerConnection.player::seekToNext)()
                                     }, onLongClick = {
-                                        Toast.makeText(context,                                                     context.getString(when (songDurationTimeSkip) {
-                                            SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
-                                            SongDurationTimeSkip.TEN -> R.string.seek_forward_10
-                                            SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
-                                            SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
-                                            SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
-                                            SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
-                                        }), Toast.LENGTH_LONG).show()
-                                        playerConnection.player.seekTo(playerConnection.player.currentPosition + when (songDurationTimeSkip) {
-                                            SongDurationTimeSkip.FIVE -> 5000
-                                            SongDurationTimeSkip.TEN -> 10000
-                                            SongDurationTimeSkip.FIFTEEN -> 15000
-                                            SongDurationTimeSkip.TWENTY -> 20000
-                                            SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                            SongDurationTimeSkip.THIRTY -> 30000
-                                        })
+                                        Toast.makeText(
+                                            context, context.getString(
+                                                when (songDurationTimeSkip) {
+                                                    SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                                    SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                                    SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                                    SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                                    SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                                    SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                                }
+                                            ), Toast.LENGTH_LONG
+                                        ).show()
+                                        playerConnection.player.seekTo(
+                                            playerConnection.player.currentPosition + when (songDurationTimeSkip) {
+                                                SongDurationTimeSkip.FIVE -> 5000
+                                                SongDurationTimeSkip.TEN -> 10000
+                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                SongDurationTimeSkip.THIRTY -> 30000
+                                            }
+                                        )
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                     })
                             )

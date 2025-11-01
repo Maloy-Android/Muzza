@@ -321,19 +321,11 @@ fun PlayerMenu(
             .padding(horizontal = 24.dp)
             .padding(top = 24.dp, bottom = 6.dp)
     ) {
-        if (playerVolume.value == 0f) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.VolumeOff,
-                contentDescription = null,
-                modifier = Modifier.size(26.dp)
-            )
-        } else {
-            Icon(
-                imageVector = Icons.AutoMirrored.Rounded.VolumeUp,
-                contentDescription = null,
-                modifier = Modifier.size(28.dp)
-            )
-        }
+        Icon(
+            imageVector = if (playerVolume.value == 0f) Icons.AutoMirrored.Rounded.VolumeOff else Icons.AutoMirrored.Rounded.VolumeUp,
+            contentDescription = null,
+            modifier = Modifier.size(28.dp)
+        )
         when (sliderStyle) {
             SliderStyle.DEFAULT -> {
                 Slider(

@@ -98,8 +98,8 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.ui.menu.FolderMenu
-import com.maloy.muzza.ui.utils.DirectoryTree
-import com.maloy.muzza.ui.utils.imageCache
+import com.maloy.muzza.utils.DirectoryTree
+import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference

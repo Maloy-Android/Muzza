@@ -36,10 +36,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -103,6 +105,7 @@ import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
+import com.maloy.muzza.ui.component.NoInternetBottomSheet
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.YouTubeCardItem
@@ -379,36 +382,20 @@ fun HomeScreen(
         val (showContentFilter) = rememberPreference(ShowContentFilterKey, defaultValue = true)
 
         if (showNoInternetDialog) {
-            AlertDialog(
+            ModalBottomSheet(
                 onDismissRequest = { showNoInternetDialog = false },
-                title = {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            painter = painterResource(R.drawable.signal_cellular_nodata),
-                            contentDescription = null,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.not_internet))
-                    }
-                },
-                text = { Text(stringResource(R.string.internet_required)) },
-                confirmButton = {
-                    Button(onClick = {
-                        showNoInternetDialog = false
-                    }) {
-                        Text(stringResource(android.R.string.cancel))
-                    }
-                },
-                dismissButton = {
-                    Button(onClick = {
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = MaterialTheme.colorScheme.surface,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ) {
+                NoInternetBottomSheet(
+                    onDismiss = { showNoInternetDialog = false },
+                    onGoToLibrary = {
                         navController.navigate("library")
                         showNoInternetDialog = false
-                    }) {
-                        Text(stringResource(R.string.filter_library))
                     }
-                }
-            )
+                )
+            }
         }
 
         LazyColumn(

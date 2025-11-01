@@ -72,6 +72,7 @@ import androidx.core.app.ActivityCompat.requestPermissions
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import coil.compose.AsyncImage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -84,6 +85,8 @@ import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicThumbnailKey
+import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.toMediaItem
@@ -95,8 +98,8 @@ import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
-import com.maloy.muzza.ui.utils.scanLocal
-import com.maloy.muzza.ui.utils.syncDB
+import com.maloy.muzza.utils.scanLocal
+import com.maloy.muzza.utils.syncDB
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -218,6 +221,9 @@ fun LibraryMixScreen(
     val density = LocalDensity.current
     val screenWidth = with(density) { view.width.toDp() }
 
+    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
+    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
+
     val horizontalLazyGridItemWidthFactor = if (screenWidth * 0.475f >= 320.dp) 0.475f else 0.9f
     val horizontalLazyGridItemWidth = screenWidth * horizontalLazyGridItemWidthFactor
     val quickPicksLazyGridState = rememberLazyGridState()
@@ -284,23 +290,31 @@ fun LibraryMixScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
             modifier = Modifier.fillMaxSize()
         ) {
-            if (!likedSongs.isNullOrEmpty()) {
-                item {
-                    Card(
-                        onClick = {
-                            navController.navigate("auto_playlist/liked")
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp)
+            item {
+                Card(
+                    onClick = {
+                        navController.navigate("auto_playlist/liked")
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+                            if (isLoggedIn && likedMusicThumbnail.isNotEmpty()) {
+                                AsyncImage(
+                                    model = likedMusicThumbnail,
+                                    contentDescription = null,
+                                    modifier = Modifier
+                                        .size(30.dp)
+                                        .clip(CircleShape)
+                                )
+                            } else {
                                 Box(
                                     modifier = Modifier
                                         .size(24.dp)
@@ -315,114 +329,119 @@ fun LibraryMixScreen(
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    text = stringResource(R.string.liked) + "    ->",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.weight(1f)
-                                )
                             }
-
-                            Spacer(modifier = Modifier.height(8.dp))
-
+                            Spacer(modifier = Modifier.width(12.dp))
                             Text(
-                                text = pluralStringResource(
-                                    R.plurals.n_song,
-                                    likedSongs!!.size,
-                                    likedSongs!!.size
-                                ),
-                                style = MaterialTheme.typography.bodyMedium
+                                text = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+                                    stringResource(R.string.liked)
+                                } + "    ->",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.weight(1f)
                             )
                         }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = pluralStringResource(
+                                R.plurals.n_song,
+                                likedSongs?.size ?: 0,
+                                likedSongs?.size ?: 0
+                            ),
+                            style = MaterialTheme.typography.bodyMedium
+                        )
                     }
                 }
+            }
+            likedSongs?.let { songs ->
+                if (songs.size > 3) {
+                    item {
+                        Text(
+                            text = stringResource(R.string.sort_by_create_date),
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            overflow = TextOverflow.Ellipsis,
+                            maxLines = 1,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
+                        )
+                    }
 
-                item {
-                    Text(
-                        text = stringResource(R.string.sort_by_create_date),
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 16.dp)
-                    )
-                }
-
-                item {
-                    LazyHorizontalGrid(
-                        state = quickPicksLazyGridState,
-                        rows = GridCells.Fixed(4),
-                        flingBehavior = rememberSnapFlingBehavior(
-                            quickPicksSnapLayoutInfoProvider
-                        ),
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(ListItemHeight * 4)
-                    ) {
-                        likedSongs?.let { songs ->
-                            items(
-                                items = songs.take(16),
-                                key = { song -> song.id }
-                            ) { songWrapper ->
-                                SongListItem(
-                                    song = songWrapper,
-                                    isActive = songWrapper.song.id == mediaMetadata?.id,
-                                    showInLibraryIcon = true,
-                                    isSwipeable = false,
-                                    isPlaying = isPlaying,
-                                    trailingContent = {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = songWrapper,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (songWrapper.id == mediaMetadata?.id) {
-                                                    playerConnection.player.togglePlayPause()
-                                                } else {
-                                                    likedSongs?.let { songs ->
-                                                        playerConnection.playQueue(
-                                                            ListQueue(
-                                                                title = context.getString(R.string.liked),
-                                                                items = songs.map { it.toMediaItem() },
-                                                                startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
-                                                            )
+                    item {
+                        LazyHorizontalGrid(
+                            state = quickPicksLazyGridState,
+                            rows = GridCells.Fixed(4),
+                            flingBehavior = rememberSnapFlingBehavior(
+                                quickPicksSnapLayoutInfoProvider
+                            ),
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(ListItemHeight * 4)
+                        ) {
+                            likedSongs?.let { songs ->
+                                items(
+                                    items = songs.take(16),
+                                    key = { song -> song.id }
+                                ) { songWrapper ->
+                                    SongListItem(
+                                        song = songWrapper,
+                                        isActive = songWrapper.song.id == mediaMetadata?.id,
+                                        showInLibraryIcon = true,
+                                        isSwipeable = false,
+                                        isPlaying = isPlaying,
+                                        trailingContent = {
+                                            IconButton(
+                                                onClick = {
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = songWrapper,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
                                                         )
                                                     }
                                                 }
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = songWrapper,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.more_vert),
+                                                    contentDescription = null
+                                                )
                                             }
-                                        )
-                                )
+                                        },
+                                        modifier = Modifier
+                                            .width(horizontalLazyGridItemWidth)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    if (songWrapper.id == mediaMetadata?.id) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        likedSongs?.let { songs ->
+                                                            playerConnection.playQueue(
+                                                                ListQueue(
+                                                                    title = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else { context.getString(R.string.liked) },
+                                                                    items = songs.map { it.toMediaItem() },
+                                                                    startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
+                                                                )
+                                                            )
+                                                        }
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        SongMenu(
+                                                            originalSong = songWrapper,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                }
+                                            )
+                                    )
+                                }
                             }
                         }
                     }
@@ -443,12 +462,12 @@ fun LibraryMixScreen(
 
             item {
                 val autoPlaylists = listOfNotNull(
-                        downloadPlaylist to Icons.Rounded.CloudDownload,
-                        topPlaylist to Icons.AutoMirrored.Rounded.TrendingUp,
-                        cachedPlaylist to Icons.Rounded.Cached,
-                        localPlaylist to Icons.Rounded.MusicNote,
-                        playlistsPlaylist to Icons.AutoMirrored.Rounded.PlaylistPlay,
-                        playlistAlbums to Icons.Rounded.Album
+                    downloadPlaylist to Icons.Rounded.CloudDownload,
+                    topPlaylist to Icons.AutoMirrored.Rounded.TrendingUp,
+                    cachedPlaylist to Icons.Rounded.Cached,
+                    localPlaylist to Icons.Rounded.MusicNote,
+                    playlistsPlaylist to Icons.AutoMirrored.Rounded.PlaylistPlay,
+                    playlistAlbums to Icons.Rounded.Album
                 )
 
                 val rows = autoPlaylists.chunked(2)
@@ -463,9 +482,23 @@ fun LibraryMixScreen(
                         ) {
                             rowItems.forEach { (playlist, icon) ->
                                 val countText = when (playlist.id) {
-                                    "albums" -> pluralStringResource(R.plurals.n_album,playlist.songCount,playlist.songCount)
-                                    "user_playlists" -> pluralStringResource(R.plurals.n_playlist,playlist.songCount,playlist.songCount)
-                                    else -> pluralStringResource(R.plurals.n_song,playlist.songCount,playlist.songCount)
+                                    "albums" -> pluralStringResource(
+                                        R.plurals.n_album,
+                                        playlist.songCount,
+                                        playlist.songCount
+                                    )
+
+                                    "user_playlists" -> pluralStringResource(
+                                        R.plurals.n_playlist,
+                                        playlist.songCount,
+                                        playlist.songCount
+                                    )
+
+                                    else -> pluralStringResource(
+                                        R.plurals.n_song,
+                                        playlist.songCount,
+                                        playlist.songCount
+                                    )
                                 }
                                 Card(
                                     onClick = {
@@ -513,71 +546,74 @@ fun LibraryMixScreen(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(8.dp))
             }
-            item {
-                Text(
-                    text = stringResource(R.string.liked_artists) + "    ->",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    overflow = TextOverflow.Ellipsis,
-                    maxLines = 1,
-                    modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 16.dp)
-                        .clickable { navController.navigate("library_artists") }
-                )
-            }
+            if (artists.isNotEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.liked_artists) + "    ->",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        overflow = TextOverflow.Ellipsis,
+                        maxLines = 1,
+                        modifier = Modifier
+                            .padding(horizontal = 16.dp, vertical = 16.dp)
+                            .clickable { navController.navigate("library_artists") }
+                    )
+                }
 
-            item {
-                LazyHorizontalGrid(
-                    rows = GridCells.Fixed(1),
-                    contentPadding = WindowInsets.systemBars
-                        .only(WindowInsetsSides.Horizontal)
-                        .asPaddingValues(),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(160.dp)
-                ) {
-                    items(
-                        items = artists.take(8),
-                        key = { it.id }
-                    ) { artist ->
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .width(100.dp)
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("artist/${artist.id}")
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            ArtistMenu(
-                                                originalArtist = artist,
-                                                coroutineScope = coroutineScope,
-                                                onDismiss = menuState::dismiss
-                                            )
+                item {
+                    LazyHorizontalGrid(
+                        rows = GridCells.Fixed(1),
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(160.dp)
+                    ) {
+                        items(
+                            items = artists.take(8),
+                            key = { it.id }
+                        ) { artist ->
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier
+                                    .width(100.dp)
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("artist/${artist.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                ArtistMenu(
+                                                    originalArtist = artist,
+                                                    coroutineScope = coroutineScope,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
                                         }
-                                    }
+                                    )
+                            ) {
+                                ArtistGridItem(
+                                    artist = artist,
+                                    modifier = Modifier.size(100.dp)
                                 )
-                        ) {
-                            ArtistGridItem(
-                                artist = artist,
-                                modifier = Modifier.size(100.dp)
-                            )
 
-                            Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(8.dp))
 
-                            Text(
-                                text = artist.artist.name,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontWeight = FontWeight.Medium,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
-                                textAlign = TextAlign.Center,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                                Text(
+                                    text = artist.artist.name,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    fontWeight = FontWeight.Medium,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         }
                     }
                 }

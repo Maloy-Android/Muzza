@@ -3,6 +3,7 @@ package com.maloy.muzza.utils
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
+import com.maloy.innertube.models.LikedMusicPlaylistFragments
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
@@ -26,6 +27,14 @@ import javax.inject.Singleton
 class SyncUtils @Inject constructor(
     val database: MusicDatabase,
 ) {
+    suspend fun getLikedMusicPlaylistFragments(): LikedMusicPlaylistFragments? {
+        return YouTube.playlist("LM").completed().map { fragment ->
+            LikedMusicPlaylistFragments(
+                likedMusicThumbnail = fragment.playlist.thumbnail,
+                likedMusicTitle = fragment.playlist.title
+            )
+        }.getOrNull()
+    }
     suspend fun syncLikedSongs() {
         YouTube.playlist("LM").completed().onSuccess { page ->
             val songs = page.songs.reversed()
@@ -33,6 +42,7 @@ class SyncUtils @Inject constructor(
                 .filter {
                     !it.song.isLocal && it.id !in songs.map(SongItem::id)
                 }
+                .filterNot { it.song.liked }
                 .forEach { database.update(it.song.localToggleLike()) }
 
             songs.forEach { song ->
@@ -53,7 +63,7 @@ class SyncUtils @Inject constructor(
             val albums = page.items.filterIsInstance<AlbumItem>().reversed()
 
             database.albumsLikedByNameAsc().first()
-                .filterNot { it.id in albums.map(AlbumItem::id) }
+                .filterNot { it.album.bookmarkedAt != null && it.id in albums.map(AlbumItem::id) }
                 .forEach { database.update(it.album.localToggleLike()) }
 
             albums.forEach { album ->
@@ -78,7 +88,7 @@ class SyncUtils @Inject constructor(
             val artists = page.items.filterIsInstance<ArtistItem>()
 
             database.artistsBookmarkedByNameAsc().first()
-                .filterNot { it.id in artists.map(ArtistItem::id) }
+                .filterNot { it.artist.bookmarkedAt != null && it.id in artists.map(ArtistItem::id) }
                 .forEach { database.update(it.artist.localToggleLike()) }
             artists.forEach { artist ->
                 val dbArtist = database.artist(artist.id).firstOrNull()
@@ -110,7 +120,7 @@ class SyncUtils @Inject constructor(
             val dbPlaylists = database.playlistsByNameAsc().first()
 
             dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
-                .filterNot { it.playlist.browseId == null }
+                .filterNot { it.playlist.bookmarkedAt != null && it.playlist.browseId == null }
                 .filterNot { it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 

@@ -38,11 +38,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -53,10 +51,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.ColorFilter
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -71,12 +66,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.extensions.togglePlayPause
-import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.rememberPreference
 
 
 @Composable
@@ -192,7 +183,6 @@ fun AboutScreen(
     ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
-    val shimmerBrush = shimmerEffect()
     var showDonateCard by rememberSaveable {
         mutableStateOf(false)
     }
@@ -207,25 +197,29 @@ fun AboutScreen(
             .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
         Spacer(Modifier.height(4.dp))
 
         Box(
             modifier = Modifier
                 .size(90.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(R.drawable.muzza_monochrome),
+                painter = painterResource(R.mipmap.ic_launcher_foreground),
                 contentDescription = null,
-                colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground, BlendMode.SrcIn),
                 modifier = Modifier
                     .matchParentSize()
                     .combinedClickable(
                         onClick = {},
                         onLongClick = {
-                            Toast.makeText(context, "Muzza",Toast.LENGTH_LONG).show()
+                            Toast.makeText(context, "Muzza", Toast.LENGTH_LONG).show()
                         }
                     )
             )
@@ -233,7 +227,6 @@ fun AboutScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
-                    .background(shimmerBrush)
             )
         }
 
@@ -257,7 +250,7 @@ fun AboutScreen(
             )
         }
 
-            Spacer(Modifier.width(4.dp))
+        Spacer(Modifier.width(4.dp))
 
         Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -487,7 +480,6 @@ fun UserCards(uriHandler: UriHandler) {
 }
 
 
-
 @Composable
 fun CardItem(
     icon: Int,
@@ -538,7 +530,6 @@ fun CardItem(
     }
 
 }
-
 
 
 @Composable

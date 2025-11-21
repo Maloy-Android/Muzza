@@ -12,7 +12,7 @@ import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -153,7 +153,7 @@ fun LyricsSettings(
             onValueSelected = onPreferredProviderChange
         )
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.lyrics_settings_title)) },
         navigationIcon = {
             IconButton(

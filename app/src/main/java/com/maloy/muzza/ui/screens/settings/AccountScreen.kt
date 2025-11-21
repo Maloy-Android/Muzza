@@ -12,7 +12,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -196,7 +196,7 @@ fun AccountSettings(
             onClick = { navController.navigate("settings/discord") }
         )
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.account)) },
         navigationIcon = {
             IconButton(

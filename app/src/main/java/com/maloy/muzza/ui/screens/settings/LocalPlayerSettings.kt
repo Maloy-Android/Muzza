@@ -14,7 +14,7 @@ import androidx.compose.material3.DividerDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
@@ -116,7 +116,7 @@ fun LocalPlayerSettings(
             onCheckedChange = onFlatSubfoldersChange
         )
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.local_player_settings_title)) },
         navigationIcon = {
             IconButton(

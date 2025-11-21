@@ -163,7 +163,13 @@ fun AutoPlaylistScreen(
         }
     }
 
-    val playlist = if (viewModel.playlist == "liked") stringResource(R.string.liked) else stringResource(R.string.offline)
+    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
+    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
+    val playlist = if (viewModel.playlist == "liked") {
+        if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else stringResource(R.string.liked)
+    } else {
+        stringResource(R.string.offline)
+    }
     val songs by viewModel.likedSongs.collectAsState(null)
     val mutableSongs = remember {
         mutableStateListOf<Song>()
@@ -177,8 +183,6 @@ fun AutoPlaylistScreen(
         "downloaded" -> PlaylistType.DOWNLOAD
         else -> PlaylistType.OTHER
     }
-    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
-    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
     val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val downloadUtil = LocalDownloadUtil.current
@@ -375,7 +379,7 @@ fun AutoPlaylistScreen(
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     AutoResizeText(
-                                        text = if (isLoggedIn && likedMusicTitle.isNotEmpty() && viewModel.playlist == "liked") likedMusicTitle else playlist,
+                                        text = playlist,
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
@@ -533,7 +537,7 @@ fun AutoPlaylistScreen(
                                             songs?.let { songs ->
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = if (isLoggedIn && viewModel.playlist == "liked" && likedMusicTitle.isNotEmpty()) likedMusicTitle else { playlist },
+                                                        title = playlist,
                                                         items = songs.shuffled()
                                                             .map { it.toMediaItem() }
                                                     )
@@ -657,9 +661,7 @@ fun AutoPlaylistScreen(
                                                 songs?.let { songs ->
                                                     playerConnection.playQueue(
                                                         ListQueue(
-                                                            title = if (isLoggedIn && viewModel.playlist == "liked" && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
-                                                                playlist
-                                                            },
+                                                            title = playlist,
                                                             items = songs.map { it.toMediaItem() },
                                                             startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                                         )

@@ -240,17 +240,32 @@ fun AlbumScreen(
 
                         Spacer(Modifier.height(12.dp))
 
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            AutoResizeText(
-                                text = albumWithSongs.album.title,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                            )
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AutoResizeText(
+                            text = albumWithSongs.album.title,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSizeRange = FontSizeRange(16.sp, 22.sp),
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = Album(
+                                                    albumWithSongs.album,
+                                                    albumWithSongs.artists
+                                                ),
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                )
+                        )
 
                             Text(buildAnnotatedString {
                                 withStyle(

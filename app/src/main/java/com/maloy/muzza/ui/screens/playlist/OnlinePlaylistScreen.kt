@@ -344,7 +344,21 @@ fun OnlinePlaylistScreen(
                                         fontWeight = FontWeight.Bold,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
-                                        fontSizeRange = FontSizeRange(16.sp, 22.sp)
+                                        fontSizeRange = FontSizeRange(16.sp, 22.sp),
+                                        modifier = Modifier
+                                            .combinedClickable(
+                                                onClick = {
+                                                    menuState.show {
+                                                        YouTubePlaylistMenu(
+                                                            navController = navController,
+                                                            playlist = playlist,
+                                                            songs = songs,
+                                                            coroutineScope = coroutineScope,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                }
+                                            )
                                     )
 
                                     if (playlist.id != "LM") {

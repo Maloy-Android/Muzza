@@ -32,7 +32,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -530,7 +530,7 @@ fun AppearanceSettings(
         )
     }
 
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.appearance)) },
         navigationIcon = {
             IconButton(

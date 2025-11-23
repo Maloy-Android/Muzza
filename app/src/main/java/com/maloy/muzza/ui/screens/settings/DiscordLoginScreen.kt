@@ -14,7 +14,7 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -92,7 +92,7 @@ fun DiscordLoginScreen(
         }
     )
 
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.login)) },
         navigationIcon = {
             IconButton(

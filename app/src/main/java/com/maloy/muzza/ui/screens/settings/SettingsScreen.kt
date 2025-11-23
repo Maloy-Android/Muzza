@@ -26,7 +26,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -146,7 +146,7 @@ fun SettingsScreen(
         VersionCard(uriHandler)
         Spacer(Modifier.height(25.dp))
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.settings)) }, navigationIcon = {
         IconButton(
             onClick = { navController.navigate("home") },

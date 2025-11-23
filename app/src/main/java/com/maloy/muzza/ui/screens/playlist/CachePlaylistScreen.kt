@@ -530,7 +530,7 @@ fun CachePlaylistScreen(
             )
         }
         if (inSelectMode) {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(
                         pluralStringResource(
@@ -584,7 +584,7 @@ fun CachePlaylistScreen(
                 }
             )
         } else {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     if (isSearching) {
                         TextField(

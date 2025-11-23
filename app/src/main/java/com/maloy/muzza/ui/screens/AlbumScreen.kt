@@ -39,7 +39,7 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -240,17 +240,32 @@ fun AlbumScreen(
 
                         Spacer(Modifier.height(12.dp))
 
-                        Column(
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            AutoResizeText(
-                                text = albumWithSongs.album.title,
-                                fontWeight = FontWeight.Bold,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                            )
+                    Column(
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        AutoResizeText(
+                            text = albumWithSongs.album.title,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSizeRange = FontSizeRange(16.sp, 22.sp),
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = Album(
+                                                    albumWithSongs.album,
+                                                    albumWithSongs.artists
+                                                ),
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                )
+                        )
 
                             Text(buildAnnotatedString {
                                 withStyle(
@@ -610,7 +625,7 @@ fun AlbumScreen(
             state = state,
         )
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = {
             if (inSelectMode) {
                 Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))

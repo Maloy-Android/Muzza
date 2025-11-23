@@ -30,7 +30,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.ProvideTextStyle
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -208,7 +208,7 @@ fun DiscordSettings(
         }
     }
 
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.discord_integration)) },
         navigationIcon = {
             IconButton(

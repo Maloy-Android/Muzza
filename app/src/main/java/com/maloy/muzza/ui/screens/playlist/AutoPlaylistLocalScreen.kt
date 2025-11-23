@@ -31,7 +31,7 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -618,7 +618,7 @@ fun AutoPlaylistLocalScreen(
             )
         }
         if (inSelectMode) {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
                 },
@@ -666,7 +666,7 @@ fun AutoPlaylistLocalScreen(
                 }
             )
         } else {
-            TopAppBar(
+            CenterAlignedTopAppBar(
                 title = {
                     if (isSearching) {
                         TextField(

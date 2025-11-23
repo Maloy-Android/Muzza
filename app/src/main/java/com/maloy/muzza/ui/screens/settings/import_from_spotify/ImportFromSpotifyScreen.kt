@@ -54,7 +54,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -673,7 +673,7 @@ fun ImportFromSpotifyScreen(
             }
         }
     }
-    TopAppBar(
+    CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.import_from_spotify)) },
         navigationIcon = {
             com.maloy.muzza.ui.component.IconButton(

@@ -70,6 +70,7 @@ import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.ShowContentFilterKey
+import com.maloy.muzza.constants.ShowFlakeEffectKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -116,6 +117,7 @@ fun AppearanceSettings(
     val (showRecentActivity,onShowRecentActivityChange) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
     val (miniPlayerStyle, onMiniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
+    val (showFlakeEffect, onShowEffectChange) = rememberPreference(ShowFlakeEffectKey, defaultValue = true)
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -383,6 +385,13 @@ fun AppearanceSettings(
             onClick = {
                 showSliderOptionDialog = true
             }
+        )
+
+        SwitchPreference(
+            title =  { Text(stringResource(R.string.enable_snowflake_effect)) },
+            icon = { Icon(painterResource(R.drawable.flake),null) },
+            checked = showFlakeEffect,
+            onCheckedChange = onShowEffectChange
         )
 
         PreferenceGroupTitle(

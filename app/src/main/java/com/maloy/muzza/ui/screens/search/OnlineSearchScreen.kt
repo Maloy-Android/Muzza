@@ -117,79 +117,6 @@ fun OnlineSearchScreen(
             .only(WindowInsetsSides.Bottom)
             .asPaddingValues(),
     ) {
-        if (viewState.history.isNotEmpty()) {
-            item {
-                Text(
-                    text = (stringResource(R.string.SearchHistory)),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-        }
-
-        items(
-            items = viewState.history,
-            key = { it.query },
-        ) { history ->
-            SuggestionItem(
-                query = history.query,
-                online = false,
-                onClick = {
-                    onSearch(history.query)
-                    onDismiss()
-                },
-                onDelete = {
-                    database.query {
-                        delete(history)
-                    }
-                },
-                onFillTextField = {
-                    onQueryChange(
-                        TextFieldValue(
-                            text = history.query,
-                            selection = TextRange(history.query.length),
-                        ),
-                    )
-                },
-                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
-            )
-        }
-        if (viewState.suggestions.isNotEmpty()) {
-            item {
-                Text(
-                    text = (stringResource(R.string.Sujestions)),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                )
-            }
-        }
-
-
-        items(
-            items = viewState.suggestions,
-            key = { it },
-        ) { query ->
-            SuggestionItem(
-                query = query,
-                online = true,
-                onClick = {
-                    onSearch(query)
-                    onDismiss()
-                },
-                onFillTextField = {
-                    onQueryChange(
-                        TextFieldValue(
-                            text = query,
-                            selection = TextRange(query.length),
-                        ),
-                    )
-                },
-                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
-            )
-        }
-
         if (viewState.items.isNotEmpty()) {
             item {
                 Text(
@@ -323,6 +250,78 @@ fun OnlineSearchScreen(
                         },
                     )
                     .animateItem()
+            )
+        }
+        if (viewState.history.isNotEmpty()) {
+            item {
+                Text(
+                    text = (stringResource(R.string.SearchHistory)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        }
+
+        items(
+            items = viewState.history,
+            key = { it.query },
+        ) { history ->
+            SuggestionItem(
+                query = history.query,
+                online = false,
+                onClick = {
+                    onSearch(history.query)
+                    onDismiss()
+                },
+                onDelete = {
+                    database.query {
+                        delete(history)
+                    }
+                },
+                onFillTextField = {
+                    onQueryChange(
+                        TextFieldValue(
+                            text = history.query,
+                            selection = TextRange(history.query.length),
+                        ),
+                    )
+                },
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
+            )
+        }
+        if (viewState.suggestions.isNotEmpty()) {
+            item {
+                Text(
+                    text = (stringResource(R.string.Sujestions)),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
+            }
+        }
+
+
+        items(
+            items = viewState.suggestions,
+            key = { it },
+        ) { query ->
+            SuggestionItem(
+                query = query,
+                online = true,
+                onClick = {
+                    onSearch(query)
+                    onDismiss()
+                },
+                onFillTextField = {
+                    onQueryChange(
+                        TextFieldValue(
+                            text = query,
+                            selection = TextRange(query.length),
+                        ),
+                    )
+                },
+                modifier = Modifier.animateItem(fadeInSpec = null, fadeOutSpec = null),
             )
         }
     }

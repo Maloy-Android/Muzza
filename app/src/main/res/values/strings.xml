@@ -361,6 +361,7 @@
     <string name="default_lib_chips">Default library chips</string>
     <string name="grid_cell_size">Grid cell size</string>
     <string name="slim_navbar">Show bottom navigation bar labels</string>
+    <string name="two_line_song_item_label">Two line song label</string>
     <string name="small">Small</string>
     <string name="big">Big</string>
     <string name="NewVersion">New version available</string>

@@ -67,6 +67,7 @@ import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
+import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
@@ -306,7 +307,7 @@ fun LibraryAlbumsScreen(
                                                 )
                                             }
                                         },
-                                    ).animateItem(),
+                                    ).animateItem()
                             )
                         }
                     }

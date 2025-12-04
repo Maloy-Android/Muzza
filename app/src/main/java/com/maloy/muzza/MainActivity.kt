@@ -742,7 +742,7 @@ class MainActivity : ComponentActivity() {
                                                     )
                                                 } else {
                                                     Icon(
-                                                        painterResource(R.drawable.more_vert),
+                                                        painterResource(R.drawable.menu),
                                                         null
                                                     )
                                                 }

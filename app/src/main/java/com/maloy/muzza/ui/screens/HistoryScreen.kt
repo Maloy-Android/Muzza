@@ -349,15 +349,6 @@ fun HistoryScreen(
                                     )
                                     .animateItem()
                             )
-                            if (historyPage?.sections != null && !isSearching) {
-                                Indicator(
-                                    isRefreshing = isRefreshing,
-                                    state = pullRefreshState,
-                                    modifier = Modifier
-                                        .align(Alignment.TopCenter)
-                                        .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
-                                )
-                            }
                         }
                     }
                 } else {
@@ -461,6 +452,16 @@ fun HistoryScreen(
                     }
                 }
             }
+        }
+
+        if (historySource == HistorySource.REMOTE && historyPage?.sections != null && !isSearching) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
 
         if (historySource == HistorySource.REMOTE) {

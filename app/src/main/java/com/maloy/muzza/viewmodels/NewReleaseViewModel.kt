@@ -14,6 +14,7 @@ import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
@@ -22,13 +23,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class NewReleaseViewModel @Inject constructor(
-    @ApplicationContext context: Context,
-    database: MusicDatabase,
+    @ApplicationContext private val context: Context,
+    private val database: MusicDatabase,
 ) : ViewModel() {
     private val _newReleaseAlbums = MutableStateFlow<List<AlbumItem>>(emptyList())
     val newReleaseAlbums = _newReleaseAlbums.asStateFlow()
 
-    init {
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    private fun load() {
         viewModelScope.launch {
             YouTube.newReleaseAlbums().onSuccess { albums ->
                 val artists: Set<String>
@@ -50,6 +56,26 @@ class NewReleaseViewModel @Inject constructor(
             }.onFailure {
                 reportException(it)
             }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            try {
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh new releases page"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            load()
         }
     }
 }

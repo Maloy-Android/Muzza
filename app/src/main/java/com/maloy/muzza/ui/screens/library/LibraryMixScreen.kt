@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.library
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
@@ -11,6 +12,7 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +47,9 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -108,6 +113,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun LibraryMixScreen(
@@ -224,6 +230,9 @@ fun LibraryMixScreen(
     val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
     val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
 
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
     val horizontalLazyGridItemWidthFactor = if (screenWidth * 0.475f >= 320.dp) 0.475f else 0.9f
     val horizontalLazyGridItemWidth = screenWidth * horizontalLazyGridItemWidthFactor
     val quickPicksLazyGridState = rememberLazyGridState()
@@ -282,8 +291,15 @@ fun LibraryMixScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(
             state = lazyListState,
@@ -618,6 +634,15 @@ fun LibraryMixScreen(
                     }
                 }
             }
+        }
+        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
     }
 }

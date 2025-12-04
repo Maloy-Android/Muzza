@@ -20,6 +20,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -38,7 +39,10 @@ class AutoPlaylistViewModel  @Inject constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val playlist = savedStateHandle.get<String>("playlist")!!
-
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
         context.dataStore.data
@@ -80,5 +84,24 @@ class AutoPlaylistViewModel  @Inject constructor(
 
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                viewModelScope.launch(
+                    Dispatchers.IO
+                ) {
+                    syncUtils.syncLikedSongs()
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh playlist"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
 }

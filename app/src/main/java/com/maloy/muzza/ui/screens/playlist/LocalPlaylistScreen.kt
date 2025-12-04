@@ -14,6 +14,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -57,6 +58,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -154,7 +158,7 @@ import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.io.File
 import java.io.FileOutputStream
 
-@SuppressLint("SuspiciousIndentation", "UseKtx")
+@SuppressLint("SuspiciousIndentation", "UseKtx", "UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun LocalPlaylistScreen(
@@ -168,6 +172,9 @@ fun LocalPlaylistScreen(
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
 
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
@@ -175,8 +182,14 @@ fun LocalPlaylistScreen(
     val songs by viewModel.playlistSongs.collectAsState()
     val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
 
-    val (sortType, onSortTypeChange) = rememberEnumPreference(PlaylistSongSortTypeKey, PlaylistSongSortType.CUSTOM)
-    val (sortDescending, onSortDescendingChange) = rememberPreference(PlaylistSongSortDescendingKey, true)
+    val (sortType, onSortTypeChange) = rememberEnumPreference(
+        PlaylistSongSortTypeKey,
+        PlaylistSongSortType.CUSTOM
+    )
+    val (sortDescending, onSortDescendingChange) = rememberPreference(
+        PlaylistSongSortDescendingKey,
+        true
+    )
     var locked by rememberPreference(PlaylistEditLockKey, defaultValue = true)
 
     val coroutineScope = rememberCoroutineScope()
@@ -261,48 +274,47 @@ fun LocalPlaylistScreen(
             lazyListState.firstVisibleItemIndex > 0
         }
     }
-            dragInfo?.let { (from, to) ->
-                database.transaction {
-                    move(viewModel.playlistId, from, to)
-                }
-                viewModel.viewModelScope.launch(Dispatchers.IO) {
-                    val from = from
-                    val to = to
-                    val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
-                    var fromIndex = from
-                    val toIndex = to
-                    var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
-                    if (successorIndex >= playlistSongMap.size) {
-                        playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                            playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
-                                viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                                    YouTube.moveSongPlaylist(
-                                        browseId,
-                                        setVideoId,
-                                        successorSetVideoId
-                                    )
-                                }
-                            }
-                        }
-
-                        successorIndex = fromIndex
-                        fromIndex = toIndex
-                    }
-
-                    playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                        playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
-                            viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                                YouTube.moveSongPlaylist(
-                                    browseId,
-                                    setVideoId,
-                                    successorSetVideoId
-                                )
-                            }
+    dragInfo?.let { (from, to) ->
+        database.transaction {
+            move(viewModel.playlistId, from, to)
+        }
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
+            val from = from
+            val to = to
+            val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
+            var fromIndex = from
+            val toIndex = to
+            var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
+            if (successorIndex >= playlistSongMap.size) {
+                playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                    playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                        viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                            YouTube.moveSongPlaylist(
+                                browseId,
+                                setVideoId,
+                                successorSetVideoId
+                            )
                         }
                     }
                 }
-                dragInfo = null
+
+                successorIndex = fromIndex
+                fromIndex = toIndex
             }
+
+            playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
+                    viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                        YouTube.moveSongPlaylist(
+                            browseId,
+                            setVideoId,
+                            successorSetVideoId
+                        )
+                    }
+                }
+            }
+        }
+    }
 
     var dismissJob: Job? by remember { mutableStateOf(null) }
 
@@ -310,10 +322,18 @@ fun LocalPlaylistScreen(
     if (showEditDialog) {
         playlist?.playlist?.let { playlistEntity ->
             TextFieldDialog(
-                icon = { Icon(painter = painterResource(R.drawable.edit), contentDescription = null) },
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.edit),
+                        contentDescription = null
+                    )
+                },
                 title = { Text(text = stringResource(R.string.edit_playlist)) },
                 onDismiss = { showEditDialog = false },
-                initialTextFieldValue = TextFieldValue(playlistEntity.name, TextRange(playlistEntity.name.length)),
+                initialTextFieldValue = TextFieldValue(
+                    playlistEntity.name,
+                    TextRange(playlistEntity.name.length)
+                ),
                 onDone = { name ->
                     database.query {
                         update(playlistEntity.copy(name = name))
@@ -330,10 +350,13 @@ fun LocalPlaylistScreen(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
-            icon = { Icon(Icons.Rounded.CloudOff,null) },
+            icon = { Icon(Icons.Rounded.CloudOff, null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist?.playlist!!.name),
+                    text = stringResource(
+                        R.string.remove_download_playlist_confirm,
+                        playlist?.playlist!!.name
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -364,8 +387,15 @@ fun LocalPlaylistScreen(
         )
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize()
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(
             state = lazyListState,
@@ -486,20 +516,31 @@ fun LocalPlaylistScreen(
                                     }
                                 }
                             }
-                            move(currentItem.map.playlistId, currentItem.map.position, Int.MAX_VALUE)
+                            move(
+                                currentItem.map.playlistId,
+                                currentItem.map.position,
+                                Int.MAX_VALUE
+                            )
                             delete(currentItem.map.copy(position = Int.MAX_VALUE))
                         }
                         dismissJob?.cancel()
                         dismissJob = coroutineScope.launch {
                             val snackbarResult = snackbarHostState.showSnackbar(
-                                message = context.getString(R.string.removed_song_from_playlist, currentItem.song.song.title),
+                                message = context.getString(
+                                    R.string.removed_song_from_playlist,
+                                    currentItem.song.song.title
+                                ),
                                 actionLabel = context.getString(R.string.undo),
                                 duration = SnackbarDuration.Short
                             )
                             if (snackbarResult == SnackbarResult.ActionPerformed) {
                                 database.transaction {
                                     insert(currentItem.map.copy(position = songs.size))
-                                    move(currentItem.map.playlistId, songs.size, currentItem.map.position)
+                                    move(
+                                        currentItem.map.playlistId,
+                                        songs.size,
+                                        currentItem.map.position
+                                    )
                                 }
                             }
                         }
@@ -610,6 +651,15 @@ fun LocalPlaylistScreen(
                     }
                 }
             }
+        }
+        if (filteredSongs.isNotEmpty() && playlist?.playlist?.browseId != null && isInternetAvailable(context) && !isSearching) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
         if (lazyChecker) {
             LazyColumnScrollbar(
@@ -771,6 +821,7 @@ fun LocalPlaylistScreen(
     }
 }
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @Composable
 fun LocalPlaylistHeader(
     playlist: Playlist,
@@ -815,7 +866,7 @@ fun LocalPlaylistHeader(
             }
 
             Uri.fromFile(outputFile)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
@@ -823,26 +874,32 @@ fun LocalPlaylistHeader(
     var updatePlaylistThumbnail by remember {
         mutableStateOf(false)
     }
+
     fun loadSavedImage(): Uri? {
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
         updatePlaylistThumbnail = true
     }
+
     fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
         val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
         return file.exists() && file.delete()
         updatePlaylistThumbnail = true
     }
+
     var showClearPlaylistThumbnailDialog by remember {
         mutableStateOf(false)
     }
     if (showClearPlaylistThumbnailDialog) {
         DefaultDialog(
             onDismiss = { showClearPlaylistThumbnailDialog = false },
-            icon = { Icon(Icons.Rounded.HideImage,null)},
+            icon = { Icon(Icons.Rounded.HideImage, null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_custom_playlist_thumbnail_confirm, playlist.title),
+                    text = stringResource(
+                        R.string.remove_custom_playlist_thumbnail_confirm,
+                        playlist.title
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -909,7 +966,10 @@ fun LocalPlaylistHeader(
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
-                    .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
+                    .clickable {
+                        if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog =
+                            true
+                    }
                     .size(AlbumThumbnailSize)
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
                     .align(alignment = Alignment.CenterHorizontally)
@@ -918,7 +978,10 @@ fun LocalPlaylistHeader(
             if (playlist.thumbnails.isEmpty() && customThumbnailUri == null) {
                 Box(
                     modifier = Modifier
-                        .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
+                        .clickable {
+                            if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog =
+                                true
+                        }
                         .size(AlbumThumbnailSize)
                         .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         .align(alignment = Alignment.CenterHorizontally)
@@ -939,214 +1002,223 @@ fun LocalPlaylistHeader(
                 }
             }
         }
-            if (playlist.thumbnails.size == 1 && customThumbnailUri == null) {
-                AsyncImage(
-                    model = playlist.thumbnails[0],
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
-                        .size(AlbumThumbnailSize)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                        .align(alignment = Alignment.CenterHorizontally)
-                )
-            } else if (playlist.thumbnails.size > 1 && customThumbnailUri == null) {
-                Box(
-                    modifier = Modifier
-                        .clickable { if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog = true }
-                        .size(AlbumThumbnailSize)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                        .align(alignment = Alignment.CenterHorizontally)
-                ) {
-                    listOf(
-                        Alignment.TopStart,
-                        Alignment.TopEnd,
-                        Alignment.BottomStart,
-                        Alignment.BottomEnd
-                    ).fastForEachIndexed { index, alignment ->
-                        AsyncImage(
-                            model = playlist.thumbnails.getOrNull(index),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .align(alignment)
-                                .size(AlbumThumbnailSize / 2)
-                        )
+        if (playlist.thumbnails.size == 1 && customThumbnailUri == null) {
+            AsyncImage(
+                model = playlist.thumbnails[0],
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .clickable {
+                        if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog =
+                            true
                     }
-                }
-            }
-            Spacer(Modifier.height(12.dp))
-            Column(
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .size(AlbumThumbnailSize)
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .align(alignment = Alignment.CenterHorizontally)
+            )
+        } else if (playlist.thumbnails.size > 1 && customThumbnailUri == null) {
+            Box(
+                modifier = Modifier
+                    .clickable {
+                        if (customThumbnailUri == null) pickImageLauncher.launch("image/*") else showClearPlaylistThumbnailDialog =
+                            true
+                    }
+                    .size(AlbumThumbnailSize)
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    .align(alignment = Alignment.CenterHorizontally)
             ) {
-                AutoResizeText(
-                    text = playlist.playlist.name,
-                    fontWeight = FontWeight.Bold,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    fontSizeRange = FontSizeRange(16.sp, 22.sp)
-                )
-
-                if (accountName.isNotEmpty() && playlist.playlist.isLocal) {
-                    Text(
-                        text = accountName,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                listOf(
+                    Alignment.TopStart,
+                    Alignment.TopEnd,
+                    Alignment.BottomStart,
+                    Alignment.BottomEnd
+                ).fastForEachIndexed { index, alignment ->
+                    AsyncImage(
+                        model = playlist.thumbnails.getOrNull(index),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .align(alignment)
+                            .size(AlbumThumbnailSize / 2)
                     )
                 }
+            }
+        }
+        Spacer(Modifier.height(12.dp))
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AutoResizeText(
+                text = playlist.playlist.name,
+                fontWeight = FontWeight.Bold,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+                fontSizeRange = FontSizeRange(16.sp, 22.sp)
+            )
 
+            if (accountName.isNotEmpty() && playlist.playlist.isLocal) {
                 Text(
-                    text = makeTimeString(playlistLength * 1000L),
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Normal
+                    text = accountName,
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
                 )
-                Spacer(Modifier.height(12.dp))
-                Row (
-                    horizontalArrangement = Arrangement.SpaceEvenly,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    when (downloadState) {
-                        Download.STATE_COMPLETED -> {
-                            Button(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(4.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                onClick = onShowRemoveDownloadDialog
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.offline),
-                                    contentDescription = null
-                                )
-                            }
-                        }
+            }
 
-                        Download.STATE_DOWNLOADING -> {
-                            Button(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(4.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                onClick = {
-                                    songs.forEach { song ->
-                                        DownloadService.sendRemoveDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            song.song.id,
-                                            false
-                                        )
-                                    }
-                                }
-                            ) {
-                                CircularProgressIndicator(
-                                    strokeWidth = 2.dp,
-                                    modifier = Modifier.size(24.dp),
-                                    color = MaterialTheme.colorScheme.surfaceContainer
-                                )
-                            }
-                        }
-
-                        else -> {
-                            Button(
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .padding(4.dp)
-                                    .clip(RoundedCornerShape(12.dp)),
-                                onClick = {
-                                    songs.forEach { song ->
-                                        val downloadRequest = DownloadRequest.Builder(song.song.id, song.song.id.toUri())
-                                            .setCustomCacheKey(song.song.id)
-                                            .setData(song.song.song.title.toByteArray())
-                                            .build()
-                                        DownloadService.sendAddDownload(
-                                            context,
-                                            ExoDownloadService::class.java,
-                                            downloadRequest,
-                                            false
-                                        )
-                                    }
-                                }
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.download),
-                                    contentDescription = null
-                                )
-                            }
+            Text(
+                text = makeTimeString(playlistLength * 1000L),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Normal
+            )
+            Spacer(Modifier.height(12.dp))
+            Row(
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                when (downloadState) {
+                    Download.STATE_COMPLETED -> {
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = onShowRemoveDownloadDialog
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.offline),
+                                contentDescription = null
+                            )
                         }
                     }
+
+                    Download.STATE_DOWNLOADING -> {
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = {
+                                songs.forEach { song ->
+                                    DownloadService.sendRemoveDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        song.song.id,
+                                        false
+                                    )
+                                }
+                            }
+                        ) {
+                            CircularProgressIndicator(
+                                strokeWidth = 2.dp,
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.surfaceContainer
+                            )
+                        }
+                    }
+
+                    else -> {
+                        Button(
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(4.dp)
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = {
+                                songs.forEach { song ->
+                                    val downloadRequest = DownloadRequest.Builder(
+                                        song.song.id,
+                                        song.song.id.toUri()
+                                    )
+                                        .setCustomCacheKey(song.song.id)
+                                        .setData(song.song.song.title.toByteArray())
+                                        .build()
+                                    DownloadService.sendAddDownload(
+                                        context,
+                                        ExoDownloadService::class.java,
+                                        downloadRequest,
+                                        false
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.download),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    onClick = onShowEditDialog
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.edit),
+                        contentDescription = null
+                    )
+                }
+                if (editable) {
                     Button(
                         modifier = Modifier
                             .weight(1f)
                             .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp)),
-                        onClick = onShowEditDialog
+                        onClick = {
+                            playerConnection.addToQueue(
+                                items = songs.map { it.song.toMediaItem() },
+                            )
+                        }
                     ) {
                         Icon(
-                            painter = painterResource(R.drawable.edit),
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    }
+                } else {
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = {
+                            database.transaction {
+                                update(playlist.playlist.toggleLike())
+                            }
+                        }
+                    ) {
+                        val liked = playlist.playlist.bookmarkedAt != null
+                        Icon(
+                            painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
                             contentDescription = null
                         )
                     }
-                    if (editable) {
-                        Button(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            onClick = {
-                                playerConnection.addToQueue(
-                                    items = songs.map { it.song.toMediaItem() },
-                                )
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.queue_music),
-                                contentDescription = null,
-                            )
-                        }
-                    } else {
-                        Button(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            onClick = {
-                                database.transaction {
-                                    update(playlist.playlist.toggleLike())
-                                }
-                            }
-                        ) {
-                            val liked = playlist.playlist.bookmarkedAt != null
-                            Icon(
-                                painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
-                                contentDescription = null
-                            )
-                        }
-                    }
+                }
 
-                    if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
-                        Button(
-                            modifier = Modifier
-                                .weight(1f)
-                                .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)),
-                            onClick = {
-                                scope.launch(Dispatchers.IO) {
-                                    syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
-                                    snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                                }
+                if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = {
+                            scope.launch(Dispatchers.IO) {
+                                syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
+                                snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
                             }
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.sync),
-                                contentDescription = null
-                            )
                         }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.sync),
+                            contentDescription = null
+                        )
                     }
                 }
             }
+        }
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(

@@ -10,10 +10,13 @@ import com.maloy.muzza.constants.PlaylistSongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
+import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
@@ -24,13 +27,18 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LocalPlaylistViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
+    private val syncUtils: SyncUtils,
 ) : ViewModel() {
     val playlistId = savedStateHandle.get<String>("playlistId")!!
     val playlist = database.playlist(playlistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
     val playlistSongs = combine(
         database.playlistSongs(playlistId),
         context.dataStore.data
@@ -50,6 +58,24 @@ class LocalPlaylistViewModel @Inject constructor(
             PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }
         }.reversed(sortDescending && sortType != PlaylistSongSortType.CUSTOM)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                val currentPlaylist = playlist.value?.playlist
+                currentPlaylist?.browseId?.let { browseId ->
+                    syncUtils.syncPlaylist(browseId, playlistId)
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh playlist"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {

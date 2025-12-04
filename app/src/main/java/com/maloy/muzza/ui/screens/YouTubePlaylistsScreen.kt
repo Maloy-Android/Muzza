@@ -1,8 +1,12 @@
 package com.maloy.muzza.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -12,12 +16,14 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -39,6 +45,7 @@ import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.YouTubePlaylistsViewModel
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun YouTubePlaylistsScreen(
@@ -53,50 +60,69 @@ fun YouTubePlaylistsScreen(
 
     val playlists by viewModel.playlists.collectAsState()
     val lazyGridState = rememberLazyGridState()
-    val gridChecker = remember {
-        derivedStateOf {
-            lazyGridState.firstVisibleItemIndex > 0
-        }
-    }
 
-    LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
-        contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
-        state = lazyGridState
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
-        items(
-            items = playlists.orEmpty(),
-            key = { it.id }
-        ) { item ->
-            YouTubeGridItem(
-                item = item,
-                fillMaxWidth = true,
-                modifier = Modifier
-                    .combinedClickable(
-                        onClick = {
-                            navController.navigate("online_playlist/${item.id}")
-                        },
-                        onLongClick = {
-                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            menuState.show {
-                                YouTubePlaylistMenu(
-                                    navController = navController,
-                                    playlist = item,
-                                    coroutineScope = coroutineScope,
-                                    onDismiss = menuState::dismiss
-                                )
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = GridThumbnailHeight + 24.dp),
+            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
+            state = lazyGridState
+        ) {
+            items(
+                items = playlists.orEmpty(),
+                key = { it.id }
+            ) { item ->
+                YouTubeGridItem(
+                    item = item,
+                    fillMaxWidth = true,
+                    modifier = Modifier
+                        .combinedClickable(
+                            onClick = {
+                                navController.navigate("online_playlist/${item.id}")
+                            },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                menuState.show {
+                                    YouTubePlaylistMenu(
+                                        navController = navController,
+                                        playlist = item,
+                                        coroutineScope = coroutineScope,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
                             }
-                        }
-                    )
-            )
-        }
+                        )
+                )
+            }
 
-        if (playlists == null) {
-            items(8) {
-                ShimmerHost {
-                    GridItemPlaceHolder(fillMaxWidth = true)
+            if (playlists == null) {
+                items(8) {
+                    ShimmerHost {
+                        GridItemPlaceHolder(fillMaxWidth = true)
+                    }
                 }
             }
+        }
+        if (playlists != null) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
     }
     LazyVerticalGridScrollbar(

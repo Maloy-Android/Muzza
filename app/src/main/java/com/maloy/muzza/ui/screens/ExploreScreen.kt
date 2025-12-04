@@ -1,8 +1,10 @@
 package com.maloy.muzza.ui.screens
 
+import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -23,10 +25,14 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -46,6 +52,7 @@ import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.viewmodels.ExploreViewModel
 
+@SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ExploreScreen(
@@ -63,8 +70,18 @@ fun ExploreScreen(
     val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
         Column(
             modifier = Modifier.verticalScroll(scrollState),
@@ -84,9 +101,9 @@ fun ExploreScreen(
 
                 LazyRow(
                     contentPadding =
-                    WindowInsets.systemBars
-                        .only(WindowInsetsSides.Horizontal)
-                        .asPaddingValues()
+                        WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues()
                 ) {
                     items(
                         items = newReleaseAlbums,
@@ -98,23 +115,23 @@ fun ExploreScreen(
                             isPlaying = isPlaying,
                             coroutineScope = coroutineScope,
                             modifier =
-                            Modifier
-                                .combinedClickable(
-                                    onClick = {
-                                        navController.navigate("album/${album.id}")
-                                    },
-                                    onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            YouTubeAlbumMenu(
-                                                albumItem = album,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                            )
-                                        }
-                                    },
-                                )
-                                .animateItem()
+                                Modifier
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("album/${album.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                YouTubeAlbumMenu(
+                                                    albumItem = album,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+                                            }
+                                        },
+                                    )
+                                    .animateItem()
                         )
                     }
                 }
@@ -140,9 +157,9 @@ fun ExploreScreen(
                                 navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
                             },
                             modifier =
-                            Modifier
-                                .padding(6.dp)
-                                .width(180.dp)
+                                Modifier
+                                    .padding(6.dp)
+                                    .width(180.dp)
                         )
                     }
                 }
@@ -159,9 +176,9 @@ fun ExploreScreen(
                     TextPlaceholder(
                         height = 36.dp,
                         modifier =
-                        Modifier
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                            .width(250.dp)
+                            Modifier
+                                .padding(vertical = 12.dp, horizontal = 12.dp)
+                                .width(250.dp)
                     )
                     Row {
                         repeat(2) {
@@ -171,9 +188,9 @@ fun ExploreScreen(
                     TextPlaceholder(
                         height = 36.dp,
                         modifier =
-                        Modifier
-                            .padding(vertical = 12.dp, horizontal = 12.dp)
-                            .width(250.dp)
+                            Modifier
+                                .padding(vertical = 12.dp, horizontal = 12.dp)
+                                .width(250.dp)
                     )
                     repeat(4) {
                         Row {
@@ -181,15 +198,24 @@ fun ExploreScreen(
                                 TextPlaceholder(
                                     height = MoodAndGenresButtonHeight,
                                     modifier =
-                                    Modifier
-                                        .padding(horizontal = 6.dp)
-                                        .width(200.dp)
+                                        Modifier
+                                            .padding(horizontal = 6.dp)
+                                            .width(200.dp)
                                 )
                             }
                         }
                     }
                 }
             }
+        }
+        if (explorePage != null) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
     }
 }

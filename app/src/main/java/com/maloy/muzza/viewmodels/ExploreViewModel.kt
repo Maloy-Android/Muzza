@@ -16,6 +16,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -25,6 +26,10 @@ class ExploreViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     val database: MusicDatabase,
 ) : ViewModel() {
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
     val explorePage = MutableStateFlow<ExplorePage?>(null)
 
     private suspend fun load() {
@@ -52,6 +57,20 @@ class ExploreViewModel @Inject constructor(
             }.onFailure {
                 reportException(it)
             }
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            try {
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh explore content"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
 
     init {

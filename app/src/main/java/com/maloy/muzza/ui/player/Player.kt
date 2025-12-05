@@ -632,97 +632,90 @@ fun BottomSheetPlayer(
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = PlayerHorizontalPadding)
                 ) {
                     val shuffleModeEnabled by playerConnection.shuffleModeEnabled.collectAsState()
 
-                    Box(modifier = Modifier.weight(1f)) {
-                        FilledTonalIconButton(
-                            onClick = playerConnection.player::toggleShuffleMode,
-                            modifier = Modifier.size(48.dp),
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = if (shuffleModeEnabled)
-                                    MaterialTheme.colorScheme.secondaryContainer
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = if (shuffleModeEnabled)
-                                    MaterialTheme.colorScheme.onSecondaryContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            enabled = true
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.shuffle),
-                                contentDescription = stringResource(R.string.shuffle),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
+                    FilledTonalIconButton(
+                        onClick = playerConnection.player::toggleShuffleMode,
+                        modifier = Modifier.size(48.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (shuffleModeEnabled)
+                                MaterialTheme.colorScheme.secondaryContainer
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (shuffleModeEnabled)
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        enabled = true
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.shuffle),
+                            contentDescription = stringResource(R.string.shuffle),
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
 
                     if (playerStyle == PlayerStyle.NEW) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            FilledTonalIconButton(
-                                onClick = { playerConnection.player.seekToPrevious() },
-                                modifier = Modifier.size(48.dp),
-                                enabled = canSkipPrevious
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.skip_previous),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                        FilledTonalIconButton(
+                            onClick = { playerConnection.player.seekToPrevious() },
+                            modifier = Modifier.size(48.dp),
+                            enabled = canSkipPrevious
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.skip_previous),
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     } else {
-                        Box(modifier = Modifier.weight(1f)) {
-                            FilledTonalIconButton(
-                                onClick = {},
+                        FilledTonalIconButton(
+                            onClick = {},
+                            modifier = Modifier
+                                .size(48.dp),
+                            enabled = canSkipPrevious
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.skip_previous),
+                                contentDescription = null,
                                 modifier = Modifier
-                                    .size(48.dp),
-                                enabled = canSkipPrevious
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.skip_previous),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .combinedClickable(
-                                            onClick = { playerConnection.player.seekToPrevious() },
-                                            onLongClick = {
-                                                Toast.makeText(
-                                                    context, context.getString(
-                                                        when (songDurationTimeSkip) {
-                                                            SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
-                                                            SongDurationTimeSkip.TEN -> R.string.seek_backward_10
-                                                            SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
-                                                            SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
-                                                            SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
-                                                            SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
-                                                        }
-                                                    ), Toast.LENGTH_LONG
-                                                ).show()
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                playerConnection.player.seekTo(
-                                                    playerConnection.player.currentPosition - when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> 5000
-                                                        SongDurationTimeSkip.TEN -> 10000
-                                                        SongDurationTimeSkip.FIFTEEN -> 15000
-                                                        SongDurationTimeSkip.TWENTY -> 20000
-                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                        SongDurationTimeSkip.THIRTY -> 30000
+                                    .size(24.dp)
+                                    .combinedClickable(
+                                        onClick = { playerConnection.player.seekToPrevious() },
+                                        onLongClick = {
+                                            Toast.makeText(
+                                                context, context.getString(
+                                                    when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
+                                                        SongDurationTimeSkip.TEN -> R.string.seek_backward_10
+                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
+                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
+                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
+                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
                                                     }
-                                                )
-                                            }
-                                        )
-                                )
-                            }
+                                                ), Toast.LENGTH_LONG
+                                            ).show()
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            playerConnection.player.seekTo(
+                                                playerConnection.player.currentPosition - when (songDurationTimeSkip) {
+                                                    SongDurationTimeSkip.FIVE -> 5000
+                                                    SongDurationTimeSkip.TEN -> 10000
+                                                    SongDurationTimeSkip.FIFTEEN -> 15000
+                                                    SongDurationTimeSkip.TWENTY -> 20000
+                                                    SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                    SongDurationTimeSkip.THIRTY -> 30000
+                                                }
+                                            )
+                                        }
+                                    )
+                            )
                         }
                     }
-
-                    Spacer(Modifier.width(8.dp))
 
                     FilledTonalIconButton(
                         onClick = {
@@ -750,95 +743,87 @@ fun BottomSheetPlayer(
                         )
                     }
 
-                    Spacer(Modifier.width(8.dp))
-
                     if (playerStyle == PlayerStyle.NEW) {
-                        Box(modifier = Modifier.weight(1f)) {
-                            FilledTonalIconButton(
-                                modifier = Modifier.size(48.dp),
-                                onClick = { playerConnection.player.seekToNext() },
-                                enabled = canSkipNext
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.skip_next),
-                                    contentDescription = stringResource(R.string.next),
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        }
-                    } else {
-                        Box(modifier = Modifier.weight(1f)) {
-                            FilledTonalIconButton(
-                                modifier = Modifier.size(48.dp),
-                                onClick = {},
-                                enabled = canSkipNext
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.skip_next),
-                                    contentDescription = stringResource(R.string.next),
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .combinedClickable(
-                                            onClick = { playerConnection.player.seekToNext() },
-                                            onLongClick = {
-                                                Toast.makeText(
-                                                    context, context.getString(
-                                                        when (songDurationTimeSkip) {
-                                                            SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
-                                                            SongDurationTimeSkip.TEN -> R.string.seek_forward_10
-                                                            SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
-                                                            SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
-                                                            SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
-                                                            SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
-                                                        }
-                                                    ), Toast.LENGTH_LONG
-                                                ).show()
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                playerConnection.player.seekTo(
-                                                    playerConnection.player.currentPosition + when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> 5000
-                                                        SongDurationTimeSkip.TEN -> 10000
-                                                        SongDurationTimeSkip.FIFTEEN -> 15000
-                                                        SongDurationTimeSkip.TWENTY -> 20000
-                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                        SongDurationTimeSkip.THIRTY -> 30000
-                                                    }
-                                                )
-                                            }
-                                        )
-                                )
-                            }
-                        }
-                    }
-
-                    Box(modifier = Modifier.weight(1f)) {
                         FilledTonalIconButton(
-                            onClick = playerConnection.player::toggleRepeatMode,
                             modifier = Modifier.size(48.dp),
-                            colors = IconButtonDefaults.filledTonalIconButtonColors(
-                                containerColor = if (repeatMode != REPEAT_MODE_OFF)
-                                    MaterialTheme.colorScheme.secondaryContainer
-                                else
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                contentColor = if (repeatMode != REPEAT_MODE_OFF)
-                                    MaterialTheme.colorScheme.onSecondaryContainer
-                                else
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                            ),
-                            enabled = true
+                            onClick = { playerConnection.player.seekToNext() },
+                            enabled = canSkipNext
                         ) {
                             Icon(
-                                painter = painterResource(
-                                    when (repeatMode) {
-                                        REPEAT_MODE_OFF, REPEAT_MODE_ALL -> R.drawable.repeat
-                                        REPEAT_MODE_ONE -> R.drawable.repeat_one
-                                        else -> throw IllegalStateException()
-                                    }
-                                ),
-                                contentDescription = null,
+                                painter = painterResource(R.drawable.skip_next),
+                                contentDescription = stringResource(R.string.next),
                                 modifier = Modifier.size(24.dp)
                             )
                         }
+                    } else {
+                        FilledTonalIconButton(
+                            modifier = Modifier.size(48.dp),
+                            onClick = {},
+                            enabled = canSkipNext
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.skip_next),
+                                contentDescription = stringResource(R.string.next),
+                                modifier = Modifier
+                                    .size(24.dp)
+                                    .combinedClickable(
+                                        onClick = { playerConnection.player.seekToNext() },
+                                        onLongClick = {
+                                            Toast.makeText(
+                                                context, context.getString(
+                                                    when (songDurationTimeSkip) {
+                                                        SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
+                                                        SongDurationTimeSkip.TEN -> R.string.seek_forward_10
+                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
+                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
+                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
+                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
+                                                    }
+                                                ), Toast.LENGTH_LONG
+                                            ).show()
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            playerConnection.player.seekTo(
+                                                playerConnection.player.currentPosition + when (songDurationTimeSkip) {
+                                                    SongDurationTimeSkip.FIVE -> 5000
+                                                    SongDurationTimeSkip.TEN -> 10000
+                                                    SongDurationTimeSkip.FIFTEEN -> 15000
+                                                    SongDurationTimeSkip.TWENTY -> 20000
+                                                    SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                    SongDurationTimeSkip.THIRTY -> 30000
+                                                }
+                                            )
+                                        }
+                                    )
+                            )
+                        }
+                    }
+
+                    FilledTonalIconButton(
+                        onClick = playerConnection.player::toggleRepeatMode,
+                        modifier = Modifier.size(48.dp),
+                        colors = IconButtonDefaults.filledTonalIconButtonColors(
+                            containerColor = if (repeatMode != REPEAT_MODE_OFF)
+                                MaterialTheme.colorScheme.secondaryContainer
+                            else
+                                MaterialTheme.colorScheme.surfaceVariant,
+                            contentColor = if (repeatMode != REPEAT_MODE_OFF)
+                                MaterialTheme.colorScheme.onSecondaryContainer
+                            else
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                        ),
+                        enabled = true
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                when (repeatMode) {
+                                    REPEAT_MODE_OFF, REPEAT_MODE_ALL -> R.drawable.repeat
+                                    REPEAT_MODE_ONE -> R.drawable.repeat_one
+                                    else -> throw IllegalStateException()
+                                }
+                            ),
+                            contentDescription = null,
+                            modifier = Modifier.size(24.dp)
+                        )
                     }
                 }
             }

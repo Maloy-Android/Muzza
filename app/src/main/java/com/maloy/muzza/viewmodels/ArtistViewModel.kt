@@ -17,14 +17,17 @@ import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class ArtistViewModel @Inject constructor(
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
     database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
@@ -35,20 +38,43 @@ class ArtistViewModel @Inject constructor(
     val librarySongs = database.artistSongsPreview(artistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    private suspend fun load() {
+        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+        YouTube.artist(artistId).onSuccess { page ->
+            val filteredSections = page.sections.filterNot { section ->
+                section.title.equals("From your library", ignoreCase = true) ||
+                        section.moreEndpoint?.browseId?.startsWith("MPLAUC") == true
+            }.map { section ->
+                section.copy(items = section.items.filterExplicit(hideExplicit))
+            }
+            artistPage = page.copy(sections = filteredSections)
+        }.onFailure {
+            reportException(it)
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            try {
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh artist page"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
     init {
         viewModelScope.launch {
-            val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-            YouTube.artist(artistId).onSuccess { page ->
-                    val filteredSections = page.sections.filterNot { section ->
-                            section.title.equals("From your library", ignoreCase = true)
-                            section.moreEndpoint?.browseId?.startsWith("MPLAUC") == true
-                        }.map { section ->
-                            section.copy(items = section.items.filterExplicit(hideExplicit))
-                        }
-                    artistPage = page.copy(sections = filteredSections)
-                }.onFailure {
-                    reportException(it)
-                }
+            load()
         }
     }
 }

@@ -7,9 +7,11 @@ import com.maloy.muzza.constants.StatPeriod
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -23,6 +25,10 @@ import javax.inject.Inject
 class StatsViewModel @Inject constructor(
     val database: MusicDatabase,
 ) : ViewModel() {
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
     val statPeriod = MutableStateFlow(StatPeriod.ALL)
 
     val mostPlayedSongs = statPeriod.flatMapLatest { period ->
@@ -40,7 +46,7 @@ class StatsViewModel @Inject constructor(
         database.mostPlayedAlbums(period.toTimeMillis())
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    init {
+    fun load() {
         viewModelScope.launch {
             mostPlayedArtists.collect { artists ->
                 artists
@@ -76,6 +82,26 @@ class StatsViewModel @Inject constructor(
                     }
                 }
             }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            try {
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh stats page"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            load()
         }
     }
 }

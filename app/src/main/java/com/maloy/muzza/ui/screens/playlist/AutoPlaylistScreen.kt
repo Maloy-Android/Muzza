@@ -1,11 +1,13 @@
 package com.maloy.muzza.ui.screens.playlist
 
+import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,6 +47,9 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -131,6 +136,7 @@ import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
+@SuppressLint("UnusedBoxWithConstraintsScope", "SuspiciousIndentation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AutoPlaylistScreen(
@@ -183,7 +189,10 @@ fun AutoPlaylistScreen(
         "downloaded" -> PlaylistType.DOWNLOAD
         else -> PlaylistType.OTHER
     }
-    val (sortType, onSortTypeChange) = rememberEnumPreference(SongSortTypeKey, SongSortType.CREATE_DATE)
+    val (sortType, onSortTypeChange) = rememberEnumPreference(
+        SongSortTypeKey,
+        SongSortType.CREATE_DATE
+    )
     val (sortDescending, onSortDescendingChange) = rememberPreference(SongSortDescendingKey, true)
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
@@ -255,7 +264,7 @@ fun AutoPlaylistScreen(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
-            icon = { Icon(Icons.Rounded.CloudOff,null) },
+            icon = { Icon(Icons.Rounded.CloudOff, null) },
             content = {
                 Text(
                     text = stringResource(R.string.remove_download_playlist_confirm, playlist),
@@ -303,6 +312,8 @@ fun AutoPlaylistScreen(
             state.firstVisibleItemIndex > 0
         }
     }
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             mutableSongs.move(from.index - 2, to.index - 2)
@@ -315,8 +326,15 @@ fun AutoPlaylistScreen(
             )
         ).asPaddingValues()
     )
-    Box(
-        modifier = Modifier.fillMaxSize()
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(
             state = state,
@@ -651,38 +669,43 @@ fun AutoPlaylistScreen(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = {
-                                            if (inSelectMode) {
-                                                onCheckedChange(songWrapper.id !in selection)
-                                            } else if (songWrapper.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                songs?.let { songs ->
-                                                    playerConnection.playQueue(
-                                                        ListQueue(
-                                                            title = playlist,
-                                                            items = songs.map { it.toMediaItem() },
-                                                            startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
-                                                        )
-                                                    )
-                                                }
-                                            }
-                                        },
-                                        onLongClick = {
-                                            if (!inSelectMode) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                inSelectMode = true
-                                                onCheckedChange(true)
+                                    .combinedClickable(onClick = {
+                                        if (inSelectMode) {
+                                            onCheckedChange(songWrapper.id !in selection)
+                                        } else if (songWrapper.id == mediaMetadata?.id) {
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            songs?.let { songs ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist,
+                                                        items = songs.map { it.toMediaItem() },
+                                                        startIndex = songs.indexOfFirst { it.song.id == songWrapper.id })
+                                                )
                                             }
                                         }
-                                    )
+                                    }, onLongClick = {
+                                        if (!inSelectMode) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            inSelectMode = true
+                                            onCheckedChange(true)
+                                        }
+                                    })
                                     .animateItem()
                             )
                         }
                     }
                 }
             }
+        }
+        if (filteredSongs?.isEmpty() != true && isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE && !isSearching) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
         if (lazyChecker) {
             LazyColumnScrollbar(
@@ -775,8 +798,7 @@ fun AutoPlaylistScreen(
                                 }
                             }
                         )
-                    }
-                    else if (lazyChecker) {
+                    } else if (lazyChecker) {
                         Text(playlist)
                     }
                 },

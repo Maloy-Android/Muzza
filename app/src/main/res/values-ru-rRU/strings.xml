@@ -338,6 +338,7 @@
     <string name="appearance">Внешний вид</string>
     <string name="theme">Тема</string>
     <string name="proxy">ПРОКСИ</string>
+    <string name="enable_snowflake_effect">Эффект снежинок</string>
     <string name="enable_dynamic_theme">Включить динамическую тему</string>
     <string name="listen_youtube_music">Слушать в YouTube Music</string>
     <string name="visit_muzza">Посетить Muzza</string>
@@ -379,6 +380,7 @@
     <string name="blurmv">Размытие (движение)</string>
     <string name="grid_cell_size">Размер ячеек</string>
     <string name="slim_navbar">Показывать названия кнопок навигационной панели</string>
+    <string name="two_line_song_item_label">Название песни в две строки</string>
     <string name="small">Маленький</string>
     <string name="big">Большой</string>
     <string name="NewVersion">Доступна новая версия</string>

@@ -37,6 +37,9 @@ class OnlinePlaylistViewModel @Inject constructor(
 
     private val _isLoadingMore = MutableStateFlow(false)
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
     val dbPlaylist = database.playlistByBrowseId(playlistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
@@ -70,6 +73,31 @@ class OnlinePlaylistViewModel @Inject constructor(
                     _isLoading.value = false
                     reportException(throwable)
                 }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            _error.value = null
+            continuation = null
+            proactiveLoadJob?.cancel()
+            try {
+                YouTube.playlist(playlistId)
+                    .onSuccess { playlistPage ->
+                        playlist.value = playlistPage.playlist
+                        playlistSongs.value = playlistPage.songs.distinctBy { it.id }
+                        continuation = playlistPage.songsContinuation
+                        if (continuation != null) {
+                            startProactiveBackgroundLoading()
+                        }
+                    }.onFailure { throwable ->
+                        _error.value = throwable.message ?: "Failed to refresh playlist"
+                        reportException(throwable)
+                    }
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
 

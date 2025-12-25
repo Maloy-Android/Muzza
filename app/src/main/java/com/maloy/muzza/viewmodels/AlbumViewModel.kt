@@ -10,6 +10,7 @@ import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -17,13 +18,38 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AlbumViewModel @Inject constructor(
-    database: MusicDatabase,
+    private val database: MusicDatabase,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
     val albumId = savedStateHandle.get<String>("albumId")!!
     val albumWithSongs = database.albumWithSongs(albumId)
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
     val otherVersions = MutableStateFlow<List<AlbumItem>>(emptyList())
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    fun refresh() {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                YouTube.album(albumId).onSuccess { album ->
+                    val existingAlbum = database.album(albumId).first()
+                    database.transaction {
+                        if (existingAlbum != null) {
+                            update(existingAlbum.album, album)
+                        } else {
+                            insert(album)
+                        }
+                    }
+                    otherVersions.value = album.otherVersions
+                }.onFailure {
+                    reportException(it)
+                }
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {

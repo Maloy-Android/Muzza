@@ -47,6 +47,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -64,6 +65,10 @@ class LibraryArtistsViewModel @Inject constructor(
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
     val allArtists = context.dataStore.data
         .map {
             Triple(
@@ -81,6 +86,20 @@ class LibraryArtistsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
     fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() } }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncArtistsSubscriptions()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh artists"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -109,6 +128,10 @@ class LibraryAlbumsViewModel @Inject constructor(
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
     @OptIn(ExperimentalCoroutinesApi::class)
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
     val allAlbums = context.dataStore.data
         .map {
             Triple(
@@ -126,6 +149,20 @@ class LibraryAlbumsViewModel @Inject constructor(
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
     fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() } }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncLikedAlbums()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh albums"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 
     init {
         viewModelScope.launch(Dispatchers.IO) {
@@ -159,7 +196,10 @@ class LibraryPlaylistsViewModel @Inject constructor(
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
     val allPlaylists = context.dataStore.data
         .map {
             it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey] ?: true)
@@ -169,6 +209,22 @@ class LibraryPlaylistsViewModel @Inject constructor(
             database.playlists(sortType, descending)
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncSavedPlaylists()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh playlists"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
 }
 
 @HiltViewModel
@@ -204,6 +260,11 @@ class LibraryMixViewModel @Inject constructor(
     private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
     private val _playlistInfo = MutableStateFlow<LikedMusicPlaylistFragments?>(null)
     val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
 
     private val savedLikedMusicThumbnail = context.dataStore.data
         .map { it[likedMusicThumbnailKey] ?: "" }
@@ -283,6 +344,22 @@ class LibraryMixViewModel @Inject constructor(
             syncUtils.syncArtistsSubscriptions()
             syncUtils.syncLikedAlbums()
             syncUtils.syncSavedPlaylists()
+        }
+    }
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncLikedSongs()
+                syncUtils.syncArtistsSubscriptions()
+                syncUtils.syncLikedAlbums()
+                syncUtils.syncSavedPlaylists()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh library"
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
     var artists =

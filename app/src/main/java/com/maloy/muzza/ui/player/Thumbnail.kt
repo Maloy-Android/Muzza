@@ -84,6 +84,7 @@ fun Thumbnail(
     val (songDurationTimeSkip) = rememberEnumPreference(
         SongDurationTimeSkipKey, defaultValue = SongDurationTimeSkip.FIVE)
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
     val currentView = LocalView.current
     val context = LocalContext.current
 
@@ -103,7 +104,11 @@ fun Thumbnail(
     )
 
     val thumbnailScale by animateFloatAsState(
-        targetValue = if (showLyrics) 0.9f else 1f,
+        targetValue = when {
+            showLyrics -> 0.9f
+            !isPlaying -> 0.85f
+            else -> 1f
+        },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,
             stiffness = Spring.StiffnessLow

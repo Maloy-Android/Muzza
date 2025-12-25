@@ -1,6 +1,5 @@
 package com.maloy.muzza.viewmodels
 
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
@@ -11,6 +10,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -28,6 +28,11 @@ class HistoryViewModel @Inject constructor(
     private val lastMonday = thisMonday.minusDays(7)
     var historySource = MutableStateFlow(HistorySource.LOCAL)
     val historyPage = MutableStateFlow<HistoryPage?>(null)
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
 
     val events = database.events()
         .map { events ->
@@ -57,6 +62,20 @@ class HistoryViewModel @Inject constructor(
 
     init {
         fetchRemoteHistory()
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            try {
+               fetchRemoteHistory()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh remote history"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
     }
 
     fun fetchRemoteHistory() {

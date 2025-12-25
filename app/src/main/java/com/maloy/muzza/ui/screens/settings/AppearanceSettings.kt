@@ -70,6 +70,7 @@ import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.ShowContentFilterKey
+import com.maloy.muzza.constants.ShowFlakeEffectKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -77,6 +78,7 @@ import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.SwipeSongToDismissKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
+import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EnumListPreference
@@ -107,6 +109,7 @@ fun AppearanceSettings(
     val (gridCellSize, onGridCellSizeChange) = rememberEnumPreference(GridCellSizeKey, defaultValue = GridCellSize.SMALL)
     val (swipeThumbnail, onSwipeThumbnailChange) = rememberPreference(SwipeThumbnailKey, defaultValue = true)
     val (slimNav, onSlimNavChange) = rememberPreference(SlimNavBarKey, defaultValue = true)
+    val (twoLineSongItemLabel, onTwoLineSongItemLabelChange) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
     val (thumbnailCornerRadius, onThumbnailCornerRadius) = rememberPreference (ThumbnailCornerRadiusV2Key , defaultValue = 3)
     val (nowPlayingEnable,onNowPlayingEnableChange) = rememberPreference(NowPlayingEnableKey, defaultValue = true)
     val (nowPlayingPadding,onNowPlayingPadding) = rememberPreference(NowPlayingPaddingKey, defaultValue = 35)
@@ -114,6 +117,7 @@ fun AppearanceSettings(
     val (showRecentActivity,onShowRecentActivityChange) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
     val (playerStyle, onPlayerStyle) = rememberEnumPreference (PlayerStyleKey , defaultValue = PlayerStyle.NEW)
     val (miniPlayerStyle, onMiniPlayerStyle) = rememberEnumPreference(MiniPlayerStyleKey, defaultValue = MiniPlayerStyle.NEW)
+    val (showFlakeEffect, onShowEffectChange) = rememberPreference(ShowFlakeEffectKey, defaultValue = true)
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -383,6 +387,13 @@ fun AppearanceSettings(
             }
         )
 
+        SwitchPreference(
+            title =  { Text(stringResource(R.string.enable_snowflake_effect)) },
+            icon = { Icon(painterResource(R.drawable.flake),null) },
+            checked = showFlakeEffect,
+            onCheckedChange = onShowEffectChange
+        )
+
         PreferenceGroupTitle(
             title = stringResource(R.string.home)
         )
@@ -493,6 +504,13 @@ fun AppearanceSettings(
             icon = { Icon(painterResource(R.drawable.queue_music), null) },
             checked = swipeSongToDismiss,
             onCheckedChange = onSwipeSongToDismissChange
+        )
+
+        SwitchPreference(
+            title = { Text(stringResource(R.string.two_line_song_item_label)) },
+            icon = { Icon(painterResource(R.drawable.two_line_text), null) },
+            checked = twoLineSongItemLabel,
+            onCheckedChange = onTwoLineSongItemLabelChange
         )
 
         EnumListPreference(

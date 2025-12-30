@@ -105,9 +105,8 @@ fun Thumbnail(
 
     val thumbnailScale by animateFloatAsState(
         targetValue = when {
-            showLyrics -> 0.9f
-            !isPlaying -> 0.85f
-            else -> 1f
+            showLyrics || !isPlaying -> 1.0f
+            else -> 1.1f
         },
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioMediumBouncy,

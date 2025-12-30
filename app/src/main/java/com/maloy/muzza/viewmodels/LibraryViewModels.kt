@@ -362,12 +362,22 @@ class LibraryMixViewModel @Inject constructor(
             }
         }
     }
-    var artists =
-        database
-            .artistsBookmarked(
-                ArtistSortType.CREATE_DATE,
-                true,
-            ).stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val allArtists = context.dataStore.data
+        .map {
+            Triple(
+                it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
+                it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
+                it[ArtistSortDescendingKey] ?: true
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, sortType, descending) ->
+            when (filter) {
+                ArtistFilter.LIBRARY -> database.artists(sortType, descending)
+                ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
     var albums = database.albumsLiked(AlbumSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     var playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)

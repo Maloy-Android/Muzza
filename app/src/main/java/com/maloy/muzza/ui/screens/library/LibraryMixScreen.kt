@@ -142,7 +142,7 @@ fun LibraryMixScreen(
     val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
 
-    val artists by viewModel.artists.collectAsState()
+    val artists by viewModel.allArtists.collectAsState()
 
     val playlistsPlaylist = Playlist(
         playlist = PlaylistEntity(
@@ -571,83 +571,86 @@ fun LibraryMixScreen(
                 }
                 Spacer(modifier = Modifier.height(8.dp))
             }
-            if (artists.isNotEmpty()) {
-                item {
-                    Row(
-                        modifier = Modifier
-                            .padding(horizontal = 16.dp, vertical = 16.dp)
-                            .clickable { navController.navigate("library_artists") }
-                            .fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.liked_artists),
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            overflow = TextOverflow.Ellipsis,
-                            maxLines = 1,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Spacer(Modifier.width(1.dp))
-                        Icon(
-                            painter = painterResource(R.drawable.arrow_forward),
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+            artists?.let { allArtists ->
+                if (allArtists.isNotEmpty()) {
+                    item {
+                        Row(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 16.dp)
+                                .clickable { navController.navigate("library_artists") }
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(R.string.your_artists),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(Modifier.width(1.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_forward),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                }
 
-                item {
-                    LazyHorizontalGrid(
-                        rows = GridCells.Fixed(1),
-                        contentPadding = WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues(),
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(160.dp)
-                    ) {
-                        items(
-                            items = artists.take(8),
-                            key = { it.id }
-                        ) { artist ->
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier
-                                    .width(100.dp)
-                                    .combinedClickable(
-                                        onClick = {
-                                            navController.navigate("artist/${artist.id}")
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                ArtistMenu(
-                                                    originalArtist = artist,
-                                                    coroutineScope = coroutineScope,
-                                                    onDismiss = menuState::dismiss
-                                                )
+                    item {
+                        LazyHorizontalGrid(
+                            rows = GridCells.Fixed(1),
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(160.dp)
+                        ) {
+                            items(
+                                items = allArtists.take(8),
+                                key = { it.id }
+                            ) { artist ->
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier
+                                        .width(100.dp)
+                                        .combinedClickable(
+                                            onClick = {
+                                                navController.navigate("artist/${artist.id}")
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    ArtistMenu(
+                                                        originalArtist = artist,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
                                             }
-                                        }
+                                        )
+                                ) {
+                                    ArtistGridItem(
+                                        artist = artist,
+                                        modifier = Modifier.size(100.dp),
+                                        fillMaxWidth = true
                                     )
-                            ) {
-                                ArtistGridItem(
-                                    artist = artist,
-                                    modifier = Modifier.size(100.dp)
-                                )
 
-                                Spacer(modifier = Modifier.height(8.dp))
+                                    Spacer(modifier = Modifier.height(8.dp))
 
-                                Text(
-                                    text = artist.artist.name,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
+                                    Text(
+                                        text = artist.artist.name,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        fontWeight = FontWeight.Medium,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
                             }
                         }
                     }

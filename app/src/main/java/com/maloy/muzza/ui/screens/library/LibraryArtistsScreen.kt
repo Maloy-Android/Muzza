@@ -393,7 +393,7 @@ fun LibraryArtistsScreen(
             )
         }
         CenterAlignedTopAppBar(
-            title = { Text(stringResource(R.string.liked_artists)) },
+            title = { Text(stringResource(R.string.your_artists)) },
             navigationIcon = {
                 com.maloy.muzza.ui.component.IconButton(
                     onClick = navController::navigateUp,

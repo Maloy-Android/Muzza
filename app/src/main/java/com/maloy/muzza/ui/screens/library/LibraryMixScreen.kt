@@ -473,7 +473,7 @@ fun LibraryMixScreen(
 
             item {
                 Text(
-                    text = stringResource(R.string.also_in_your_collection),
+                    text = stringResource(R.string.also_in_your_library),
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.primary,

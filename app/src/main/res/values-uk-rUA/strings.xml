@@ -105,7 +105,7 @@
     <string name="library_artist_empty">Тут будуть відображатися виконавці з вашої бібліотеки</string>
     <string name="library_album_empty">Тут будуть відображатися альбоми з вашої бібліотеки</string>
     <string name="library_playlist_empty">Тут будуть відображатися ваші плейлисти</string>
-    <string name="also_in_your_collection">Ще у вас у Колекції</string>
+    <string name="also_in_your_library">Ще у вас у Бібліотеки</string>
     <string name="your_artists">Ваші виконавці</string>
 
     <!-- Playlist -->

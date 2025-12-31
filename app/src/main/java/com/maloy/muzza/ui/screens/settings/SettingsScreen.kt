@@ -91,9 +91,14 @@ fun SettingsScreen(
             modifier = Modifier
                 .size(90.dp)
                 .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceColorAtElevation(NavigationBarDefaults.Elevation))
         ) {
             Image(
-                painter = painterResource(R.mipmap.ic_launcher_foreground),
+                painterResource(R.drawable.muzza_monochrome),
+                colorFilter = ColorFilter.tint(
+                    MaterialTheme.colorScheme.onBackground,
+                    BlendMode.SrcIn
+                ),
                 contentDescription = null
             )
             Box(
@@ -118,35 +123,43 @@ fun SettingsScreen(
         PreferenceEntry(
             title = { Text(stringResource(R.string.appearance)) },
             icon = { Icon(painterResource(R.drawable.palette), null) },
-            onClick = { navController.navigate("settings/appearance") })
+            onClick = { navController.navigate("settings/appearance") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.account)) },
             icon = { Icon(painterResource(R.drawable.person), null) },
-            onClick = { navController.navigate("settings/account") })
+            onClick = { navController.navigate("settings/account") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.content)) },
             icon = { Icon(painterResource(R.drawable.language), null) },
-            onClick = { navController.navigate("settings/content") })
+            onClick = { navController.navigate("settings/content") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.player_and_audio)) },
             icon = { Icon(painterResource(R.drawable.play), null) },
-            onClick = { navController.navigate("settings/player") })
+            onClick = { navController.navigate("settings/player") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.storage)) },
             icon = { Icon(painterResource(R.drawable.storage), null) },
-            onClick = { navController.navigate("settings/storage") })
+            onClick = { navController.navigate("settings/storage") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.privacy)) },
             icon = { Icon(painterResource(R.drawable.security), null) },
-            onClick = { navController.navigate("settings/privacy") })
+            onClick = { navController.navigate("settings/privacy") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.backup_restore)) },
             icon = { Icon(painterResource(R.drawable.restore), null) },
-            onClick = { navController.navigate("settings/backup_restore") })
+            onClick = { navController.navigate("settings/backup_restore") }
+        )
         PreferenceEntry(
             title = { Text(stringResource(R.string.about)) },
             icon = { Icon(painterResource(R.drawable.info), null) },
-            onClick = { navController.navigate("settings/about") })
+            onClick = { navController.navigate("settings/about") }
+        )
 
         UpdateCard(uriHandler)
         Spacer(Modifier.height(25.dp))
@@ -155,15 +168,15 @@ fun SettingsScreen(
     }
     CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.settings)) }, navigationIcon = {
-        IconButton(
-            onClick = { navController.navigate("home") },
-            onLongClick = { navController.navigate("home") },
-        ) {
-            Icon(
-                painterResource(R.drawable.arrow_back), contentDescription = null
-            )
-        }
-    }, scrollBehavior = scrollBehavior
+            IconButton(
+                onClick = { navController.navigate("home") },
+                onLongClick = { navController.navigate("home") },
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_back), contentDescription = null
+                )
+            }
+        }, scrollBehavior = scrollBehavior
     )
 }
 
@@ -183,7 +196,8 @@ fun VersionCard(uriHandler: UriHandler) {
 
             ),
         shape = RoundedCornerShape(38.dp),
-        onClick = { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/releases/latest") }) {
+        onClick = { uriHandler.openUri("https://github.com/Maloy-Android/Muzza/releases/latest") }
+    ) {
         Column(
             modifier = Modifier
                 .clip(RoundedCornerShape(38.dp))
@@ -194,7 +208,8 @@ fun VersionCard(uriHandler: UriHandler) {
             Text(
                 text = BuildConfig.VERSION_NAME,
                 style = MaterialTheme.typography.bodyLarge.copy(
-                    fontSize = 17.sp, fontFamily = FontFamily.Monospace
+                    fontSize = 17.sp,
+                    fontFamily = FontFamily.Monospace
                 ),
                 color = MaterialTheme.colorScheme.secondary,
                 modifier = Modifier.align(Alignment.CenterHorizontally),
@@ -218,9 +233,12 @@ fun PreferenceEntryCard(
         modifier = modifier
             .fillMaxWidth()
             .clickable(
-                enabled = isEnabled && onClick != null, onClick = onClick ?: {})
+                enabled = isEnabled && onClick != null,
+                onClick = onClick ?: {}
+            )
             .alpha(if (isEnabled) 1f else 0.5f)
-            .padding(horizontal = 16.dp, vertical = 16.dp)) {
+            .padding(horizontal = 16.dp, vertical = 16.dp)
+    ) {
         if (icon != null) {
             Box(
                 modifier = Modifier.padding(horizontal = 4.dp)
@@ -230,7 +248,8 @@ fun PreferenceEntryCard(
             Spacer(Modifier.width(12.dp))
         }
         Column(
-            verticalArrangement = Arrangement.Center, modifier = Modifier.weight(1f)
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.weight(1f)
         ) {
             ProvideTextStyle(MaterialTheme.typography.titleMedium) {
                 title()
@@ -270,15 +289,19 @@ fun UpdateCard(uriHandler: UriHandler) {
             shape = RoundedCornerShape(38.dp),
             onClick = {
                 uriHandler.openUri("https://github.com/Maloy-Android/Muzza/releases/latest")
-            }) {
+            }
+        ) {
             Column(
-                modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.Center
+                modifier = Modifier
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.Center
             ) {
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = "${stringResource(R.string.NewVersion)} $latestVersion",
                     style = MaterialTheme.typography.bodyLarge.copy(
-                        fontSize = 17.sp, fontFamily = FontFamily.Monospace
+                        fontSize = 17.sp,
+                        fontFamily = FontFamily.Monospace
                     ),
                     color = MaterialTheme.colorScheme.secondary,
                 )

@@ -83,6 +83,7 @@ fun PlaylistMenu(
     playlist: Playlist,
     coroutineScope: CoroutineScope,
     onDismiss: () -> Unit,
+    showDeleteButton: Boolean = true
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -511,14 +512,16 @@ fun PlaylistMenu(
                 showRemoveDownloadDialog = true
             }
         )
-        item {
-            HorizontalDivider()
-        }
-        ListMenuItem(
-            icon = R.drawable.delete,
-            title = R.string.delete
-        ) {
-            showDeletePlaylistDialog = true
+        if (showDeleteButton) {
+            item {
+                HorizontalDivider()
+            }
+            ListMenuItem(
+                icon = R.drawable.delete,
+                title = R.string.delete
+            ) {
+                showDeletePlaylistDialog = true
+            }
         }
         item {
             HorizontalDivider()

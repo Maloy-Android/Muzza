@@ -140,6 +140,7 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
@@ -812,6 +813,25 @@ fun LocalPlaylistScreen(
                     ) {
                         Icon(
                             painterResource(R.drawable.search),
+                            contentDescription = null
+                        )
+                    }
+                }
+                if (!inSelectMode) {
+                    IconButton(
+                        onClick = {
+                            menuState.show {
+                                PlaylistMenu(
+                                    playlist = playlist!!,
+                                    coroutineScope = coroutineScope,
+                                    onDismiss = menuState::dismiss,
+                                    showDeleteButton = false
+                                )
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.more_vert),
                             contentDescription = null
                         )
                     }

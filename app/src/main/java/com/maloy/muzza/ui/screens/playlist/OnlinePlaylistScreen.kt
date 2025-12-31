@@ -960,7 +960,7 @@ fun OnlinePlaylistScreen(
                             contentDescription = null
                         )
                     }
-                } else if (!isSearching) {
+                } else if (!isSearching && !isLoading) {
                     IconButton(
                         onClick = { isSearching = true }
                     ) {
@@ -970,7 +970,7 @@ fun OnlinePlaylistScreen(
                         )
                     }
                 }
-                if (!isSearching && !inSelectMode) {
+                if (!isSearching && !inSelectMode && !isLoading) {
                     IconButton(
                         onClick = {
                             menuState.show {

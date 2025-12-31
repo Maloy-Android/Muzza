@@ -99,7 +99,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEachIndexed
-import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -180,7 +179,6 @@ fun LocalPlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
-    val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         PlaylistSongSortTypeKey,
@@ -234,32 +232,53 @@ fun LocalPlaylistScreen(
         BackHandler(onBack = onExitSelectionMode)
     }
 
+    val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
+
     LaunchedEffect(songs) {
-        mutableSongs.apply {
-            clear()
-            addAll(songs)
-        }
-        selection.fastForEachReversed { mapId ->
-            if (songs.find { it.map.id == mapId } == null) {
-                selection.remove(mapId)
+        if (mutableSongs.map { it.map.id }.toSet() != songs.map { it.map.id }.toSet()) {
+            val oldPositions = mutableSongs.associateBy { it.map.id }
+            val newSongs = mutableListOf<PlaylistSong>()
+            songs.forEach { song ->
+                oldPositions[song.map.id]?.let { oldSong ->
+                    newSongs.add(oldSong)
+                } ?: run {
+                    newSongs.add(song)
+                }
             }
+
+            mutableSongs.clear()
+            mutableSongs.addAll(newSongs)
         }
     }
 
     val headerItems = 2
+    val itemsForDrag = remember(mutableSongs, isSearching, query.text) {
+        if (isSearching && query.text.isNotEmpty()) {
+            filteredSongs
+        } else {
+            mutableSongs
+        }
+    }
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
+
     val lazyListState = rememberLazyListState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             val currentDragInfo = dragInfo
-            dragInfo = if (currentDragInfo == null) {
-                (from.index - headerItems) to (to.index - headerItems)
-            } else {
-                currentDragInfo.first to (to.index - headerItems)
+            val fromIndex = from.index - headerItems
+            val toIndex = to.index - headerItems
+
+            if (currentDragInfo == null || currentDragInfo.first != fromIndex || currentDragInfo.second != toIndex) {
+                dragInfo = fromIndex to toIndex
+                mutableSongs.move(fromIndex, toIndex)
             }
-            mutableSongs.move(from.index - headerItems, to.index - headerItems)
         },
         lazyListState = lazyListState,
         scrollThresholdPadding = WindowInsets.systemBars.add(
@@ -269,49 +288,35 @@ fun LocalPlaylistScreen(
             )
         ).asPaddingValues()
     )
-    val lazyChecker by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
+
     dragInfo?.let { (from, to) ->
-        database.transaction {
-            move(viewModel.playlistId, from, to)
-        }
-        viewModel.viewModelScope.launch(Dispatchers.IO) {
-            val from = from
-            val to = to
-            val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
-            var fromIndex = from
-            val toIndex = to
-            var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
-            if (successorIndex >= playlistSongMap.size) {
-                playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                    playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
-                        viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                            YouTube.moveSongPlaylist(
-                                browseId,
-                                setVideoId,
-                                successorSetVideoId
-                            )
+        LaunchedEffect(dragInfo) {
+            if (from != to) {
+                database.transaction {
+                    move(viewModel.playlistId, from, to)
+                }
+
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
+
+                    if (from < playlistSongMap.size && to < playlistSongMap.size) {
+                        playlistSongMap[from].setVideoId?.let { setVideoId ->
+                            val successorIndex = if (from > to) to else to + 1
+                            if (successorIndex < playlistSongMap.size) {
+                                playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
+                                    viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                                        YouTube.moveSongPlaylist(
+                                            browseId,
+                                            setVideoId,
+                                            successorSetVideoId
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
-
-                successorIndex = fromIndex
-                fromIndex = toIndex
-            }
-
-            playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
-                playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
-                    viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                        YouTube.moveSongPlaylist(
-                            browseId,
-                            setVideoId,
-                            successorSetVideoId
-                        )
-                    }
-                }
+                dragInfo = null
             }
         }
     }
@@ -476,9 +481,11 @@ fun LocalPlaylistScreen(
             }
 
             itemsIndexed(
-                items = if (isSearching) filteredSongs else mutableSongs,
+                items = itemsForDrag,
                 key = { _, song -> song.map.id }
             ) { index, song ->
+                val draggable =
+                    !isSearching && sortType == PlaylistSongSortType.CUSTOM && !locked && !inSelectMode
                 if (index == 0) {
                     Row(
                         modifier = Modifier
@@ -500,6 +507,7 @@ fun LocalPlaylistScreen(
                 }
                 ReorderableItem(
                     state = reorderableState,
+                    enabled = draggable,
                     key = song.map.id
                 ) {
                     val currentItem by rememberUpdatedState(song)
@@ -640,7 +648,7 @@ fun LocalPlaylistScreen(
                         )
                     }
 
-                    if (locked || inSelectMode) {
+                    if (locked || inSelectMode || isSearching) {
                         content()
                     } else {
                         SwipeToDismissBox(
@@ -652,7 +660,10 @@ fun LocalPlaylistScreen(
                 }
             }
         }
-        if (filteredSongs.isNotEmpty() && playlist?.playlist?.browseId != null && isInternetAvailable(context) && !isSearching) {
+        if (filteredSongs.isNotEmpty() && playlist?.playlist?.browseId != null && isInternetAvailable(
+                context
+            ) && !isSearching
+        ) {
             Indicator(
                 isRefreshing = isRefreshing,
                 state = pullRefreshState,
@@ -1149,6 +1160,25 @@ fun LocalPlaylistHeader(
                         }
                     }
                 }
+                if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = {
+                            scope.launch(Dispatchers.IO) {
+                                syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
+                                snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
+                            }
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.sync),
+                            contentDescription = null
+                        )
+                    }
+                }
                 Button(
                     modifier = Modifier
                         .weight(1f)
@@ -1193,26 +1223,6 @@ fun LocalPlaylistHeader(
                         val liked = playlist.playlist.bookmarkedAt != null
                         Icon(
                             painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
-                            contentDescription = null
-                        )
-                    }
-                }
-
-                if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            scope.launch(Dispatchers.IO) {
-                                syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
-                                snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                            }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.sync),
                             contentDescription = null
                         )
                     }

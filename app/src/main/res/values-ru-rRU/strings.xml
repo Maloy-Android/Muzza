@@ -112,6 +112,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Любимые треки</string>
     <string name="downloaded_songs">Загруженная музыка</string>
+    <string name="songs_from_library">Музыка из библиотеки</string>
     <string name="my_top">Мой топ музыки</string>
     <string name="playlist_is_empty">Плейлист пуст</string>
     <string name="remove_download_playlist_confirm">Вы уверены, что хотите удалить все песни из плейлиста «%s» из хранилища загруженной музыки?</string>

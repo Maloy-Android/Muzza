@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -41,6 +42,7 @@ import androidx.compose.material.icons.rounded.Album
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.Favorite
+import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material.icons.rounded.MusicNote
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -498,6 +500,53 @@ fun LibraryMixScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     modifier = Modifier.padding(horizontal = 16.dp)
                 ) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Card(
+                            onClick = {
+                                Toast.makeText(context, "Developing", Toast.LENGTH_LONG).show()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(80.dp)
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(horizontal = 16.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Rounded.LibraryMusic,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.songs_from_library),
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                    Text(
+                                        text = pluralStringResource(
+                                            R.plurals.n_song,
+                                            0,
+                                            0
+                                        ),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
                     rows.forEach { rowItems ->
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),

@@ -38,9 +38,11 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -51,7 +53,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
@@ -66,8 +71,12 @@ import coil.compose.rememberAsyncImagePainter
 import com.maloy.muzza.BuildConfig
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
+import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.rememberPreference
 
 
 @Composable
@@ -183,6 +192,7 @@ fun AboutScreen(
     ) {
     val context = LocalContext.current
     val uriHandler = LocalUriHandler.current
+    val shimmerBrush = shimmerEffect()
     var showDonateCard by rememberSaveable {
         mutableStateOf(false)
     }
@@ -227,6 +237,7 @@ fun AboutScreen(
             Box(
                 modifier = Modifier
                     .matchParentSize()
+                    .background(shimmerBrush)
             )
         }
 

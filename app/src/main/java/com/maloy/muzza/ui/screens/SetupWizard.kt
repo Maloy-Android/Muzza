@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.screens
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -36,9 +37,11 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -47,7 +50,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -57,12 +62,14 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.FirstSetupPassed
+import com.maloy.muzza.ui.screens.settings.shimmerEffect
 import com.maloy.muzza.utils.rememberPreference
 
 @Composable
 fun SetupWizard(
     navController: NavController,
 ) {
+    val shimmerBrush = shimmerEffect()
     val layoutDirection = LocalLayoutDirection.current
 
     val (firstSetupPassed, onFirstSetupPassedChange) = rememberPreference(
@@ -205,6 +212,7 @@ fun SetupWizard(
                             Box(
                                 modifier = Modifier
                                     .matchParentSize()
+                                    .background(shimmerBrush)
                             )
                         }
                         Column(verticalArrangement = Arrangement.Center) {

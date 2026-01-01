@@ -138,7 +138,7 @@ fun LibraryMixScreen(
     val likedSongs by viewModel.likedSongs.collectAsState()
     val downloadSongs by viewModel.downloadSongs.collectAsState(initial = null)
     val topSongs by viewModel.topSongs.collectAsState(initial = null)
-    val localSongsCount by viewModel.localSongsCount.collectAsState()
+    val localSongs by viewModel.localSongs.collectAsState()
     val cachedSongs by viewModel.cachedSongs.collectAsState()
     val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
@@ -189,7 +189,7 @@ fun LibraryMixScreen(
             id = "local",
             name = stringResource(R.string.local)
         ),
-        songCount = localSongsCount,
+        songCount = localSongs?.size ?: 0,
         songThumbnails = emptyList()
     )
 
@@ -288,7 +288,6 @@ fun LibraryMixScreen(
                 syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
                 isScannerActive = false
                 isScanFinished = true
-                database.localSongsCount()
             }
         }
     }

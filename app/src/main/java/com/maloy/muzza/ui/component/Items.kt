@@ -32,7 +32,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -73,7 +72,6 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
-import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
@@ -99,8 +97,6 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
-import com.maloy.muzza.ui.menu.FolderMenu
-import com.maloy.muzza.utils.DirectoryTree
 import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
@@ -508,77 +504,6 @@ fun SongListItem(
         )
     }
 }
-
-@Composable
-fun SongFolderItem(
-    folderTitle: String,
-    modifier: Modifier = Modifier,
-
-    ) = ListItem(title = folderTitle, thumbnailContent = {
-    Icon(
-        Icons.Rounded.FolderCopy,
-        contentDescription = null,
-        modifier = modifier.size(48.dp)
-    )
-},
-    modifier = modifier
-)
-
-@Composable
-fun SongFolderItem(
-    folderTitle: String,
-    subtitle: String?,
-    modifier: Modifier = Modifier,
-) = ListItem(title = folderTitle,
-    subtitle = subtitle,
-    thumbnailContent = {
-        Icon(
-            Icons.Rounded.FolderCopy,
-            contentDescription = null,
-            modifier = modifier.size(48.dp)
-        )
-    },
-    modifier = modifier
-)
-
-@Composable
-fun SongFolderItem(
-    folder: DirectoryTree,
-    modifier: Modifier = Modifier,
-    folderTitle: String? = null,
-    menuState: MenuState,
-    navController: NavController,
-    subtitle: String,
-    trailingContent: @Composable RowScope.() -> Unit = {},
-) = ListItem(title = folderTitle ?: folder.currentDir,
-    subtitle = subtitle,
-    thumbnailContent = {
-        Icon(
-    Icons.Rounded.FolderCopy,
-    contentDescription = null,
-    modifier = modifier.size(48.dp)
-)
-},
-    trailingContent = {
-        androidx.compose.material3.IconButton(
-            onClick = {
-                menuState.show {
-                    FolderMenu(
-                        folder = folder,
-                        navController = navController,
-                        onDismiss = menuState::dismiss
-                    )
-                }
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.more_vert),
-                contentDescription = null
-            )
-        }
-    },
-    modifier = modifier
-)
 
 @Composable
 fun SongGridItem(

@@ -388,6 +388,10 @@ class LibraryMixViewModel @Inject constructor(
     val librarySongs = database.allSongs()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    val localSongs = database.allSongs()
+        .map { songs -> songs.filter { it.song.isLocal } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     val downloadSongs =
         downloadUtil.downloads.flatMapLatest { downloads ->
             database.allSongs()
@@ -399,6 +403,4 @@ class LibraryMixViewModel @Inject constructor(
                 }
         }
     val topSongs = database.mostPlayedSongs(0, 100)
-    val localSongsCount = database.localSongsCount()
-        .stateIn(viewModelScope, SharingStarted.Lazily, 0)
 }

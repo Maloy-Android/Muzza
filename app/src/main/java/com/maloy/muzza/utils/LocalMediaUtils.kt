@@ -49,7 +49,6 @@ class DirectoryTree(path: String) {
     var parent: String = ""
     var subdirs = ArrayList<DirectoryTree>()
     var files = ArrayList<Song>()
-    val uid = directoryUID
 
     init {
         directoryUID++
@@ -84,7 +83,7 @@ class DirectoryTree(path: String) {
             subdirs.add(tree)
 
         } else {
-            existingSubdir!!.insert(tmppath.substringAfter('/'), song)
+            existingSubdir.insert(tmppath.substringAfter('/'), song)
         }
     }
 
@@ -98,18 +97,12 @@ class DirectoryTree(path: String) {
         return songs
     }
 
-    fun toFlattenedTree(): DirectoryTree {
-        val result = DirectoryTree(sdcardRoot)
-        getSubdirsRecursive(this, result.subdirs)
-        return result
-    }
-
     private fun getSubdirsRecursive(it: DirectoryTree, result: ArrayList<DirectoryTree>) {
-        if (it.files.size > 0) {
+        if (it.files.isNotEmpty()) {
             result.add(DirectoryTree(it.currentDir, it.files))
         }
 
-        if (it.subdirs.size > 0) {
+        if (it.subdirs.isNotEmpty()) {
             it.subdirs.forEach { getSubdirsRecursive(it, result) }
         }
     }
@@ -124,48 +117,6 @@ class DirectoryTree(path: String) {
             this.files = files.toMutableList() as ArrayList<Song>
         }
     }
-}
-
-fun refreshLocal(context: Context, database: MusicDatabase) =
-    refreshLocal(context, database, testScanPaths)
-
-fun refreshLocal(
-    context: Context,
-    database: MusicDatabase,
-    scanPaths: ArrayList<String>
-): MutableStateFlow<DirectoryTree> {
-    val newDirectoryStructure = DirectoryTree(sdcardRoot)
-    var existingSongs: List<Song>
-    runBlocking(Dispatchers.IO) {
-        existingSongs = database.allLocalSongsData().first()
-    }
-    val contentResolver: ContentResolver = context.contentResolver
-    val cursor = contentResolver.query(
-        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-        projection,
-        "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND ${MediaStore.Audio.Media.DATA} LIKE ?",
-        scanPaths.map { "$sdcardRoot$it%" }.toTypedArray(),
-        null
-    )
-    cursor?.use { cursor ->
-        val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
-        val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH)
-
-        while (cursor.moveToNext()) {
-            val name = cursor.getString(nameColumn)
-            val path = cursor.getString(pathColumn)
-            val possibleMatch =
-                existingSongs.firstOrNull { it.song.localPath == "$sdcardRoot$path$name" }
-
-            if (possibleMatch != null) {
-                newDirectoryStructure.insert("$path$name", possibleMatch)
-            }
-
-        }
-    }
-
-    cachedDirectoryTree = newDirectoryStructure
-    return MutableStateFlow(newDirectoryStructure)
 }
 
 fun scanLocal(context: Context) =
@@ -297,7 +248,7 @@ fun youtubeSongLookup(query: String, songUrl: String?): List<MediaMetadata> {
             }
         }
         if (exactSong != null) {
-            ytmResult.add(exactSong!!.toMediaMetadata())
+            ytmResult.add(exactSong.toMediaMetadata())
             return@runBlocking
         }
         YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { result ->
@@ -364,9 +315,3 @@ object CachedBitmap {
 }
 
 var bitmapCache = ArrayList<CachedBitmap>()
-fun getDirectorytree(): DirectoryTree? {
-    if (cachedDirectoryTree == null) {
-        return null
-    }
-    return cachedDirectoryTree
-}

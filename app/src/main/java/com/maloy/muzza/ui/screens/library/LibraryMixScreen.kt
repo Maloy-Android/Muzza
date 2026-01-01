@@ -5,7 +5,6 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
-import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -143,6 +142,7 @@ fun LibraryMixScreen(
     val cachedSongs by viewModel.cachedSongs.collectAsState()
     val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
+    val librarySongs by viewModel.librarySongs.collectAsState(initial = null)
 
     val artists by viewModel.allArtists.collectAsState()
 
@@ -506,7 +506,7 @@ fun LibraryMixScreen(
                     ) {
                         Card(
                             onClick = {
-                                Toast.makeText(context, "Developing", Toast.LENGTH_LONG).show()
+                                navController.navigate("AutoPlaylistLibrary")
                             },
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -535,8 +535,8 @@ fun LibraryMixScreen(
                                     Text(
                                         text = pluralStringResource(
                                             R.plurals.n_song,
-                                            0,
-                                            0
+                                            librarySongs?.size ?: 0,
+                                            librarySongs?.size ?: 0
                                         ),
                                         style = MaterialTheme.typography.bodySmall
                                     )

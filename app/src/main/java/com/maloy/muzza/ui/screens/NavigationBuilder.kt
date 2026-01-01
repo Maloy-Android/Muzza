@@ -20,6 +20,7 @@ import com.maloy.muzza.ui.screens.library.LibraryAlbumsScreen
 import com.maloy.muzza.ui.screens.library.LibraryArtistsScreen
 import com.maloy.muzza.ui.screens.library.LibraryMixScreen
 import com.maloy.muzza.ui.screens.library.LibraryPlaylistsScreen
+import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLibraryScreen
 import com.maloy.muzza.ui.screens.playlist.LocalPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.OnlinePlaylistScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchResult
@@ -216,6 +217,9 @@ fun NavGraphBuilder.navigationBuilder(
         )
     ) {
         TopPlaylistScreen(navController, scrollBehavior)
+    }
+    composable ("AutoPlaylistLibrary") {
+        AutoPlaylistLibraryScreen(navController,scrollBehavior)
     }
     composable("CachedPlaylist") {
         CachePlaylistScreen(navController,scrollBehavior)

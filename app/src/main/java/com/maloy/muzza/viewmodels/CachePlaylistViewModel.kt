@@ -1,5 +1,6 @@
 package com.maloy.muzza.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.muzza.db.MusicDatabase
@@ -12,17 +13,57 @@ import javax.inject.Inject
 import com.maloy.muzza.di.PlayerCache
 import com.maloy.muzza.di.DownloadCache
 import androidx.media3.datasource.cache.SimpleCache
+import com.maloy.muzza.constants.SongSortDescendingKey
+import com.maloy.muzza.constants.SongSortType
+import com.maloy.muzza.constants.SongSortTypeKey
+import com.maloy.muzza.extensions.reversed
+import com.maloy.muzza.extensions.toEnum
+import com.maloy.muzza.utils.dataStore
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import java.time.LocalDateTime
 
 @HiltViewModel
 class CachePlaylistViewModel @Inject constructor(
     private val database: MusicDatabase,
     @PlayerCache private val playerCache: SimpleCache,
-    @DownloadCache private val downloadCache: SimpleCache
+    @DownloadCache private val downloadCache: SimpleCache,
+    @ApplicationContext context: Context
 ) : ViewModel() {
-
     private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
-    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val cachedSongs = context.dataStore.data
+        .map { preferences ->
+            Pair(
+                preferences[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
+                (preferences[SongSortDescendingKey] ?: true)
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (sortType, descending) ->
+            _cachedSongs
+                .map { songs ->
+                    when (sortType) {
+                        SongSortType.CREATE_DATE ->
+                            songs.sortedBy { it.song.isLocal }
+
+                        SongSortType.NAME ->
+                            songs.sortedBy { it.song.title }
+
+                        SongSortType.ARTIST ->
+                            songs.sortedBy { song ->
+                                song.artists.joinToString(separator = "") { it.name }
+                            }
+
+                        SongSortType.PLAY_TIME ->
+                            songs.sortedBy { it.song.totalPlayTime }
+                    }.reversed(descending)
+                }
+        }.stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.Lazily,
+            initialValue = emptyList()
+        )
 
     init {
         viewModelScope.launch {

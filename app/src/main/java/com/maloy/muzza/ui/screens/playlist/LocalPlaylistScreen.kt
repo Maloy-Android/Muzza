@@ -253,13 +253,6 @@ fun LocalPlaylistScreen(
     }
 
     val headerItems = 2
-    val itemsForDrag = remember(mutableSongs, isSearching, query.text) {
-        if (isSearching && query.text.isNotEmpty()) {
-            filteredSongs
-        } else {
-            mutableSongs
-        }
-    }
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
@@ -482,11 +475,9 @@ fun LocalPlaylistScreen(
             }
 
             itemsIndexed(
-                items = itemsForDrag,
+                items = filteredSongs,
                 key = { _, song -> song.map.id }
             ) { index, song ->
-                val draggable =
-                    !isSearching && sortType == PlaylistSongSortType.CUSTOM && !locked && !inSelectMode
                 if (index == 0) {
                     Row(
                         modifier = Modifier
@@ -508,7 +499,6 @@ fun LocalPlaylistScreen(
                 }
                 ReorderableItem(
                     state = reorderableState,
-                    enabled = draggable,
                     key = song.map.id
                 ) {
                     val currentItem by rememberUpdatedState(song)

@@ -40,20 +40,21 @@ class AutoPlaylistLibraryViewModel @Inject constructor(
             database.allSongs()
                 .flowOn(Dispatchers.IO)
                 .map { songs ->
+                    val librarySongs = songs.filter { it.song.inLibrary != null }
                     when (sortType) {
                         SongSortType.CREATE_DATE ->
-                            songs.sortedBy { it.song.inLibrary }
+                            librarySongs.sortedBy { it.song.isLocal }
 
                         SongSortType.NAME ->
-                            songs.sortedBy { it.song.title }
+                            librarySongs.sortedBy { it.song.title }
 
                         SongSortType.ARTIST ->
-                            songs.sortedBy { song ->
+                            librarySongs.sortedBy { song ->
                                 song.artists.joinToString(separator = "") { it.name }
                             }
 
                         SongSortType.PLAY_TIME ->
-                            songs.sortedBy { it.song.totalPlayTime }
+                            librarySongs.sortedBy { it.song.totalPlayTime }
                     }.reversed(descending)
                 }
         }.stateIn(

@@ -29,9 +29,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -71,7 +73,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat.requestPermissions
@@ -650,23 +651,17 @@ fun LibraryMixScreen(
                     }
 
                     item {
-                        LazyHorizontalGrid(
-                            rows = GridCells.Fixed(1),
-                            contentPadding = WindowInsets.systemBars
-                                .only(WindowInsetsSides.Horizontal)
-                                .asPaddingValues(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(160.dp)
+                        LazyRow(
+                            modifier = Modifier.animateItem()
                         ) {
                             items(
                                 items = allArtists.take(8),
                                 key = { it.id }
                             ) { artist ->
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                ArtistGridItem(
+                                    artist = artist,
                                     modifier = Modifier
-                                        .width(100.dp)
+                                        .fillMaxWidth()
                                         .combinedClickable(
                                             onClick = {
                                                 navController.navigate("artist/${artist.id}")
@@ -682,25 +677,8 @@ fun LibraryMixScreen(
                                                 }
                                             }
                                         )
-                                ) {
-                                    ArtistGridItem(
-                                        artist = artist,
-                                        modifier = Modifier.size(100.dp),
-                                        fillMaxWidth = true
-                                    )
-
-                                    Spacer(modifier = Modifier.height(8.dp))
-
-                                    Text(
-                                        text = artist.artist.name,
-                                        style = MaterialTheme.typography.bodySmall,
-                                        fontWeight = FontWeight.Medium,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                }
+                                        .animateItem()
+                                )
                             }
                         }
                     }

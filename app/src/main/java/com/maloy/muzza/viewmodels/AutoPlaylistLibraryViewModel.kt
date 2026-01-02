@@ -43,7 +43,7 @@ class AutoPlaylistLibraryViewModel @Inject constructor(
                     val librarySongs = songs.filter { it.song.inLibrary != null }
                     when (sortType) {
                         SongSortType.CREATE_DATE ->
-                            librarySongs.sortedBy { it.song.isLocal }
+                            librarySongs.sortedBy { it.song.inLibrary }
 
                         SongSortType.NAME ->
                             librarySongs.sortedBy { it.song.title }

@@ -99,6 +99,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -236,19 +237,14 @@ fun LocalPlaylistScreen(
     val mutableSongs = remember { mutableStateListOf<PlaylistSong>() }
 
     LaunchedEffect(songs) {
-        if (mutableSongs.map { it.map.id }.toSet() != songs.map { it.map.id }.toSet()) {
-            val oldPositions = mutableSongs.associateBy { it.map.id }
-            val newSongs = mutableListOf<PlaylistSong>()
-            songs.forEach { song ->
-                oldPositions[song.map.id]?.let { oldSong ->
-                    newSongs.add(oldSong)
-                } ?: run {
-                    newSongs.add(song)
-                }
+        mutableSongs.apply {
+            clear()
+            addAll(songs)
+        }
+        selection.fastForEachReversed { mapId ->
+            if (songs.find { it.map.id == mapId } == null) {
+                selection.remove(mapId)
             }
-
-            mutableSongs.clear()
-            mutableSongs.addAll(newSongs)
         }
     }
 
@@ -256,23 +252,16 @@ fun LocalPlaylistScreen(
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
-
     val lazyListState = rememberLazyListState()
-    val lazyChecker by remember {
-        derivedStateOf {
-            lazyListState.firstVisibleItemIndex > 0
-        }
-    }
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             val currentDragInfo = dragInfo
-            val fromIndex = from.index - headerItems
-            val toIndex = to.index - headerItems
-
-            if (currentDragInfo == null || currentDragInfo.first != fromIndex || currentDragInfo.second != toIndex) {
-                dragInfo = fromIndex to toIndex
-                mutableSongs.move(fromIndex, toIndex)
+            dragInfo = if (currentDragInfo == null) {
+                (from.index - headerItems) to (to.index - headerItems)
+            } else {
+                currentDragInfo.first to (to.index - headerItems)
             }
+            mutableSongs.move(from.index - headerItems, to.index - headerItems)
         },
         lazyListState = lazyListState,
         scrollThresholdPadding = WindowInsets.systemBars.add(
@@ -282,36 +271,51 @@ fun LocalPlaylistScreen(
             )
         ).asPaddingValues()
     )
-
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
     dragInfo?.let { (from, to) ->
-        LaunchedEffect(dragInfo) {
-            if (from != to) {
-                database.transaction {
-                    move(viewModel.playlistId, from, to)
-                }
-
-                viewModel.viewModelScope.launch(Dispatchers.IO) {
-                    val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
-
-                    if (from < playlistSongMap.size && to < playlistSongMap.size) {
-                        playlistSongMap[from].setVideoId?.let { setVideoId ->
-                            val successorIndex = if (from > to) to else to + 1
-                            if (successorIndex < playlistSongMap.size) {
-                                playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
-                                    viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
-                                        YouTube.moveSongPlaylist(
-                                            browseId,
-                                            setVideoId,
-                                            successorSetVideoId
-                                        )
-                                    }
-                                }
-                            }
+        database.transaction {
+            move(viewModel.playlistId, from, to)
+        }
+        viewModel.viewModelScope.launch(Dispatchers.IO) {
+            val from = from
+            val to = to
+            val playlistSongMap = database.songMapsToPlaylist(viewModel.playlistId, 0)
+            var fromIndex = from
+            val toIndex = to
+            var successorIndex = if (fromIndex > toIndex) toIndex else toIndex + 1
+            if (successorIndex >= playlistSongMap.size) {
+                playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                    playlistSongMap[toIndex].setVideoId?.let { successorSetVideoId ->
+                        viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                            YouTube.moveSongPlaylist(
+                                browseId,
+                                setVideoId,
+                                successorSetVideoId
+                            )
                         }
                     }
                 }
-                dragInfo = null
+
+                successorIndex = fromIndex
+                fromIndex = toIndex
             }
+
+            playlistSongMap[fromIndex].setVideoId?.let { setVideoId ->
+                playlistSongMap[successorIndex].setVideoId?.let { successorSetVideoId ->
+                    viewModel.playlist.first()?.playlist?.browseId?.let { browseId ->
+                        YouTube.moveSongPlaylist(
+                            browseId,
+                            setVideoId,
+                            successorSetVideoId
+                        )
+                    }
+                }
+            }
+            dragInfo = null
         }
     }
 
@@ -475,7 +479,7 @@ fun LocalPlaylistScreen(
             }
 
             itemsIndexed(
-                items = filteredSongs,
+                items = if (isSearching) filteredSongs else mutableSongs,
                 key = { _, song -> song.map.id }
             ) { index, song ->
                 if (index == 0) {

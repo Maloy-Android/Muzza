@@ -56,7 +56,7 @@ class OnlinePlaylistViewModel @Inject constructor(
             _playlistSongs.map { songs ->
                 when (sortType) {
                  SongSortType.CREATE_DATE ->
-                     songs.sortedBy { it.id }
+                     songs.sortedBy { !descending }
 
                  SongSortType.NAME ->
                      songs.sortedBy { it.title }

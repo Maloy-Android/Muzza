@@ -393,6 +393,8 @@ class LibraryMixViewModel @Inject constructor(
         .map { songs -> songs.filter { it.song.isLocal } }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    val librarySongsPlay = database.allSongs()
+
     val downloadSongs =
         downloadUtil.downloads.flatMapLatest { downloads ->
             database.allSongs()

@@ -99,6 +99,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ArtistGridItem
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.ArtistMenu
@@ -143,6 +144,7 @@ fun LibraryMixScreen(
     val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState(initial = null)
+    val librarySongsPlay by viewModel.librarySongsPlay.collectAsState(initial = null)
 
     val artists by viewModel.allArtists.collectAsState()
 
@@ -704,6 +706,22 @@ fun LibraryMixScreen(
                     }
                 }
             }
+        }
+        if (librarySongsPlay?.isEmpty() != true) {
+            HideOnScrollFAB(
+                lazyListState = lazyListState,
+                icon = R.drawable.library_music,
+                onClick = {
+                    librarySongsPlay?.let { songs ->
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = context.getString(R.string.filter_library),
+                                items = songs.take(100).shuffled().map { it.toMediaItem() }
+                            )
+                        )
+                    }
+                }
+            )
         }
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             Indicator(

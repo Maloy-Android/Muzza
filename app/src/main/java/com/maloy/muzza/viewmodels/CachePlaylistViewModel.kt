@@ -45,7 +45,7 @@ class CachePlaylistViewModel @Inject constructor(
                 .map { songs ->
                     when (sortType) {
                         SongSortType.CREATE_DATE ->
-                            songs.sortedBy { it.song.isLocal }
+                            songs.sortedBy { descending }
 
                         SongSortType.NAME ->
                             songs.sortedBy { it.song.title }
@@ -57,7 +57,7 @@ class CachePlaylistViewModel @Inject constructor(
 
                         SongSortType.PLAY_TIME ->
                             songs.sortedBy { it.song.totalPlayTime }
-                    }.reversed(descending)
+                    }.reversed(!descending)
                 }
         }.stateIn(
             scope = viewModelScope,

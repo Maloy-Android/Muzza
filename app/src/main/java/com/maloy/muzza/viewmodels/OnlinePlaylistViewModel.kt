@@ -56,7 +56,7 @@ class OnlinePlaylistViewModel @Inject constructor(
             _playlistSongs.map { songs ->
                 when (sortType) {
                  SongSortType.CREATE_DATE ->
-                     songs.sortedBy { !descending }
+                     songs.sortedBy { descending }
 
                  SongSortType.NAME ->
                      songs.sortedBy { it.title }
@@ -68,7 +68,7 @@ class OnlinePlaylistViewModel @Inject constructor(
 
                  SongSortType.PLAY_TIME ->
                      songs.sortedBy { it.duration }
-             }.reversed(descending)
+             }.reversed(!descending)
             }
         }
         .stateIn(

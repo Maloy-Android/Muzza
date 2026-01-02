@@ -551,11 +551,6 @@
     <string name="m3u_import_playlist_description">Bring your favorite playlists from other apps and services directly into Muzza.</string>
     <string name="m3u_import_playlist_failed">Failed to import</string>
 
-    <!--Folders-->
-    <string name="folders_settings_title">Folders</string>
-    <string name="flat_subfolders_title">Flatten subfolders</string>
-    <string name="flat_subfolders_description">Disable to preserve the file structure as on disk</string>
-
     <!-- Spotify import settings -->
     <string name="select_all">Select All</string>
     <string name="fetching_all_playlists">Fetching all playlists…</string>

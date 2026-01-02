@@ -573,9 +573,6 @@
     <string name="scanner_sensitivity_L1">Совпадение по названию</string>
     <string name="scanner_sensitivity_L2">Совпадение по названию и исполнителям</string>
     <string name="scanner_sensitivity_L3">Совпадение по названию, исполнителям и альбомам</string>
-    <string name="folders_settings_title">Папки</string>
-    <string name="flat_subfolders_title">Объединение подпапок</string>
-    <string name="flat_subfolders_description">Отключите, чтобы сохранить структуру файлов как на диске</string>
     <string name="sync_local_songs_toast">Локальные песни успешно синхронизированы</string>
 
     <string name="import_failed_songs">Не удалось импортировать</string>

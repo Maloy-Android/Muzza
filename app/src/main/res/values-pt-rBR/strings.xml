@@ -415,10 +415,7 @@
 <string name="import_success_songs">Importado com sucesso</string>
 <string name="m3u_import_playlist">Importar uma playlist (m3u)</string>
 <string name="m3u_import_playlist_failed">Falha na importação</string>
-<!--Folders-->
-<string name="folders_settings_title">Pastas</string>
-<string name="flat_subfolders_title">Comprimir subpastas</string>
-<string name="flat_subfolders_description">Desabilitar para preservar a estrutura do arquivo como no disco</string>
+
 <!--   Spotify import settings   -->
 <string name="select_all">Selecionar tudo</string>
 <string name="fetching_all_playlists">Buscando todas as playlists…</string>

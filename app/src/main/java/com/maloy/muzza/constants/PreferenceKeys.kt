@@ -276,7 +276,6 @@ val likedMusicTitleKey = stringPreferencesKey("likedMusicTitle")
 
 val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
 val AutoSyncLocalSongsKey = booleanPreferencesKey("autosynclocalsongs")
-val FlatSubfoldersKey = booleanPreferencesKey("flatSubfolders")
 
 /**
  * Specify how strict the metadata scanner should be

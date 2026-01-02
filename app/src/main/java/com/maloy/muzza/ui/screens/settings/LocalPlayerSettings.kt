@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.FolderCopy
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material3.DividerDefaults
@@ -26,7 +25,6 @@ import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AutoSyncLocalSongsKey
-import com.maloy.muzza.constants.FlatSubfoldersKey
 import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.constants.ScannerSensitivityKey
 import com.maloy.muzza.constants.ScannerStrictExtKey
@@ -55,11 +53,6 @@ fun LocalPlayerSettings(
     val (strictExtensions, onStrictExtensionsChange) = rememberPreference(
         ScannerStrictExtKey,
         defaultValue = false
-    )
-
-    val (flatSubfolders, onFlatSubfoldersChange) = rememberPreference(
-        FlatSubfoldersKey,
-        defaultValue = true
     )
 
     Column(
@@ -103,17 +96,6 @@ fun LocalPlayerSettings(
         VerticalDivider(
             thickness = DividerDefaults.Thickness,
             modifier = Modifier.padding(horizontal = 32.dp, vertical = 10.dp)
-        )
-
-        PreferenceGroupTitle(
-            title = stringResource(R.string.folders_settings_title)
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.flat_subfolders_title)) },
-            description = stringResource(R.string.flat_subfolders_description),
-            icon = { Icon(Icons.Rounded.FolderCopy, null) },
-            checked = flatSubfolders,
-            onCheckedChange = onFlatSubfoldersChange
         )
     }
     CenterAlignedTopAppBar(

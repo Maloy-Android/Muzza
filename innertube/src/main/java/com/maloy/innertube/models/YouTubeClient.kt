@@ -48,14 +48,14 @@ data class YouTubeClient(
 
         val WEB = YouTubeClient(
             clientName = "WEB",
-            clientVersion = "2.20250312.04.00",
+            clientVersion = "2.20251227.00.00",
             clientId = "1",
             userAgent = USER_AGENT_WEB,
         )
 
         val WEB_REMIX = YouTubeClient(
             clientName = "WEB_REMIX",
-            clientVersion = "1.20250310.01.00",
+            clientVersion = "1.20251227.01.00",
             clientId = "67",
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
@@ -64,12 +64,22 @@ data class YouTubeClient(
 
         val WEB_CREATOR = YouTubeClient(
             clientName = "WEB_CREATOR",
-            clientVersion = "1.20250312.03.01",
+            clientVersion = "1.20251227.00.00",
             clientId = "62",
             userAgent = USER_AGENT_WEB,
             loginSupported = true,
             loginRequired = true,
             useSignatureTimestamp = true,
+        )
+
+        val TVHTML5 = YouTubeClient(
+            clientName = "TVHTML5",
+            clientVersion = "7.20251227.00.00",
+            clientId = "7",
+            userAgent = "Mozilla/5.0(SMART-TV; Linux; Tizen 4.0.0.2) AppleWebkit/605.1.15 (KHTML, like Gecko) SamsungBrowser/9.2 TV Safari/605.1.15",
+            loginSupported = true,
+            loginRequired = true,
+            useSignatureTimestamp = true
         )
 
         val TVHTML5_SIMPLY_EMBEDDED_PLAYER = YouTubeClient(
@@ -85,17 +95,17 @@ data class YouTubeClient(
 
         val IOS = YouTubeClient(
             clientName = "IOS",
-            clientVersion = "20.10.4",
+            clientVersion = "20.51.39",
             clientId = "5",
-            userAgent = "com.google.ios.youtube/20.10.4 (iPhone16,2; U; CPU iOS 18_3_2 like Mac OS X;)",
-            osVersion = "18.3.2.22D82",
+            userAgent = "com.google.ios.youtube/20.51.39 (iPhone16,2; U; CPU iOS 18_2 like Mac OS X;)",
+            osVersion = "18.2.22C152",
         )
 
         val MOBILE = YouTubeClient(
             clientName = "ANDROID",
-            clientVersion = "18.13.37",
+            clientVersion = "20.51.39",
             clientId = "3",
-            userAgent = "com.google.android.youtube/18.13.37 (Linux; U; Android 13; Pixel 6)",
+            userAgent = "com.google.android.youtube/20.51.39 (Linux; U; Android 14) gzip",
             loginSupported = true,
             useSignatureTimestamp = true
         )

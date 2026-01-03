@@ -133,8 +133,14 @@ fun CachePlaylistScreen(
         inSelectMode = false
         selection.clear()
     }
+    val onExitSearchingMode = {
+        isSearching = false
+        searchQuery = TextFieldValue("")
+    }
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
+    } else if (isSearching) {
+        BackHandler(onBack = onExitSearchingMode)
     }
 
     val downloadUtil = LocalDownloadUtil.current

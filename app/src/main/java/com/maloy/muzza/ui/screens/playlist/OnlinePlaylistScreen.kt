@@ -211,12 +211,6 @@ fun OnlinePlaylistScreen(
             focusRequester.requestFocus()
         }
     }
-    if (isSearching) {
-        BackHandler {
-            isSearching = false
-            query = TextFieldValue()
-        }
-    }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.layoutInfo.visibleItemsInfo.lastOrNull()?.index }.debounce { 100L }
@@ -315,8 +309,14 @@ fun OnlinePlaylistScreen(
         inSelectMode = false
         selection.clear()
     }
+    val onExitSearchingMode = {
+        isSearching = false
+        query = TextFieldValue("")
+    }
     if (inSelectMode) {
         BackHandler(onBack = onExitSelectionMode)
+    } else if (isSearching) {
+        BackHandler(onBack = onExitSearchingMode)
     }
 
     BoxWithConstraints(

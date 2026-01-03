@@ -1214,7 +1214,7 @@ fun LocalPlaylistHeader(
                             .clip(RoundedCornerShape(12.dp)),
                         onClick = {
                             playerConnection.addToQueue(
-                                items = songs.map { it.song.toMediaItem() },
+                                items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id)  },
                             )
                         }
                     ) {
@@ -1251,7 +1251,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.map { it.song.toMediaItem() }
+                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id)  }
                         )
                     )
                 },
@@ -1272,7 +1272,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.song.toMediaItem() }
+                            items = songs.shuffled().map { it.song.toMediaItemWithPlaylist(playlist.id)  }
                         )
                     )
                 },

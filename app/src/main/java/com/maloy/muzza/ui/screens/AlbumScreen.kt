@@ -3,6 +3,7 @@
 package com.maloy.muzza.ui.screens
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -425,6 +426,28 @@ fun AlbumScreen(
                                 ) {
                                     Icon(
                                         painter = painterResource(R.drawable.queue_music),
+                                        contentDescription = null
+                                    )
+                                }
+                                Button(
+                                    onClick = {
+                                        val intent = Intent().apply {
+                                            action = Intent.ACTION_SEND
+                                            type = "text/plain"
+                                            putExtra(
+                                                Intent.EXTRA_TEXT,
+                                                "https://music.youtube.com/browse/${albumWithSongs?.album?.id}"
+                                            )
+                                        }
+                                        context.startActivity(Intent.createChooser(intent, null))
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(4.dp)
+                                        .clip(RoundedCornerShape(12.dp))
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.share),
                                         contentDescription = null
                                     )
                                 }

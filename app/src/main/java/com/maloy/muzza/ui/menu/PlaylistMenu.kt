@@ -533,7 +533,7 @@ fun PlaylistMenu(
                 showDeletePlaylistDialog = true
             }
         }
-        if (playlist.playlist.browseId != null && !isInternetAvailable(context) || songs.isNotEmpty()) {
+        if (playlist.playlist.browseId != null && !isInternetAvailable(context) && songs.isNotEmpty()) {
             item {
                 HorizontalDivider()
             }

@@ -894,7 +894,7 @@ fun PlaylistGridItem(
         if (playlist.playlist.isLocal) {
             Icon.PlaylistLocal()
         }
-        if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
+        if (showLikedIcon && playlist.playlist.bookmarkedAt != null && !playlist.playlist.isLocal) {
             Icon.Favorite()
         }
         val downloadUtil = LocalDownloadUtil.current

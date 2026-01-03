@@ -61,7 +61,7 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -379,7 +379,7 @@ fun PlaylistMenu(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.playlist.name,
-                                items = songs.map { it.toMediaItem() }
+                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
                             ))
                     }
                     .padding(12.dp),
@@ -412,7 +412,7 @@ fun PlaylistMenu(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.playlist.name,
-                                items = songs.shuffled().map { it.toMediaItem() }
+                                items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id) }
                             ))
                     }
                     .padding(12.dp),
@@ -443,7 +443,7 @@ fun PlaylistMenu(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         onDismiss()
-                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                        playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

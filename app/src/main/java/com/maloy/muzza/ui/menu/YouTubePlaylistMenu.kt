@@ -14,20 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Delete
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,7 +45,6 @@ import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
-import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
@@ -99,39 +94,6 @@ fun YouTubePlaylistMenu(
         },
         onDismiss = { showChoosePlaylistDialog = false },
     )
-
-    var showDeletePlaylistDialog by remember {
-        mutableStateOf(false)
-    }
-    if (showDeletePlaylistDialog) {
-        DefaultDialog(
-            onDismiss = { showDeletePlaylistDialog = false },
-            icon = { Icon(Icons.Rounded.Delete, null) },
-            content = {
-                Text(
-                    text = stringResource(R.string.delete_playlist_confirm, playlist.title),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            }, buttons = {
-                TextButton(
-                    onClick = {
-                        showDeletePlaylistDialog = false
-                    }) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-                TextButton(
-                    onClick = {
-                        showDeletePlaylistDialog = false
-                        onDismiss()
-                        database.transaction {
-                            deletePlaylistById(playlist.id)
-                        }
-                    }) {
-                    Text(text = stringResource(android.R.string.ok))
-                }
-            })
-    }
 
     YouTubeListItem(
         item = playlist, showLikedIcon = false, trailingContent = {

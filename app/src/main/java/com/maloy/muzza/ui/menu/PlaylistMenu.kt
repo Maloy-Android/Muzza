@@ -168,6 +168,7 @@ fun PlaylistMenu(
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
     }
+
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
     LaunchedEffect(playlist) {
@@ -179,23 +180,28 @@ fun PlaylistMenu(
     ) { uri: Uri? ->
         uri?.let { selectedUri ->
             val savedUri = saveImageToPrivateStorage(selectedUri)
-                customThumbnailUri = savedUri
+            customThumbnailUri = savedUri
         }
     }
+
     fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
         val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
         return file.exists() && file.delete()
     }
+
     var showClearPlaylistThumbnailDialog by remember {
         mutableStateOf(false)
     }
     if (showClearPlaylistThumbnailDialog) {
         DefaultDialog(
             onDismiss = { showClearPlaylistThumbnailDialog = false },
-            icon = { Icon(Icons.Rounded.HideImage,null)},
+            icon = { Icon(Icons.Rounded.HideImage, null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_custom_playlist_thumbnail_confirm, playlist.title),
+                    text = stringResource(
+                        R.string.remove_custom_playlist_thumbnail_confirm,
+                        playlist.title
+                    ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -226,7 +232,7 @@ fun PlaylistMenu(
     if (showRemoveDownloadDialog) {
         DefaultDialog(
             onDismiss = { showRemoveDownloadDialog = false },
-            icon = { Icon(Icons.Rounded.CloudOff,null) },
+            icon = { Icon(Icons.Rounded.CloudOff, null) },
             content = {
                 Text(
                     text = stringResource(
@@ -272,7 +278,7 @@ fun PlaylistMenu(
     if (showDeletePlaylistDialog) {
         DefaultDialog(
             onDismiss = { showDeletePlaylistDialog = false },
-            icon = { Icon(Icons.Rounded.Delete,null) },
+            icon = { Icon(Icons.Rounded.Delete, null) },
             content = {
                 Text(
                     text = stringResource(R.string.delete_playlist_confirm, playlist.playlist.name),
@@ -353,107 +359,109 @@ fun PlaylistMenu(
         }
     )
     HorizontalDivider()
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
-        horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
-    ) {
-        Column(
+    if (songs.isNotEmpty()) {
+        Row(
             modifier = Modifier
-                .weight(1f)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .clip(RoundedCornerShape(8.dp))
-                .clickable {
-                    onDismiss()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist.playlist.name,
-                            items = songs.map { it.toMediaItem() }
-                        ))
-                }
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
+                .fillMaxWidth()
+                .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
+            horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         ) {
-            Icon(
-                painter = painterResource(R.drawable.play),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(
-                text = stringResource(R.string.play),
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            Column(
                 modifier = Modifier
-                    .basicMarquee()
-                    .padding(top = 4.dp),
-            )
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist.playlist.name,
+                                items = songs.map { it.toMediaItem() }
+                            ))
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.play),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
                 )
-                .clip(RoundedCornerShape(8.dp))
-                .clickable {
-                    onDismiss()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.toMediaItem() }
-                        ))
-                }
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.shuffle),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(
-                text = stringResource(R.string.shuffle),
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                Text(
+                    text = stringResource(R.string.play),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
+            Column(
                 modifier = Modifier
-                    .basicMarquee()
-                    .padding(top = 4.dp),
-            )
-        }
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist.playlist.name,
+                                items = songs.shuffled().map { it.toMediaItem() }
+                            ))
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.shuffle),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.shuffle),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
 
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .clip(RoundedCornerShape(8.dp))
-                .clickable {
-                    onDismiss()
-                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                }
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.queue_music),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(
-                text = stringResource(R.string.add_to_queue),
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            Column(
                 modifier = Modifier
-                    .basicMarquee()
-                    .padding(top = 4.dp),
-            )
+                    .weight(1f)
+                    .background(
+                        color = MaterialTheme.colorScheme.surfaceVariant,
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable {
+                        onDismiss()
+                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                    }
+                    .padding(12.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Icon(
+                    painter = painterResource(R.drawable.queue_music),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp),
+                )
+                Text(
+                    text = stringResource(R.string.add_to_queue),
+                    style = MaterialTheme.typography.labelMedium,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier
+                        .basicMarquee()
+                        .padding(top = 4.dp),
+                )
+            }
         }
     }
 
@@ -489,29 +497,31 @@ fun PlaylistMenu(
                 showClearPlaylistThumbnailDialog = true
             }
         }
-        item {
-            HorizontalDivider()
-        }
-        DownloadListMenu(
-            state = downloadState,
-            onDownload = {
-                songs.forEach { song ->
-                    val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
-                        .setCustomCacheKey(song.id)
-                        .setData(song.song.title.toByteArray())
-                        .build()
-                    DownloadService.sendAddDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false
-                    )
-                }
-            },
-            onRemoveDownload = {
-                showRemoveDownloadDialog = true
+        if (songs.isNotEmpty()) {
+            item {
+                HorizontalDivider()
             }
-        )
+            DownloadListMenu(
+                state = downloadState,
+                onDownload = {
+                    songs.forEach { song ->
+                        val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                            .setCustomCacheKey(song.id)
+                            .setData(song.song.title.toByteArray())
+                            .build()
+                        DownloadService.sendAddDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
+                        )
+                    }
+                },
+                onRemoveDownload = {
+                    showRemoveDownloadDialog = true
+                }
+            )
+        }
         if (showDeleteButton) {
             item {
                 HorizontalDivider()
@@ -523,10 +533,10 @@ fun PlaylistMenu(
                 showDeletePlaylistDialog = true
             }
         }
-        item {
-            HorizontalDivider()
-        }
-        if (playlist.playlist.browseId != null && !isInternetAvailable(context)) {
+        if (playlist.playlist.browseId != null && !isInternetAvailable(context) || songs.isNotEmpty()) {
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = R.drawable.sync,
                 title = R.string.sync
@@ -534,7 +544,7 @@ fun PlaylistMenu(
                 onDismiss()
                 coroutineScope.launch(Dispatchers.IO) {
                     val playlistPage =
-                        YouTube.playlist(playlist.playlist.browseId).completed().getOrNull()
+                        YouTube.playlist(playlist.playlist.browseId!!).completed().getOrNull()
                             ?: return@launch
                     database.transaction {
                         clearPlaylist(playlist.id)
@@ -552,15 +562,17 @@ fun PlaylistMenu(
                     }
                 }
             }
-            item {
-                HorizontalDivider()
+            if (songs.isNotEmpty()) {
+                item {
+                    HorizontalDivider()
+                }
+                ListMenuItem(
+                    icon = R.drawable.backup,
+                    title = R.string.playlist_m3u_export
+                ) {
+                    m3uLauncher.launch("$playlistName.m3u")
+                }
             }
-        }
-        ListMenuItem(
-            icon = R.drawable.backup,
-            title = R.string.playlist_m3u_export
-        ) {
-            m3uLauncher.launch("$playlistName.m3u")
         }
     }
 }

@@ -56,9 +56,10 @@ import com.maloy.muzza.ui.component.YouTubeListItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.maloy.muzza.playback.queues.ListQueue
+import kotlinx.coroutines.withContext
 
 @Composable
 fun YouTubePlaylistMenu(
@@ -82,10 +83,10 @@ fun YouTubePlaylistMenu(
         isVisible = showChoosePlaylistDialog,
         onGetSong = { targetPlaylist ->
             val allSongs = songs.ifEmpty {
-                    YouTube.playlist(targetPlaylist.id).completed().getOrNull()?.songs.orEmpty()
-                }.map {
-                    it.toMediaMetadata()
-                }
+                YouTube.playlist(targetPlaylist.id).completed().getOrNull()?.songs.orEmpty()
+            }.map {
+                it.toMediaMetadata()
+            }
             database.transaction {
                 allSongs.forEach(::insert)
             }
@@ -105,31 +106,31 @@ fun YouTubePlaylistMenu(
     if (showDeletePlaylistDialog) {
         DefaultDialog(
             onDismiss = { showDeletePlaylistDialog = false },
-            icon = { Icon(Icons.Rounded.Delete,null) },
+            icon = { Icon(Icons.Rounded.Delete, null) },
             content = {
-            Text(
-                text = stringResource(R.string.delete_playlist_confirm, playlist.title),
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(horizontal = 18.dp)
-            )
-        }, buttons = {
-            TextButton(
-                onClick = {
-                    showDeletePlaylistDialog = false
-                }) {
-                Text(text = stringResource(android.R.string.cancel))
-            }
-            TextButton(
-                onClick = {
-                    showDeletePlaylistDialog = false
-                    onDismiss()
-                    database.transaction {
-                        deletePlaylistById(playlist.id)
-                    }
-                }) {
-                Text(text = stringResource(android.R.string.ok))
-            }
-        })
+                Text(
+                    text = stringResource(R.string.delete_playlist_confirm, playlist.title),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            }, buttons = {
+                TextButton(
+                    onClick = {
+                        showDeletePlaylistDialog = false
+                    }) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+                TextButton(
+                    onClick = {
+                        showDeletePlaylistDialog = false
+                        onDismiss()
+                        database.transaction {
+                            deletePlaylistById(playlist.id)
+                        }
+                    }) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            })
     }
 
     YouTubeListItem(
@@ -221,39 +222,7 @@ fun YouTubePlaylistMenu(
                 )
             }
         }
-        if (!playlist.id.startsWith("RDAT")) {
-            playlist.playEndpoint?.let {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            playerConnection.playQueue(YouTubeQueue(it))
-                            onDismiss()
-                        }
-                        .padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.play),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.play),
-                        style = MaterialTheme.typography.labelMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier
-                            .basicMarquee()
-                            .padding(top = 4.dp),
-                    )
-                }
-            }
-        } else {
+        playlist.playEndpoint?.let {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -270,7 +239,12 @@ fun YouTubePlaylistMenu(
                                         .getOrNull()?.songs.orEmpty()
                                 }
                             }.let { songs ->
-                                playerConnection.playNext(songs.map { it.toMediaItem() })
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = playlist.title,
+                                        items = songs.map { it.toMediaItem() }
+                                    )
+                                )
                             }
                         }
                         onDismiss()
@@ -279,90 +253,18 @@ fun YouTubePlaylistMenu(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.playlist_play),
+                    painter = painterResource(R.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play_next),
+                    text = stringResource(R.string.play),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
                         .basicMarquee()
                         .padding(top = 4.dp),
                 )
-            }
-        }
-        if (playlist.id.startsWith("RDAT")) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        coroutineScope.launch {
-                            songs.ifEmpty {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
-                                }
-                            }.let { songs ->
-                                playerConnection.addToQueue(songs.map { it.toMediaItem() })
-                            }
-                        }
-                        onDismiss()
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.queue_music),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.add_to_queue),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
-            }
-        }
-        if (playlist.id.startsWith("RDTMAK5uy")) {
-            playlist.playEndpoint?.let {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .background(
-                            color = MaterialTheme.colorScheme.surfaceVariant,
-                            shape = RoundedCornerShape(8.dp)
-                        )
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable {
-                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
-                            onDismiss()
-                        }
-                        .padding(12.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.shuffle),
-                        contentDescription = null,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Text(
-                        text = stringResource(R.string.shuffle),
-                        style = MaterialTheme.typography.labelMedium,
-                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                        modifier = Modifier
-                            .basicMarquee()
-                            .padding(top = 4.dp),
-                    )
-                }
             }
         }
         if (playlist.id != "LM") {
@@ -441,30 +343,18 @@ fun YouTubePlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (playlist.id != "LM" && !playlist.id.startsWith("RDAT") && !playlist.id.startsWith("RDTMAK5uy")) {
-            playlist.shuffleEndpoint.let {
-                ListMenuItem(
-                    icon = R.drawable.shuffle, title = R.string.shuffle
-                ) {
-                    playerConnection.playQueue(YouTubeQueue(it))
-                    onDismiss()
-                }
-            }
-            item {
-                HorizontalDivider()
-            }
-        }
-        if (!playlist.id.startsWith("RDAT")) {
+        if (playlist.id != "LM") {
             ListMenuItem(
-                icon = R.drawable.playlist_play, title = R.string.play_next
+                icon = R.drawable.shuffle, title = R.string.shuffle
             ) {
                 coroutineScope.launch {
                     songs.ifEmpty {
                         withContext(Dispatchers.IO) {
-                            YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
+                            YouTube.playlist(playlist.id).completed()
+                                .getOrNull()?.songs.orEmpty()
                         }
                     }.let { songs ->
-                        playerConnection.playNext(songs.map { it.toMediaItem() })
+                        playerConnection.addToQueue(songs.shuffled().map { it.toMediaItem() })
                     }
                 }
                 onDismiss()
@@ -473,24 +363,41 @@ fun YouTubePlaylistMenu(
                 HorizontalDivider()
             }
         }
-        if (!playlist.id.startsWith("RDAT")) {
-            ListMenuItem(
-                icon = R.drawable.queue_music, title = R.string.add_to_queue
-            ) {
-                coroutineScope.launch {
-                    songs.ifEmpty {
-                        withContext(Dispatchers.IO) {
-                            YouTube.playlist(playlist.id).completed().getOrNull()?.songs.orEmpty()
-                        }
-                    }.let { songs ->
-                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+        ListMenuItem(
+            icon = R.drawable.playlist_play, title = R.string.play_next
+        ) {
+            coroutineScope.launch {
+                songs.ifEmpty {
+                    withContext(Dispatchers.IO) {
+                        YouTube.playlist(playlist.id).completed()
+                            .getOrNull()?.songs.orEmpty()
                     }
+                }.let { songs ->
+                    playerConnection.playNext(songs.map { it.toMediaItem() })
                 }
-                onDismiss()
             }
-            item {
-                HorizontalDivider()
+            onDismiss()
+        }
+        item {
+            HorizontalDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.queue_music, title = R.string.add_to_queue
+        ) {
+            coroutineScope.launch {
+                songs.ifEmpty {
+                    withContext(Dispatchers.IO) {
+                        YouTube.playlist(playlist.id).completed()
+                            .getOrNull()?.songs.orEmpty()
+                    }
+                }.let { songs ->
+                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                }
             }
+            onDismiss()
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.playlist_add, title = R.string.add_to_playlist

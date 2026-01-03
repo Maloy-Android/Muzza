@@ -100,7 +100,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.models.SongItem
-import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
@@ -122,6 +121,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
@@ -663,11 +663,9 @@ fun OnlinePlaylistScreen(
                                     Button(
                                         onClick = {
                                             playerConnection.playQueue(
-                                                YouTubeQueue(
-                                                    songs.first().endpoint ?: WatchEndpoint(
-                                                        videoId = songs.first().id
-                                                    ),
-                                                    songs.first().toMediaMetadata()
+                                                ListQueue(
+                                                    title = playlist.title,
+                                                    items = songs.map { it.toMediaItem() }
                                                 )
                                             )
                                         },
@@ -684,7 +682,12 @@ fun OnlinePlaylistScreen(
                                     }
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(YouTubeQueue(playlist.shuffleEndpoint))
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = playlist.title,
+                                                    items = songs.shuffled().map { it.toMediaItem() }
+                                                )
+                                            )
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
@@ -800,10 +803,10 @@ fun OnlinePlaylistScreen(
                                                 playerConnection.player.togglePlayPause()
                                             } else {
                                                 playerConnection.playQueue(
-                                                    YouTubeQueue(
-                                                        song.endpoint
-                                                            ?: WatchEndpoint(videoId = song.id),
-                                                        song.toMediaMetadata()
+                                                    ListQueue(
+                                                        title = playlist.title,
+                                                        items = songs.map { it.toMediaItem() },
+                                                        startIndex = songs.indexOf(song)
                                                     )
                                                 )
                                             }

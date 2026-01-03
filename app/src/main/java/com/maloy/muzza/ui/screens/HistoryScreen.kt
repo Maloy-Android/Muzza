@@ -235,8 +235,8 @@ fun HistoryScreen(
                     )
                 }
             }
-            if (historySource == HistorySource.REMOTE && filteredRemoteContent.isNullOrEmpty() ||
-                historySource == HistorySource.LOCAL && filteredEventsMap.isEmpty()
+            if (historySource == HistorySource.REMOTE && filteredRemoteContent.isNullOrEmpty() && !isSearching ||
+                historySource == HistorySource.LOCAL && filteredEventsMap.isEmpty() && !isSearching
             ) {
                 item {
                     EmptyPlaceholder(

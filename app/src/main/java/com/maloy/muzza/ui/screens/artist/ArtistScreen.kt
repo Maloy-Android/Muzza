@@ -528,6 +528,7 @@ fun ArtistScreen(
                                         isActive = when (item) {
                                             is SongItem -> mediaMetadata?.id == item.id
                                             is AlbumItem -> mediaMetadata?.album?.id == item.id
+                                            is PlaylistItem -> mediaMetadata?.playlist?.id == item.id
                                             else -> false
                                         },
                                         test = when (item) {

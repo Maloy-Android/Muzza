@@ -117,7 +117,7 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -597,7 +597,7 @@ fun OnlinePlaylistScreen(
                                         } else {
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier
@@ -614,7 +614,7 @@ fun OnlinePlaylistScreen(
                                         if (playlist.id == "LM") {
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                                                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier
@@ -666,7 +666,7 @@ fun OnlinePlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist.title,
-                                                    items = songs.map { it.toMediaItem() }
+                                                    items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
                                                 )
                                             )
                                         },
@@ -686,7 +686,7 @@ fun OnlinePlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist.title,
-                                                    items = songs.shuffled().map { it.toMediaItem() }
+                                                    items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  }
                                                 )
                                             )
                                         },
@@ -806,7 +806,7 @@ fun OnlinePlaylistScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = playlist.title,
-                                                        items = songs.map { it.toMediaItem() },
+                                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  },
                                                         startIndex = songs.indexOf(song)
                                                     )
                                                 )

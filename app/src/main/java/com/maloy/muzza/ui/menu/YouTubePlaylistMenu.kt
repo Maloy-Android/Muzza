@@ -42,7 +42,6 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ListMenu
@@ -53,6 +52,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.queues.ListQueue
 import kotlinx.coroutines.withContext
 
@@ -205,7 +205,7 @@ fun YouTubePlaylistMenu(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = playlist.title,
-                                        items = songs.map { it.toMediaItem() }
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
                                     )
                                 )
                             }
@@ -250,7 +250,7 @@ fun YouTubePlaylistMenu(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = playlist.title,
-                                        items = songs.map { it.toMediaItem() }
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
                                     )
                                 )
                             }
@@ -292,7 +292,7 @@ fun YouTubePlaylistMenu(
                                 }
                             }.let { songs ->
                                 playerConnection.addToQueue(
-                                    songs.shuffled().map { it.toMediaItem() })
+                                    songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
                             }
                         }
                         onDismiss()
@@ -368,7 +368,7 @@ fun YouTubePlaylistMenu(
                                 }
                             }.let { songs ->
                                 playerConnection.addToQueue(
-                                    songs.shuffled().map { it.toMediaItem() })
+                                    songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
                             }
                         }
                         onDismiss()
@@ -412,7 +412,7 @@ fun YouTubePlaylistMenu(
                                 .getOrNull()?.songs.orEmpty()
                         }
                     }.let { songs ->
-                        playerConnection.addToQueue(songs.shuffled().map { it.toMediaItem() })
+                        playerConnection.addToQueue(songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
                     }
                 }
                 onDismiss()
@@ -431,7 +431,7 @@ fun YouTubePlaylistMenu(
                             .getOrNull()?.songs.orEmpty()
                     }
                 }.let { songs ->
-                    playerConnection.playNext(songs.map { it.toMediaItem() })
+                    playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
                 }
             }
             onDismiss()
@@ -449,7 +449,7 @@ fun YouTubePlaylistMenu(
                             .getOrNull()?.songs.orEmpty()
                     }
                 }.let { songs ->
-                    playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
                 }
             }
             onDismiss()
@@ -615,7 +615,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.title,
-                                items = songs.map { it.toMediaItem() }
+                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
                             )
                         )
                         onDismiss()
@@ -651,7 +651,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.title,
-                                items = songs.map { it.toMediaItem() }
+                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
                             )
                         )
                         onDismiss()
@@ -684,7 +684,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         playerConnection.addToQueue(
-                            songs.shuffled().map { it.toMediaItem() })
+                            songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
 
                         onDismiss()
                     }
@@ -751,7 +751,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.addToQueue(songs.shuffled().map { it.toMediaItem() })
+                        playerConnection.addToQueue(songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -786,7 +786,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
             ListMenuItem(
                 icon = R.drawable.shuffle, title = R.string.shuffle
             ) {
-                playerConnection.addToQueue(songs.shuffled().map { it.toMediaItem() })
+                playerConnection.addToQueue(songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
                 onDismiss()
             }
             item {
@@ -796,7 +796,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
         ListMenuItem(
             icon = R.drawable.playlist_play, title = R.string.play_next
         ) {
-            playerConnection.playNext(songs.map { it.toMediaItem() })
+            playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
             onDismiss()
         }
         item {
@@ -805,7 +805,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
         ListMenuItem(
             icon = R.drawable.queue_music, title = R.string.add_to_queue
         ) {
-            playerConnection.addToQueue(songs.map { it.toMediaItem() })
+            playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
             onDismiss()
         }
         item {

@@ -33,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.ui.component.IconButton
@@ -55,6 +56,10 @@ fun YouTubePlaylistsScreen(
 ) {
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
+
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -87,6 +92,8 @@ fun YouTubePlaylistsScreen(
                 YouTubeGridItem(
                     item = item,
                     fillMaxWidth = true,
+                    isActive = mediaMetadata?.playlist?.id == item.id,
+                    isPlaying = isPlaying,
                     modifier = Modifier
                         .combinedClickable(
                             onClick = {

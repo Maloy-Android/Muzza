@@ -47,6 +47,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -253,6 +254,7 @@ fun GridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     modifier = modifier,
+    badges = badges,
     title = {
         Text(
             text = title,
@@ -788,7 +790,41 @@ fun PlaylistListItem(
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
     trailingContent: @Composable (RowScope.() -> Unit) = {},
-    showLikedIcon: Boolean = true
+    showLikedIcon: Boolean = true,
+    badges: @Composable RowScope.() -> Unit = {
+        if (playlist.playlist.isLocal) {
+            Icon.PlaylistLocal()
+        }
+        if (showLikedIcon && playlist.playlist.bookmarkedAt != null && !playlist.playlist.isLocal) {
+            Icon.Favorite()
+        }
+        val downloadUtil = LocalDownloadUtil.current
+        val database = LocalDatabase.current
+
+        val songs by produceState(initialValue = emptyList(), playlist.id) {
+            withContext(Dispatchers.IO) {
+                value = database.playlistSongs(playlist.id).first().map { it.song }
+            }
+        }
+
+        val allDownloads by downloadUtil.downloads.collectAsState()
+
+        val downloadState by remember(songs, allDownloads) {
+            mutableIntStateOf(
+                if (songs.isEmpty()) {
+                    Download.STATE_STOPPED
+                } else {
+                    when {
+                        songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
+                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
+                        else -> Download.STATE_STOPPED
+                    }
+                }
+            )
+        }
+
+        Icon.Download(downloadState)
+    }
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -806,6 +842,7 @@ fun PlaylistListItem(
 
     ListItem(
         title = playlist.playlist.name,
+        badges = badges,
         subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
         thumbnailContent = {
             Box(
@@ -841,14 +878,6 @@ fun PlaylistListItem(
                 }
             }
         },
-        badges = {
-            if (playlist.playlist.isLocal) {
-                Icon.PlaylistLocal()
-            }
-            if (showLikedIcon && playlist.playlist.bookmarkedAt != null && !playlist.playlist.isLocal) {
-                Icon.Favorite()
-            }
-        },
         trailingContent = trailingContent,
         modifier = modifier,
         isTwoLineLabel = twoLineLabel
@@ -868,6 +897,31 @@ fun PlaylistGridItem(
         if (showLikedIcon && playlist.playlist.bookmarkedAt != null) {
             Icon.Favorite()
         }
+        val downloadUtil = LocalDownloadUtil.current
+        val database = LocalDatabase.current
+
+        val songs by produceState(initialValue = emptyList(), playlist.id) {
+            withContext(Dispatchers.IO) {
+                value = database.playlistSongs(playlist.id).first().map { it.song }
+            }
+        }
+
+        val allDownloads by downloadUtil.downloads.collectAsState()
+
+        val downloadState by remember(songs, allDownloads) {
+            mutableIntStateOf(
+                if (songs.isEmpty()) {
+                    Download.STATE_STOPPED
+                } else {
+                    when {
+                        songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
+                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
+                        else -> Download.STATE_STOPPED
+                    }
+                }
+            )
+        }
+        Icon.Download(downloadState)
     }
 ) {
     val context = LocalContext.current

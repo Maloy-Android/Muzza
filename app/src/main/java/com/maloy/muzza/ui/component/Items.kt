@@ -150,8 +150,8 @@ inline fun ListItem(
                 text = title,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold,
-                lineHeight = if(isTwoLineLabel) 17.sp else TextUnit.Unspecified,
-                maxLines = if(isTwoLineLabel) 2 else 1,
+                lineHeight = if (isTwoLineLabel) 17.sp else TextUnit.Unspecified,
+                maxLines = if (isTwoLineLabel) 2 else 1,
                 overflow = TextOverflow.Ellipsis
             )
 
@@ -465,27 +465,27 @@ fun SongListItem(
             badges = badges,
             thumbnailContent = {
                 if (song.song.isLocal) {
-                        song.song.let {
-                            AsyncLocalImage(
-                                image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                                contentDescription = null,
-                                contentScale = contentScale,
-                                modifier = Modifier
-                                    .size(ListThumbnailSize)
-                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                            )
-                            PlayingIndicatorBox(
-                                isActive = isActive,
-                                playWhenReady = isPlaying,
-                                color = Color.White,
-                                modifier = Modifier
-                                    .size(ListThumbnailSize)
-                                    .background(
-                                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                    )
-                            )
-                        }
+                    song.song.let {
+                        AsyncLocalImage(
+                            image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                            contentDescription = null,
+                            contentScale = contentScale,
+                            modifier = Modifier
+                                .size(ListThumbnailSize)
+                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                        )
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier
+                                .size(ListThumbnailSize)
+                                .background(
+                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
+                        )
+                    }
                 } else {
                     ItemThumbnail(
                         thumbnailUrl = song.song.thumbnailUrl,
@@ -673,7 +673,14 @@ fun AlbumListItem(
             downloadUtil.downloads.collect { downloads ->
                 downloadState = when {
                     songs.all { downloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                    songs.all { downloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING, STATE_COMPLETED) } -> STATE_DOWNLOADING
+                    songs.all {
+                        downloads[it.id]?.state in listOf(
+                            STATE_QUEUED,
+                            STATE_DOWNLOADING,
+                            STATE_COMPLETED
+                        )
+                    } -> STATE_DOWNLOADING
+
                     else -> Download.STATE_STOPPED
                 }
             }
@@ -737,7 +744,14 @@ fun AlbumGridItem(
             downloadUtil.downloads.collect { downloads ->
                 downloadState = when {
                     songs.all { downloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                    songs.all { downloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING, STATE_COMPLETED) } -> STATE_DOWNLOADING
+                    songs.all {
+                        downloads[it.id]?.state in listOf(
+                            STATE_QUEUED,
+                            STATE_DOWNLOADING,
+                            STATE_COMPLETED
+                        )
+                    } -> STATE_DOWNLOADING
+
                     else -> Download.STATE_STOPPED
                 }
             }
@@ -816,7 +830,13 @@ fun PlaylistListItem(
                 } else {
                     when {
                         songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
+                        songs.any {
+                            allDownloads[it.id]?.state in listOf(
+                                STATE_QUEUED,
+                                STATE_DOWNLOADING
+                            )
+                        } -> STATE_DOWNLOADING
+
                         else -> Download.STATE_STOPPED
                     }
                 }
@@ -855,54 +875,50 @@ fun PlaylistListItem(
                 contentAlignment = Alignment.Center
             ) {
                 if (customThumbnailUri != null) {
-                    Box {
-                        AsyncImage(
-                            model = customThumbnailUri,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        PlayingIndicatorBox(
-                            isActive = isActive,
-                            playWhenReady = isPlaying,
-                            color = Color.White,
-                            modifier = Modifier
-                                .size(ListThumbnailSize)
-                                .background(
-                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                )
-                        )
-                    }
+                    AsyncImage(
+                        model = customThumbnailUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    PlayingIndicatorBox(
+                        isActive = isActive,
+                        playWhenReady = isPlaying,
+                        color = Color.White,
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
+                            .background(
+                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                            )
+                    )
                 } else {
-                    Box {
-                        PlaylistThumbnail(
-                            thumbnails = playlist.thumbnails,
-                            size = ListThumbnailSize,
-                            placeHolder = {
-                                Icon(
-                                    imageVector = thumbnail,
-                                    contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                    modifier = Modifier
-                                        .size(ListThumbnailSize / 2)
-                                        .align(Alignment.Center)
-                                )
-                            },
-                            shape = RoundedCornerShape(ThumbnailCornerRadius)
-                        )
-                        PlayingIndicatorBox(
-                            isActive = isActive,
-                            playWhenReady = isPlaying,
-                            color = Color.White,
-                            modifier = Modifier
-                                .size(ListThumbnailSize)
-                                .background(
-                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                )
-                        )
-                    }
+                    PlaylistThumbnail(
+                        thumbnails = playlist.thumbnails,
+                        size = ListThumbnailSize,
+                        placeHolder = {
+                            Icon(
+                                imageVector = thumbnail,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                modifier = Modifier
+                                    .size(ListThumbnailSize / 2)
+                                    .align(Alignment.Center)
+                            )
+                        },
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+                    PlayingIndicatorBox(
+                        isActive = isActive,
+                        playWhenReady = isPlaying,
+                        color = Color.White,
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
+                            .background(
+                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                            )
+                    )
                 }
             }
         },
@@ -911,6 +927,7 @@ fun PlaylistListItem(
         isTwoLineLabel = twoLineLabel
     )
 }
+
 @Composable
 fun PlaylistGridItem(
     playlist: Playlist,
@@ -943,7 +960,13 @@ fun PlaylistGridItem(
                 } else {
                     when {
                         songs.all { allDownloads[it.id]?.state == STATE_COMPLETED } -> STATE_COMPLETED
-                        songs.any { allDownloads[it.id]?.state in listOf(STATE_QUEUED, STATE_DOWNLOADING) } -> STATE_DOWNLOADING
+                        songs.any {
+                            allDownloads[it.id]?.state in listOf(
+                                STATE_QUEUED,
+                                STATE_DOWNLOADING
+                            )
+                        } -> STATE_DOWNLOADING
+
                         else -> Download.STATE_STOPPED
                     }
                 }
@@ -979,54 +1002,50 @@ fun PlaylistGridItem(
                     .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 if (customThumbnailUri != null) {
-                    Box {
-                        AsyncImage(
-                            model = customThumbnailUri,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier.fillMaxSize()
-                        )
-                        PlayingIndicatorBox(
-                            isActive = isActive,
-                            playWhenReady = isPlaying,
-                            color = Color.White,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                )
-                        )
-                    }
+                    AsyncImage(
+                        model = customThumbnailUri,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize()
+                    )
+                    PlayingIndicatorBox(
+                        isActive = isActive,
+                        playWhenReady = isPlaying,
+                        color = Color.White,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                            )
+                    )
                 } else {
-                    Box {
-                        PlaylistThumbnail(
-                            thumbnails = playlist.thumbnails,
-                            size = width,
-                            placeHolder = {
-                                Icon(
-                                    imageVector = thumbnail,
-                                    contentDescription = null,
-                                    tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                    modifier = Modifier
-                                        .size(width / 2)
-                                        .align(Alignment.Center)
-                                )
-                            },
-                            shape = RoundedCornerShape(ThumbnailCornerRadius)
-                        )
-                        PlayingIndicatorBox(
-                            isActive = isActive,
-                            playWhenReady = isPlaying,
-                            color = Color.White,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(
-                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                )
-                        )
-                    }
+                    PlaylistThumbnail(
+                        thumbnails = playlist.thumbnails,
+                        size = width,
+                        placeHolder = {
+                            Icon(
+                                imageVector = thumbnail,
+                                contentDescription = null,
+                                tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                modifier = Modifier
+                                    .size(width / 2)
+                                    .align(Alignment.Center)
+                            )
+                        },
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+                    PlayingIndicatorBox(
+                        isActive = isActive,
+                        playWhenReady = isPlaying,
+                        color = Color.White,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                            )
+                    )
                 }
             }
         },
@@ -1329,8 +1348,16 @@ private fun BaseListItemContent(
     ListItem(
         title = item.title,
         subtitle = when (item) {
-            is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
-            is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
+            is SongItem -> joinByBullet(
+                item.artists.joinToString { it.name },
+                makeTimeString(item.duration?.times(1000L))
+            )
+
+            is AlbumItem -> joinByBullet(
+                item.artists?.joinToString { it.name },
+                item.year?.toString()
+            )
+
             is ArtistItem -> null
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         },
@@ -1341,7 +1368,9 @@ private fun BaseListItemContent(
                 albumIndex = albumIndex,
                 isActive = isActive,
                 isPlaying = isPlaying,
-                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),
+                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
+                    ThumbnailCornerRadius
+                ),
                 modifier = Modifier.size(ListThumbnailSize)
             )
         },
@@ -1400,8 +1429,16 @@ fun YouTubeGridItem(
     },
     subtitle = {
         val subtitle = when (item) {
-            is SongItem -> joinByBullet(item.artists.joinToString { it.name }, makeTimeString(item.duration?.times(1000L)))
-            is AlbumItem -> joinByBullet(item.artists?.joinToString { it.name }, item.year?.toString())
+            is SongItem -> joinByBullet(
+                item.artists.joinToString { it.name },
+                makeTimeString(item.duration?.times(1000L))
+            )
+
+            is AlbumItem -> joinByBullet(
+                item.artists?.joinToString { it.name },
+                item.year?.toString()
+            )
+
             is ArtistItem -> null
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         }
@@ -1431,7 +1468,7 @@ fun YouTubeGridItem(
                     ThumbnailCornerRadius
                 ),
             )
-        }  else {
+        } else {
             ItemThumbnail(
                 test = false,
                 thumbnailUrl = item.thumbnail,

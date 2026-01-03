@@ -137,6 +137,7 @@ import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
+import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
@@ -1012,7 +1013,7 @@ fun OnlinePlaylistScreen(
                     IconButton(
                         onClick = {
                             menuState.show {
-                                YouTubePlaylistMenu(
+                                YouTubePlaylistMenuInPlaylistScreen(
                                     navController = navController,
                                     playlist = playlist!!,
                                     songs = songs,

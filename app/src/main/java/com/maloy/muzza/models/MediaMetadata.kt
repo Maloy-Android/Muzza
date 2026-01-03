@@ -14,6 +14,7 @@ data class MediaMetadata(
     val duration: Int,
     val thumbnailUrl: String? = null,
     val album: Album? = null,
+    val playlist: Playlist? = null,
     val setVideoId: String? = null,
     val isLocal: Boolean = false,
     val localPath: String? = null,
@@ -29,6 +30,10 @@ data class MediaMetadata(
     data class Album(
         val id: String,
         val title: String,
+    ) : Serializable
+
+    data class Playlist(
+        val id: String,
     ) : Serializable
 
     fun toSongEntity() = SongEntity(
@@ -88,4 +93,16 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
     },
     explicit = explicit,
     setVideoId = setVideoId
+)
+
+
+fun Playlist.toMediaMetadata() = MediaMetadata(
+    id = playlist.id,
+    title = playlist.name,
+    artists = emptyList(),
+    duration = 0,
+    thumbnailUrl = playlist.thumbnailUrl,
+    playlist = MediaMetadata.Playlist(
+        id = playlist.id,
+    )
 )

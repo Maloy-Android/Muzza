@@ -60,6 +60,7 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
 import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
@@ -105,6 +106,10 @@ fun LibraryPlaylistsScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val haptic = LocalHapticFeedback.current
+
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -326,6 +331,8 @@ fun LibraryPlaylistsScreen(
                             ) { playlist ->
                                 PlaylistListItem(
                                     playlist = playlist,
+                                    isActive = playlist.id == mediaMetadata?.playlist?.id,
+                                    isPlaying = isPlaying,
                                     thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
                                     trailingContent = {
                                         IconButton(
@@ -422,6 +429,8 @@ fun LibraryPlaylistsScreen(
                                 PlaylistGridItem(
                                     playlist = playlist,
                                     thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                                    isActive = playlist.id == mediaMetadata?.playlist?.id,
+                                    isPlaying = isPlaying,
                                     fillMaxWidth = true,
                                     modifier = Modifier
                                         .fillMaxWidth()

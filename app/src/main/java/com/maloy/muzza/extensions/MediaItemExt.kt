@@ -29,6 +29,29 @@ fun Song.toMediaItem() = MediaItem.Builder()
     )
     .build()
 
+fun Song.toMediaItemWithPlaylist(playlistId: String) = MediaItem.Builder()
+    .setMediaId(song.id)
+    .setUri(song.id)
+    .setCustomCacheKey(song.id)
+    .setTag(
+        toMediaMetadata().copy(
+            playlist = MediaMetadata.Playlist(
+                id = playlistId
+            )
+        )
+    )
+    .setMediaMetadata(
+        androidx.media3.common.MediaMetadata.Builder()
+            .setTitle(song.title)
+            .setSubtitle(artists.joinToString { it.name })
+            .setArtist(artists.joinToString { it.name })
+            .setArtworkUri(song.thumbnailUrl?.resize(544, 544)?.toUri())
+            .setAlbumTitle(song.albumName)
+            .setMediaType(MEDIA_TYPE_MUSIC)
+            .build()
+    )
+    .build()
+
 fun SongItem.toMediaItem() = MediaItem.Builder()
     .setMediaId(id)
     .setUri(id)

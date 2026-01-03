@@ -128,6 +128,7 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -626,7 +627,7 @@ fun LocalPlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist!!.playlist.name,
-                                                    items = songs.map { it.song.toMediaItem() },
+                                                    items = songs.map { it.song.toMediaItemWithPlaylist(playlist!!.id) },
                                                     startIndex = songs.indexOfFirst { it.map.id == song.map.id }
                                                 )
                                             )

@@ -824,7 +824,9 @@ fun PlaylistListItem(
         }
 
         Icon.Download(downloadState)
-    }
+    },
+    isActive: Boolean = false,
+    isPlaying: Boolean = false
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -853,28 +855,54 @@ fun PlaylistListItem(
                 contentAlignment = Alignment.Center
             ) {
                 if (customThumbnailUri != null) {
-                    AsyncImage(
-                        model = customThumbnailUri,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    Box {
+                        AsyncImage(
+                            model = customThumbnailUri,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier
+                                .size(ListThumbnailSize)
+                                .background(
+                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
+                        )
+                    }
                 } else {
-                    PlaylistThumbnail(
-                        thumbnails = playlist.thumbnails,
-                        size = ListThumbnailSize,
-                        placeHolder = {
-                            Icon(
-                                imageVector = thumbnail,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                modifier = Modifier
-                                    .size(ListThumbnailSize / 2)
-                                    .align(Alignment.Center)
-                            )
-                        },
-                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                    )
+                    Box {
+                        PlaylistThumbnail(
+                            thumbnails = playlist.thumbnails,
+                            size = ListThumbnailSize,
+                            placeHolder = {
+                                Icon(
+                                    imageVector = thumbnail,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                    modifier = Modifier
+                                        .size(ListThumbnailSize / 2)
+                                        .align(Alignment.Center)
+                                )
+                            },
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier
+                                .size(ListThumbnailSize)
+                                .background(
+                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
+                        )
+                    }
                 }
             }
         },
@@ -922,7 +950,9 @@ fun PlaylistGridItem(
             )
         }
         Icon.Download(downloadState)
-    }
+    },
+    isActive: Boolean = false,
+    isPlaying: Boolean = false
 ) {
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -949,28 +979,54 @@ fun PlaylistGridItem(
                     .background(MaterialTheme.colorScheme.surfaceContainer)
             ) {
                 if (customThumbnailUri != null) {
-                    AsyncImage(
-                        model = customThumbnailUri,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier.fillMaxSize()
-                    )
+                    Box {
+                        AsyncImage(
+                            model = customThumbnailUri,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
+                        )
+                    }
                 } else {
-                    PlaylistThumbnail(
-                        thumbnails = playlist.thumbnails,
-                        size = width,
-                        placeHolder = {
-                            Icon(
-                                imageVector = thumbnail,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.8f),
-                                modifier = Modifier
-                                    .size(width / 2)
-                                    .align(Alignment.Center)
-                            )
-                        },
-                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                    )
+                    Box {
+                        PlaylistThumbnail(
+                            thumbnails = playlist.thumbnails,
+                            size = width,
+                            placeHolder = {
+                                Icon(
+                                    imageVector = thumbnail,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                    modifier = Modifier
+                                        .size(width / 2)
+                                        .align(Alignment.Center)
+                                )
+                            },
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                        PlayingIndicatorBox(
+                            isActive = isActive,
+                            playWhenReady = isPlaying,
+                            color = Color.White,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                )
+                        )
+                    }
                 }
             }
         },

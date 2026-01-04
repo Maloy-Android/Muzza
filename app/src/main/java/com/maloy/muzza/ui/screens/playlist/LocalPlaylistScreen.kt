@@ -127,7 +127,6 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -627,7 +626,11 @@ fun LocalPlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist!!.playlist.name,
-                                                    items = songs.map { it.song.toMediaItemWithPlaylist(playlist!!.id) },
+                                                    items = songs.map {
+                                                        it.song.toMediaItemWithPlaylist(
+                                                            playlist!!.id
+                                                        )
+                                                    },
                                                     startIndex = songs.indexOfFirst { it.map.id == song.map.id }
                                                 )
                                             )
@@ -1103,6 +1106,25 @@ fun LocalPlaylistHeader(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                if (!editable) {
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = {
+                            database.transaction {
+                                update(playlist.playlist.toggleLike())
+                            }
+                        }
+                    ) {
+                        val liked = playlist.playlist.bookmarkedAt != null
+                        Icon(
+                            painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
+                            contentDescription = null
+                        )
+                    }
+                }
                 when (downloadState) {
                     Download.STATE_COMPLETED -> {
                         Button(
@@ -1206,41 +1228,21 @@ fun LocalPlaylistHeader(
                         contentDescription = null
                     )
                 }
-                if (editable) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            playerConnection.addToQueue(
-                                items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id)  },
-                            )
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.queue_music),
-                            contentDescription = null,
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    onClick = {
+                        playerConnection.addToQueue(
+                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
                         )
                     }
-                } else {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            database.transaction {
-                                update(playlist.playlist.toggleLike())
-                            }
-                        }
-                    ) {
-                        val liked = playlist.playlist.bookmarkedAt != null
-                        Icon(
-                            painter = painterResource(if (liked) R.drawable.favorite else R.drawable.favorite_border),
-                            contentDescription = null
-                        )
-                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.queue_music),
+                        contentDescription = null,
+                    )
                 }
             }
         }
@@ -1251,7 +1253,7 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id)  }
+                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) }
                         )
                     )
                 },
@@ -1272,7 +1274,8 @@ fun LocalPlaylistHeader(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.song.toMediaItemWithPlaylist(playlist.id)  }
+                            items = songs.shuffled()
+                                .map { it.song.toMediaItemWithPlaylist(playlist.id) }
                         )
                     )
                 },

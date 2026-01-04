@@ -32,6 +32,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
@@ -290,25 +291,19 @@ fun SongListItem(
     showDownloadIcon: Boolean = true,
     isSwipeable: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (!song.song.isLocal) {
-            if (showLikedIcon && song.song.liked) {
-                Icon.Favorite()
-            }
-            if (showInLibraryIcon && song.song.inLibrary != null) {
-                Icon.Library()
-            }
-            if (showDownloadIcon) {
-                val download by LocalDownloadUtil.current.getDownload(song.id)
-                    .collectAsState(initial = null)
-                Icon.Download(download?.state)
-            }
-        } else {
-            if (showLikedIcon && song.song.liked) {
-                Icon.Favorite()
-            }
-            if (showInLibraryIcon && song.song.inLibrary != null) {
-                Icon.Library()
-            }
+        if (song.song.isLocal) {
+            Icon.LocalSong()
+        }
+        if (showLikedIcon && song.song.liked) {
+            Icon.Favorite()
+        }
+        if (showInLibraryIcon && song.song.inLibrary != null) {
+            Icon.Library()
+        }
+        if (showDownloadIcon && !song.song.isLocal) {
+            val download by LocalDownloadUtil.current.getDownload(song.id)
+                .collectAsState(initial = null)
+            Icon.Download(download?.state)
         }
     },
     isActive: Boolean = false,
@@ -515,25 +510,19 @@ fun SongGridItem(
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (!song.song.isLocal) {
-            if (showLikedIcon && song.song.liked) {
-                Icon.Favorite()
-            }
-            if (showInLibraryIcon && song.song.inLibrary != null) {
-                Icon.Library()
-            }
-            if (showDownloadIcon) {
-                val download by LocalDownloadUtil.current.getDownload(song.id)
-                    .collectAsState(initial = null)
-                Icon.Download(download?.state)
-            }
-        } else {
-            if (showLikedIcon && song.song.liked) {
-                Icon.Favorite()
-            }
-            if (showInLibraryIcon && song.song.inLibrary != null) {
-                Icon.Library()
-            }
+        if (song.song.isLocal) {
+            Icon.LocalSong()
+        }
+        if (showLikedIcon && song.song.liked) {
+            Icon.Favorite()
+        }
+        if (showInLibraryIcon && song.song.inLibrary != null) {
+            Icon.Library()
+        }
+        if (showDownloadIcon && !song.song.isLocal) {
+            val download by LocalDownloadUtil.current.getDownload(song.id)
+                .collectAsState(initial = null)
+            Icon.Download(download?.state)
         }
     },
     isActive: Boolean = false,
@@ -1726,6 +1715,17 @@ private object Icon {
     fun Library() {
         Icon(
             painter = painterResource(R.drawable.library_add_check),
+            contentDescription = null,
+            modifier = Modifier
+                .size(18.dp)
+                .padding(end = 2.dp)
+        )
+    }
+
+    @Composable
+    fun LocalSong() {
+        Icon(
+            imageVector = Icons.Rounded.SdCard,
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)

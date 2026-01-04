@@ -477,7 +477,6 @@
     <string name="equalizer">Еквалайзер</string>
     <string name="lyrics">Текст пісні</string>
     <string name="lyrics_settings_title">Налаштування текстів</string>
-    <string name="local_player_settings_title">Налаштування локального плеєра</string>
 
     <string name="storage">Сховище</string>
     <string name="cache">Кеш</string>
@@ -553,21 +552,6 @@
         <item quantity="other">%d секунд</item>
     </plurals>
 
-    <!-- Сканер -->
-    <string name="local_scanner_title">Локальний сканер</string>
-
-    <string name="auto_scanner_title">Автосканування</string>
-    <string name="auto_scanner_description">Автоматично сканувати пісні з пристрою при відкритті додатку</string>
-
-    <!-- Додаткові налаштування -->
-    <string name="scanner_settings_title">Додаткові налаштування сканера</string>
-    <string name="scanner_strict_file_name_title">Суворі назви файлів</string>
-    <string name="scanner_strict_file_name_description">При ввімкненні розширення файлів НЕ ігноруються. Наприклад: «Song.ogg» та «Song.flac» вважатимуться різними піснями</string>
-
-    <string name="scanner_sensitivity_title">Налаштування чутливості</string>
-    <string name="scanner_sensitivity_L1">Збіг за назвою</string>
-    <string name="scanner_sensitivity_L2">Збіг за назвою та виконавцями</string>
-    <string name="scanner_sensitivity_L3">Збіг за назвою, виконавцями та альбомами</string>
     <string name="sync_local_songs_toast">Локальні пісні успішно синхронізовано</string>
 
     <string name="import_failed_songs">Не вдалося імпортувати</string>

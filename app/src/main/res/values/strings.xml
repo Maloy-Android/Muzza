@@ -450,7 +450,6 @@
     <string name="secondary_text_color">Secondary text color</string>
     <string name="background_color">Background color</string>
     <string name="lyrics_settings_title">Lyrics</string>
-    <string name="local_player_settings_title">Local player settings</string>
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>
     <string name="image_cache">Image Cache</string>
@@ -528,21 +527,9 @@
         <item quantity="other">%d seconds</item>
     </plurals>
     <string name="widget_title">Music Widget</string>
+
     <!--scanner page settings-->
     <string name="sync_local_songs_toast">Sync local songs successfully</string>
-    <string name="local_scanner_title">Local scanner</string>
-
-    <string name="auto_scanner_title">Scan automatically</string>
-    <string name="auto_scanner_description">Automatically scan for songs when opening the app</string>
-
-    <!--scanner additional settings-->
-    <string name="scanner_settings_title">Additional scanner settings</string>
-    <string name="scanner_strict_file_name_title">Strict file names</string>
-    <string name="scanner_strict_file_name_description">When enabled extensions will NOT be ignored. Ex. "Song.ogg" will be a different song from "Song.flac"</string>
-    <string name="scanner_sensitivity_title">Configure scanner sensitivity</string>
-    <string name="scanner_sensitivity_L1">Match title</string>
-    <string name="scanner_sensitivity_L2">Match title and artists</string>
-    <string name="scanner_sensitivity_L3">Match title, artists, albums</string>
 
     <!--M3U IMPORT-->
     <string name="import_failed_songs">Could not import</string>

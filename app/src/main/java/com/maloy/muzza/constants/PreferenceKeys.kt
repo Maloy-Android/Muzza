@@ -54,11 +54,6 @@ enum class SliderStyle {
     DEFAULT, SQUIGGLY, COMPOSE
 }
 
-enum class ScannerM3uMatchCriteria {
-    LEVEL_1,
-    LEVEL_2
-}
-
 
 val SwipeSongToDismissKey = booleanPreferencesKey("swipe_song_to_dismiss")
 val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
@@ -273,20 +268,6 @@ val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 val AccountImageUrlKey = stringPreferencesKey("accountImageUrl")
 val likedMusicThumbnailKey = stringPreferencesKey("likedMusicThumbnail")
 val likedMusicTitleKey = stringPreferencesKey("likedMusicTitle")
-
-val ScannerSensitivityKey = stringPreferencesKey("scannerSensitivity")
-val AutoSyncLocalSongsKey = booleanPreferencesKey("autosynclocalsongs")
-
-/**
- * Specify how strict the metadata scanner should be
- */
-enum class ScannerSensitivity {
-    LEVEL_1,
-    LEVEL_2,
-    LEVEL_3,
-}
-
-val ScannerStrictExtKey = booleanPreferencesKey("scannerStrictExt")
 
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",

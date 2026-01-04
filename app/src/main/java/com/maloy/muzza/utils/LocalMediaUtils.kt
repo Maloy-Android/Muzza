@@ -13,7 +13,6 @@ import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.constants.ScannerSensitivity
 import com.maloy.muzza.models.MediaMetadata
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -24,10 +23,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import java.time.LocalDateTime
-import java.util.Locale
 
 const val sdcardRoot = "/storage/emulated/0/"
-val testScanPaths = arrayListOf("Music")
 var directoryUID = 0
 var cachedDirectoryTree: DirectoryTree? = null
 var imageCache: LmImageCacheMgr = LmImageCacheMgr()
@@ -120,7 +117,7 @@ class DirectoryTree(path: String) {
 }
 
 fun scanLocal(context: Context) =
-    scanLocal(context, testScanPaths)
+    scanLocal(context, arrayListOf(""))
 
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -169,6 +166,7 @@ fun scanLocal(
                             id.toString(),
                             title,
                             (duration / 1000),
+                            artistName = artist,
                             albumId = albumID,
                             albumName = album,
                             isLocal = true,
@@ -202,8 +200,6 @@ fun scanLocal(
 fun syncDB(
     database: MusicDatabase,
     directoryStructure: List<Song>,
-    matchStrength: ScannerSensitivity,
-    strictFileNames: Boolean
 ) {
     runBlocking(Dispatchers.IO) {
         val existingSongs = database.allLocalSongsData().first()
@@ -259,45 +255,6 @@ fun youtubeSongLookup(query: String, songUrl: String?): List<MediaMetadata> {
         }
     }
     return ytmResult
-}
-
-fun compareArtist(a: List<ArtistEntity>, b: List<ArtistEntity>): Boolean {
-    if (a.isEmpty() && b.isEmpty()) {
-        return true
-    } else if (a.isEmpty() || b.isEmpty()) {
-        return false
-    }
-    if (a.size != b.size) {
-        return false
-    }
-    val matchingArtists = a.filter { artist ->
-        b.any { it.name.lowercase(Locale.getDefault()) == artist.name.lowercase(Locale.getDefault()) }
-    }
-    return matchingArtists.size == a.size
-}
-fun compareSong(
-    a: Song,
-    b: Song,
-    matchStrength: ScannerSensitivity = ScannerSensitivity.LEVEL_2,
-    strictFileNames: Boolean = false
-): Boolean {
-    if (strictFileNames &&
-        (a.song.localPath?.substringAfterLast('/') !=
-                b.song.localPath?.substringAfterLast('/'))
-    ) {
-        return false
-    }
-    fun closeEnough(): Boolean {
-        return a.song.localPath == b.song.localPath
-    }
-    return when (matchStrength) {
-        ScannerSensitivity.LEVEL_1 -> a.song.title == b.song.title
-        ScannerSensitivity.LEVEL_2 -> closeEnough() || (a.song.title == b.song.title &&
-                compareArtist(a.artists, b.artists))
-
-        ScannerSensitivity.LEVEL_3 -> closeEnough() || (a.song.title == b.song.title &&
-                compareArtist(a.artists, b.artists))
-    }
 }
 object CachedBitmap {
     var path: String? = null

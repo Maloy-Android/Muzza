@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -44,7 +42,6 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.ScannerM3uMatchCriteria
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
@@ -67,10 +64,6 @@ fun ImportM3uDialog(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
-
-    var scannerSensitivity by remember {
-        mutableStateOf(ScannerM3uMatchCriteria.LEVEL_1)
-    }
 
     val remoteLookup by remember { mutableStateOf(true) }
     var isLoading by remember { mutableStateOf(false) }
@@ -115,18 +108,6 @@ fun ImportM3uDialog(
         title = { Text(stringResource(R.string.import_playlist)) },
     ) {
         if (importedSongs.isEmpty()) {
-            EnumListPreference(
-                title = { Text(stringResource(R.string.scanner_sensitivity_title)) },
-                icon = { Icon(Icons.Rounded.GraphicEq, null) },
-                selectedValue = scannerSensitivity,
-                onValueSelected = { scannerSensitivity = it },
-                valueText = {
-                    when (it) {
-                        ScannerM3uMatchCriteria.LEVEL_1 -> stringResource(R.string.scanner_sensitivity_L1)
-                        ScannerM3uMatchCriteria.LEVEL_2 -> stringResource(R.string.scanner_sensitivity_L2)
-                    }
-                }
-            )
             Row(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
@@ -172,9 +153,11 @@ fun ImportM3uDialog(
                     items = importedSongs,
                     key = { _, song -> song.hashCode() }
                 ) { _, song ->
-                    Column(modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp)
+                    ) {
                         Text(
                             text = song.title,
                             fontSize = 14.sp,
@@ -310,14 +293,22 @@ fun loadM3u(
                             allSongs.firstOrNull { dbSong ->
                                 dbSong.title.equals(title, ignoreCase = true) &&
                                         dbSong.artists.any { dbArtist ->
-                                            artists.any { it.equals(dbArtist.name, ignoreCase = true) }
+                                            artists.any {
+                                                it.equals(
+                                                    dbArtist.name,
+                                                    ignoreCase = true
+                                                )
+                                            }
                                         }
                             } ?: allSongs.firstOrNull { dbSong ->
                                 dbSong.title.contains(title, ignoreCase = true) &&
                                         dbSong.artists.any { dbArtist ->
                                             artists.any { artist ->
                                                 dbArtist.name.contains(artist, ignoreCase = true) ||
-                                                        artist.contains(dbArtist.name, ignoreCase = true)
+                                                        artist.contains(
+                                                            dbArtist.name,
+                                                            ignoreCase = true
+                                                        )
                                             }
                                         }
                             } ?: allSongs.firstOrNull { dbSong ->
@@ -326,42 +317,39 @@ fun loadM3u(
                         }
                         if (foundSong == null && searchOnline && source?.startsWith("http") == true) {
                             foundSong = runBlocking(Dispatchers.IO) {
-                                try {
-                                    youtubeSongLookup("$title ${artists.joinToString(" ")}", source)
-                                        .firstOrNull()
-                                        ?.let { ytSong ->
-                                            val songEntity = ytSong.toSongEntity()
-                                            database.transaction {
-                                                database.insert(songEntity)
+                                youtubeSongLookup("$title ${artists.joinToString(" ")}", source)
+                                    .firstOrNull()
+                                    ?.let { ytSong ->
+                                        val songEntity = ytSong.toSongEntity()
+                                        database.transaction {
+                                            database.insert(songEntity)
 
-                                                ytSong.artists.forEach { artist ->
-                                                    val artistEntity = ArtistEntity(
-                                                        id = artist.id ?: ArtistEntity.generateArtistId(),
-                                                        name = artist.name
+                                            ytSong.artists.forEach { artist ->
+                                                val artistEntity = ArtistEntity(
+                                                    id = artist.id
+                                                        ?: ArtistEntity.generateArtistId(),
+                                                    name = artist.name
+                                                )
+                                                database.insert(artistEntity)
+                                                database.insert(
+                                                    SongArtistMap(
+                                                        songId = songEntity.id,
+                                                        artistId = artistEntity.id,
+                                                        position = 0
                                                     )
-                                                    database.insert(artistEntity)
-                                                    database.insert(
-                                                        SongArtistMap(
-                                                            songId = songEntity.id,
-                                                            artistId = artistEntity.id,
-                                                            position = 0
-                                                        )
-                                                    )
-                                                }
+                                                )
                                             }
-                                            Song(
-                                                song = songEntity,
-                                                artists = ytSong.artists.map {
-                                                    ArtistEntity(
-                                                        id = it.id ?: ArtistEntity.generateArtistId(),
-                                                        name = it.name
-                                                    )
-                                                }
-                                            )
                                         }
-                                } catch (e: Exception) {
-                                    null
-                                }
+                                        Song(
+                                            song = songEntity,
+                                            artists = ytSong.artists.map {
+                                                ArtistEntity(
+                                                    id = it.id ?: ArtistEntity.generateArtistId(),
+                                                    name = it.name
+                                                )
+                                            }
+                                        )
+                                    }
                             }
                         }
 

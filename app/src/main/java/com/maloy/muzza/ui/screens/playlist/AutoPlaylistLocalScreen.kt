@@ -47,11 +47,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
-import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.ListItemHeight
-import com.maloy.muzza.constants.ScannerSensitivity
-import com.maloy.muzza.constants.ScannerSensitivityKey
-import com.maloy.muzza.constants.ScannerStrictExtKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
@@ -90,20 +86,9 @@ fun AutoPlaylistLocalScreen(
     val haptic = LocalHapticFeedback.current
     val coroutineScope = rememberCoroutineScope()
     var isScannerActive by remember { mutableStateOf(false) }
-    var isScanFinished by remember { mutableStateOf(false) }
-    var mediaPermission by remember { mutableStateOf(true) }
-    val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
     val mediaPermissionLevel =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
-    val (autoSyncLocalSongs) = rememberPreference(
-        key = AutoSyncLocalSongsKey,
-        defaultValue = true
-    )
-    val (scannerSensitivity) = rememberEnumPreference(
-        key = ScannerSensitivityKey,
-        defaultValue = ScannerSensitivity.LEVEL_2
-    )
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -171,33 +156,25 @@ fun AutoPlaylistLocalScreen(
         backStackEntry?.savedStateHandle?.set("inSelectMode", inSelectMode)
     }
 
-    if (autoSyncLocalSongs) {
-        LaunchedEffect(Unit) {
-            if (isScannerActive) {
-                return@LaunchedEffect
-            }
-            if (context.checkSelfPermission(mediaPermissionLevel)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    context as Activity,
-                    arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
-                )
-                mediaPermission = false
-                return@LaunchedEffect
-            } else if (context.checkSelfPermission(mediaPermissionLevel)
-                == PackageManager.PERMISSION_GRANTED
-            ) {
-                mediaPermission = true
-            }
-            isScanFinished = false
-            isScannerActive = true
-            coroutineScope.launch(Dispatchers.IO) {
-                val directoryStructure = scanLocal(context).value
-                syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
-                isScannerActive = false
-                isScanFinished = true
-            }
+    LaunchedEffect(Unit) {
+        if (isScannerActive) {
+            return@LaunchedEffect
+        }
+        if (context.checkSelfPermission(mediaPermissionLevel)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                context as Activity,
+                arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
+            )
+
+            return@LaunchedEffect
+        }
+        isScannerActive = true
+        coroutineScope.launch(Dispatchers.IO) {
+            val directoryStructure = scanLocal(context).value
+            syncDB(database, directoryStructure.toList())
+            isScannerActive = false
         }
     }
 
@@ -302,16 +279,8 @@ fun AutoPlaylistLocalScreen(
                                                     arrayOf(mediaPermissionLevel),
                                                     PackageManager.PERMISSION_GRANTED
                                                 )
-                                                mediaPermission = false
                                                 return@Button
-                                            } else if (context.checkSelfPermission(
-                                                    mediaPermissionLevel
-                                                )
-                                                == PackageManager.PERMISSION_GRANTED
-                                            ) {
-                                                mediaPermission = true
                                             }
-                                            isScanFinished = false
                                             isScannerActive = true
                                             coroutineScope.launch(Dispatchers.IO) {
                                                 val directoryStructure =
@@ -319,11 +288,8 @@ fun AutoPlaylistLocalScreen(
                                                 syncDB(
                                                     database,
                                                     directoryStructure.toList(),
-                                                    scannerSensitivity,
-                                                    strictExtensions
                                                 )
                                                 isScannerActive = false
-                                                isScanFinished = true
                                                 snackbarHostState.showSnackbar(
                                                     context.getString(
                                                         R.string.sync_local_songs_toast

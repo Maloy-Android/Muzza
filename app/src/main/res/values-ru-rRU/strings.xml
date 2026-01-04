@@ -482,7 +482,6 @@
     <string name="equalizer">Эквалайзер</string>
     <string name="lyrics">Текст песни</string>
     <string name="lyrics_settings_title">Настройки текстов</string>
-    <string name="local_player_settings_title">Настройки локального плеера</string>
 
     <string name="storage">Хранилище</string>
     <string name="cache">Кэш</string>
@@ -558,21 +557,6 @@
         <item quantity="other">%d секунд</item>
     </plurals>
 
-    <!-- Сканер -->
-    <string name="local_scanner_title">Локальный сканер</string>
-
-    <string name="auto_scanner_title">Автосканирование</string>
-    <string name="auto_scanner_description">Автоматически сканировать песни с устройства при открытии приложения</string>
-
-    <!-- Дополнительные настройки -->
-    <string name="scanner_settings_title">Дополнительные настройки сканера</string>
-    <string name="scanner_strict_file_name_title">Строгие имена файлов</string>
-    <string name="scanner_strict_file_name_description">При включении расширения файлов НЕ игнорируются. Например: «Song.ogg» и «Song.flac» будут считаться разными песнями</string>
-
-    <string name="scanner_sensitivity_title">Настройка чувствительности</string>
-    <string name="scanner_sensitivity_L1">Совпадение по названию</string>
-    <string name="scanner_sensitivity_L2">Совпадение по названию и исполнителям</string>
-    <string name="scanner_sensitivity_L3">Совпадение по названию, исполнителям и альбомам</string>
     <string name="sync_local_songs_toast">Локальные песни успешно синхронизированы</string>
 
     <string name="import_failed_songs">Не удалось импортировать</string>

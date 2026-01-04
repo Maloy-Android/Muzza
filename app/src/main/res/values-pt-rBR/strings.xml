@@ -249,7 +249,6 @@
 <string name="clear_all_downloads_dialog">Tem certeza de que deseja limpar todos os downloads?</string>
 <string name="clear_song_cache_dialog">Tem certeza de que deseja limpar todas as músicas armazenadas em cache?</string>
 <string name="clear_images_cache_dialog">Tem certeza de que deseja limpar todas as imagens armazenadas em cache?</string>
-<string name="local_player_settings_title">Configurações do player local</string>
 <string name="audio_quality">Qualidade do áudio</string>
 <string name="audio_quality_auto">Automática</string>
 <string name="audio_quality_high">Alta</string>
@@ -397,19 +396,7 @@
 <string name="history_duration">Duração da história</string>
 <string name="audio_offload">Habilitar descarregamento</string>
 <string name="audio_offload_description">Use o caminho de áudio offload para reprodução de áudio. Desabilitar isso pode aumentar o uso de energia, mas pode ser útil se você tiver problemas com reprodução de áudio ou pós-processamento</string>
-<!--scanner page settings-->
-<string name="local_scanner_title">Local scanner</string>
 
-<string name="auto_scanner_title">Scan automático</string>
-<string name="auto_scanner_description">Procurar músicas automaticamente ao abrir o aplicativo</string>
-<!--scanner additional settings-->
-<string name="scanner_settings_title">Definições adicionais do scanner</string>
-<string name="scanner_strict_file_name_title">Nomes de arquivo</string>
-<string name="scanner_strict_file_name_description">Quando ativadas, as extensões NÃO serão ignoradas. Ex. "Song.ogg" será uma música diferente de "Song.flac".</string>
-<string name="scanner_sensitivity_title">Configurar a sensibilidade do scanner</string>
-<string name="scanner_sensitivity_L1">Combinar Título</string>
-<string name="scanner_sensitivity_L2">Combinar Título e Artista</string>
-<string name="scanner_sensitivity_L3">Combinar Título, Artista e Álbuns</string>
 <!--M3U IMPORT-->
 <string name="import_failed_songs">Não foi possível importar</string>
 <string name="import_success_songs">Importado com sucesso</string>

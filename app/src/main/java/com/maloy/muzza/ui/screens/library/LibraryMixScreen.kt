@@ -85,12 +85,8 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AutoSyncLocalSongsKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
-import com.maloy.muzza.constants.ScannerSensitivity
-import com.maloy.muzza.constants.ScannerSensitivityKey
-import com.maloy.muzza.constants.ScannerStrictExtKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.constants.likedMusicThumbnailKey
 import com.maloy.muzza.constants.likedMusicTitleKey
@@ -109,7 +105,6 @@ import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.scanLocal
 import com.maloy.muzza.utils.syncDB
 import com.maloy.muzza.utils.isInternetAvailable
-import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LibraryMixViewModel
 import kotlinx.coroutines.Dispatchers
@@ -208,20 +203,9 @@ fun LibraryMixScreen(
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
     var isScannerActive by remember { mutableStateOf(false) }
-    var isScanFinished by remember { mutableStateOf(false) }
-    var mediaPermission by remember { mutableStateOf(true) }
     val mediaPermissionLevel =
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.READ_MEDIA_AUDIO
         else Manifest.permission.READ_EXTERNAL_STORAGE
-    val (autoSyncLocalSongs) = rememberPreference(
-        key = AutoSyncLocalSongsKey,
-        defaultValue = true
-    )
-    val (scannerSensitivity) = rememberEnumPreference(
-        key = ScannerSensitivityKey,
-        defaultValue = ScannerSensitivity.LEVEL_2
-    )
-    val (strictExtensions) = rememberPreference(ScannerStrictExtKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -265,33 +249,24 @@ fun LibraryMixScreen(
         }
     }
 
-    if (autoSyncLocalSongs) {
-        LaunchedEffect(Unit) {
-            if (isScannerActive) {
-                return@LaunchedEffect
-            }
-            if (context.checkSelfPermission(mediaPermissionLevel)
-                != PackageManager.PERMISSION_GRANTED
-            ) {
-                requestPermissions(
-                    context as Activity,
-                    arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
-                )
-                mediaPermission = false
-                return@LaunchedEffect
-            } else if (context.checkSelfPermission(mediaPermissionLevel)
-                == PackageManager.PERMISSION_GRANTED
-            ) {
-                mediaPermission = true
-            }
-            isScanFinished = false
-            isScannerActive = true
-            coroutineScope.launch(Dispatchers.IO) {
-                val directoryStructure = scanLocal(context).value
-                syncDB(database, directoryStructure.toList(), scannerSensitivity, strictExtensions)
-                isScannerActive = false
-                isScanFinished = true
-            }
+    LaunchedEffect(Unit) {
+        if (isScannerActive) {
+            return@LaunchedEffect
+        }
+        if (context.checkSelfPermission(mediaPermissionLevel)
+            != PackageManager.PERMISSION_GRANTED
+        ) {
+            requestPermissions(
+                context as Activity,
+                arrayOf(mediaPermissionLevel), PackageManager.PERMISSION_GRANTED
+            )
+            return@LaunchedEffect
+        }
+        isScannerActive = true
+        coroutineScope.launch(Dispatchers.IO) {
+            val directoryStructure = scanLocal(context).value
+            syncDB(database, directoryStructure.toList())
+            isScannerActive = false
         }
     }
 

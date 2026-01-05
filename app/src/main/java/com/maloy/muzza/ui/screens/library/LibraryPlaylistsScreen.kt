@@ -192,7 +192,9 @@ fun LibraryPlaylistsScreen(
                             PlaylistEntity(
                                 name = playlistName,
                                 browseId = browseId,
-                                bookmarkedAt = LocalDateTime.now()
+                                bookmarkedAt = LocalDateTime.now(),
+                                isLocal = !syncedPlaylist,
+                                isEditable = true
                             )
                         )
                     }

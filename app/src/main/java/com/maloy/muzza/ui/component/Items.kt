@@ -81,6 +81,7 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
+import com.maloy.innertube.utils.completed
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
@@ -97,7 +98,9 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.RecentActivityEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
@@ -110,6 +113,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.collections.orEmpty
 
 const val ActiveBoxAlpha = 0.6f
 
@@ -966,6 +970,13 @@ fun PlaylistGridItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false
 ) {
+    val database = LocalDatabase.current
+    val songs by produceState(initialValue = emptyList(), playlist.id) {
+        withContext(Dispatchers.IO) {
+            value = database.playlistSongs(playlist.id).first().map { it.song }
+        }
+    }
+    val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -1037,6 +1048,17 @@ fun PlaylistGridItem(
                     )
                 }
             }
+            PlaylistPlayButton(
+                visible = songs.isNotEmpty() && !isActive,
+                onClick = {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist.playlist.name,
+                            items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
+                        )
+                    )
+                }
+            )
         },
         fillMaxWidth = fillMaxWidth,
         modifier = modifier
@@ -1494,6 +1516,25 @@ fun YouTubeGridItem(
                 }
             }
         )
+        PlaylistPlayButton(
+            visible = item is PlaylistItem && !isActive,
+            onClick = {
+                coroutineScope?.launch {
+                        withContext(Dispatchers.IO) {
+                            YouTube.playlist(item.id).completed()
+                                .getOrNull()?.songs.orEmpty()
+                        }
+                    .let { songs ->
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = item.title,
+                                items = songs.map { it.toMediaItemWithPlaylist(item.id) }
+                            )
+                        )
+                    }
+                }
+            }
+        )
         SongPlayButton(
             visible = item is SongItem && !isActive,
         )
@@ -1557,8 +1598,7 @@ fun ItemThumbnail(
                 .background(
                     color = if (albumIndex != null) Color.Transparent else Color.Black.copy(
                         alpha = 0.4f
-                    ),
-                    shape = shape
+                    ), shape = shape
                 )
         )
     }
@@ -1631,6 +1671,36 @@ fun PlaylistThumbnail(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BoxScope.PlaylistPlayButton(
+    visible: Boolean,
+    onClick: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = Modifier
+            .align(Alignment.BottomEnd)
+            .padding(8.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = ActiveBoxAlpha))
+                .clickable(onClick = onClick)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.play),
+                contentDescription = null,
+                tint = Color.White
+            )
         }
     }
 }

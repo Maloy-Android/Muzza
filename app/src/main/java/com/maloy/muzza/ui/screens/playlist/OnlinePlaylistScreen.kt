@@ -443,7 +443,7 @@ fun OnlinePlaylistScreen(
                                                                 name = playlist.title,
                                                                 browseId = playlist.id,
                                                                 thumbnailUrl = playlist.thumbnail,
-                                                                isEditable = playlist.isEditable,
+                                                                isEditable = true,
                                                                 remoteSongCount = playlist.songCountText?.let {
                                                                     Regex(
                                                                         """\d+"""
@@ -597,7 +597,11 @@ fun OnlinePlaylistScreen(
                                         } else {
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
+                                                    playerConnection.addToQueue(songs.map {
+                                                        it.toMediaItemWithPlaylist(
+                                                            playlist.id
+                                                        )
+                                                    })
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier
@@ -614,7 +618,11 @@ fun OnlinePlaylistScreen(
                                         if (playlist.id == "LM") {
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
+                                                    playerConnection.addToQueue(songs.map {
+                                                        it.toMediaItemWithPlaylist(
+                                                            playlist.id
+                                                        )
+                                                    })
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier
@@ -666,7 +674,11 @@ fun OnlinePlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist.title,
-                                                    items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
+                                                    items = songs.map {
+                                                        it.toMediaItemWithPlaylist(
+                                                            playlist.id
+                                                        )
+                                                    }
                                                 )
                                             )
                                         },
@@ -686,7 +698,8 @@ fun OnlinePlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist.title,
-                                                    items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  }
+                                                    items = songs.shuffled()
+                                                        .map { it.toMediaItemWithPlaylist(playlist.id) }
                                                 )
                                             )
                                         },
@@ -806,7 +819,11 @@ fun OnlinePlaylistScreen(
                                                 playerConnection.playQueue(
                                                     ListQueue(
                                                         title = playlist.title,
-                                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  },
+                                                        items = songs.map {
+                                                            it.toMediaItemWithPlaylist(
+                                                                playlist.id
+                                                            )
+                                                        },
                                                         startIndex = songs.indexOf(song)
                                                     )
                                                 )

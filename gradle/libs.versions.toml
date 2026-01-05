@@ -10,6 +10,7 @@ material3 = "1.4.0"
 materialKolor = "3.0.1"
 media3 = "1.7.1"
 room = "2.7.2"
+extractor = "2d2d9ed"
 hilt = "2.56.2"
 ktor = "3.1.2"
 ksp = "2.1.0-1.0.29"
@@ -92,7 +93,7 @@ firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "
 
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
-newpipe-extractor = { group = "com.github.InfinityLoop1308", name = "PipePipeExtractor", version = "4240401" }
+newpipe-extractor = { module = "com.github.mostafaalagamy:MetrolistExtractor", version.ref = "extractor" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 
 [plugins]

@@ -1,6 +1,5 @@
 package com.maloy.muzza.ui.menu
 
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,7 +20,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.Delete
-import androidx.compose.material.icons.rounded.HideImage
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -75,8 +73,6 @@ import com.maloy.muzza.utils.isInternetAvailable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.io.File
-import java.io.FileOutputStream
 
 @Composable
 fun PlaylistMenu(
@@ -141,85 +137,6 @@ fun PlaylistMenu(
                 }
                 coroutineScope.launch(Dispatchers.IO) {
                     playlist.playlist.browseId?.let { YouTube.renamePlaylist(it, name) }
-                }
-            }
-        )
-    }
-    fun saveImageToPrivateStorage(uri: Uri): Uri? {
-        return try {
-            val dir = File(context.filesDir, "playlist_covers")
-            if (!dir.exists()) dir.mkdirs()
-
-            val outputFile = File(dir, "cover_${playlist.playlist.id}.jpg")
-
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                FileOutputStream(outputFile).use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
-            }
-
-            Uri.fromFile(outputFile)
-        } catch (e: Exception) {
-            null
-        }
-    }
-
-    fun loadSavedImage(): Uri? {
-        val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
-        return if (file.exists()) Uri.fromFile(file) else null
-    }
-
-    var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
-
-    LaunchedEffect(playlist) {
-        customThumbnailUri = loadSavedImage()
-    }
-
-    val pickImageLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.GetContent()
-    ) { uri: Uri? ->
-        uri?.let { selectedUri ->
-            val savedUri = saveImageToPrivateStorage(selectedUri)
-            customThumbnailUri = savedUri
-        }
-    }
-
-    fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
-        val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
-        return file.exists() && file.delete()
-    }
-
-    var showClearPlaylistThumbnailDialog by remember {
-        mutableStateOf(false)
-    }
-    if (showClearPlaylistThumbnailDialog) {
-        DefaultDialog(
-            onDismiss = { showClearPlaylistThumbnailDialog = false },
-            icon = { Icon(Icons.Rounded.HideImage, null) },
-            content = {
-                Text(
-                    text = stringResource(
-                        R.string.remove_custom_playlist_thumbnail_confirm,
-                        playlist.title
-                    ),
-                    style = MaterialTheme.typography.bodyLarge,
-                    modifier = Modifier.padding(horizontal = 18.dp)
-                )
-            },
-            buttons = {
-                TextButton(
-                    onClick = { showClearPlaylistThumbnailDialog = false }
-                ) {
-                    Text(text = stringResource(android.R.string.cancel))
-                }
-
-                TextButton(
-                    onClick = {
-                        showClearPlaylistThumbnailDialog = false
-                        deletePlaylistCover(context = context, playlistId = playlist.id)
-                    }
-                ) {
-                    Text(text = stringResource(android.R.string.ok))
                 }
             }
         )
@@ -482,21 +399,6 @@ fun PlaylistMenu(
         item {
             HorizontalDivider()
         }
-        if (customThumbnailUri == null) {
-            ListMenuItem(
-                icon = R.drawable.image,
-                title = R.string.edit_playlist_thumbnail
-            ) {
-                pickImageLauncher.launch("image/*")
-            }
-        } else {
-            ListMenuItem(
-                icon = R.drawable.remove_image,
-                title = R.string.remove_custom_playlist_thumbnail
-            ) {
-                showClearPlaylistThumbnailDialog = true
-            }
-        }
         if (songs.isNotEmpty()) {
             item {
                 HorizontalDivider()
@@ -544,7 +446,7 @@ fun PlaylistMenu(
                 onDismiss()
                 coroutineScope.launch(Dispatchers.IO) {
                     val playlistPage =
-                        YouTube.playlist(playlist.playlist.browseId!!).completed().getOrNull()
+                        YouTube.playlist(playlist.playlist.browseId).completed().getOrNull()
                             ?: return@launch
                     database.transaction {
                         clearPlaylist(playlist.id)

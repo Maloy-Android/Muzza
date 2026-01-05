@@ -880,38 +880,25 @@ fun LocalPlaylistHeader(
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
     fun saveImageToPrivateStorage(uri: Uri): Uri? {
-        return try {
-            val dir = File(context.filesDir, "playlist_covers")
-            if (!dir.exists()) dir.mkdirs()
-
-            val outputFile = File(dir, "cover_${playlist.playlist.id}.jpg")
-
-            context.contentResolver.openInputStream(uri)?.use { inputStream ->
-                FileOutputStream(outputFile).use { outputStream ->
-                    inputStream.copyTo(outputStream)
-                }
+        val dir = File(context.filesDir, "playlist_covers")
+        if (!dir.exists()) dir.mkdirs()
+        val outputFile = File(dir, "cover_${playlist.playlist.id}.jpg")
+        context.contentResolver.openInputStream(uri)?.use { inputStream ->
+            FileOutputStream(outputFile).use { outputStream ->
+                inputStream.copyTo(outputStream)
             }
-
-            Uri.fromFile(outputFile)
-        } catch (_: Exception) {
-            null
         }
-    }
-
-    var updatePlaylistThumbnail by remember {
-        mutableStateOf(false)
+        return Uri.fromFile(outputFile)
     }
 
     fun loadSavedImage(): Uri? {
         val file = File(context.filesDir, "playlist_covers/cover_${playlist.playlist.id}.jpg")
         return if (file.exists()) Uri.fromFile(file) else null
-        updatePlaylistThumbnail = true
     }
 
     fun deletePlaylistCover(context: Context, playlistId: String): Boolean {
         val file = File(context.filesDir, "playlist_covers/cover_$playlistId.jpg")
         return file.exists() && file.delete()
-        updatePlaylistThumbnail = true
     }
 
     var showClearPlaylistThumbnailDialog by remember {
@@ -942,20 +929,13 @@ fun LocalPlaylistHeader(
                     onClick = {
                         showClearPlaylistThumbnailDialog = false
                         deletePlaylistCover(context = context, playlistId = playlist.id)
+                        customThumbnailUri = null
                     }
                 ) {
                     Text(text = stringResource(android.R.string.ok))
                 }
             }
         )
-    }
-
-    LaunchedEffect(updatePlaylistThumbnail) {
-        customThumbnailUri = loadSavedImage()
-    }
-
-    LaunchedEffect(updatePlaylistThumbnail) {
-        playlist.playlist.thumbnailUrl
     }
 
     val pickImageLauncher = rememberLauncherForActivityResult(
@@ -966,6 +946,11 @@ fun LocalPlaylistHeader(
             customThumbnailUri = savedUri
         }
     }
+
+    LaunchedEffect(customThumbnailUri == null) {
+        customThumbnailUri = loadSavedImage()
+    }
+
     LaunchedEffect(songs) {
         if (songs.isEmpty()) return@LaunchedEffect
         downloadUtil.downloads.collect { downloads ->

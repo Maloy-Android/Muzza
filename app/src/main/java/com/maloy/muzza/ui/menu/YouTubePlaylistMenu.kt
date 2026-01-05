@@ -97,7 +97,7 @@ fun YouTubePlaylistMenu(
 
     YouTubeListItem(
         item = playlist, showLikedIcon = false, trailingContent = {
-            if (playlist.id != "LM" && !playlist.isEditable) {
+            if (playlist.id != "LM") {
                 IconButton(
                     onClick = {
                         if (dbPlaylist?.playlist == null) {
@@ -106,7 +106,7 @@ fun YouTubePlaylistMenu(
                                     name = playlist.title,
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
-                                    isEditable = false,
+                                    isEditable = true,
                                     remoteSongCount = playlist.songCountText?.let {
                                         Regex("""\d+""").find(
                                             it
@@ -205,7 +205,7 @@ fun YouTubePlaylistMenu(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = playlist.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
                                     )
                                 )
                             }
@@ -250,7 +250,7 @@ fun YouTubePlaylistMenu(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = playlist.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
                                     )
                                 )
                             }
@@ -292,7 +292,8 @@ fun YouTubePlaylistMenu(
                                 }
                             }.let { songs ->
                                 playerConnection.addToQueue(
-                                    songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
+                                    songs.shuffled()
+                                        .map { it.toMediaItemWithPlaylist(playlist.id) })
                             }
                         }
                         onDismiss()
@@ -368,7 +369,8 @@ fun YouTubePlaylistMenu(
                                 }
                             }.let { songs ->
                                 playerConnection.addToQueue(
-                                    songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
+                                    songs.shuffled()
+                                        .map { it.toMediaItemWithPlaylist(playlist.id) })
                             }
                         }
                         onDismiss()
@@ -514,7 +516,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
     )
     YouTubeListItem(
         item = playlist, showLikedIcon = false, trailingContent = {
-            if (playlist.id != "LM" && !playlist.isEditable) {
+            if (playlist.id != "LM") {
                 IconButton(
                     onClick = {
                         if (dbPlaylist?.playlist == null) {
@@ -523,7 +525,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                     name = playlist.title,
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
-                                    isEditable = false,
+                                    isEditable = true,
                                     remoteSongCount = playlist.songCountText?.let {
                                         Regex("""\d+""").find(
                                             it
@@ -534,19 +536,14 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                     radioEndpointParams = playlist.radioEndpoint?.params
                                 ).toggleLike()
                                 insert(playlistEntity)
-                                coroutineScope.launch(Dispatchers.IO) {
-                                    songs.ifEmpty {
-                                        YouTube.playlist(playlist.id).completed()
-                                            .getOrNull()?.songs.orEmpty()
-                                    }.map { it.toMediaMetadata() }.onEach(::insert)
-                                        .mapIndexed { index, song ->
-                                            PlaylistSongMap(
-                                                songId = song.id,
-                                                playlistId = playlistEntity.id,
-                                                position = index
-                                            )
-                                        }.forEach(::insert)
-                                }
+                                songs.map { it.toMediaMetadata() }.onEach(::insert)
+                                    .mapIndexed { index, song ->
+                                        PlaylistSongMap(
+                                            songId = song.id,
+                                            playlistId = playlistEntity.id,
+                                            position = index
+                                        )
+                                    }.forEach(::insert)
                             }
                         } else {
                             database.transaction {
@@ -615,7 +612,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.title,
-                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
+                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
                             )
                         )
                         onDismiss()
@@ -651,7 +648,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.title,
-                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id)  }
+                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
                             )
                         )
                         onDismiss()
@@ -684,7 +681,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         playerConnection.addToQueue(
-                            songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
+                            songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id) })
 
                         onDismiss()
                     }
@@ -751,7 +748,8 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.addToQueue(songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id)  })
+                        playerConnection.addToQueue(
+                            songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id) })
                         onDismiss()
                     }
                     .padding(12.dp),

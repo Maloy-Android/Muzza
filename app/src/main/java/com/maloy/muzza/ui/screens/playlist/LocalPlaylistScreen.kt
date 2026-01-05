@@ -875,8 +875,6 @@ fun LocalPlaylistHeader(
         mutableIntStateOf(Download.STATE_STOPPED)
     }
 
-    val editable: Boolean = playlist.playlist.isEditable
-
     val accountName by rememberPreference(AccountNameKey, "")
 
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -1106,7 +1104,7 @@ fun LocalPlaylistHeader(
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (!editable) {
+                if (playlist.playlist.browseId != null) {
                     Button(
                         modifier = Modifier
                             .weight(1f)
@@ -1228,21 +1226,23 @@ fun LocalPlaylistHeader(
                         contentDescription = null
                     )
                 }
-                Button(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    onClick = {
-                        playerConnection.addToQueue(
-                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
+                if (playlist.playlist.browseId == null) {
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = {
+                            playerConnection.addToQueue(
+                                items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
+                            )
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
                         )
                     }
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.queue_music),
-                        contentDescription = null,
-                    )
                 }
             }
         }

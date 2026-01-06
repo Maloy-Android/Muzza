@@ -1049,7 +1049,7 @@ fun PlaylistGridItem(
                     )
                 }
             }
-            PlaylistPlayButton(
+            ItemsPlayButton(
                 visible = songs.isNotEmpty() && !isActive,
                 onClick = {
                     playerConnection.playQueue(
@@ -1542,7 +1542,7 @@ fun YouTubeGridItem(
                 }
             }
         )
-        PlaylistPlayButton(
+        ItemsPlayButton(
             visible = item is PlaylistItem && !isActive,
             onClick = {
                 coroutineScope?.launch {
@@ -1702,37 +1702,7 @@ fun PlaylistThumbnail(
 }
 
 @Composable
-fun BoxScope.PlaylistPlayButton(
-    visible: Boolean,
-    onClick: () -> Unit,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = Modifier
-            .align(Alignment.BottomEnd)
-            .padding(8.dp)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = ActiveBoxAlpha))
-                .clickable(onClick = onClick)
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.play),
-                contentDescription = null,
-                tint = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-fun BoxScope.AlbumPlayButton(
+fun BoxScope.ItemsPlayButton(
     visible: Boolean,
     onClick: () -> Unit,
 ) {

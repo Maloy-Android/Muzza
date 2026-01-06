@@ -103,6 +103,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
@@ -328,9 +329,11 @@ fun TopPlaylistScreen(
                                     AutoResizeText(
                                         text = stringResource(R.string.my_top),
                                         fontWeight = FontWeight.Bold,
+                                        textAlign = TextAlign.Center,
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
-                                        fontSizeRange = FontSizeRange(16.sp, 22.sp)
+                                        fontSizeRange = FontSizeRange(16.sp, 22.sp),
+                                        modifier = Modifier.fillMaxWidth(0.8f)
                                     )
                                     Text(
                                         text = makeTimeString(likeLength * 1000L),

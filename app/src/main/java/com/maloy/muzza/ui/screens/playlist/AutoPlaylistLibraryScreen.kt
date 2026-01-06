@@ -32,6 +32,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -289,9 +290,11 @@ fun AutoPlaylistLibraryScreen(
                                 AutoResizeText(
                                     text = context.getString(R.string.songs_from_library),
                                     fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
-                                    fontSizeRange = FontSizeRange(16.sp, 22.sp)
+                                    fontSizeRange = FontSizeRange(16.sp, 22.sp),
+                                    modifier = Modifier.fillMaxWidth(0.8f)
                                 )
                                 Text(
                                     text = makeTimeString(likeLength * 1000L),

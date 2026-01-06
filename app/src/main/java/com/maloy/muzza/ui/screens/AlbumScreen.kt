@@ -73,6 +73,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withLink
 import androidx.compose.ui.text.withStyle
@@ -268,10 +269,12 @@ fun AlbumScreen(
                             AutoResizeText(
                                 text = albumWithSongs.album.title,
                                 fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
                                 maxLines = 2,
                                 overflow = TextOverflow.Ellipsis,
                                 fontSizeRange = FontSizeRange(16.sp, 22.sp),
                                 modifier = Modifier
+                                    .fillMaxWidth(0.8f)
                                     .combinedClickable(
                                         onClick = {
                                             menuState.show {

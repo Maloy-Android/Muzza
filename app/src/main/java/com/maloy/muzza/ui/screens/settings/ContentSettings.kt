@@ -27,9 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
-import android.content.Context
-import android.content.res.Configuration
-import android.os.LocaleList
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Favorite
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -56,9 +53,9 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import java.net.Proxy
-import java.util.Locale
 import androidx.core.net.toUri
-import androidx.core.content.edit
+import com.maloy.muzza.utils.saveLanguagePreference
+import com.maloy.muzza.utils.updateLanguage
 
 @SuppressLint("PrivateResource")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -245,17 +242,4 @@ fun ContentSettings(
         },
         scrollBehavior = scrollBehavior
     )
-}
-
-fun saveLanguagePreference(context: Context, languageCode: String) {
-    val sharedPreferences = context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
-    sharedPreferences.edit { putString("app_language", languageCode) }
-}
-
-
-fun updateLanguage(context: Context, languageCode: String) {
-    val locale = Locale(languageCode)
-    val config = Configuration(context.resources.configuration)
-    config.setLocales(LocaleList(locale))
-    context.resources.updateConfiguration(config, context.resources.displayMetrics)
 }

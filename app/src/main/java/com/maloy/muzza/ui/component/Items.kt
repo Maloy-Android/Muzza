@@ -775,7 +775,7 @@ fun AlbumGridItem(
             shape = RoundedCornerShape(ThumbnailCornerRadius),
         )
 
-        AlbumPlayButton(
+        ItemsPlayButton(
             visible = !isActive,
             onClick = {
                 coroutineScope.launch {
@@ -1517,7 +1517,7 @@ fun YouTubeGridItem(
             )
         }
 
-        AlbumPlayButton(
+        ItemsPlayButton(
             visible = item is AlbumItem && !isActive,
             onClick = {
                 coroutineScope?.launch(Dispatchers.IO) {

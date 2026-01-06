@@ -172,7 +172,6 @@ fun Queue(
     var sleepTimerTimeLeft by remember {
         mutableLongStateOf(0L)
     }
-    var fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = false)
 
     LaunchedEffect(sleepTimerEnabled) {
         if (sleepTimerEnabled) {
@@ -371,7 +370,6 @@ fun Queue(
                         TextButton(
                             onClick = {
                                 showLyrics = !showLyrics
-                                fullScreenLyrics = true
                             }
                         ) {
                             Row(
@@ -799,7 +797,6 @@ fun DetailsDialog(
 ) {
     val context = LocalContext.current
     val clipboardManager = LocalClipboardManager.current
-
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val currentFormat by playerConnection.currentFormat.collectAsState(initial = null)

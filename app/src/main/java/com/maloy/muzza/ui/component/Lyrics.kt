@@ -111,6 +111,7 @@ import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.constants.PureBlackKey
+import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.utils.ComposeToImage
 import kotlinx.coroutines.Dispatchers
@@ -210,6 +211,8 @@ fun Lyrics(
     var isSeeking by remember {
         mutableStateOf(false)
     }
+
+    var showLyrics by rememberPreference(ShowLyricsKey, false)
 
     LaunchedEffect(lyrics) {
         if (lyrics.isNullOrEmpty() || !lyrics.startsWith("[")) {
@@ -501,7 +504,10 @@ fun Lyrics(
                         }
                     }
                     IconButton(
-                        onClick = { fullScreenLyrics = !fullScreenLyrics }
+                        onClick = {
+                            fullScreenLyrics = !fullScreenLyrics
+                            showLyrics = !showLyrics
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.Rounded.Fullscreen,

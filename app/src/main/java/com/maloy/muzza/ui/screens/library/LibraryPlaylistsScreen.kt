@@ -434,6 +434,7 @@ fun LibraryPlaylistsScreen(
                                     isActive = playlist.id == mediaMetadata?.playlist?.id,
                                     isPlaying = isPlaying,
                                     fillMaxWidth = true,
+                                    coroutineScope = coroutineScope,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .combinedClickable(

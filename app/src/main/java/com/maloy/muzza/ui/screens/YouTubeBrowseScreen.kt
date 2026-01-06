@@ -247,6 +247,7 @@ fun YouTubeBrowseScreen(
                                         },
                                         isPlaying = isPlaying,
                                         coroutineScope = coroutineScope,
+                                        navController = navController,
                                         modifier =
                                         Modifier
                                             .combinedClickable(

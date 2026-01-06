@@ -75,6 +75,7 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.Download.STATE_COMPLETED
 import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
+import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
@@ -103,6 +104,12 @@ import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
+import com.maloy.muzza.ui.menu.AlbumMenu
+import com.maloy.muzza.ui.menu.PlaylistMenu
+import com.maloy.muzza.ui.menu.SongMenu
+import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
+import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
+import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
@@ -510,6 +517,7 @@ fun SongListItem(
 @Composable
 fun SongGridItem(
     song: Song,
+    navController: NavController,
     modifier: Modifier = Modifier,
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
@@ -542,6 +550,7 @@ fun SongGridItem(
     ),
     badges = badges,
     thumbnailContent = {
+        val menuState = LocalMenuState.current
         if (song.song.isLocal) {
             song.song.let {
                 AsyncLocalImage(
@@ -577,6 +586,18 @@ fun SongGridItem(
         }
         SongPlayButton(
             visible = !isActive
+        )
+        ItemsMenuButton(
+            visible = !isActive,
+            onClick = {
+                menuState.show {
+                    SongMenu(
+                        originalSong = song,
+                        navController = navController,
+                        onDismiss = menuState::dismiss
+                    )
+                }
+            }
         )
     },
     fillMaxWidth = fillMaxWidth,
@@ -712,6 +733,7 @@ fun AlbumListItem(
 
 @Composable
 fun AlbumGridItem(
+    navController: NavController,
     album: Album,
     modifier: Modifier = Modifier,
     showLikedIcon: Boolean = true,
@@ -767,6 +789,7 @@ fun AlbumGridItem(
     thumbnailContent = {
         val database = LocalDatabase.current
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
+        val menuState = LocalMenuState.current
 
         ItemThumbnail(
             thumbnailUrl = album.album.thumbnailUrl,
@@ -784,6 +807,18 @@ fun AlbumGridItem(
                             LocalAlbumRadio(albumWithSongs)
                         )
                     }
+                }
+            }
+        )
+        ItemsMenuButton(
+            visible = !isActive,
+            onClick = {
+                menuState.show {
+                    AlbumMenu(
+                        originalAlbum = album,
+                        navController = navController,
+                        onDismiss = menuState::dismiss
+                    )
                 }
             }
         )
@@ -929,6 +964,7 @@ fun PlaylistGridItem(
     modifier: Modifier = Modifier,
     fillMaxWidth: Boolean = false,
     showLikedIcon: Boolean = true,
+    coroutineScope: CoroutineScope,
     badges: @Composable (RowScope.() -> Unit) = {
         if (playlist.playlist.isLocal) {
             Icon.PlaylistLocal()
@@ -971,6 +1007,7 @@ fun PlaylistGridItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false
 ) {
+    val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val songs by produceState(initialValue = emptyList(), playlist.id) {
         withContext(Dispatchers.IO) {
@@ -1058,6 +1095,18 @@ fun PlaylistGridItem(
                             items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
                         )
                     )
+                }
+            )
+            ItemsMenuButton(
+                visible = !isActive,
+                onClick = {
+                    menuState.show {
+                        PlaylistMenu(
+                            playlist = playlist,
+                            coroutineScope = coroutineScope,
+                            onDismiss = menuState::dismiss
+                        )
+                    }
                 }
             )
         },
@@ -1422,6 +1471,7 @@ private fun BaseListItemContent(
 @Composable
 fun YouTubeGridItem(
     item: YTItem,
+    navController: NavController,
     modifier: Modifier = Modifier,
     coroutineScope: CoroutineScope? = null,
     test: Boolean = true,
@@ -1492,6 +1542,7 @@ fun YouTubeGridItem(
     },
     badges = badges,
     thumbnailContent = {
+        val menuState = LocalMenuState.current
         val database = LocalDatabase.current
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
 
@@ -1563,6 +1614,38 @@ fun YouTubeGridItem(
         )
         SongPlayButton(
             visible = item is SongItem && !isActive,
+        )
+        ItemsMenuButton(
+            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem) && !isActive,
+            onClick = {
+                menuState.show {
+                    when (item) {
+                        is PlaylistItem -> {
+                            YouTubePlaylistMenu(
+                                playlist = item,
+                                coroutineScope = coroutineScope!!,
+                                onDismiss = menuState::dismiss,
+                                navController = navController
+                            )
+                        }
+                        is AlbumItem -> {
+                            YouTubeAlbumMenu(
+                                albumItem = item,
+                                onDismiss = menuState::dismiss,
+                                navController = navController
+                            )
+                        }
+                        is SongItem -> {
+                            YouTubeSongMenu(
+                                song = item,
+                                onDismiss = menuState::dismiss,
+                                navController = navController
+                            )
+                        }
+                        else -> {}
+                    }
+                }
+            }
         )
     },
     thumbnailRatio = thumbnailRatio,
@@ -1724,6 +1807,35 @@ fun BoxScope.ItemsPlayButton(
         ) {
             Icon(
                 painter = painterResource(R.drawable.play),
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun BoxScope.ItemsMenuButton(
+    onClick: () -> Unit,
+    visible: Boolean = true
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = Modifier
+            .align(Alignment.TopEnd)
+            .padding(3.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(36.dp)
+                .clip(CircleShape)
+                .clickable(onClick = onClick)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.more_vert),
                 contentDescription = null,
                 tint = Color.White
             )

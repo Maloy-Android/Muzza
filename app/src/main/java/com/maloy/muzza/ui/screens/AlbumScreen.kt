@@ -601,6 +601,7 @@ fun AlbumScreen(
                                     isActive = mediaMetadata?.album?.id == item.id,
                                     isPlaying = isPlaying,
                                     coroutineScope = scope,
+                                    navController = navController,
                                     modifier =
                                         Modifier
                                             .combinedClickable(

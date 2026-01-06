@@ -231,6 +231,7 @@ fun HomeScreen(
                     ),
                 isActive = it.id == mediaMetadata?.id,
                 isPlaying = isPlaying,
+                navController = navController
             )
 
             is Album -> AlbumGridItem(
@@ -238,6 +239,7 @@ fun HomeScreen(
                 isActive = it.id == mediaMetadata?.album?.id,
                 isPlaying = isPlaying,
                 coroutineScope = scope,
+                navController = navController,
                 modifier = Modifier
                     .fillMaxWidth()
                     .combinedClickable(
@@ -291,6 +293,7 @@ fun HomeScreen(
             isPlaying = isPlaying,
             coroutineScope = scope,
             thumbnailRatio = 1f,
+            navController = navController,
             modifier = Modifier
                 .combinedClickable(
                     onClick = {

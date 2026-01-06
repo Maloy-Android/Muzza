@@ -189,6 +189,7 @@ fun NewReleaseScreen(
                             isPlaying = isPlaying,
                             fillMaxWidth = true,
                             coroutineScope = coroutineScope,
+                            navController = navController,
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {

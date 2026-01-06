@@ -114,6 +114,7 @@ fun ExploreScreen(
                             isActive = mediaMetadata?.album?.id == album.id,
                             isPlaying = isPlaying,
                             coroutineScope = coroutineScope,
+                            navController = navController,
                             modifier =
                                 Modifier
                                     .combinedClickable(

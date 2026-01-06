@@ -94,6 +94,7 @@ fun YouTubePlaylistsScreen(
                     fillMaxWidth = true,
                     isActive = mediaMetadata?.playlist?.id == item.id,
                     isPlaying = isPlaying,
+                    navController = navController,
                     modifier = Modifier
                         .combinedClickable(
                             onClick = {

@@ -368,6 +368,7 @@ fun LibraryAlbumsScreen(
                                 isPlaying = isPlaying,
                                 coroutineScope = coroutineScope,
                                 fillMaxWidth = true,
+                                navController = navController,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .combinedClickable(

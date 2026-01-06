@@ -253,6 +253,7 @@ fun StatsScreen(
                                     isActive = album.id == mediaMetadata?.album?.id,
                                     isPlaying = isPlaying,
                                     coroutineScope = coroutineScope,
+                                    navController = navController,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .combinedClickable(

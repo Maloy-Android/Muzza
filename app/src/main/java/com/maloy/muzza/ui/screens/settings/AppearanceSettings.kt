@@ -541,8 +541,8 @@ fun AppearanceSettings(
             onValueSelected = onGridCellSizeChange,
             valueText = {
                 when (it) {
-                    GridCellSize.SMALL -> stringResource(R.string.small)
                     GridCellSize.BIG -> stringResource(R.string.big)
+                    GridCellSize.SMALL -> stringResource(R.string.small)
                 }
             },
         )

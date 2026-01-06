@@ -60,7 +60,7 @@ val DefaultOpenTabKey = stringPreferencesKey("defaultOpenTab")
 val GridCellSizeKey = stringPreferencesKey("gridCellSize")
 
 enum class GridCellSize {
-    SMALL, BIG
+    BIG, SMALL
 }
 
 const val SYSTEM_DEFAULT = "SYSTEM_DEFAULT"

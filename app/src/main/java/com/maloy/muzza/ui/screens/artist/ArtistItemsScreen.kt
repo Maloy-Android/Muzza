@@ -121,7 +121,7 @@ fun ArtistItemsScreen(
         }
     }
 
-    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
     var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
 
     val snackbarHostState = remember { SnackbarHostState() }

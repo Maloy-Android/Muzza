@@ -89,7 +89,7 @@ fun NewReleaseScreen(
         }
     }
 
-    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
     var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
 
     val newReleaseAlbums by viewModel.newReleaseAlbums.collectAsState()

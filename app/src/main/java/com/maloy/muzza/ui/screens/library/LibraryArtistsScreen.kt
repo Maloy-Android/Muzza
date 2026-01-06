@@ -97,7 +97,7 @@ fun LibraryArtistsScreen(
     val haptic = LocalHapticFeedback.current
 
     var filter by rememberEnumPreference(ArtistFilterKey, ArtistFilter.LIKED)
-    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
     var viewType by rememberEnumPreference(ArtistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)

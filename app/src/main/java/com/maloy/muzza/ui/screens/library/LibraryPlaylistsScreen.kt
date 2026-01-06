@@ -113,7 +113,7 @@ fun LibraryPlaylistsScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.SMALL)
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         PlaylistSortTypeKey,

@@ -581,7 +581,8 @@ fun OnlinePlaylistScreen(
                                                     onClick = {
                                                         playerConnection.playQueue(
                                                             YouTubeQueue(
-                                                                radioEndpoint
+                                                                radioEndpoint,
+                                                                playlistTitle = playlist.title
                                                             )
                                                         )
                                                     },

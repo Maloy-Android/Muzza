@@ -20,8 +20,6 @@ val NowPlayingEnableKey = booleanPreferencesKey("nowPlayingEnable")
 val NowPlayingPaddingKey = intPreferencesKey("nowPlayingPadding")
 val SongDurationTimeSkipKey = stringPreferencesKey("songDurationTimeSkip")
 
-val ShowFlakeEffectKey = booleanPreferencesKey("showFlakeEffect")
-
 enum class DarkMode {
     ON, OFF, AUTO
 }
@@ -37,12 +35,6 @@ enum class LyricsPosition {
 
 enum class SongDurationTimeSkip {
     FIVE,TEN,FIFTEEN,TWENTY,TWENTYFIVE,THIRTY
-}
-
-enum class SnowflakeComplexity {
-    SIMPLE,
-    MEDIUM,
-    COMPLEX
 }
 
 val fullScreenLyricsKey = booleanPreferencesKey("fullScreenLyrics")

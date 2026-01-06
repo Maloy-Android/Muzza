@@ -123,7 +123,6 @@ import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.QueuePeekHeight
-import com.maloy.muzza.constants.ShowFlakeEffectKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
@@ -142,7 +141,6 @@ import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.ResizableIconButton
-import com.maloy.muzza.ui.component.SnowfallEffect
 import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.theme.extractGradientColors
@@ -204,8 +202,6 @@ fun BottomSheetPlayer(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.DEFAULT
     )
-
-    val (showFlakeEffect) = rememberPreference(ShowFlakeEffectKey, defaultValue = true)
 
     val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
 
@@ -383,15 +379,6 @@ fun BottomSheetPlayer(
             )
         }
     ) {
-        if (showFlakeEffect) {
-            SnowfallEffect(
-                modifier = Modifier.fillMaxSize(),
-                isActive = true,
-                snowflakeCount = 25,
-                speedMultiplier = 0.6f,
-                isDarkTheme = useDarkTheme
-            )
-        }
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
             if (fullScreenLyrics) {
                 Row(

@@ -126,7 +126,6 @@ import com.maloy.muzza.constants.PauseSearchHistoryKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SearchSource
 import com.maloy.muzza.constants.SearchSourceKey
-import com.maloy.muzza.constants.ShowFlakeEffectKey
 import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.db.MusicDatabase
@@ -141,7 +140,6 @@ import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.BottomSheetMenu
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
-import com.maloy.muzza.ui.component.SnowfallEffect
 import com.maloy.muzza.ui.component.TopSearch
 import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.component.shimmer.ShimmerTheme
@@ -483,8 +481,6 @@ class MainActivity : ComponentActivity() {
                         defaultValue = false
                     )
 
-                    val (showFlakeEffect) = rememberPreference(ShowFlakeEffectKey, defaultValue = true)
-
                     LaunchedEffect(Unit) {
                         if (!firstSetupPassed) {
                             navController.navigate("setup_wizard")
@@ -630,19 +626,6 @@ class MainActivity : ComponentActivity() {
                         LocalSyncUtils provides syncUtils,
                         LocalSnackbarHostState provides snackbarHostState
                     ) {
-                        if (showFlakeEffect) {
-                            SnowfallEffect(
-                                modifier = Modifier.fillMaxSize(),
-                                isActive = true,
-                                snowflakeCount = when {
-                                    maxHeight > 1200.dp -> 60
-                                    maxHeight > 800.dp -> 40
-                                    else -> 30
-                                },
-                                speedMultiplier = if (useDarkTheme) 1.0f else 0.8f,
-                                isDarkTheme = useDarkTheme
-                            )
-                        }
                         NavHost(
                             navController = navController,
                             startDestination = when (tabOpenedFromShortcut ?: defaultOpenTab) {

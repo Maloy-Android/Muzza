@@ -338,7 +338,6 @@
     <string name="appearance">Зовнішній вигляд</string>
     <string name="theme">Тема</string>
     <string name="proxy">Проксі</string>
-    <string name="enable_snowflake_effect">Ефект сніжинок</string>
     <string name="enable_dynamic_theme">Увімкнути динамічну тему</string>
     <string name="mini_player_style">Стиль міні плеєра</string>
     <string name="player_style">Стиль гравця</string>

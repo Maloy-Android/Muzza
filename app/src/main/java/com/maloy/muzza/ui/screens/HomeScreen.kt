@@ -7,8 +7,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -30,8 +28,6 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -150,7 +146,6 @@ fun HomeScreen(
     val accountPlaylists by viewModel.accountPlaylists.collectAsState()
     val homePage by viewModel.homePage.collectAsState()
     val explorePage by viewModel.explorePage.collectAsState()
-    val playlists by viewModel.playlists.collectAsState()
     val recentActivity by viewModel.recentActivity.collectAsState()
 
     val (showRecentActivity) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
@@ -461,23 +456,19 @@ fun HomeScreen(
                         ) { item ->
                             YouTubeCardItem(
                                 item,
+                                isPlaying = isPlaying,
+                                isActive = when (item.type) {
+                                    PLAYLIST -> mediaMetadata?.playlist?.id == item.id
+                                    ALBUM -> mediaMetadata?.album?.id == item.id
+                                    ARTIST -> false
+                                },
                                 onClick = {
                                     when (item.type) {
-                                        PLAYLIST -> {
-                                            val playlistDb = playlists
-                                                ?.firstOrNull { it.playlist.browseId == item.id }
-
-                                            if (playlistDb != null && playlistDb.songCount != 0)
-                                                navController.navigate("local_playlist/${playlistDb.id}")
-                                            else
-                                                navController.navigate("online_playlist/${item.id}")
-                                        }
-
+                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}")
                                         ALBUM -> navController.navigate("album/${item.id}")
-
                                         ARTIST -> navController.navigate("artist/${item.id}")
                                     }
-                                },
+                                }
                             )
                         }
                     }

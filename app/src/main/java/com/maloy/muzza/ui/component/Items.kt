@@ -5,6 +5,7 @@ import android.net.Uri
 import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -1143,6 +1144,8 @@ fun YouTubeCardItem(
     item: RecentActivityEntity,
     modifier: Modifier = Modifier,
     onClick: () -> Unit,
+    isActive: Boolean = false,
+    isPlaying: Boolean = false,
 ) {
     val configuration = LocalConfiguration.current
     val screenWidthDp = configuration.screenWidthDp
@@ -1191,6 +1194,29 @@ fun YouTubeCardItem(
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
             )
+        }
+        AnimatedVisibility(
+            visible = isActive,
+            enter = fadeIn(tween(500)),
+            exit = fadeOut(tween(500))
+        ) {
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .background(
+                        color = Color.Transparent,
+                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                    )
+                    .size(20.dp)
+            ) {
+                PlayingIndicator(
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.height(18.dp),
+                    barWidth = 3.dp,
+                    isPlaying = isPlaying
+                )
+            }
         }
     }
 }

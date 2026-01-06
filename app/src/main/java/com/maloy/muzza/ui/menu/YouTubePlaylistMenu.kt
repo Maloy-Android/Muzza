@@ -578,7 +578,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         playlist.radioEndpoint?.let { radioEndpoint ->
-                            playerConnection.playQueue(YouTubeQueue(playlist.radioEndpoint!!, playlistTitle = playlist.title))
+                            playerConnection.playQueue(YouTubeQueue(playlist.radioEndpoint!!))
                         }
                         onDismiss()
                     }

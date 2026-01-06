@@ -111,7 +111,6 @@ import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.constants.PureBlackKey
-import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.utils.ComposeToImage
 import kotlinx.coroutines.Dispatchers
@@ -131,7 +130,6 @@ fun Lyrics(
     val playerConnection = LocalPlayerConnection.current ?: return
     val menuState = LocalMenuState.current
     val density = LocalDensity.current
-    var showLyrics by rememberPreference(ShowLyricsKey, false)
     val landscapeOffset = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
     val configuration = LocalConfiguration.current
@@ -394,7 +392,9 @@ fun Lyrics(
                             }
                         )
                         .background(
-                            if (isSelected && isSelectionModeActive) MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                            if (isSelected && isSelectionModeActive) MaterialTheme.colorScheme.primary.copy(
+                                alpha = 0.3f
+                            )
                             else Color.Transparent
                         )
                         .padding(horizontal = 24.dp, vertical = 8.dp)
@@ -490,7 +490,6 @@ fun Lyrics(
                     if (!fullScreenLyrics || playerStyle == PlayerStyle.OLD) {
                         IconButton(
                             onClick = {
-                                showLyrics = false
                                 fullScreenLyrics = true
                             }
                         ) {
@@ -501,26 +500,14 @@ fun Lyrics(
                             )
                         }
                     }
-                    if (fullScreenLyrics) {
-                        IconButton(
-                            onClick = { fullScreenLyrics = false }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Fullscreen,
-                                contentDescription = null,
-                                tint = textColor
-                            )
-                        }
-                    } else {
-                        IconButton(
-                            onClick = { fullScreenLyrics = true }
-                        ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Fullscreen,
-                                contentDescription = null,
-                                tint = textColor
-                            )
-                        }
+                    IconButton(
+                        onClick = { fullScreenLyrics = !fullScreenLyrics }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Rounded.Fullscreen,
+                            contentDescription = null,
+                            tint = textColor
+                        )
                     }
                     IconButton(
                         onClick = {
@@ -591,10 +578,19 @@ fun Lyrics(
                                 val shareIntent = Intent().apply {
                                     action = Intent.ACTION_SEND
                                     type = "text/plain"
-                                    val songLink = "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
-                                    putExtra(Intent.EXTRA_TEXT, "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink")
+                                    val songLink =
+                                        "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                    putExtra(
+                                        Intent.EXTRA_TEXT,
+                                        "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink"
+                                    )
                                 }
-                                context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics)))
+                                context.startActivity(
+                                    Intent.createChooser(
+                                        shareIntent,
+                                        context.getString(R.string.share_lyrics)
+                                    )
+                                )
                                 showShareDialog = false
                             }
                             .padding(vertical = 12.dp),

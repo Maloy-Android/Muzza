@@ -123,7 +123,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.YouTubeQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -580,8 +580,9 @@ fun OnlinePlaylistScreen(
                                                 Button(
                                                     onClick = {
                                                         playerConnection.playQueue(
-                                                            YouTubeQueue(
-                                                                radioEndpoint
+                                                            YouTubePlaylistQueue(
+                                                                radioEndpoint,
+                                                                playlistId = playlist.id
                                                             )
                                                         )
                                                     },

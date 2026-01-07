@@ -54,6 +54,7 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -164,7 +165,7 @@ fun YouTubePlaylistMenu(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         playlist.radioEndpoint?.let { radioEndpoint ->
-                            playerConnection.playQueue(YouTubeQueue(playlist.radioEndpoint!!))
+                            playerConnection.playQueue(YouTubePlaylistQueue(playlist.radioEndpoint!!, playlistId = playlist.id))
                         }
                         onDismiss()
                     }

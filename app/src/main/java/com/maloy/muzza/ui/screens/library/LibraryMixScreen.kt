@@ -80,6 +80,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
+import com.maloy.innertube.YouTube
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -94,6 +95,7 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.HideOnScrollFAB
@@ -141,6 +143,7 @@ fun LibraryMixScreen(
     val playlists by viewModel.playlists.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState(initial = null)
     val librarySongsPlay by viewModel.librarySongsPlay.collectAsState(initial = null)
+    val libraryLikedSongs by viewModel.libraryLikedLibrarySongs.collectAsState(initial = null)
 
     val artists by viewModel.allArtists.collectAsState()
 
@@ -238,6 +241,27 @@ fun LibraryMixScreen(
         if (scrollToTop?.value == true) {
             lazyListState.animateScrollToItem(0)
             backStackEntry?.savedStateHandle?.set("scrollToTop", false)
+        }
+    }
+
+    LaunchedEffect(libraryLikedSongs) {
+        libraryLikedSongs?.let { songs ->
+            if (songs.isNotEmpty() && isInternetAvailable(context)) {
+                coroutineScope.launch(Dispatchers.IO) {
+                    val songIds = songs.map { it.song.id }
+                    YouTube.queue(songIds).onSuccess { updatedSongs ->
+                        database.transaction {
+                            updatedSongs.forEach { newSong ->
+                                val songWrapper =
+                                    songs.find { it.song.id == newSong.id }
+                                if (songWrapper != null) {
+                                    update(songWrapper, newSong.toMediaMetadata())
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

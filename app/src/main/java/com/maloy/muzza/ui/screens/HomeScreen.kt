@@ -73,16 +73,12 @@ import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.MainActivity.Companion.ACTION_EXPLORE
-import com.maloy.muzza.MainActivity.Companion.ACTION_HOME
-import com.maloy.muzza.MainActivity.Companion.ACTION_LIBRARY
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
-import com.maloy.muzza.constants.NavigationTab
 import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
@@ -295,7 +291,6 @@ fun HomeScreen(
             item = item,
             isActive = item.id in listOf(mediaMetadata?.album?.id, mediaMetadata?.id, mediaMetadata?.playlist?.id),
             isPlaying = isPlaying,
-            coroutineScope = scope,
             thumbnailRatio = 1f,
             navController = navController,
             modifier = Modifier

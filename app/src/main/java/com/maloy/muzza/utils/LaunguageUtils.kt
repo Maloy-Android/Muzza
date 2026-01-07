@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package com.maloy.muzza.utils
 
 import android.content.Context

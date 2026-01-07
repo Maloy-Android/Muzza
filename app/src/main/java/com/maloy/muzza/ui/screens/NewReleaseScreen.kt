@@ -26,7 +26,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -93,8 +92,6 @@ fun NewReleaseScreen(
     var viewType by rememberEnumPreference(AlbumViewTypeKey, LibraryViewType.GRID)
 
     val newReleaseAlbums by viewModel.newReleaseAlbums.collectAsState()
-
-    val coroutineScope = rememberCoroutineScope()
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
@@ -188,7 +185,6 @@ fun NewReleaseScreen(
                             isActive = mediaMetadata?.album?.id == album.id,
                             isPlaying = isPlaying,
                             fillMaxWidth = true,
-                            coroutineScope = coroutineScope,
                             navController = navController,
                             modifier = Modifier
                                 .combinedClickable(

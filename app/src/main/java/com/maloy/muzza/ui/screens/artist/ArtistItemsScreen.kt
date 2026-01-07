@@ -423,7 +423,6 @@ fun ArtistItemsScreen(
                                 },
                                 isPlaying = isPlaying,
                                 fillMaxWidth = true,
-                                coroutineScope = coroutineScope,
                                 navController = navController,
                                 modifier = Modifier
                                     .combinedClickable(

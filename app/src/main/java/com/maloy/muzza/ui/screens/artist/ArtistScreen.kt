@@ -536,7 +536,6 @@ fun ArtistScreen(
                                             else -> true
                                         },
                                         isPlaying = isPlaying,
-                                        coroutineScope = coroutineScope,
                                         navController = navController,
                                         modifier = Modifier
                                             .combinedClickable(

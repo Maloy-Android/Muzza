@@ -246,7 +246,6 @@ fun YouTubeBrowseScreen(
                                             else -> false
                                         },
                                         isPlaying = isPlaying,
-                                        coroutineScope = coroutineScope,
                                         navController = navController,
                                         modifier =
                                         Modifier

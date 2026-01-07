@@ -149,7 +149,6 @@ import com.maloy.muzza.ui.screens.Screens
 import com.maloy.muzza.ui.screens.navigationBuilder
 import com.maloy.muzza.ui.screens.search.LocalSearchScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
-import com.maloy.muzza.ui.screens.settings.updateLanguage
 import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.theme.MuzzaTheme
@@ -165,6 +164,7 @@ import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.reportException
+import com.maloy.muzza.utils.updateLanguage
 import com.maloy.muzza.utils.urlEncode
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers

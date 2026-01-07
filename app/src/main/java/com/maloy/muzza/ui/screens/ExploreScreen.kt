@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.screens
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,7 +30,6 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -67,7 +65,6 @@ fun ExploreScreen(
 
     val explorePage by viewModel.explorePage.collectAsState()
 
-    val coroutineScope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
@@ -113,7 +110,6 @@ fun ExploreScreen(
                             item = album,
                             isActive = mediaMetadata?.album?.id == album.id,
                             isPlaying = isPlaying,
-                            coroutineScope = coroutineScope,
                             navController = navController,
                             modifier =
                                 Modifier

@@ -51,6 +51,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -1473,7 +1474,6 @@ fun YouTubeGridItem(
     item: YTItem,
     navController: NavController,
     modifier: Modifier = Modifier,
-    coroutineScope: CoroutineScope? = null,
     test: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
@@ -1545,6 +1545,7 @@ fun YouTubeGridItem(
         val menuState = LocalMenuState.current
         val database = LocalDatabase.current
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
+        val coroutineScope = rememberCoroutineScope()
 
         if (test) {
             ItemThumbnail(
@@ -1571,7 +1572,7 @@ fun YouTubeGridItem(
         ItemsPlayButton(
             visible = item is AlbumItem && !isActive,
             onClick = {
-                coroutineScope?.launch(Dispatchers.IO) {
+                coroutineScope.launch(Dispatchers.IO) {
                     var albumWithSongs = database.albumWithSongs(item.id).first()
                     if (albumWithSongs?.songs.isNullOrEmpty()) {
                         YouTube.album(item.id).onSuccess { albumPage ->
@@ -1596,7 +1597,7 @@ fun YouTubeGridItem(
         ItemsPlayButton(
             visible = item is PlaylistItem && !isActive,
             onClick = {
-                coroutineScope?.launch {
+                coroutineScope.launch {
                         withContext(Dispatchers.IO) {
                             YouTube.playlist(item.id).completed()
                                 .getOrNull()?.songs.orEmpty()
@@ -1623,7 +1624,7 @@ fun YouTubeGridItem(
                         is PlaylistItem -> {
                             YouTubePlaylistMenu(
                                 playlist = item,
-                                coroutineScope = coroutineScope!!,
+                                coroutineScope = coroutineScope,
                                 onDismiss = menuState::dismiss,
                                 navController = navController
                             )

@@ -1486,7 +1486,7 @@ fun YouTubeGridItem(
         }
         if (item is SongItem && song?.song?.liked == true ||
             item is AlbumItem && album?.album?.bookmarkedAt != null ||
-            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null && playlist?.playlist?.isLocal != true
+            item is PlaylistItem && playlist?.playlist?.bookmarkedAt != null
         ) {
             Icon.Favorite()
         }

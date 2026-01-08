@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 15,
-    "identityHash": "7eb4068703e2c23ffdf0d7d8289357f1",
+    "identityHash": "b2aefbaf97375d551a710d2cbc5e3393",
     "entities": [
       {
         "tableName": "song",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `liked` INTEGER NOT NULL, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, `dateDownload` INTEGER, `artistName` TEXT, `isLocal` INTEGER NOT NULL DEFAULT false, `localPath` TEXT, `contentUri` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `duration` INTEGER NOT NULL, `thumbnailUrl` TEXT, `albumId` TEXT, `albumName` TEXT, `year` INTEGER, `date` INTEGER, `dateModified` INTEGER, `liked` INTEGER NOT NULL, `likedDate` INTEGER, `totalPlayTime` INTEGER NOT NULL, `inLibrary` INTEGER, `isLocal` INTEGER NOT NULL DEFAULT false, `localPath` TEXT, `dateDownload` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -29,23 +29,50 @@
           {
             "fieldPath": "thumbnailUrl",
             "columnName": "thumbnailUrl",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "albumId",
             "columnName": "albumId",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "albumName",
             "columnName": "albumName",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": false
+          },
+          {
+            "fieldPath": "year",
+            "columnName": "year",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "date",
+            "columnName": "date",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "dateModified",
+            "columnName": "dateModified",
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "liked",
             "columnName": "liked",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "likedDate",
+            "columnName": "likedDate",
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "totalPlayTime",
@@ -56,34 +83,14 @@
           {
             "fieldPath": "inLibrary",
             "columnName": "inLibrary",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "dateDownload",
             "columnName": "dateDownload",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "artistName",
-            "columnName": "artistName",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
             "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
-          },
-          {
-            "fieldPath": "localPath",
-            "columnName": "localPath",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "contentUri",
-            "columnName": "contentUri",
-            "affinity": "TEXT"
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -102,11 +109,12 @@
             "orders": [],
             "createSql": "CREATE INDEX IF NOT EXISTS `index_song_albumId` ON `${TABLE_NAME}` (`albumId`)"
           }
-        ]
+        ],
+        "foreignKeys": []
       },
       {
         "tableName": "artist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `channelId` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `thumbnailUrl` TEXT, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -123,12 +131,8 @@
           {
             "fieldPath": "thumbnailUrl",
             "columnName": "thumbnailUrl",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "channelId",
-            "columnName": "channelId",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "lastUpdateTime",
@@ -139,7 +143,8 @@
           {
             "fieldPath": "bookmarkedAt",
             "columnName": "bookmarkedAt",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -147,22 +152,19 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [],
+        "foreignKeys": []
       },
       {
         "tableName": "album",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `playlistId` TEXT, `title` TEXT NOT NULL, `year` INTEGER, `thumbnailUrl` TEXT, `themeColor` INTEGER, `songCount` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `year` INTEGER, `thumbnailUrl` TEXT, `themeColor` INTEGER, `songCount` INTEGER NOT NULL, `duration` INTEGER NOT NULL, `lastUpdateTime` INTEGER NOT NULL, `bookmarkedAt` INTEGER, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
             "columnName": "id",
             "affinity": "TEXT",
             "notNull": true
-          },
-          {
-            "fieldPath": "playlistId",
-            "columnName": "playlistId",
-            "affinity": "TEXT"
           },
           {
             "fieldPath": "title",
@@ -173,17 +175,20 @@
           {
             "fieldPath": "year",
             "columnName": "year",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "thumbnailUrl",
             "columnName": "thumbnailUrl",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "themeColor",
             "columnName": "themeColor",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "songCount",
@@ -206,7 +211,8 @@
           {
             "fieldPath": "bookmarkedAt",
             "columnName": "bookmarkedAt",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -214,11 +220,13 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [],
+        "foreignKeys": []
       },
       {
         "tableName": "playlist",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, `createdAt` INTEGER, `lastUpdateTime` INTEGER, `isEditable` INTEGER NOT NULL DEFAULT true, `bookmarkedAt` INTEGER, `remoteSongCount` INTEGER, `playEndpointParams` TEXT, `thumbnailUrl` TEXT, `shuffleEndpointParams` TEXT, `radioEndpointParams` TEXT, `isLocal` INTEGER NOT NULL DEFAULT false, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `name` TEXT NOT NULL, `browseId` TEXT, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -235,61 +243,20 @@
           {
             "fieldPath": "browseId",
             "columnName": "browseId",
-            "affinity": "TEXT"
+            "affinity": "TEXT",
+            "notNull": false
           },
           {
             "fieldPath": "createdAt",
             "columnName": "createdAt",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "lastUpdateTime",
             "columnName": "lastUpdateTime",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "isEditable",
-            "columnName": "isEditable",
             "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "true"
-          },
-          {
-            "fieldPath": "bookmarkedAt",
-            "columnName": "bookmarkedAt",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "remoteSongCount",
-            "columnName": "remoteSongCount",
-            "affinity": "INTEGER"
-          },
-          {
-            "fieldPath": "playEndpointParams",
-            "columnName": "playEndpointParams",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "thumbnailUrl",
-            "columnName": "thumbnailUrl",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "shuffleEndpointParams",
-            "columnName": "shuffleEndpointParams",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "radioEndpointParams",
-            "columnName": "radioEndpointParams",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "isLocal",
-            "columnName": "isLocal",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "false"
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -297,7 +264,9 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [],
+        "foreignKeys": []
       },
       {
         "tableName": "song_artist_map",
@@ -526,7 +495,7 @@
       },
       {
         "tableName": "playlist_song_map",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `playlistId` TEXT NOT NULL, `songId` TEXT NOT NULL, `position` INTEGER NOT NULL, `setVideoId` TEXT, FOREIGN KEY(`playlistId`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`songId`) REFERENCES `song`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `playlistId` TEXT NOT NULL, `songId` TEXT NOT NULL, `position` INTEGER NOT NULL, FOREIGN KEY(`playlistId`) REFERENCES `playlist`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`songId`) REFERENCES `song`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )",
         "fields": [
           {
             "fieldPath": "id",
@@ -551,11 +520,6 @@
             "columnName": "position",
             "affinity": "INTEGER",
             "notNull": true
-          },
-          {
-            "fieldPath": "setVideoId",
-            "columnName": "setVideoId",
-            "affinity": "TEXT"
           }
         ],
         "primaryKey": {
@@ -642,11 +606,12 @@
             "orders": [],
             "createSql": "CREATE UNIQUE INDEX IF NOT EXISTS `index_search_history_query` ON `${TABLE_NAME}` (`query`)"
           }
-        ]
+        ],
+        "foreignKeys": []
       },
       {
         "tableName": "format",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `itag` INTEGER NOT NULL, `mimeType` TEXT NOT NULL, `codecs` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `sampleRate` INTEGER, `contentLength` INTEGER NOT NULL, `loudnessDb` REAL, `playbackUrl` TEXT, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `itag` INTEGER NOT NULL, `mimeType` TEXT NOT NULL, `codecs` TEXT NOT NULL, `bitrate` INTEGER NOT NULL, `sampleRate` INTEGER, `contentLength` INTEGER NOT NULL, `loudnessDb` REAL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -681,7 +646,8 @@
           {
             "fieldPath": "sampleRate",
             "columnName": "sampleRate",
-            "affinity": "INTEGER"
+            "affinity": "INTEGER",
+            "notNull": false
           },
           {
             "fieldPath": "contentLength",
@@ -692,12 +658,8 @@
           {
             "fieldPath": "loudnessDb",
             "columnName": "loudnessDb",
-            "affinity": "REAL"
-          },
-          {
-            "fieldPath": "playbackUrl",
-            "columnName": "playbackUrl",
-            "affinity": "TEXT"
+            "affinity": "REAL",
+            "notNull": false
           }
         ],
         "primaryKey": {
@@ -705,7 +667,9 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [],
+        "foreignKeys": []
       },
       {
         "tableName": "lyrics",
@@ -729,7 +693,9 @@
           "columnNames": [
             "id"
           ]
-        }
+        },
+        "indices": [],
+        "foreignKeys": []
       },
       {
         "tableName": "event",
@@ -864,97 +830,6 @@
             ]
           }
         ]
-      },
-      {
-        "tableName": "set_video_id",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`videoId` TEXT NOT NULL, `setVideoId` TEXT, PRIMARY KEY(`videoId`))",
-        "fields": [
-          {
-            "fieldPath": "videoId",
-            "columnName": "videoId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "setVideoId",
-            "columnName": "setVideoId",
-            "affinity": "TEXT"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "videoId"
-          ]
-        }
-      },
-      {
-        "tableName": "recent_activity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `thumbnail` TEXT, `explicit` INTEGER NOT NULL, `shareLink` TEXT NOT NULL, `type` TEXT NOT NULL, `playlistId` TEXT, `radioPlaylistId` TEXT, `shufflePlaylistId` TEXT, `date` INTEGER NOT NULL, PRIMARY KEY(`id`))",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "title",
-            "columnName": "title",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "thumbnail",
-            "columnName": "thumbnail",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "explicit",
-            "columnName": "explicit",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "shareLink",
-            "columnName": "shareLink",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "type",
-            "columnName": "type",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "playlistId",
-            "columnName": "playlistId",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "radioPlaylistId",
-            "columnName": "radioPlaylistId",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "shufflePlaylistId",
-            "columnName": "shufflePlaylistId",
-            "affinity": "TEXT"
-          },
-          {
-            "fieldPath": "date",
-            "columnName": "date",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "id"
-          ]
-        }
       }
     ],
     "views": [
@@ -973,7 +848,7 @@
     ],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '7eb4068703e2c23ffdf0d7d8289357f1')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b2aefbaf97375d551a710d2cbc5e3393')"
     ]
   }
 }

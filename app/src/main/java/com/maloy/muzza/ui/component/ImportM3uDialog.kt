@@ -40,6 +40,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.SongSortType
@@ -47,8 +49,9 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongArtistMap
+import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.ui.menu.AddToPlaylistDialog
-import com.maloy.muzza.utils.youtubeSongLookup
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -371,4 +374,33 @@ fun loadM3u(
 
 fun InputStream.readLines(): List<String> {
     return this.bufferedReader().useLines { it.toList() }
+}
+
+fun youtubeSongLookup(query: String, songUrl: String?): List<MediaMetadata> {
+    val ytmResult = ArrayList<MediaMetadata>()
+    runBlocking(Dispatchers.IO) {
+        var exactSong: SongItem? = null
+        if (songUrl != null) {
+            runBlocking(Dispatchers.IO) {
+                runCatching {
+                    YouTube.queue(listOf(songUrl.substringAfter("/watch?v=").substringBefore("&")))
+                }.onSuccess {
+                    exactSong = it.getOrNull()?.firstOrNull()
+                }.onFailure {
+                    reportException(it)
+                }
+            }
+        }
+        if (exactSong != null) {
+            ytmResult.add(exactSong.toMediaMetadata())
+            return@runBlocking
+        }
+        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { result ->
+            val foundSong = result.items.filter {
+                it is SongItem
+            }
+            ytmResult.addAll(foundSong.map { (it as SongItem).toMediaMetadata() })
+        }
+    }
+    return ytmResult
 }

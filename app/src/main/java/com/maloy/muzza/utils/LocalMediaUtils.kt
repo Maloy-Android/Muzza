@@ -5,15 +5,14 @@ package com.maloy.muzza.utils
 import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
+import android.net.Uri
 import android.provider.MediaStore
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.SongItem
+import androidx.core.content.FileProvider
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.models.MediaMetadata
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -22,7 +21,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import java.io.File
 import java.time.LocalDateTime
+import androidx.core.net.toUri
 
 const val sdcardRoot = "/storage/emulated/0/"
 var directoryUID = 0
@@ -39,6 +40,7 @@ val projection = arrayOf(
     MediaStore.Audio.Media.ALBUM,
     MediaStore.Audio.Media.ALBUM_ID,
     MediaStore.Audio.Media.RELATIVE_PATH,
+    MediaStore.Audio.Media.DATA
 )
 
 class DirectoryTree(path: String) {
@@ -58,7 +60,6 @@ class DirectoryTree(path: String) {
     fun insert(path: String, song: Song) {
         if (path.indexOf('/') == -1) {
             files.add(song)
-            println(path)
             return
         }
         var tmppath = path
@@ -123,9 +124,10 @@ fun scanLocal(context: Context) =
 @OptIn(ExperimentalCoroutinesApi::class)
 fun scanLocal(
     context: Context,
-    scanPaths: ArrayList<String>
+    scanPaths: ArrayList<String> = arrayListOf("")
 ): MutableStateFlow<DirectoryTree> {
     val newDirectoryStructure = DirectoryTree(sdcardRoot)
+
     val contentResolver: ContentResolver = context.contentResolver
     val cursor = contentResolver.query(
         MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
@@ -135,50 +137,25 @@ fun scanLocal(
         null
     )
 
-    val scannerJobs = ArrayList<Deferred<Song>>()
+    val scannerJobs = ArrayList<Deferred<Song?>>()
     runBlocking {
         cursor?.use { cursor ->
             val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-            val nameColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DISPLAY_NAME)
             val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
             val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-            val artistIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
             val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-            val albumIDColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-            val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-            val pathColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.RELATIVE_PATH)
+            val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
-                val name = cursor.getString(nameColumn)
                 val title = cursor.getString(titleColumn)
                 val duration = cursor.getInt(durationColumn)
-                val artist = cursor.getString(artistColumn)
-                val artistID = cursor.getString(artistIdColumn)
-                val albumID = cursor.getString(albumIDColumn)
-                val album = cursor.getString(albumColumn)
-                val path = cursor.getString(pathColumn)
-                fun advancedScan(): Song {
-                    val artists = ArrayList<ArtistEntity>()
-                    artists.add(ArtistEntity(artistID, artist))
-                    return Song(
-                        SongEntity(
-                            id.toString(),
-                            title,
-                            (duration / 1000),
-                            artistName = artist,
-                            albumId = albumID,
-                            albumName = album,
-                            isLocal = true,
-                            liked = false,
-                            inLibrary = LocalDateTime.now(),
-                            localPath = "$sdcardRoot$path$name"
-                        ),
-                        artists
-                    )
-                }
+                val artist = cursor.getString(artistColumn) ?: "Unknown Artist"
+                val data = cursor.getString(dataColumn) ?: ""
 
-                scannerJobs.add(async(Dispatchers.IO) { advancedScan() })
+                scannerJobs.add(async(Dispatchers.IO) {
+                    extractSongMetadata(id, title, artist, duration, data)
+                })
             }
         }
 
@@ -186,15 +163,55 @@ fun scanLocal(
     }
     scannerJobs.forEach { it ->
         val song = it.getCompleted()
-        song.song.localPath?.let {
-            newDirectoryStructure.insert(
-                it.substringAfter(sdcardRoot), song
-            )
+        song?.let {
+            it.song.localPath?.let { path ->
+                newDirectoryStructure.insert(
+                    path.substringAfter(sdcardRoot), it
+                )
+            }
         }
     }
 
     cachedDirectoryTree = newDirectoryStructure
     return MutableStateFlow(newDirectoryStructure)
+}
+
+private fun extractSongMetadata(
+    mediaStoreId: Long,
+    title: String,
+    artist: String,
+    duration: Int,
+    filePath: String
+): Song? {
+    return try {
+        val fileId = "LOCAL_$mediaStoreId"
+        val contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
+            .buildUpon()
+            .appendPath(mediaStoreId.toString())
+            .build()
+
+        val artistId = "ARTIST_${(artist).hashCode()}"
+        val artists = listOf(ArtistEntity(artistId, artist))
+
+        val songEntity = SongEntity(
+            id = fileId,
+            title = title,
+            duration = (duration / 1000),
+            artistName = artist,
+            albumId = null,
+            albumName = null,
+            isLocal = true,
+            liked = false,
+            inLibrary = LocalDateTime.now(),
+            localPath = filePath,
+            contentUri = contentUri.toString()
+        )
+
+        Song(songEntity, artists)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
 }
 
 fun syncDB(
@@ -212,7 +229,8 @@ fun syncDB(
                     id = existingSong.song.id,
                     liked = existingSong.song.liked,
                     inLibrary = existingSong.song.inLibrary,
-                    totalPlayTime = existingSong.song.totalPlayTime
+                    totalPlayTime = existingSong.song.totalPlayTime,
+                    contentUri = scannedSong.song.contentUri ?: existingSong.song.contentUri
                 )
                 database.update(updatedSong)
             } else {
@@ -228,34 +246,49 @@ fun syncDB(
     }
 }
 
-fun youtubeSongLookup(query: String, songUrl: String?): List<MediaMetadata> {
-    val ytmResult = ArrayList<MediaMetadata>()
-    runBlocking(Dispatchers.IO) {
-        var exactSong: SongItem? = null
-        if (songUrl != null) {
-            runBlocking(Dispatchers.IO) {
-                runCatching {
-                    YouTube.queue(listOf(songUrl.substringAfter("/watch?v=").substringBefore("&")))
-                }.onSuccess {
-                    exactSong = it.getOrNull()?.firstOrNull()
-                }.onFailure {
-                    reportException(it)
-                }
+fun getPlaybackUriForLocalSong(context: Context, songEntity: SongEntity): Uri? {
+    return try {
+        if (!songEntity.contentUri.isNullOrEmpty()) {
+            return songEntity.contentUri.toUri()
+        }
+        val localPath = songEntity.localPath ?: return null
+        val contentResolver = context.contentResolver
+        val projection = arrayOf(MediaStore.Audio.Media._ID)
+        val selection = "${MediaStore.Audio.Media.DATA} = ?"
+        val selectionArgs = arrayOf(localPath)
+        contentResolver.query(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            projection,
+            selection,
+            selectionArgs,
+            null
+        )?.use { cursor ->
+            if (cursor.moveToFirst()) {
+                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+                val id = cursor.getLong(idColumn)
+                return Uri.withAppendedPath(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    id.toString()
+                )
             }
         }
-        if (exactSong != null) {
-            ytmResult.add(exactSong.toMediaMetadata())
-            return@runBlocking
+        try {
+            val authority = "${context.packageName}.fileprovider"
+            FileProvider.getUriForFile(
+                context,
+                authority,
+                File(localPath)
+            )
+        } catch (_: Exception) {
+            Uri.fromFile(File(localPath))
         }
-        YouTube.search(query, YouTube.SearchFilter.FILTER_SONG).onSuccess { result ->
-            val foundSong = result.items.filter {
-                it is SongItem
-            }
-            ytmResult.addAll(foundSong.map { (it as SongItem).toMediaMetadata() })
-        }
+
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
     }
-    return ytmResult
 }
+
 object CachedBitmap {
     var path: String? = null
     var image: Bitmap? = null
@@ -268,7 +301,6 @@ object CachedBitmap {
         CachedBitmap.image = image
         bitmapCache.add(this)
     }
-
 }
 
 var bitmapCache = ArrayList<CachedBitmap>()

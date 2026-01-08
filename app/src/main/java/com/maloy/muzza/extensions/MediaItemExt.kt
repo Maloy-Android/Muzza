@@ -1,20 +1,30 @@
 package com.maloy.muzza.extensions
 
+import android.content.Context
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.ui.utils.resize
+import com.maloy.muzza.utils.getPlaybackUriForLocalSong
 
 val MediaItem.metadata: MediaMetadata?
     get() = localConfiguration?.tag as? MediaMetadata
 
-fun Song.toMediaItem() = MediaItem.Builder()
+fun Song.toMediaItem(context: Context? = null) = MediaItem.Builder()
     .setMediaId(song.id)
-    .setUri(song.id)
+    .setUri(
+        if (song.isLocal && context != null) {
+            val uri = getPlaybackUriForLocalSong(context, song)
+            uri ?: "file://${song.localPath}".toUri()
+        } else {
+            song.id.toUri()
+        }
+    )
     .setCustomCacheKey(song.id)
     .setTag(toMediaMetadata())
     .setMediaMetadata(
@@ -29,9 +39,16 @@ fun Song.toMediaItem() = MediaItem.Builder()
     )
     .build()
 
-fun Song.toMediaItemWithPlaylist(playlistId: String) = MediaItem.Builder()
+fun Song.toMediaItemWithPlaylist(playlistId: String, context: Context? = null) = MediaItem.Builder()
     .setMediaId(song.id)
-    .setUri(song.id)
+    .setUri(
+        if (song.isLocal && context != null) {
+            val uri = getPlaybackUriForLocalSong(context, song)
+            uri ?: "file://${song.localPath}".toUri()
+        } else {
+            song.id.toUri()
+        }
+    )
     .setCustomCacheKey(song.id)
     .setTag(
         toMediaMetadata().copy(
@@ -92,9 +109,26 @@ fun SongItem.toMediaItemWithPlaylist(playlistId: String) = MediaItem.Builder()
     )
     .build()
 
-fun MediaMetadata.toMediaItem() = MediaItem.Builder()
+fun MediaMetadata.toMediaItem(context: Context? = null) = MediaItem.Builder()
     .setMediaId(id)
-    .setUri(id)
+    .setUri(
+        if (isLocal && context != null && localPath != null) {
+            val songEntity = SongEntity(
+                id = id,
+                title = title,
+                duration = duration,
+                artistName = artists.firstOrNull()?.name,
+                albumName = null,
+                isLocal = true,
+                localPath = localPath,
+                contentUri = null
+            )
+            val uri = getPlaybackUriForLocalSong(context, songEntity)
+            uri ?: "file://$localPath".toUri()
+        } else {
+            id.toUri()
+        }
+    )
     .setCustomCacheKey(id)
     .setTag(this)
     .setMediaMetadata(

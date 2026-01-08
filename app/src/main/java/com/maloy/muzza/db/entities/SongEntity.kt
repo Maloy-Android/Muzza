@@ -36,6 +36,8 @@ data class SongEntity(
     val artistName: String? = null,
     @ColumnInfo(name = "isLocal", defaultValue = "false") val isLocal: Boolean = false,
     val localPath: String?,
+    @ColumnInfo(name = "contentUri") 
+    val contentUri: String? = null,
 ) {
 
     val isLocalSong: Boolean

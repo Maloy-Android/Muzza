@@ -14,6 +14,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
+import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 import androidx.datastore.preferences.core.edit
@@ -219,7 +220,7 @@ class MusicService : MediaLibraryService(),
     private var volumeReceiver: BroadcastReceiver? = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (dataStore.get(StopPlayingSongWhenMinimumVolumeKey, true)) {
-                val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
                 val currentVolume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC)
 
                 if (currentVolume == 0 && player.isPlaying) {
@@ -393,7 +394,7 @@ class MusicService : MediaLibraryService(),
                 } else {
                     loudnessEnhancer?.enabled = false
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 loudnessEnhancer?.enabled = false
             }
         }
@@ -472,7 +473,7 @@ class MusicService : MediaLibraryService(),
                 loudnessEnhancer = LoudnessEnhancer(player.audioSessionId)
             }
             loudnessEnhancer?.enabled = false
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             loudnessEnhancer = null
         }
     }
@@ -684,7 +685,7 @@ class MusicService : MediaLibraryService(),
                     putExtra(AudioEffect.EXTRA_CONTENT_TYPE, AudioEffect.CONTENT_TYPE_MUSIC)
                 },
             )
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             isAudioEffectSessionOpened = false
         }
     }
@@ -716,7 +717,7 @@ class MusicService : MediaLibraryService(),
                 } else {
                     loudnessEnhancer?.enabled = false
                 }
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 loudnessEnhancer?.enabled = false
             }
         }
@@ -845,7 +846,7 @@ class MusicService : MediaLibraryService(),
 
                 responseCode == 200 && contentLength > 1024
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
@@ -854,11 +855,37 @@ class MusicService : MediaLibraryService(),
         val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
-            if (mediaId.startsWith("1000")) {
+
+            val isLocalSong = runBlocking(Dispatchers.IO) {
+                database.song(mediaId).firstOrNull()?.song?.isLocal == true
+            }
+
+            if (isLocalSong) {
                 val songPath = runBlocking(Dispatchers.IO) {
                     database.song(mediaId).firstOrNull()?.song?.localPath
                 }
-                return@Factory dataSpec.withUri(Uri.fromFile(songPath?.let { File(it) }))
+
+                val contentUri = runBlocking(Dispatchers.IO) {
+                    database.song(mediaId).firstOrNull()?.song?.contentUri
+                }
+
+                return@Factory if (!contentUri.isNullOrEmpty()) {
+                    dataSpec.withUri(contentUri.toUri())
+                } else if (songPath != null) {
+                    try {
+                        val authority = "${packageName}.fileprovider"
+                        val fileUri = FileProvider.getUriForFile(
+                            this,
+                            authority,
+                            File(songPath)
+                        )
+                        dataSpec.withUri(fileUri)
+                    } catch (_: Exception) {
+                        dataSpec.withUri(Uri.fromFile(File(songPath)))
+                    }
+                } else {
+                    dataSpec
+                }
             }
 
             if (downloadCache.isCached(
@@ -871,18 +898,6 @@ class MusicService : MediaLibraryService(),
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                 return@Factory dataSpec
             }
-            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }
-                ?.let { cached ->
-                    return@let runBlocking(Dispatchers.IO) {
-                        if (validateStreamUrl(cached.first)) {
-                            recoverSong(mediaId)
-                            dataSpec.withUri(cached.first.toUri())
-                        } else {
-                            songUrlCache.remove(mediaId)
-                            null
-                        }
-                    }
-                }
 
             val playbackData = runBlocking(Dispatchers.IO) {
                 YTPlayerUtils.playerResponseForPlayback(

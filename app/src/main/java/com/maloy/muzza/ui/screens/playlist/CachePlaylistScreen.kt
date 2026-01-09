@@ -66,6 +66,7 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -121,6 +122,11 @@ fun CachePlaylistScreen(
     val backStackEntry by navController.currentBackStackEntryAsState()
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val startVoiceInput = rememberVoiceInput(
+        onResult = { recognizedText ->
+            searchQuery = TextFieldValue(recognizedText)
+        }
+    )
     val focusRequester = remember { FocusRequester() }
 
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
@@ -653,6 +659,16 @@ fun CachePlaylistScreen(
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
                             trailingIcon = {
+                                if (searchQuery.text.isEmpty()) {
+                                    IconButton(
+                                        onClick = startVoiceInput
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.mic),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
                                 if (searchQuery.text.isNotEmpty()) {
                                     IconButton(
                                         onClick = { searchQuery = TextFieldValue("") }

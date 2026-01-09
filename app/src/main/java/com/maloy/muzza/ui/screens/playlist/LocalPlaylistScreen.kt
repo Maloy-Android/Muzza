@@ -150,6 +150,7 @@ import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.LocalPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -200,6 +201,11 @@ fun LocalPlaylistScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
+    val startVoiceInput = rememberVoiceInput(
+        onResult = { recognizedText ->
+            query = TextFieldValue(recognizedText)
+        }
+    )
     val filteredSongs = remember(songs, query) {
         if (query.text.isEmpty()) songs
         else songs.filter { song ->
@@ -705,6 +711,16 @@ fun LocalPlaylistScreen(
                             .fillMaxWidth()
                             .focusRequester(focusRequester),
                         trailingIcon = {
+                            if (query.text.isEmpty()) {
+                                IconButton(
+                                    onClick = startVoiceInput
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.mic),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
                             if (query.text.isNotEmpty()) {
                                 IconButton(
                                     onClick = { query = TextFieldValue("") }

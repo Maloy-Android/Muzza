@@ -110,6 +110,7 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.TopPlaylistViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -142,6 +143,11 @@ fun TopPlaylistScreen(
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val startVoiceInput = rememberVoiceInput(
+        onResult = { recognizedText ->
+            searchQuery = TextFieldValue(recognizedText)
+        }
+    )
     val backStackEntry by navController.currentBackStackEntryAsState()
     var inSelectMode by rememberSaveable { mutableStateOf(false) }
     val selection = rememberSaveable(
@@ -687,6 +693,16 @@ fun TopPlaylistScreen(
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
                             trailingIcon = {
+                                if (searchQuery.text.isEmpty()) {
+                                    IconButton(
+                                        onClick = startVoiceInput
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.mic),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
                                 if (searchQuery.text.isNotEmpty()) {
                                     IconButton(
                                         onClick = { searchQuery = TextFieldValue("") }

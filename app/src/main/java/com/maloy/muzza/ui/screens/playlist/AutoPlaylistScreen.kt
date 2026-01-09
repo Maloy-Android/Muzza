@@ -130,6 +130,7 @@ import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -155,6 +156,11 @@ fun AutoPlaylistScreen(
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val startVoiceInput = rememberVoiceInput(
+        onResult = { recognizedText ->
+            searchQuery = TextFieldValue(recognizedText)
+        }
+    )
     val focusRequester = remember { FocusRequester() }
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
@@ -795,6 +801,16 @@ fun AutoPlaylistScreen(
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
                             trailingIcon = {
+                                if (searchQuery.text.isEmpty()) {
+                                    IconButton(
+                                        onClick = startVoiceInput
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.mic),
+                                            contentDescription = null
+                                        )
+                                    }
+                                }
                                 if (searchQuery.text.isNotEmpty()) {
                                     IconButton(
                                         onClick = { searchQuery = TextFieldValue("") }

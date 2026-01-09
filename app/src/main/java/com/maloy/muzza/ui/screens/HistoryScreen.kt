@@ -88,6 +88,7 @@ import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.DateAgo
 import com.maloy.muzza.viewmodels.HistoryViewModel
 import java.time.format.DateTimeFormatter
@@ -122,6 +123,11 @@ fun HistoryScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
+    val startVoiceInput = rememberVoiceInput(
+        onResult = { recognizedText ->
+            query = TextFieldValue(recognizedText)
+        }
+    )
     val focusRequester = remember { FocusRequester() }
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -531,6 +537,16 @@ fun HistoryScreen(
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
                     trailingIcon = {
+                        if (query.text.isEmpty()) {
+                            IconButton(
+                                onClick = startVoiceInput
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.mic),
+                                    contentDescription = null
+                                )
+                            }
+                        }
                         if (query.text.isNotEmpty()) {
                             IconButton(
                                 onClick = { query= TextFieldValue("") }

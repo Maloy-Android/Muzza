@@ -163,6 +163,7 @@ import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.utils.reportException
 import com.maloy.muzza.utils.updateLanguage
 import com.maloy.muzza.utils.urlEncode
@@ -395,6 +396,14 @@ class MainActivity : ComponentActivity() {
                     val (query, onQueryChange) = rememberSaveable(stateSaver = TextFieldValue.Saver) {
                         mutableStateOf(TextFieldValue())
                     }
+                    var voiceInputText by rememberSaveable(stateSaver = TextFieldValue.Saver) {
+                        mutableStateOf(TextFieldValue())
+                    }
+                    val startVoiceInput = rememberVoiceInput(
+                        onResult = { recognizedText ->
+                            voiceInputText = TextFieldValue(recognizedText)
+                        }
+                    )
                     var active by rememberSaveable {
                         mutableStateOf(false)
                     }
@@ -484,6 +493,12 @@ class MainActivity : ComponentActivity() {
                     LaunchedEffect(Unit) {
                         if (!firstSetupPassed) {
                             navController.navigate("setup_wizard")
+                        }
+                    }
+
+                    LaunchedEffect(voiceInputText.text) {
+                        if (voiceInputText.text.isNotEmpty() && voiceInputText.text != query.text) {
+                            onQueryChange(voiceInputText)
                         }
                     }
 
@@ -868,6 +883,16 @@ class MainActivity : ComponentActivity() {
                                 },
                                 trailingIcon = {
                                     if (active) {
+                                        if (query.text.isEmpty()) {
+                                            IconButton(
+                                                onClick = startVoiceInput
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.mic),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
                                         if (query.text.isNotEmpty()) {
                                             IconButton(
                                                 onClick = { onQueryChange(TextFieldValue("")) }

@@ -89,6 +89,7 @@
     <string name="SearchHistory">Історія пошуку</string>
     <string name="Sujestions">Пропозиції</string>
     <string name="SearchResutls">Результати пошуку</string>
+    <string name="speak_now">Говоріть зараз…</string>
 
     <!-- Artist screen -->
     <string name="from_your_library">З вашої бібліотеки</string>

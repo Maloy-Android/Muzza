@@ -1833,6 +1833,10 @@ fun BoxScope.ItemsMenuButton(
             modifier = Modifier
                 .size(36.dp)
                 .clip(CircleShape)
+                .background(
+                    color = Color.Black.copy(alpha = 0.4f),
+                    shape = CircleShape
+                )
                 .clickable(onClick = onClick)
         ) {
             Icon(

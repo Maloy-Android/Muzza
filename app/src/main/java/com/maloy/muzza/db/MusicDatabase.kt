@@ -378,7 +378,8 @@ class Migration12To13 : AutoMigrationSpec {
     DeleteColumn(tableName = "playlist", columnName = "thumbnailUrl"),
     DeleteColumn(tableName = "playlist", columnName = "isLocal"),
     DeleteColumn(tableName = "playlist_song_map" , columnName = "setVideoId"),
-    DeleteColumn(tableName = "format", columnName = "playbackUrl")
+    DeleteColumn(tableName = "format", columnName = "playbackUrl"),
+    DeleteColumn(tableName = "song", columnName = "contentUri")
 )
 class Migration13To14 : AutoMigrationSpec {
     @SuppressLint("Range")

@@ -62,7 +62,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 15,
+    version = 13,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -76,7 +76,8 @@ class MusicDatabase(
         AutoMigration(from = 10, to = 11, spec = Migration10To11::class),
         AutoMigration(from = 11, to = 12, spec = Migration11To12::class),
         AutoMigration(from = 12, to = 13, spec = Migration12To13::class),
-        AutoMigration(from = 14, to = 15, spec = Migration14To15::class),
+        AutoMigration(from = 13, to = 14, spec = Migration13To14::class),
+        AutoMigration(from = 14, to = 15),
         AutoMigration(from = 15, to = 16),
         AutoMigration(from = 16, to = 17, spec = Migration16To17::class),
         AutoMigration(from = 17, to = 18),
@@ -94,7 +95,6 @@ abstract class InternalDatabase : RoomDatabase() {
             MusicDatabase(
                 delegate = Room.databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
                     .addMigrations(MIGRATION_1_2)
-                    .addMigrations(MIGRATION_13_14)
                     .build()
             )
     }
@@ -273,12 +273,6 @@ val MIGRATION_1_2 = object : Migration(1, 2) {
     }
 }
 
-val MIGRATION_13_14 = object : Migration(13, 14) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE song ADD COLUMN contentUri TEXT DEFAULT NULL")
-    }
-}
-
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "song", columnName = "isTrash"),
     DeleteColumn(tableName = "playlist", columnName = "author"),
@@ -386,7 +380,7 @@ class Migration12To13 : AutoMigrationSpec {
     DeleteColumn(tableName = "playlist_song_map" , columnName = "setVideoId"),
     DeleteColumn(tableName = "format", columnName = "playbackUrl")
 )
-class Migration14To15 : AutoMigrationSpec {
+class Migration13To14 : AutoMigrationSpec {
     @SuppressLint("Range")
     override fun onPostMigrate(db: SupportSQLiteDatabase) {
         db.execSQL("UPDATE playlist SET createdAt = '${Converters().dateToTimestamp(LocalDateTime.now())}'")

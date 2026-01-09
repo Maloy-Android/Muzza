@@ -350,10 +350,7 @@ class LibraryMixViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _isRefreshing.value = true
-                syncUtils.syncLikedSongs()
-                syncUtils.syncArtistsSubscriptions()
-                syncUtils.syncLikedAlbums()
-                syncUtils.syncSavedPlaylists()
+                syncAllLibrary
             } catch (e: Exception) {
                 e.printStackTrace()
                 _error.value = "Failed to refresh library"

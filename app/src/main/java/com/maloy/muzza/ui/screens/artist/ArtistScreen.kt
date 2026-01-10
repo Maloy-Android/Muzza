@@ -541,10 +541,13 @@ fun ArtistScreen(
                                             .combinedClickable(
                                                 onClick = {
                                                     when (item) {
-                                                        is SongItem -> playerConnection.playQueue(
-                                                            YouTubeQueue.radio(item.toMediaMetadata())
-                                                        )
-
+                                                        is SongItem -> {
+                                                            item.album?.id.let { albumId ->
+                                                                if (albumId?.isNotEmpty() == true) {
+                                                                    navController.navigate("album/${albumId}")
+                                                                }
+                                                            }
+                                                        }
                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
                                                         is PlaylistItem -> navController.navigate("online_playlist/${item.id}")

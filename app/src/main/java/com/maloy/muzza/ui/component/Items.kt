@@ -83,6 +83,7 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.utils.completed
 import com.maloy.muzza.LocalDatabase
@@ -103,8 +104,10 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
+import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
@@ -551,6 +554,7 @@ fun SongGridItem(
     ),
     badges = badges,
     thumbnailContent = {
+        val playerConnection = LocalPlayerConnection.current ?: return@GridItem
         val menuState = LocalMenuState.current
         if (song.song.isLocal) {
             song.song.let {
@@ -585,8 +589,16 @@ fun SongGridItem(
                     .clip(RoundedCornerShape(ThumbnailCornerRadius))
             )
         }
-        SongPlayButton(
-            visible = !isActive
+        ItemsPlayButton(
+            visible = !isActive,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = song.title,
+                        items = listOf(song.toMediaItem())
+                    )
+                )
+            }
         )
         ItemsMenuButton(
             visible = !isActive,
@@ -1598,26 +1610,33 @@ fun YouTubeGridItem(
             }
         )
         ItemsPlayButton(
-            visible = item is PlaylistItem && !isActive,
+            visible = (item is PlaylistItem || item is SongItem) && !isActive,
             onClick = {
-                coroutineScope.launch {
+                if (item is PlaylistItem) {
+                    coroutineScope.launch {
                         withContext(Dispatchers.IO) {
                             YouTube.playlist(item.id).completed()
                                 .getOrNull()?.songs.orEmpty()
                         }
-                    .let { songs ->
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = item.title,
-                                items = songs.map { it.toMediaItemWithPlaylist(item.id) }
-                            )
-                        )
+                            .let { songs ->
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = item.title,
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
+                                    )
+                                )
+                            }
                     }
+                } else if (item is SongItem) {
+                    playerConnection.playQueue(
+                        YouTubeQueue(
+                            item.endpoint
+                                ?: WatchEndpoint(videoId = item.id),
+                            item.toMediaMetadata()
+                        )
+                    )
                 }
             }
-        )
-        SongPlayButton(
-            visible = item is SongItem && !isActive,
         )
         ItemsMenuButton(
             visible = (item is PlaylistItem || item is AlbumItem || item is SongItem) && !isActive,
@@ -1846,39 +1865,6 @@ fun BoxScope.ItemsMenuButton(
                 painter = painterResource(R.drawable.more_vert),
                 contentDescription = null,
                 tint = Color.White
-            )
-        }
-    }
-}
-
-@Composable
-fun BoxScope.SongPlayButton(
-    visible: Boolean,
-) {
-    AnimatedVisibility(
-        visible = visible,
-        enter = fadeIn(),
-        exit = fadeOut(),
-        modifier = Modifier
-            .align(Alignment.Center)
-            .padding(8.dp)
-    ) {
-        Box(
-            contentAlignment = Alignment.Center,
-            modifier = Modifier
-                .size(36.dp)
-                .clip(CircleShape)
-                .background(Color.Black.copy(alpha = ActiveBoxAlpha))
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.play),
-                contentDescription = null,
-                tint = Color.White,
-                modifier = Modifier
-                    .size(45.dp)
-                    .clip(CircleShape)
-                    .background(Color.Black.copy(alpha = ActiveBoxAlpha))
-                    .align(Alignment.Center)
             )
         }
     }

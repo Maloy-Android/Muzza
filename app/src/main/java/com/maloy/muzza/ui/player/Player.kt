@@ -193,6 +193,7 @@ fun BottomSheetPlayer(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val queueTitle by playerConnection.queueTitle.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
+    val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
 
     val context = LocalContext.current
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
@@ -388,6 +389,28 @@ fun BottomSheetPlayer(
                         .padding(horizontal = PlayerHorizontalPadding)
                 ) {
                     Row {
+                        if (!firstArtistThumbnail.isNullOrEmpty()) {
+                            Box(
+                                modifier = Modifier
+                                    .size(52.dp)
+                                    .clip(RoundedCornerShape(26.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                AsyncImage(
+                                    model = firstArtistThumbnail,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(26.dp))
+                                        .clickable(enabled = mediaMetadata.artists.first().id != null && !mediaMetadata.isLocal) {
+                                            navController.navigate("artist/${mediaMetadata.artists.first().id}")
+                                            state.collapseSoft()
+                                        }
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(12.dp))
+                        }
                         Box(
                             modifier = Modifier
                                 .weight(1f)

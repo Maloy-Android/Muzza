@@ -51,7 +51,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import coil.compose.AsyncImage
 import com.maloy.muzza.LocalPlayerConnection
@@ -116,15 +115,9 @@ fun Thumbnail(
     )
 
     var offsetX by remember { mutableFloatStateOf(0f) }
-
-    var currentMediaItem by remember { mutableStateOf<MediaItem?>(null) }
     val layoutDirection = LocalLayoutDirection.current
     var showSeekEffect by remember { mutableStateOf(false) }
     var seekDirection by remember { mutableStateOf("") }
-
-    LaunchedEffect(playerConnection.player.currentMediaItemIndex) {
-        currentMediaItem = playerConnection.player.currentMediaItem
-    }
 
     DisposableEffect(showLyrics) {
         currentView.keepScreenOn = showLyrics

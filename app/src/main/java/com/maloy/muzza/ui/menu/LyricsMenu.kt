@@ -47,8 +47,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.maloy.muzza.LocalDatabase
+import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.LyricsEntity
+import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.ListMenuItem
@@ -70,6 +72,13 @@ fun LyricsMenu(
 
     var showEditDialog by rememberSaveable {
         mutableStateOf(false)
+    }
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
+    val translating by playerConnection.translating.collectAsState()
+    val lyrics = remember(lyricsEntity, translating) {
+        if (translating) null
+        else lyricsEntity?.lyrics
     }
 
     if (showEditDialog) {
@@ -359,7 +368,7 @@ fun LyricsMenu(
         ) {
             showSearchDialog = true
         }
-        if (lyricsProvider() != null) {
+        if (lyricsProvider() != null && lyrics != LYRICS_NOT_FOUND) {
             item {
                 HorizontalDivider()
             }

@@ -386,7 +386,6 @@
 <string name="import_from_spotify">Importar do Spotify</string>
 <string name="theme">Tema</string>
 <string name="ytm_sync">Sincronize automaticamente com sua conta do YouTube Music</string>
-<string name="like_autodownload">Baixe automaticamente suas músicas preferidas</string>
 <string name="remove_all_from_library">Remover tudo da biblioteca</string>
 <string name="configure_supported_links">Configurar links suportados</string>
 <string name="open_supported_links">Abrir links suportados por padrão</string>

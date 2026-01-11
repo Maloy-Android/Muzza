@@ -1,9 +1,6 @@
 package com.maloy.muzza.ui.player
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -48,28 +45,21 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
-import androidx.core.net.toUri
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import androidx.media3.exoplayer.offline.DownloadRequest
-import androidx.media3.exoplayer.offline.DownloadService
 import coil.compose.AsyncImage
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.LikedAutoDownloadKey
-import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.MiniPlayerStyle
 import com.maloy.muzza.constants.MiniPlayerStyleKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -83,7 +73,6 @@ fun MiniPlayer(
     duration: Long,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val playbackState by playerConnection.playbackState.collectAsState()
@@ -101,14 +90,6 @@ fun MiniPlayer(
         MiniPlayerStyleKey,
         defaultValue = MiniPlayerStyle.NEW
     )
-
-    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val isWifiConnected = remember {
-        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
-    }
-
 
     if (miniPlayerStyle == MiniPlayerStyle.NEW) {
         Box(
@@ -171,23 +152,6 @@ fun MiniPlayer(
                     onClick = {
                         playerConnection.toggleLike()
                         currentSong?.song?.localToggleLike()
-                        if (likedAutoDownload == LikedAutodownloadMode.ON && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && currentSong?.song?.liked == false && currentSong?.song?.dateDownload == null && isWifiConnected) {
-                            val downloadRequest = mediaMetadata?.let {
-                                DownloadRequest
-                                    .Builder(it.id, it.id.toUri())
-                                    .setCustomCacheKey(it.id)
-                                    .setData(it.title.toByteArray())
-                                    .build()
-                            }
-                            if (downloadRequest != null) {
-                                DownloadService.sendAddDownload(
-                                    context,
-                                    ExoDownloadService::class.java,
-                                    downloadRequest,
-                                    false
-                                )
-                            }
-                        }
                     }
                 ) {
                     Icon(

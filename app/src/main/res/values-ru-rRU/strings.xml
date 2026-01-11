@@ -441,9 +441,7 @@
     <string name="token_shown">Нажмите еще раз, чтобы скопировать или отредактировать</string>
     <string name="token_adv_login_description">Это РАСШИРЕННЫЙ способ входа в систему. В качестве альтернативы веб-порталу вы можете напрямую ввести или обновить свой логин здесь. Например, это может ускорить вход в систему на нескольких устройствах. Пожалуйста, обратите внимание, что любые недопустимые форматы токенов, которые приложение не сможет проанализировать, не будут приняты</string>
     <string name="import_from_spotify">Импорт из spotify</string>
-    <string name="like_autodownload">Автоматически загружать понравившееся композиции</string>
     <string name="ytm_sync">Автоматическая синхронизация с вашим аккаунтом</string>
-    <string name="wifi_only">Только при использовании Wi-Fi</string>
     <string name="content_language">Язык контента</string>
     <string name="content_country">Страна контента</string>
     <string name="system_default">По умолчанию системы</string>

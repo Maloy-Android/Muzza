@@ -27,8 +27,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Favorite
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ContentCountryKey
@@ -36,8 +34,6 @@ import com.maloy.muzza.constants.ContentLanguageKey
 import com.maloy.muzza.constants.CountryCodeToName
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.LanguageCodeToName
-import com.maloy.muzza.constants.LikedAutoDownloadKey
-import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ProxyEnabledKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
@@ -65,7 +61,6 @@ fun ContentSettings(
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
     val context = LocalContext.current
-    val (likedAutoDownload, onLikedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
     val (contentLanguage, onContentLanguageChange) = rememberPreference(key = ContentLanguageKey, defaultValue = "system")
     val (contentCountry, onContentCountryChange) = rememberPreference(key = ContentCountryKey, defaultValue = "system")
     val (selectedLanguage, onSelectedLanguage) = rememberPreference(key = SelectedLanguageKey, defaultValue = "system")
@@ -117,19 +112,6 @@ fun ContentSettings(
             onValueSelected = onContentCountryChange
         )
 
-        ListPreference(
-            title = { Text(stringResource(R.string.like_autodownload)) },
-            icon = { Icon(Icons.Rounded.Favorite, null) },
-            values = listOf(LikedAutodownloadMode.OFF, LikedAutodownloadMode.ON, LikedAutodownloadMode.WIFI_ONLY),
-            selectedValue = likedAutoDownload,
-            valueText = { when (it){
-                LikedAutodownloadMode.OFF -> stringResource(R.string.state_off)
-                LikedAutodownloadMode.ON -> stringResource(R.string.state_on)
-                LikedAutodownloadMode.WIFI_ONLY -> stringResource(R.string.wifi_only)
-            } },
-            onValueSelected = onLikedAutoDownload
-        )
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             PreferenceEntry(
                 title = { Text(stringResource(R.string.open_supported_links)) },
@@ -143,7 +125,7 @@ fun ContentSettings(
                                 "package:${context.packageName}".toUri()
                             ),
                         )
-                    } catch (e: ActivityNotFoundException) {
+                    } catch (_: ActivityNotFoundException) {
                         Toast.makeText(
                             context,
                             R.string.intent_supported_links_not_found,

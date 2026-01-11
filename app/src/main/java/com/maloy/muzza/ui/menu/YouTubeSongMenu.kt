@@ -1,9 +1,6 @@
 package com.maloy.muzza.ui.menu
 
-import android.content.Context
 import android.content.Intent
-import android.net.ConnectivityManager
-import android.net.NetworkCapabilities
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -57,8 +54,6 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.LikedAutoDownloadKey
-import com.maloy.muzza.constants.LikedAutodownloadMode
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
@@ -75,7 +70,6 @@ import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
-import com.maloy.muzza.utils.rememberEnumPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -89,12 +83,6 @@ fun YouTubeSongMenu(
     onHistoryRemoved: () -> Unit = {}
 ) {
     val context = LocalContext.current
-    val (likedAutoDownload) = rememberEnumPreference(LikedAutoDownloadKey, LikedAutodownloadMode.OFF)
-    val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-    val isWifiConnected = remember {
-        val capabilities = connectivityManager.getNetworkCapabilities(connectivityManager.activeNetwork)
-        capabilities?.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ?: false
-    }
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(song.id).collectAsState(initial = null)
@@ -203,19 +191,6 @@ fun YouTubeSongMenu(
                             } else {
                                 update(librarySong.song.toggleLike())
                                 update(librarySong.song.localToggleLike())
-                            }
-                            if (likedAutoDownload == LikedAutodownloadMode.ON && librarySong?.song?.liked == false && librarySong.song.dateDownload == null || likedAutoDownload == LikedAutodownloadMode.WIFI_ONLY && librarySong?.song?.liked == false && librarySong.song.dateDownload == null && isWifiConnected) {
-                                val downloadRequest = DownloadRequest
-                                    .Builder(librarySong.song.id, librarySong.song.id.toUri())
-                                    .setCustomCacheKey(librarySong.song.id)
-                                    .setData(librarySong.song.title.toByteArray())
-                                    .build()
-                                DownloadService.sendAddDownload(
-                                    context,
-                                    ExoDownloadService::class.java,
-                                    downloadRequest,
-                                    false
-                                )
                             }
                         }
                     }

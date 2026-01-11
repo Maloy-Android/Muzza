@@ -7,6 +7,7 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,7 +57,6 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -65,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -289,33 +290,76 @@ fun AlbumScreen(
                                     )
                             )
 
-                            Text(buildAnnotatedString {
-                                withStyle(
-                                    style = MaterialTheme.typography.titleMedium.copy(
-                                        fontWeight = FontWeight.Normal,
-                                        color = MaterialTheme.colorScheme.onBackground
-                                    ).toSpanStyle()
-                                ) {
-                                    albumWithSongs.artists.fastForEachIndexed { index, artist ->
-                                        val link = LinkAnnotation.Clickable(artist.id) {
-                                            navController.navigate("artist/${artist.id}")
+                            Spacer(Modifier.height(8.dp))
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                albumWithSongs.artists.first().thumbnailUrl?.let { firstArtistThumbnail ->
+                                    if (firstArtistThumbnail.isNotEmpty()) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            AsyncImage(
+                                                model = firstArtistThumbnail,
+                                                contentDescription = null,
+                                                contentScale = ContentScale.Crop,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .clickable(enabled = albumWithSongs.artists.first().id.isNotEmpty()) {
+                                                        navController.navigate("artist/${albumWithSongs.artists.first().id}")
+                                                    }
+                                            )
                                         }
-                                        withLink(link) {
-                                            append(artist.name)
-                                        }
-                                        if (index != albumWithSongs.artists.lastIndex) {
-                                            append(", ")
-                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
                                     }
                                 }
-                            })
 
-                            if (albumWithSongs.album.year != null) {
                                 Text(
-                                    text = albumWithSongs.album.year.toString(),
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Normal
+                                    buildAnnotatedString {
+                                        withStyle(
+                                            style = MaterialTheme.typography.titleMedium.copy(
+                                                fontWeight = FontWeight.Normal,
+                                                color = MaterialTheme.colorScheme.onBackground
+                                            ).toSpanStyle()
+                                        ) {
+                                            albumWithSongs.artists.fastForEachIndexed { index, artist ->
+                                                val link = LinkAnnotation.Clickable(artist.id) {
+                                                    navController.navigate("artist/${artist.id}")
+                                                }
+                                                withLink(link) {
+                                                    append(artist.name)
+                                                }
+                                                if (index != albumWithSongs.artists.lastIndex) {
+                                                    append(", ")
+                                                }
+                                            }
+                                        }
+                                    }
                                 )
+
+                                albumWithSongs.album.year.let { albumYear ->
+                                    if (albumYear != null) {
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = "•",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Normal
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(
+                                            text = albumYear.toString(),
+                                            style = MaterialTheme.typography.titleMedium,
+                                            fontWeight = FontWeight.Normal
+                                        )
+                                    }
+                                }
                             }
 
                             Spacer(Modifier.height(12.dp))
@@ -437,7 +481,7 @@ fun AlbumScreen(
                                             type = "text/plain"
                                             putExtra(
                                                 Intent.EXTRA_TEXT,
-                                                "https://music.youtube.com/browse/${albumWithSongs?.album?.id}"
+                                                "https://music.youtube.com/browse/${albumWithSongs.album.id}"
                                             )
                                         }
                                         context.startActivity(Intent.createChooser(intent, null))

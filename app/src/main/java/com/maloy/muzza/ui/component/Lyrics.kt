@@ -493,7 +493,8 @@ fun Lyrics(
                     if (!fullScreenLyrics || playerStyle == PlayerStyle.OLD) {
                         IconButton(
                             onClick = {
-                                fullScreenLyrics = true
+                                fullScreenLyrics = !fullScreenLyrics
+                                showLyrics = !showLyrics
                             }
                         ) {
                             Icon(
@@ -506,7 +507,6 @@ fun Lyrics(
                     IconButton(
                         onClick = {
                             fullScreenLyrics = !fullScreenLyrics
-                            showLyrics = !showLyrics
                         }
                     ) {
                         Icon(

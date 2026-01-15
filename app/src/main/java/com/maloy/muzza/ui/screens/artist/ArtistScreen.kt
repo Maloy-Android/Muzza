@@ -83,7 +83,9 @@ import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeQueue
+import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LinkSegment
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SongListItem
@@ -126,6 +128,10 @@ fun ArtistScreen(
     val pullRefreshState = rememberPullToRefreshState()
 
     val artistPage = viewModel.artistPage
+    val description = artistPage?.description
+    val descriptionRuns = artistPage?.descriptionRuns
+    val subscriberCount = artistPage?.subscriberCountText
+    val monthlyListeners = artistPage?.monthlyListenerCount
     val libraryArtist by viewModel.libraryArtist.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState()
 
@@ -381,7 +387,59 @@ fun ArtistScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-                if (librarySongs.isNotEmpty()) {
+                if (!description.isNullOrEmpty() || (!subscriberCount.isNullOrEmpty()) || (!monthlyListeners.isNullOrEmpty())
+                ) {
+                    item(key = "about_artist") {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 16.dp)
+                                .padding(bottom = 16.dp)
+                                .animateItem()
+                        ) {
+                            if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
+                                Text(
+                                    text = stringResource(R.string.about_artist),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(bottom = 8.dp)
+                                )
+                            }
+
+                            if (!subscriberCount.isNullOrEmpty()) {
+                                Text(
+                                    text = subscriberCount,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                            }
+
+                            if (!monthlyListeners.isNullOrEmpty()) {
+                                Text(
+                                    text = monthlyListeners,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(bottom = if (!description.isNullOrEmpty()) 8.dp else 0.dp)
+                                )
+                            }
+
+                            if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
+                                ExpandableText(
+                                    text = description.orEmpty(),
+                                    runs = descriptionRuns?.map {
+                                        LinkSegment(
+                                            text = it.text,
+                                            url = it.navigationEndpoint?.urlEndpoint?.url
+                                        )
+                                    },
+                                    collapsedMaxLines = 3
+                                )
+                            }
+                        }
+                    }
+                }
+                    if (librarySongs.isNotEmpty()) {
                     item {
                         NavigationTitle(
                             title = stringResource(R.string.from_your_library),

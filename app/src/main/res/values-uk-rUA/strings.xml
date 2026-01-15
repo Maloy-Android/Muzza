@@ -95,6 +95,9 @@
     <string name="from_your_library">З вашої бібліотеки</string>
     <string name="subscribe">Підписатися</string>
     <string name="subscribed">Підписано</string>
+    <string name="about_artist">Про виконавця</string>
+    <string name="show_more">Показати більше</string>
+    <string name="show_less">Показати менше</string>
 
     <!-- Album screen -->
     <string name="other_versions">Інші версії</string>

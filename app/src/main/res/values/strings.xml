@@ -111,6 +111,9 @@
     <string name="from_your_library">From your library</string>
     <string name="subscribe">Subscribe</string>
     <string name="subscribed">Subscribed</string>
+    <string name="about_artist">About artist</string>
+    <string name="show_more">Show more</string>
+    <string name="show_less">Show less</string>
 
     <!-- Album screen -->
     <string name="other_versions">Other versions</string>

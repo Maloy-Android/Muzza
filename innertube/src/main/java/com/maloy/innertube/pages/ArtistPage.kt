@@ -10,6 +10,7 @@ import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicShelfRenderer
 import com.maloy.innertube.models.MusicTwoRowItemRenderer
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.Run
 import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
@@ -27,7 +28,10 @@ data class ArtistPage(
     val artist: ArtistItem,
     val sections: List<ArtistSection>,
     val description: String?,
-) {
+    val subscriberCountText: String?,
+    val monthlyListenerCount: String? = null,
+    val descriptionRuns: List<Run>? = null,
+    ) {
     fun filterExplicit(enabled: Boolean) =
         if (enabled) {
             copy(sections = sections.mapNotNull {

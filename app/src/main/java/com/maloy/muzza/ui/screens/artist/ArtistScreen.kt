@@ -426,6 +426,7 @@ fun ArtistScreen(
 
                             if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
                                 ExpandableText(
+                                    modifier = Modifier,
                                     text = description.orEmpty(),
                                     runs = descriptionRuns?.map {
                                         LinkSegment(

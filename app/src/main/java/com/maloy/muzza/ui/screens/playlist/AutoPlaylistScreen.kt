@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -20,6 +21,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -71,18 +73,24 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.util.fastForEachIndexed
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
@@ -98,6 +106,8 @@ import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountImageUrlKey
+import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
 import com.maloy.muzza.constants.InnerTubeCookieKey
@@ -196,6 +206,8 @@ fun AutoPlaylistScreen(
         "downloaded" -> PlaylistType.DOWNLOAD
         else -> PlaylistType.OTHER
     }
+    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
+    val accountName by rememberPreference(AccountNameKey, "")
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
         SongSortType.CREATE_DATE
@@ -418,6 +430,42 @@ fun AutoPlaylistScreen(
                                         fontSizeRange = FontSizeRange(16.sp, 22.sp),
                                         modifier = Modifier.fillMaxWidth(0.8f)
                                     )
+                                    Spacer(Modifier.height(8.dp))
+
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        if (viewModel.playlist == "liked"&& isLoggedIn && accountImageUrl.isNotEmpty()) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .clip(RoundedCornerShape(16.dp))
+                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                                            ) {
+                                                AsyncImage(
+                                                    model = accountImageUrl,
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(RoundedCornerShape(16.dp))
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(8.dp))
+                                        }
+
+                                        if (viewModel.playlist == "liked" && isLoggedIn && accountName.isNotEmpty()) {
+                                            Text(
+                                                text = accountName,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Normal,
+                                                    color = MaterialTheme.colorScheme.onBackground
+                                                )
+                                            )
+                                        }
+                                    }
                                     Text(
                                         text = makeTimeString(likeLength * 1000L),
                                         style = MaterialTheme.typography.titleMedium,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -106,6 +107,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.HideExplicitKey
@@ -186,6 +188,7 @@ fun OnlinePlaylistScreen(
     val isLoading by viewModel.isLoading.collectAsState()
 
     val accountName by rememberPreference(AccountNameKey, "")
+    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
@@ -399,6 +402,44 @@ fun OnlinePlaylistScreen(
                                             )
                                     )
 
+                                    Spacer(Modifier.height(8.dp))
+
+                                    if (playlist.id == "LM") {
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            if (accountImageUrl.isNotEmpty()) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(32.dp)
+                                                        .clip(RoundedCornerShape(16.dp))
+                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                ) {
+                                                    AsyncImage(
+                                                        model = accountImageUrl,
+                                                        contentDescription = null,
+                                                        contentScale = ContentScale.Crop,
+                                                        modifier = Modifier
+                                                            .fillMaxSize()
+                                                            .clip(RoundedCornerShape(16.dp))
+                                                    )
+                                                }
+                                                Spacer(modifier = Modifier.width(8.dp))
+                                            }
+
+                                            if (accountName.isNotEmpty()) {
+                                                Text(
+                                                    text = accountName,
+                                                    style = MaterialTheme.typography.titleMedium.copy(
+                                                        fontWeight = FontWeight.Normal,
+                                                        color = MaterialTheme.colorScheme.onBackground
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    }
                                     if (playlist.id != "LM") {
                                         playlist.author?.let { artist ->
                                             Text(buildAnnotatedString {
@@ -422,17 +463,7 @@ fun OnlinePlaylistScreen(
                                                 }
                                             })
                                         }
-                                    } else if (accountName.isNotEmpty()) {
-                                        Text(
-                                            text = accountName,
-                                            style = MaterialTheme.typography.titleMedium.copy(
-                                                fontWeight = FontWeight.Normal,
-                                                color = MaterialTheme.colorScheme.onBackground
-                                            )
-                                        )
                                     }
-
-                                    Spacer(Modifier.height(12.dp))
 
                                     Text(
                                         text = makeTimeString(songsLength * 1000L),

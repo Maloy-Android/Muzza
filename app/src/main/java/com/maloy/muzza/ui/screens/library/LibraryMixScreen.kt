@@ -143,7 +143,6 @@ fun LibraryMixScreen(
     val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState(initial = null)
-    val librarySongsPlay by viewModel.librarySongsPlay.collectAsState(initial = null)
     val libraryLikedSongs by viewModel.libraryLikedLibrarySongs.collectAsState(initial = null)
 
     val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
@@ -821,12 +820,12 @@ fun LibraryMixScreen(
                 }
             }
         }
-        if (librarySongsPlay?.isEmpty() != true) {
+        if (librarySongs?.isEmpty() != true) {
             HideOnScrollFAB(
                 lazyListState = lazyListState,
                 icon = R.drawable.library_music,
                 onClick = {
-                    librarySongsPlay?.let { songs ->
+                    librarySongs?.let { songs ->
                         playerConnection.playQueue(
                             ListQueue(
                                 title = context.getString(R.string.filter_library),

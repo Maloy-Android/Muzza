@@ -392,8 +392,6 @@ class LibraryMixViewModel @Inject constructor(
     val localSongs = database.localSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val librarySongsPlay = database.allSongs()
-
     val downloadSongs =
         downloadUtil.downloads.flatMapLatest { downloads ->
             database.allSongs()

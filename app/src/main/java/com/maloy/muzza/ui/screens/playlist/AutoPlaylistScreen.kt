@@ -2,6 +2,8 @@ package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -57,6 +59,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -72,6 +75,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -161,6 +165,14 @@ fun AutoPlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val scope = rememberCoroutineScope()
+
+    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
+
+    val rotationAnimation by animateFloatAsState(
+        targetValue = refetchIconDegree,
+        animationSpec = tween(durationMillis = 800),
+        label = ""
+    )
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
@@ -585,6 +597,7 @@ fun AutoPlaylistScreen(
                                         if (isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE) {
                                             Button(
                                                 onClick = {
+                                                    refetchIconDegree -= 360
                                                     scope.launch(Dispatchers.IO) {
                                                         viewModel.syncLikedSongs()
                                                         snackbarHostState.showSnackbar(
@@ -601,7 +614,8 @@ fun AutoPlaylistScreen(
                                             ) {
                                                 Icon(
                                                     painter = painterResource(R.drawable.sync),
-                                                    contentDescription = null
+                                                    contentDescription = null,
+                                                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
                                                 )
                                             }
                                         }

@@ -8,6 +8,8 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -67,6 +70,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -83,6 +87,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -111,14 +116,17 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.PlaylistEditLockKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
@@ -160,6 +168,7 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.io.File
 import java.io.FileOutputStream
+import kotlin.collections.contains
 
 @SuppressLint("SuspiciousIndentation", "UseKtx", "UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -882,6 +891,13 @@ fun LocalPlaylistHeader(
     val scope = rememberCoroutineScope()
     val menuState = LocalMenuState.current
 
+    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
+    val rotationAnimation by animateFloatAsState(
+        targetValue = refetchIconDegree,
+        animationSpec = tween(durationMillis = 800),
+        label = ""
+    )
+
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }
     }
@@ -891,6 +907,12 @@ fun LocalPlaylistHeader(
         mutableIntStateOf(Download.STATE_STOPPED)
     }
 
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
+    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
     val accountName by rememberPreference(AccountNameKey, "")
 
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
@@ -1075,7 +1097,8 @@ fun LocalPlaylistHeader(
         Spacer(Modifier.height(12.dp))
         Column(
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
         ) {
             AutoResizeText(
                 text = playlist.playlist.name,
@@ -1098,8 +1121,26 @@ fun LocalPlaylistHeader(
                         }
                     )
             )
+            if (isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    AsyncImage(
+                        model = accountImageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(RoundedCornerShape(16.dp))
+                    )
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+            }
 
-            if (accountName.isNotEmpty() && playlist.playlist.isLocal) {
+            if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) {
                 Text(
                     text = accountName,
                     style = MaterialTheme.typography.titleMedium.copy(
@@ -1217,6 +1258,7 @@ fun LocalPlaylistHeader(
                             .padding(4.dp)
                             .clip(RoundedCornerShape(12.dp)),
                         onClick = {
+                            refetchIconDegree -= 360
                             scope.launch(Dispatchers.IO) {
                                 syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
                                 snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
@@ -1225,7 +1267,8 @@ fun LocalPlaylistHeader(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.sync),
-                            contentDescription = null
+                            contentDescription = null,
+                            modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
                         )
                     }
                 }

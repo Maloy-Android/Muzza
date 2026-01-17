@@ -60,12 +60,14 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.ListMenuDivider
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.Dispatchers
@@ -291,18 +293,24 @@ fun YouTubeAlbumMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    showChoosePlaylistDialog = true
+                    onDismiss()
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = album?.album?.title,
+                            items = album?.songs!!.map { it.toMediaItem() }
+                        )
+                    )
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.playlist_add),
+                painter = painterResource(R.drawable.play),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.add_to_playlist),
+                text = stringResource(R.string.play),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
@@ -355,6 +363,21 @@ fun YouTubeAlbumMenu(
         )
     ) {
         ListMenuItem(
+            icon = R.drawable.shuffle,
+            title = R.string.shuffle
+        ) {
+            onDismiss()
+            playerConnection.playQueue(
+                ListQueue(
+                    title = album?.album?.title,
+                    items = album?.songs!!.shuffled().map { it.toMediaItem() }
+                )
+            )
+        }
+        item {
+            ListMenuDivider()
+        }
+        ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next
         ) {
@@ -362,6 +385,15 @@ fun YouTubeAlbumMenu(
                 ?.map { it.toMediaItem() }
                 ?.let(playerConnection::playNext)
             onDismiss()
+        }
+        item {
+            HorizontalDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.playlist_add,
+            title = R.string.add_to_playlist
+        ) {
+            showChoosePlaylistDialog = true
         }
         item {
             HorizontalDivider()

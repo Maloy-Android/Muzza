@@ -67,11 +67,11 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.ListThumbnailSize
-import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
@@ -79,7 +79,6 @@ import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuDivider
-import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
@@ -291,18 +290,23 @@ fun AlbumMenu(
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
                     onDismiss()
-                    playerConnection.playNext(songs.map { it.toMediaItem() })
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = album.album.title,
+                            items = songs.map { it.toMediaItem() }
+                        )
+                    )
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.playlist_play),
+                painter = painterResource(R.drawable.play),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.play_next),
+                text = stringResource(R.string.play),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
@@ -319,18 +323,24 @@ fun AlbumMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    showChoosePlaylistDialog = true
+                    onDismiss()
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = album.album.title,
+                            items = songs.shuffled().map { it.toMediaItem() }
+                        )
+                    )
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.playlist_add),
+                painter = painterResource(R.drawable.shuffle),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.add_to_playlist),
+                text = stringResource(R.string.shuffle),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
@@ -385,6 +395,25 @@ fun AlbumMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
+        ListMenuItem(
+            icon = R.drawable.playlist_play,
+            title = R.string.play_next
+        ) {
+            onDismiss()
+            playerConnection.playNext(songs.map { it.toMediaItem() })
+        }
+        item {
+            ListMenuDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.playlist_add,
+            title = R.string.add_to_playlist
+        ) {
+            showChoosePlaylistDialog = true
+        }
+        item {
+            ListMenuDivider()
+        }
         ListMenuItem(
             icon = R.drawable.queue_music,
             title = R.string.add_to_queue

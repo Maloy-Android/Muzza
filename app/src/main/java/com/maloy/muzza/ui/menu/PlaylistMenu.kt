@@ -390,6 +390,20 @@ fun PlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
+        if (songs.isNotEmpty()) {
+            ListMenuItem(
+                icon = R.drawable.playlist_play,
+                title = R.string.play_next
+            ) {
+                onDismiss()
+                playerConnection.playNext(
+                    items = songs.map { it.toMediaItemWithPlaylist(playlistId = playlist.id) }
+                )
+            }
+            item {
+                HorizontalDivider()
+            }
+        }
         ListMenuItem(
             icon = R.drawable.edit,
             title = R.string.edit
@@ -464,16 +478,16 @@ fun PlaylistMenu(
                     }
                 }
             }
-            if (songs.isNotEmpty()) {
-                item {
-                    HorizontalDivider()
-                }
-                ListMenuItem(
-                    icon = R.drawable.backup,
-                    title = R.string.playlist_m3u_export
-                ) {
-                    m3uLauncher.launch("$playlistName.m3u")
-                }
+        }
+        if (songs.isNotEmpty()) {
+            item {
+                HorizontalDivider()
+            }
+            ListMenuItem(
+                icon = R.drawable.backup,
+                title = R.string.playlist_m3u_export
+            ) {
+                m3uLauncher.launch("$playlistName.m3u")
             }
         }
     }

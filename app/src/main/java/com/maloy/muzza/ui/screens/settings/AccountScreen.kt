@@ -41,6 +41,7 @@ import com.maloy.muzza.constants.AccountEmailKey
 import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.InfoLabel
@@ -57,11 +58,12 @@ fun AccountSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val accountName by rememberPreference(AccountNameKey, "")
-    val accountEmail by rememberPreference(AccountEmailKey, "")
-    val accountChannelHandle by rememberPreference(AccountChannelHandleKey, "")
-    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
+    val (accountName, onAccountNameChange) = rememberPreference(AccountNameKey, "")
+    val (accountEmail,onAccountEmailChange) = rememberPreference(AccountEmailKey, "")
+    val (accountChannelHandle,onAccountChannelHandleChange) = rememberPreference(AccountChannelHandleKey, "")
+    val (accountImageUrl, onAccountImageChange) = rememberPreference(AccountImageUrlKey, "")
     val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
+    val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
@@ -122,21 +124,35 @@ fun AccountSettings(
             onClick = { if (!isLoggedIn) navController.navigate("login") }
         )
         if (showTokenEditor) {
+            val text = """
+                ***INNERTUBE COOKIE*** =$innerTubeCookie
+                ***VISITOR DATA*** =$visitorData
+                ***ACCOUNT NAME*** =$accountName
+                ***ACCOUNT ImageUrl*** =$accountImageUrl
+                ***ACCOUNT EMAIL*** =$accountEmail
+                ***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle
+            """.trimIndent()
+
             TextFieldDialog(
                 modifier = Modifier,
-                initialTextFieldValue = TextFieldValue(innerTubeCookie),
-                onDone = { onInnerTubeCookieChange(it) },
+                initialTextFieldValue = TextFieldValue(text),
+                onDone = { data ->
+                    data.split("\n").forEach {
+                        when {
+                            it.startsWith("***INNERTUBE COOKIE*** =") -> onInnerTubeCookieChange(it.substringAfter("="))
+                            it.startsWith("***VISITOR DATA*** =") -> onVisitorDataChange(it.substringAfter("="))
+                            it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
+                            it.startsWith("***ACCOUNT ImageUrl*** =") -> onAccountImageChange(it.substringAfter("="))
+                            it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
+                            it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
+                        }
+                    }
+                },
                 onDismiss = { showTokenEditor = false },
                 singleLine = false,
                 maxLines = 20,
                 isInputValid = {
-                    it.isNotEmpty() &&
-                            try {
-                                "SAPISID" in parseCookieString(it)
-                                true
-                            } catch (e: Exception) {
-                                false
-                            }
+                    it.isNotEmpty() && "SAPISID" in parseCookieString(it)
                 },
                 extraContent = {
                     InfoLabel(text = stringResource(R.string.token_adv_login_description))

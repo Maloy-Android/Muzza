@@ -5,6 +5,7 @@ import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -53,6 +54,8 @@ import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
@@ -60,6 +63,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.*
+import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
@@ -86,6 +90,15 @@ fun AutoPlaylistLibraryScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState()
+    val scope = rememberCoroutineScope()
+    val libraryMusicPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = "libraryMusic",
+            name = stringResource(R.string.songs_from_library)
+        ),
+        songCount = librarySongs.size,
+        songThumbnails = emptyList()
+    )
 
     val snackbarHostState = remember { SnackbarHostState() }
     val lazyListState = rememberLazyListState()
@@ -301,6 +314,22 @@ fun AutoPlaylistLibraryScreen(
                                     overflow = TextOverflow.Ellipsis,
                                     fontSizeRange = FontSizeRange(16.sp, 22.sp),
                                     modifier = Modifier.fillMaxWidth(0.8f)
+                                        .clickable(
+                                            onClick = {
+                                                menuState.show {
+                                                    AutoPlaylistMenu(
+                                                        playlist = libraryMusicPlaylist,
+                                                        navController = navController,
+                                                        thumbnail = null,
+                                                        iconThumbnail = Icons.Rounded.LibraryMusic,
+                                                        songs = librarySongs,
+                                                        coroutineScope = scope,
+                                                        onDismiss = menuState::dismiss,
+                                                        syncUtils = null
+                                                    )
+                                                }
+                                            }
+                                        )
                                 )
                                 Text(
                                     text = makeTimeString(likeLength * 1000L),
@@ -715,6 +744,27 @@ fun AutoPlaylistLibraryScreen(
                         ) {
                             Icon(
                                 painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
+                        IconButton(
+                            onClick = {
+                                menuState.show {
+                                    AutoPlaylistMenu(
+                                        playlist = libraryMusicPlaylist,
+                                        navController = navController,
+                                        thumbnail = null,
+                                        iconThumbnail = Icons.Rounded.LibraryMusic,
+                                        songs = librarySongs,
+                                        coroutineScope = scope,
+                                        onDismiss = menuState::dismiss,
+                                        syncUtils = null
+                                    )
+                                }
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.more_vert),
                                 contentDescription = null
                             )
                         }

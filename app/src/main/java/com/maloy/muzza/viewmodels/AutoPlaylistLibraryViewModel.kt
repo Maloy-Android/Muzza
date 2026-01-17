@@ -28,39 +28,33 @@ class AutoPlaylistLibraryViewModel @Inject constructor(
     private val database: MusicDatabase,
 ) : ViewModel() {
     @OptIn(ExperimentalCoroutinesApi::class)
-    val librarySongs = context.dataStore.data
-        .map { preferences ->
-            Pair(
-                preferences[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
-                (preferences[SongSortDescendingKey] ?: true)
-            )
-        }
-        .distinctUntilChanged()
-        .flatMapLatest { (sortType, descending) ->
-            database.allSongs()
+    val librarySongs =
+        context.dataStore.data
+            .map {
+                it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
+                    ?: true)
+            }
+            .distinctUntilChanged()
+            .flatMapLatest { (sortType, descending) ->
+            database.librarySongs(SongSortType.CREATE_DATE, true)
                 .flowOn(Dispatchers.IO)
                 .map { songs ->
-                    val librarySongs = songs.filter { it.song.inLibrary != null }
                     when (sortType) {
                         SongSortType.CREATE_DATE ->
-                            librarySongs.sortedBy { it.song.inLibrary }
+                            songs.sortedBy { it.song.inLibrary }
 
                         SongSortType.NAME ->
-                            librarySongs.sortedBy { it.song.title }
+                            songs.sortedBy { it.song.title }
 
                         SongSortType.ARTIST ->
-                            librarySongs.sortedBy { song ->
+                            songs.sortedBy { song ->
                                 song.artists.joinToString(separator = "") { it.name }
                             }
 
                         SongSortType.PLAY_TIME ->
-                            librarySongs.sortedBy { it.song.totalPlayTime }
+                            songs.sortedBy { it.song.totalPlayTime }
                     }.reversed(descending)
                 }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = emptyList()
-        )
+        }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
 }
 

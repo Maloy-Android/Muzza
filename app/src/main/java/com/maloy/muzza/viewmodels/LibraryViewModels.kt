@@ -382,16 +382,14 @@ class LibraryMixViewModel @Inject constructor(
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val librarySongs = database.allSongs()
-        .map { songs -> songs.filter { it.song.inLibrary != null } }
+    val librarySongs = database.librarySongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val libraryLikedLibrarySongs = database.allSongs()
         .map { songs -> songs.filter { it.song.liked || it.song.inLibrary != null } }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val localSongs = database.allSongs()
-        .map { songs -> songs.filter { it.song.isLocal } }
+    val localSongs = database.localSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val librarySongsPlay = database.allSongs()

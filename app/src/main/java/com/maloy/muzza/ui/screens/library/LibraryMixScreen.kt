@@ -102,6 +102,7 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.scanLocal
@@ -144,6 +145,9 @@ fun LibraryMixScreen(
     val librarySongs by viewModel.librarySongs.collectAsState(initial = null)
     val librarySongsPlay by viewModel.librarySongsPlay.collectAsState(initial = null)
     val libraryLikedSongs by viewModel.libraryLikedLibrarySongs.collectAsState(initial = null)
+
+    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
+    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
 
     val artists by viewModel.allArtists.collectAsState()
 
@@ -194,6 +198,26 @@ fun LibraryMixScreen(
         songThumbnails = emptyList()
     )
 
+    val likedMusicPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = "likedMusic",
+            name =  if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+                stringResource(R.string.liked)
+            }
+        ),
+        songCount = likedSongs?.size ?: 0,
+        songThumbnails = emptyList()
+    )
+
+    val libraryMusicPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = "libraryMusic",
+            name = stringResource(R.string.songs_from_library)
+        ),
+        songCount = librarySongs?.size ?: 0,
+        songThumbnails = emptyList()
+    )
+
     val cachedPlaylist = Playlist(
         playlist = PlaylistEntity(
             id = "cached",
@@ -218,9 +242,6 @@ fun LibraryMixScreen(
     val view = LocalView.current
     val density = LocalDensity.current
     val screenWidth = with(density) { view.width.toDp() }
-
-    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
-    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
@@ -311,12 +332,30 @@ fun LibraryMixScreen(
         ) {
             item {
                 Card(
-                    onClick = {
-                        navController.navigate("auto_playlist/liked")
-                    },
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 16.dp)
+                        .combinedClickable(
+                            onClick = {
+                                navController.navigate("auto_playlist/liked")
+                            },
+                            onLongClick = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                menuState.show {
+                                    AutoPlaylistMenu(
+                                        playlist = likedMusicPlaylist,
+                                        navController = navController,
+                                        thumbnail = likedMusicThumbnail,
+                                        iconThumbnail = Icons.Rounded.Favorite,
+                                        songs = likedSongs,
+                                        coroutineScope = coroutineScope,
+                                        onDismiss = menuState::dismiss,
+                                        showSyncLikedSongsButton = true,
+                                        syncUtils = null
+                                    )
+                                }
+                            }
+                        )
                 ) {
                     Column(
                         modifier = Modifier.padding(16.dp)
@@ -503,12 +542,30 @@ fun LibraryMixScreen(
                 ) {
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .combinedClickable(
+                                onClick = {
+                                    navController.navigate("AutoPlaylistLibrary")
+                                },
+                                onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    menuState.show {
+                                        AutoPlaylistMenu(
+                                            playlist = libraryMusicPlaylist,
+                                            navController = navController,
+                                            thumbnail = null,
+                                            iconThumbnail = Icons.Rounded.LibraryMusic,
+                                            songs = librarySongs,
+                                            coroutineScope = coroutineScope,
+                                            onDismiss = menuState::dismiss,
+                                            syncUtils = null
+                                        )
+                                    }
+                                }
+                            )
                     ) {
                         Card(
-                            onClick = {
-                                navController.navigate("AutoPlaylistLibrary")
-                            },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(80.dp)
@@ -574,19 +631,99 @@ fun LibraryMixScreen(
                                     )
                                 }
                                 Card(
-                                    onClick = {
-                                        when (playlist.id) {
-                                            "downloaded" -> navController.navigate("auto_playlist/downloaded")
-                                            "top" -> navController.navigate("top_playlist/$topSize")
-                                            "cached" -> navController.navigate("CachedPlaylist")
-                                            "local" -> navController.navigate("AutoPlaylistLocal")
-                                            "user_playlists" -> navController.navigate("library_playlists")
-                                            "albums" -> navController.navigate("library_albums")
-                                        }
-                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(80.dp)
+                                        .combinedClickable(
+                                            onClick = {
+                                                when (playlist.id) {
+                                                    "downloaded" -> navController.navigate("auto_playlist/downloaded")
+                                                    "top" -> navController.navigate("top_playlist/$topSize")
+                                                    "cached" -> navController.navigate("CachedPlaylist")
+                                                    "local" -> navController.navigate("AutoPlaylistLocal")
+                                                    "user_playlists" -> navController.navigate("library_playlists")
+                                                    "albums" -> navController.navigate("library_albums")
+                                                }
+                                            },
+                                            onLongClick = {
+                                                when (playlist.id) {
+                                                    "downloaded" -> {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                        menuState.show {
+                                                            AutoPlaylistMenu(
+                                                                playlist = downloadPlaylist,
+                                                                navController = navController,
+                                                                thumbnail = null,
+                                                                iconThumbnail = Icons.Rounded.CloudDownload,
+                                                                songs = downloadSongs,
+                                                                coroutineScope = coroutineScope,
+                                                                onDismiss = menuState::dismiss,
+                                                                syncUtils = null
+                                                            )
+                                                        }
+                                                    }
+
+                                                    "top" -> {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                        menuState.show {
+                                                            AutoPlaylistMenu(
+                                                                playlist = topPlaylist,
+                                                                navController = navController,
+                                                                thumbnail = null,
+                                                                iconThumbnail = Icons.AutoMirrored.Rounded.TrendingUp,
+                                                                songs = topSongs,
+                                                                coroutineScope = coroutineScope,
+                                                                onDismiss = menuState::dismiss,
+                                                                syncUtils = null
+                                                            )
+                                                        }
+                                                    }
+
+                                                    "cached" -> {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                        menuState.show {
+                                                            AutoPlaylistMenu(
+                                                                playlist = cachedPlaylist,
+                                                                navController = navController,
+                                                                thumbnail = null,
+                                                                iconThumbnail = Icons.Rounded.Cached,
+                                                                songs = cachedSongs,
+                                                                coroutineScope = coroutineScope,
+                                                                onDismiss = menuState::dismiss,
+                                                                showRemoveFromCacheButton = true,
+                                                                syncUtils = null
+                                                            )
+                                                        }
+                                                    }
+
+                                                    "local" -> {
+                                                        haptic.performHapticFeedback(
+                                                            HapticFeedbackType.LongPress
+                                                        )
+                                                        menuState.show {
+                                                            AutoPlaylistMenu(
+                                                                playlist = localPlaylist,
+                                                                navController = navController,
+                                                                thumbnail = null,
+                                                                iconThumbnail = Icons.Rounded.MusicNote,
+                                                                songs = localSongs,
+                                                                coroutineScope = coroutineScope,
+                                                                onDismiss = menuState::dismiss,
+                                                                showSyncLocalSongsButton = true,
+                                                                showM3UBackupButton = false,
+                                                                syncUtils = null
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        )
                                 ) {
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,

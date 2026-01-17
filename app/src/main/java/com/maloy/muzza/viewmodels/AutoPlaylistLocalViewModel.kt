@@ -28,38 +28,32 @@ class AutoPlaylistLocalViewModel @Inject constructor(
     private val database: MusicDatabase,
 ) : ViewModel() {
     @OptIn(ExperimentalCoroutinesApi::class)
-    val localSongs = context.dataStore.data
-        .map { preferences ->
-            Pair(
-                preferences[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
-                (preferences[SongSortDescendingKey] ?: true)
-            )
-        }
-        .distinctUntilChanged()
-        .flatMapLatest { (sortType, descending) ->
-            database.allSongs()
-                .flowOn(Dispatchers.IO)
-                .map { songs ->
-                    val localSongs = songs.filter { it.song.isLocal }
-                    when (sortType) {
-                        SongSortType.CREATE_DATE ->
-                            localSongs.sortedBy { it.song.isLocal }
+    val localSongs =
+        context.dataStore.data
+            .map {
+                it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
+                    ?: true)
+            }
+            .distinctUntilChanged()
+            .flatMapLatest { (sortType, descending) ->
+                database.localSongs(SongSortType.CREATE_DATE, true)
+                    .flowOn(Dispatchers.IO)
+                    .map { songs ->
+                        when (sortType) {
+                            SongSortType.CREATE_DATE ->
+                                songs.sortedBy { it.song.isLocal }
 
-                        SongSortType.NAME ->
-                            localSongs.sortedBy { it.song.title }
+                            SongSortType.NAME ->
+                                songs.sortedBy { it.song.title }
 
-                        SongSortType.ARTIST ->
-                            localSongs.sortedBy { song ->
-                                song.artists.joinToString(separator = "") { it.name }
-                            }
+                            SongSortType.ARTIST ->
+                                songs.sortedBy { song ->
+                                    song.artists.joinToString(separator = "") { it.name }
+                                }
 
-                        SongSortType.PLAY_TIME ->
-                            localSongs.sortedBy { it.song.totalPlayTime }
-                    }.reversed(descending)
-                }
-        }.stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Lazily,
-            initialValue = emptyList()
-        )
+                            SongSortType.PLAY_TIME ->
+                                songs.sortedBy { it.song.totalPlayTime }
+                        }.reversed(!descending)
+                    }
+            }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
 }

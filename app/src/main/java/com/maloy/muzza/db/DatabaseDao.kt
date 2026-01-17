@@ -118,6 +118,64 @@ interface DatabaseDao {
     fun likedSongsCount(): Flow<Int>
 
     @Transaction
+    @Query("SELECT * FROM song WHERE isLocal ORDER BY rowId")
+    fun localSongsByRowIdAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal ORDER BY inLibrary")
+    fun localSongsByCreateDateAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal ORDER BY title")
+    fun localSongsByNameAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isLocal ORDER BY totalPlayTime")
+    fun localSongsByPlayTimeAsc(): Flow<List<Song>>
+
+    fun localSongs(sortType: SongSortType, descending: Boolean) =
+        when (sortType) {
+            SongSortType.CREATE_DATE -> localSongsByCreateDateAsc()
+            SongSortType.NAME -> localSongsByNameAsc()
+            SongSortType.ARTIST -> localSongsByRowIdAsc().map { songs ->
+                songs.sortedBy { song ->
+                    song.artists.joinToString(separator = "") { it.name }
+                }
+            }
+
+            SongSortType.PLAY_TIME -> localSongsByPlayTimeAsc()
+        }.map { it.reversed(descending) }
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE inLibrary ORDER BY rowId")
+    fun librarySongsByRowIdAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE inLibrary ORDER BY inLibrary")
+    fun librarySongsByCreateDateAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE inLibrary ORDER BY title")
+    fun librarySongsByNameAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE inLibrary ORDER BY totalPlayTime")
+    fun librarySongsByPlayTimeAsc(): Flow<List<Song>>
+
+    fun librarySongs(sortType: SongSortType, descending: Boolean) =
+        when (sortType) {
+            SongSortType.CREATE_DATE -> librarySongsByCreateDateAsc()
+            SongSortType.NAME -> librarySongsByNameAsc()
+            SongSortType.ARTIST -> librarySongsByRowIdAsc().map { songs ->
+                songs.sortedBy { song ->
+                    song.artists.joinToString(separator = "") { it.name }
+                }
+            }
+
+            SongSortType.PLAY_TIME -> librarySongsByPlayTimeAsc()
+        }.map { it.reversed(descending) }
+
+    @Transaction
     @Query("SELECT song.* FROM song JOIN song_album_map ON song.id = song_album_map.songId WHERE song_album_map.albumId = :albumId")
     fun albumSongs(albumId: String): Flow<List<Song>>
 

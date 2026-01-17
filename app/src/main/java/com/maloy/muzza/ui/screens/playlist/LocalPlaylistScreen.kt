@@ -831,8 +831,6 @@ fun LocalPlaylistScreen(
                             contentDescription = null
                         )
                     }
-                }
-                if (!inSelectMode) {
                     IconButton(
                         onClick = {
                             menuState.show {
@@ -882,6 +880,7 @@ fun LocalPlaylistHeader(
     val database = LocalDatabase.current
     val syncUtils = LocalSyncUtils.current
     val scope = rememberCoroutineScope()
+    val menuState = LocalMenuState.current
 
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }
@@ -1086,6 +1085,18 @@ fun LocalPlaylistHeader(
                 overflow = TextOverflow.Ellipsis,
                 fontSizeRange = FontSizeRange(16.sp, 22.sp),
                 modifier = Modifier.fillMaxWidth(0.8f)
+                    .clickable(
+                        onClick = {
+                            menuState.show {
+                                PlaylistMenu(
+                                    playlist = playlist,
+                                    coroutineScope = scope,
+                                    onDismiss = menuState::dismiss,
+                                    showDeleteButton = false
+                                )
+                            }
+                        }
+                    )
             )
 
             if (accountName.isNotEmpty() && playlist.playlist.isLocal) {

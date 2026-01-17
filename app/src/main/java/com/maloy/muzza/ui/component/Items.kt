@@ -841,6 +841,64 @@ fun AlbumGridItem(
 )
 
 @Composable
+fun AutoPlaylistListItem(
+    playlist: Playlist,
+    thumbnail: String?,
+    modifier: Modifier = Modifier,
+    trailingContent: @Composable (RowScope.() -> Unit) = {},
+    iconThumbnail: ImageVector
+) {
+    val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
+    ListItem(
+        title = playlist.playlist.name,
+        subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
+        thumbnailContent = {
+            PlaylistThumbnail(
+                thumbnails = playlist.thumbnails,
+                size = ListThumbnailSize,
+                placeHolder = {
+                    if (!thumbnail.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = thumbnail,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        PlaylistThumbnail(
+                            thumbnails = playlist.thumbnails,
+                            size = ListThumbnailSize,
+                            placeHolder = {
+                                Box(
+                                    modifier = Modifier
+                                        .size(ListThumbnailSize)
+                                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                                ) {
+                                    Icon(
+                                        imageVector = iconThumbnail,
+                                        contentDescription = null,
+                                        tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                        modifier = Modifier
+                                            .size(ListThumbnailSize / 2)
+                                            .align(Alignment.Center)
+                                    )
+                                }
+                            },
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                    }
+                },
+                shape = RoundedCornerShape(ThumbnailCornerRadius)
+            )
+        },
+        trailingContent = trailingContent,
+        modifier = modifier,
+        isTwoLineLabel = twoLineLabel
+    )
+}
+
+@Composable
 fun PlaylistListItem(
     playlist: Playlist,
     thumbnail: ImageVector,
@@ -939,14 +997,21 @@ fun PlaylistListItem(
                         thumbnails = playlist.thumbnails,
                         size = ListThumbnailSize,
                         placeHolder = {
-                            Icon(
-                                imageVector = thumbnail,
-                                contentDescription = null,
-                                tint = LocalContentColor.current.copy(alpha = 0.8f),
+                            Box(
                                 modifier = Modifier
-                                    .size(ListThumbnailSize / 2)
-                                    .align(Alignment.Center)
-                            )
+                                    .size(ListThumbnailSize)
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Icon(
+                                    imageVector = thumbnail,
+                                    contentDescription = null,
+                                    tint = LocalContentColor.current.copy(alpha = 0.8f),
+                                    modifier = Modifier
+                                        .size(ListThumbnailSize / 2)
+                                        .align(Alignment.Center)
+                                )
+                            }
                         },
                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )

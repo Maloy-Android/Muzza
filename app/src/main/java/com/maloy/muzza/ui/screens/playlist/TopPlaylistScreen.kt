@@ -3,6 +3,7 @@ package com.maloy.muzza.ui.screens.playlist
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -92,6 +93,7 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.SongMenu
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.TrendingUp
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -99,14 +101,18 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import com.maloy.muzza.constants.ListItemHeight
+import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.makeTimeString
@@ -131,6 +137,16 @@ fun TopPlaylistScreen(
     val focusRequester = remember { FocusRequester() }
 
     val songs by viewModel.topSongs.collectAsState(null)
+    val scope = rememberCoroutineScope()
+    val topSize = 50
+    val topPlaylist = Playlist(
+        playlist = PlaylistEntity(
+            id = "top",
+            name = stringResource(R.string.my_top)
+        ),
+        songCount = songs?.let { minOf(it.size, topSize) } ?: 0,
+        songThumbnails = emptyList()
+    )
     val mutableSongs =
         remember {
             mutableStateListOf<Song>()
@@ -339,7 +355,24 @@ fun TopPlaylistScreen(
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         fontSizeRange = FontSizeRange(16.sp, 22.sp),
-                                        modifier = Modifier.fillMaxWidth(0.8f)
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.8f)
+                                            .clickable(
+                                                onClick = {
+                                                    menuState.show {
+                                                        AutoPlaylistMenu(
+                                                            playlist = topPlaylist,
+                                                            navController = navController,
+                                                            thumbnail = null,
+                                                            iconThumbnail = Icons.AutoMirrored.Rounded.TrendingUp,
+                                                            songs = songs,
+                                                            coroutineScope = scope,
+                                                            onDismiss = menuState::dismiss,
+                                                            syncUtils = null
+                                                        )
+                                                    }
+                                                }
+                                            )
                                     )
                                     Text(
                                         text = makeTimeString(likeLength * 1000L),
@@ -751,6 +784,27 @@ fun TopPlaylistScreen(
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.search),
+                                    contentDescription = null
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    menuState.show {
+                                        AutoPlaylistMenu(
+                                            playlist = topPlaylist,
+                                            navController = navController,
+                                            thumbnail = null,
+                                            iconThumbnail = Icons.AutoMirrored.Rounded.TrendingUp,
+                                            songs = songs,
+                                            coroutineScope = scope,
+                                            onDismiss = menuState::dismiss,
+                                            syncUtils = null
+                                        )
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.more_vert),
                                     contentDescription = null
                                 )
                             }

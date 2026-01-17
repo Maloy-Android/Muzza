@@ -660,11 +660,7 @@ fun ArtistScreen(
             }
         },
         scrollBehavior = scrollBehavior,
-        colors = if (transparentAppBar) {
-            TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
-        } else {
-            TopAppBarDefaults.topAppBarColors()
-        }
+        colors = TopAppBarDefaults.topAppBarColors(containerColor = Color.Transparent)
     )
     Box(
         modifier = Modifier.fillMaxSize()

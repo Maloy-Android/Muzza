@@ -1121,33 +1121,41 @@ fun LocalPlaylistHeader(
                         }
                     )
             )
-            if (isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    AsyncImage(
-                        model = accountImageUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal) {
+                    Box(
                         modifier = Modifier
-                            .fillMaxSize()
+                            .size(32.dp)
                             .clip(RoundedCornerShape(16.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        AsyncImage(
+                            model = accountImageUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(16.dp))
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+
+                if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) {
+                    Text(
+                        text = accountName,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-
-            if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) {
-                Text(
-                    text = accountName,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                )
             }
 
             Text(

@@ -71,6 +71,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
@@ -280,6 +281,22 @@ fun ArtistItemsScreen(
                             }
                         }
                     }
+                }
+            }
+            itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().let { songs ->
+                if (songs.isNotEmpty()) {
+                    HideOnScrollFAB(
+                        lazyListState = lazyListState,
+                        icon = R.drawable.play,
+                        onClick = {
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = title,
+                                    items = songs.map { it.toMediaItem() }
+                                )
+                            )
+                        }
+                    )
                 }
             }
         } else {

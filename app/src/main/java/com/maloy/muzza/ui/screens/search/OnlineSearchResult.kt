@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
@@ -64,6 +65,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
@@ -198,69 +200,90 @@ fun OnlineSearchResult(
         )
     }
 
-    LazyColumn(
-        state = lazyListState,
-        contentPadding = LocalPlayerAwareWindowInsets.current
-            .add(WindowInsets(top = SearchFilterHeight))
-            .asPaddingValues()
+    BoxWithConstraints(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopStart
     ) {
-        if (searchFilter == null) {
-            searchSummary?.summaries?.forEach { summary ->
-                item {
-                    NavigationTitle(summary.title)
-                }
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = LocalPlayerAwareWindowInsets.current
+                .add(WindowInsets(top = SearchFilterHeight))
+                .asPaddingValues()
+        ) {
+            if (searchFilter == null) {
+                searchSummary?.summaries?.forEach { summary ->
+                    item {
+                        NavigationTitle(summary.title)
+                    }
 
-                items(
-                    items = summary.items,
-                    key = { "${summary.title}/${it.id}" },
-                    itemContent = ytItemContent
-                )
-            }
-
-            if (searchSummary?.summaries?.isEmpty() == true) {
-                item {
-                    EmptyPlaceholder(
-                        icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
-                        modifier = Modifier.animateItem()
+                    items(
+                        items = summary.items,
+                        key = { "${summary.title}/${it.id}" },
+                        itemContent = ytItemContent
                     )
                 }
-            }
-        } else {
-            items(
-                items = itemsPage?.items.orEmpty(),
-                key = { it.id },
-                itemContent = ytItemContent
-            )
 
-            if (itemsPage?.continuation != null) {
-                item(key = "loading") {
+                if (searchSummary?.summaries?.isEmpty() == true) {
+                    item {
+                        EmptyPlaceholder(
+                            icon = R.drawable.search,
+                            text = stringResource(R.string.no_results_found),
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                }
+            } else {
+                items(
+                    items = itemsPage?.items.orEmpty(),
+                    key = { it.id },
+                    itemContent = ytItemContent
+                )
+
+                if (itemsPage?.continuation != null) {
+                    item(key = "loading") {
+                        ShimmerHost {
+                            repeat(3) {
+                                ListItemPlaceHolder()
+                            }
+                        }
+                    }
+                }
+
+                if (itemsPage?.items?.isEmpty() == true) {
+                    item {
+                        EmptyPlaceholder(
+                            icon = R.drawable.search,
+                            text = stringResource(R.string.no_results_found),
+                            modifier = Modifier.animateItem()
+                        )
+                    }
+                }
+            }
+
+            if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
+                item {
                     ShimmerHost {
-                        repeat(3) {
+                        repeat(8) {
                             ListItemPlaceHolder()
                         }
                     }
                 }
             }
-
-            if (itemsPage?.items?.isEmpty() == true) {
-                item {
-                    EmptyPlaceholder(
-                        icon = R.drawable.search,
-                        text = stringResource(R.string.no_results_found),
-                        modifier = Modifier.animateItem()
-                    )
-                }
-            }
         }
-
-        if (searchFilter == null && searchSummary == null || searchFilter != null && itemsPage == null) {
-            item {
-                ShimmerHost {
-                    repeat(8) {
-                        ListItemPlaceHolder()
+        itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().let { songs ->
+            if (songs.isNotEmpty() && (searchFilter == FILTER_SONG || searchFilter == FILTER_VIDEO)) {
+                HideOnScrollFAB(
+                    lazyListState = lazyListState,
+                    icon = R.drawable.play,
+                    onClick = {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = if (searchFilter == FILTER_SONG) context.getString(R.string.filter_songs) else context.getString(R.string.filter_videos),
+                                items = songs.map { it.toMediaItem() }
+                            )
+                        )
                     }
-                }
+                )
             }
         }
     }

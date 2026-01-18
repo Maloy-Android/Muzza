@@ -446,6 +446,9 @@ fun AutoPlaylistMenu(
             }
         }
         if (showRemoveFromCacheButton && songs.isNotEmpty()) {
+            item {
+                HorizontalDivider()
+            }
             ListMenuItem(
                 icon = {
                     Icon(

@@ -458,7 +458,8 @@ fun AutoPlaylistScreen(
                                         maxLines = 2,
                                         overflow = TextOverflow.Ellipsis,
                                         fontSizeRange = FontSizeRange(16.sp, 22.sp),
-                                        modifier = Modifier.fillMaxWidth(0.8f)
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.8f)
                                             .clickable(
                                                 onClick = {
                                                     menuState.show {
@@ -819,11 +820,10 @@ fun AutoPlaylistScreen(
                     .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
             )
         }
-        if (lazyChecker) {
-            LazyColumnScrollbar(
-                state = state,
-            )
-        }
+        LazyColumnScrollbar(
+            visible = lazyChecker,
+            state = state,
+        )
         if (inSelectMode) {
             CenterAlignedTopAppBar(
                 title = {

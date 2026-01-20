@@ -288,7 +288,8 @@ fun AutoPlaylistLocalScreen(
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSizeRange = FontSizeRange(16.sp, 22.sp),
-                                    modifier = Modifier.fillMaxWidth(0.8f)
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.8f)
                                         .clickable(
                                             onClick = {
                                                 menuState.show {
@@ -549,11 +550,10 @@ fun AutoPlaylistLocalScreen(
                 }
             }
         }
-        if (lazyChecker) {
-            LazyColumnScrollbar(
-                state = lazyListState,
-            )
-        }
+        LazyColumnScrollbar(
+            visible = lazyChecker,
+            state = lazyListState,
+        )
         if (inSelectMode) {
             CenterAlignedTopAppBar(
                 title = {

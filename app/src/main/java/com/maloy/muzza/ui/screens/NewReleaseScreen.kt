@@ -158,11 +158,10 @@ fun NewReleaseScreen(
                         )
                     }
                 }
-                if (lazyChecker) {
-                    LazyColumnScrollbar(
-                        state = lazyListState
-                    )
-                }
+                LazyColumnScrollbar(
+                    visible = lazyChecker,
+                    state = lazyListState
+                )
             }
 
             LibraryViewType.GRID -> {
@@ -212,11 +211,10 @@ fun NewReleaseScreen(
                         }
                     }
                 }
-                if (gridChecker) {
-                    LazyVerticalGridScrollbar(
-                        state = lazyGridState
-                    )
-                }
+                LazyVerticalGridScrollbar(
+                    visible = gridChecker,
+                    state = lazyGridState
+                )
             }
         }
 

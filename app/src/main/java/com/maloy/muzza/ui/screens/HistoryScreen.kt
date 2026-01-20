@@ -433,7 +433,12 @@ fun HistoryScreen(
                                                 eventsMap.let { songs ->
                                                     playerConnection.playQueue(
                                                         ListQueue(
-                                                            title = if (ytmSync && isLoggedIn && isInternetAvailable(context)) context.getString(R.string.history_queue_title_local) else context.getString(R.string.history),
+                                                            title = if (ytmSync && isLoggedIn && isInternetAvailable(
+                                                                    context
+                                                                )
+                                                            ) context.getString(R.string.history_queue_title_local) else context.getString(
+                                                                R.string.history
+                                                            ),
                                                             items = songs.flatMap { it.value }
                                                                 .map { it.song.toMediaItem() },
                                                             startIndex = songs.flatMap { it.value }
@@ -504,11 +509,10 @@ fun HistoryScreen(
             )
         }
     }
-    if (lazyChecker) {
-        LazyColumnScrollbar(
-            state = lazyListState
-        )
-    }
+    LazyColumnScrollbar(
+        visible = lazyChecker,
+        state = lazyListState
+    )
     CenterAlignedTopAppBar(
         title = {
             if (inSelectMode) {

@@ -176,12 +176,20 @@ fun OnlineSearchResult(
                                 if (item.id == mediaMetadata?.id) {
                                     playerConnection.player.togglePlayPause()
                                 } else if (searchFilter == null) {
-                                    playerConnection.playQueue(YouTubeQueue(WatchEndpoint(videoId = item.id), item.toMediaMetadata()))
+                                    playerConnection.playQueue(
+                                        YouTubeQueue(
+                                            WatchEndpoint(videoId = item.id),
+                                            item.toMediaMetadata()
+                                        )
+                                    )
                                 } else {
-                                    val allSongs = itemsPage?.items?.filterIsInstance<SongItem>() ?: emptyList()
+                                    val allSongs = itemsPage?.items?.filterIsInstance<SongItem>()
+                                        ?: emptyList()
                                     playerConnection.playQueue(
                                         ListQueue(
-                                            title = if (searchFilter == FILTER_SONG) context.getString(R.string.filter_songs) else context.getString(R.string.filter_videos),
+                                            title = if (searchFilter == FILTER_SONG) context.getString(
+                                                R.string.filter_songs
+                                            ) else context.getString(R.string.filter_videos),
                                             items = allSongs.map { it.toMediaItem() },
                                             startIndex = allSongs.indexOfFirst { it.id == item.id }
                                         )
@@ -288,11 +296,10 @@ fun OnlineSearchResult(
         }
     }
 
-    if (lazyChecker) {
-        LazyColumnScrollbar(
-            state = lazyListState
-        )
-    }
+    LazyColumnScrollbar(
+        visible = lazyChecker,
+        state = lazyListState
+    )
 
     Box(
         modifier = Modifier.fillMaxSize()

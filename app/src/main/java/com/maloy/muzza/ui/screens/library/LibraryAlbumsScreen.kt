@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.screens.library
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -67,7 +66,6 @@ import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
-import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.AlbumListItem
@@ -175,7 +173,7 @@ fun LibraryAlbumsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            if (albums?.size != 0) {
+            if (albums?.isEmpty() != true) {
                 SortHeader(
                     sortType = sortType,
                     sortDescending = sortDescending,
@@ -307,16 +305,16 @@ fun LibraryAlbumsScreen(
                                                 )
                                             }
                                         },
-                                    ).animateItem()
+                                    )
+                                    .animateItem()
                             )
                         }
                     }
                 }
-                if (lazyChecker) {
-                    LazyColumnScrollbar(
-                        state = lazyListState
-                    )
-                }
+                LazyColumnScrollbar(
+                    visible = lazyChecker,
+                    state = lazyListState
+                )
             }
 
             LibraryViewType.GRID -> {
@@ -391,11 +389,10 @@ fun LibraryAlbumsScreen(
                         }
                     }
                 }
-                if (gridChecker) {
-                    LazyVerticalGridScrollbar(
-                        state = lazyGridState
-                    )
-                }
+                LazyVerticalGridScrollbar(
+                    visible = gridChecker,
+                    state = lazyGridState
+                )
             }
         }
         CenterAlignedTopAppBar(

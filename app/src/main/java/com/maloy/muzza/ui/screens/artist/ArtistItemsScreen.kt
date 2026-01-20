@@ -132,7 +132,7 @@ fun ArtistItemsScreen(
             lazyListState.firstVisibleItemIndex > 0
         }
     }
-    val gridCheck by remember {
+    val gridChecker by remember {
         derivedStateOf {
             lazyGridState.firstVisibleItemIndex > 0
         }
@@ -409,11 +409,10 @@ fun ArtistItemsScreen(
                             )
                         }
                     }
-                    if (lazyChecker) {
-                        LazyColumnScrollbar(
-                            state = lazyListState
-                        )
-                    }
+                    LazyColumnScrollbar(
+                        visible = lazyChecker,
+                        state = lazyListState
+                    )
                 }
 
                 LibraryViewType.GRID -> {
@@ -452,6 +451,7 @@ fun ArtistItemsScreen(
                                                         }
                                                     }
                                                 }
+
                                                 is AlbumItem -> navController.navigate("album/${item.id}")
                                                 is ArtistItem -> navController.navigate("artist/${item.id}")
                                                 is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
@@ -513,15 +513,14 @@ fun ArtistItemsScreen(
         }
     }
 
-    if (lazyChecker) {
-        LazyColumnScrollbar(
-            state = lazyListState
-        )
-    } else if (gridCheck) {
-        LazyVerticalGridScrollbar(
-            state = lazyGridState
-        )
-    }
+    LazyColumnScrollbar(
+        visible = lazyChecker,
+        state = lazyListState
+    )
+    LazyVerticalGridScrollbar(
+        visible = gridChecker,
+        state = lazyGridState
+    )
 
     CenterAlignedTopAppBar(
         title = {

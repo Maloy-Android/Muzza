@@ -30,6 +30,7 @@ val DefaultScrollbar: ScrollbarSettings
 
 @Composable
 fun LazyColumnScrollbar(
+    visible: Boolean = true,
     state: LazyListState,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier.windowInsetsPadding(
         LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom)
@@ -43,6 +44,7 @@ fun LazyColumnScrollbar(
 
 @Composable
 fun LazyVerticalGridScrollbar(
+    visible: Boolean = true,
     state: LazyGridState,
     @SuppressLint("ModifierParameter") modifier: Modifier = Modifier.windowInsetsPadding(
         LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top + WindowInsetsSides.Bottom)

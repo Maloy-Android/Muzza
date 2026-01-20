@@ -238,7 +238,7 @@ fun LibraryPlaylistsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp)
         ) {
-            if (playlists?.size != 0) {
+            if (playlists?.isEmpty() != true) {
                 SortHeader(
                     sortType = sortType,
                     sortDescending = sortDescending,
@@ -256,7 +256,7 @@ fun LibraryPlaylistsScreen(
 
             Spacer(Modifier.weight(1f))
 
-            if (playlists?.size != 0) {
+            if (playlists?.isEmpty() != true) {
                 playlists?.let { playlists ->
                     Text(
                         text = pluralStringResource(
@@ -376,11 +376,10 @@ fun LibraryPlaylistsScreen(
                                 )
                             }
                         }
-                        if (lazyChecker) {
-                            LazyColumnScrollbar(
-                                state = lazyListState
-                            )
-                        }
+                        LazyColumnScrollbar(
+                            visible = lazyChecker,
+                            state = lazyListState
+                        )
                     }
                     HideOnScrollFAB(
                         lazyListState = lazyListState,
@@ -456,11 +455,10 @@ fun LibraryPlaylistsScreen(
                                 )
                             }
                         }
-                        if (gridChecker) {
-                            LazyVerticalGridScrollbar(
-                                state = lazyGridState
-                            )
-                        }
+                        LazyVerticalGridScrollbar(
+                            visible = gridChecker,
+                            state = lazyGridState
+                        )
                     }
                     HideOnScrollFAB(
                         lazyListState = lazyGridState,

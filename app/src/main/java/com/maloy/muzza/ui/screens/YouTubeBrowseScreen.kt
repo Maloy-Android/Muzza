@@ -311,11 +311,10 @@ fun YouTubeBrowseScreen(
                     .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
             )
         }
-        if (lazyChecker) {
-            LazyColumnScrollbar(
-                state = lazyListState
-            )
-        }
+        LazyColumnScrollbar(
+            visible = lazyChecker,
+            state = lazyListState
+        )
     }
 
     CenterAlignedTopAppBar(

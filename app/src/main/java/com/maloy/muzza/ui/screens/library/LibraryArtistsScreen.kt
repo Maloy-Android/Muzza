@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.screens.library
 import android.annotation.SuppressLint
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -168,7 +167,7 @@ fun LibraryArtistsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            if (artists?.size != 0) {
+            if (artists?.isEmpty() != true) {
                 SortHeader(
                     sortType = sortType,
                     sortDescending = sortDescending,
@@ -301,11 +300,10 @@ fun LibraryArtistsScreen(
                         }
                     }
                 }
-                if (lazyChecker) {
-                    LazyColumnScrollbar(
-                        state = lazyListState
-                    )
-                }
+                LazyColumnScrollbar(
+                    visible = lazyChecker,
+                    state = lazyListState
+                )
             }
 
             LibraryViewType.GRID -> {
@@ -376,11 +374,10 @@ fun LibraryArtistsScreen(
                         }
                     }
                 }
-                if (gridChecker) {
-                    LazyVerticalGridScrollbar(
-                        state = lazyGridState
-                    )
-                }
+                LazyVerticalGridScrollbar(
+                    visible = gridChecker,
+                    state = lazyGridState
+                )
             }
         }
         if (artists != null && ytmSync && isLoggedIn && isInternetAvailable(context)) {

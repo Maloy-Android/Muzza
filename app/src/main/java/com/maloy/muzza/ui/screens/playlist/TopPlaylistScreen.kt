@@ -647,11 +647,10 @@ fun TopPlaylistScreen(
                 }
             }
         }
-        if (lazyChecker) {
-            LazyColumnScrollbar(
-                state = state,
-            )
-        }
+        LazyColumnScrollbar(
+            visible = lazyChecker,
+            state = state,
+        )
         if (inSelectMode) {
             CenterAlignedTopAppBar(
                 title = {

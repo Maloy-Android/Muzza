@@ -99,10 +99,12 @@ import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -717,11 +719,24 @@ fun AlbumScreen(
                     .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
             )
         }
+        LazyColumnScrollbar(
+            visible = lazyChecker,
+            state = state
+        )
+        HideOnScrollFAB(
+            visible = lazyChecker && !inSelectMode,
+            lazyListState = state,
+            icon = R.drawable.play,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = albumWithSongs?.album?.title,
+                        items = albumWithSongs?.songs!!.map { it.toMediaItem() }
+                    )
+                )
+            }
+        )
     }
-    LazyColumnScrollbar(
-        visible = lazyChecker,
-        state = state,
-    )
     CenterAlignedTopAppBar(
         title = {
             if (inSelectMode) {

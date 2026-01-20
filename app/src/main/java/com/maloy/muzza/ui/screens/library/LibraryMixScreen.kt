@@ -820,22 +820,21 @@ fun LibraryMixScreen(
                 }
             }
         }
-        if (librarySongs?.isEmpty() != true) {
-            HideOnScrollFAB(
-                lazyListState = lazyListState,
-                icon = R.drawable.library_music,
-                onClick = {
-                    librarySongs?.let { songs ->
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = context.getString(R.string.filter_library),
-                                items = songs.take(100).shuffled().map { it.toMediaItem() }
-                            )
+        HideOnScrollFAB(
+            visible = librarySongs?.isEmpty() != true,
+            lazyListState = lazyListState,
+            icon = R.drawable.library_music,
+            onClick = {
+                librarySongs?.let { songs ->
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = context.getString(R.string.filter_library),
+                            items = songs.take(100).shuffled().map { it.toMediaItem() }
                         )
-                    }
+                    )
                 }
-            )
-        }
+            }
+        )
         if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             Indicator(
                 isRefreshing = isRefreshing,

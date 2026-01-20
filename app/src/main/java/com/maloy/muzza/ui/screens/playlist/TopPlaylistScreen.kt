@@ -111,6 +111,8 @@ import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.move
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
@@ -649,7 +651,20 @@ fun TopPlaylistScreen(
         }
         LazyColumnScrollbar(
             visible = lazyChecker,
-            state = state,
+            state = state
+        )
+        HideOnScrollFAB(
+            visible = lazyChecker && !isSearching && !inSelectMode,
+            lazyListState = state,
+            icon = R.drawable.play,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = context.getString(R.string.my_top),
+                        items = songs!!.map { it.toMediaItem() }
+                    )
+                )
+            }
         )
         if (inSelectMode) {
             CenterAlignedTopAppBar(

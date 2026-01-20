@@ -136,6 +136,7 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.move
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -144,6 +145,7 @@ import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -689,7 +691,24 @@ fun LocalPlaylistScreen(
         }
         LazyColumnScrollbar(
             visible = lazyChecker,
-            state = lazyListState,
+            state = lazyListState
+        )
+        HideOnScrollFAB(
+            visible = lazyChecker && !isSearching && !inSelectMode,
+            lazyListState = lazyListState,
+            icon = R.drawable.play,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = playlist!!.playlist.name,
+                        items = songs.map {
+                            it.song.toMediaItemWithPlaylist(
+                                playlist!!.id
+                            )
+                        }
+                    )
+                )
+            }
         )
         CenterAlignedTopAppBar(
             title = {

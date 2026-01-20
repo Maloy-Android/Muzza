@@ -130,6 +130,7 @@ import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.FontSizeRange
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -945,7 +946,24 @@ fun OnlinePlaylistScreen(
         }
         LazyColumnScrollbar(
             visible = lazyChecker,
-            state = lazyListState,
+            state = lazyListState
+        )
+        HideOnScrollFAB(
+            visible = lazyChecker && !isSearching && !inSelectMode,
+            lazyListState = lazyListState,
+            icon = R.drawable.play,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = playlist!!.title,
+                        items = songs.map {
+                            it.toMediaItemWithPlaylist(
+                                playlist!!.id
+                            )
+                        }
+                    )
+                )
+            }
         )
         CenterAlignedTopAppBar(
             title = {

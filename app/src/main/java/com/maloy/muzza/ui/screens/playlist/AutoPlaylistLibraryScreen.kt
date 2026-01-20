@@ -313,7 +313,8 @@ fun AutoPlaylistLibraryScreen(
                                     maxLines = 2,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSizeRange = FontSizeRange(16.sp, 22.sp),
-                                    modifier = Modifier.fillMaxWidth(0.8f)
+                                    modifier = Modifier
+                                        .fillMaxWidth(0.8f)
                                         .clickable(
                                             onClick = {
                                                 menuState.show {
@@ -601,11 +602,23 @@ fun AutoPlaylistLibraryScreen(
                 }
             }
         }
-        if (lazyChecker) {
-            LazyColumnScrollbar(
-                state = lazyListState,
-            )
-        }
+        LazyColumnScrollbar(
+            visible = lazyChecker,
+            state = lazyListState
+        )
+        HideOnScrollFAB(
+            visible = lazyChecker && !isSearching && !inSelectMode,
+            lazyListState = lazyListState,
+            icon = R.drawable.play,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = context.getString(R.string.songs_from_library),
+                        items = librarySongs.map { it.toMediaItem() }
+                    )
+                )
+            }
+        )
         if (inSelectMode) {
             CenterAlignedTopAppBar(
                 title = {

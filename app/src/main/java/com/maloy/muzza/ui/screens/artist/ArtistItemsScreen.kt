@@ -284,20 +284,19 @@ fun ArtistItemsScreen(
                 }
             }
             itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().let { songs ->
-                if (songs.isNotEmpty()) {
-                    HideOnScrollFAB(
-                        lazyListState = lazyListState,
-                        icon = R.drawable.play,
-                        onClick = {
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = title,
-                                    items = songs.map { it.toMediaItem() }
-                                )
+                HideOnScrollFAB(
+                    visible = songs.isNotEmpty(),
+                    lazyListState = lazyListState,
+                    icon = R.drawable.play,
+                    onClick = {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = title,
+                                items = songs.map { it.toMediaItem() }
                             )
-                        }
-                    )
-                }
+                        )
+                    }
+                )
             }
         } else {
             when (viewType) {

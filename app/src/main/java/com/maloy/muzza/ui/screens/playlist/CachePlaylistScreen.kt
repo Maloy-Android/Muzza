@@ -610,6 +610,19 @@ fun CachePlaylistScreen(
             visible = lazyChecker,
             state = lazyListState,
         )
+        HideOnScrollFAB(
+            visible = lazyChecker && !isSearching && !inSelectMode,
+            lazyListState = lazyListState,
+            icon = R.drawable.play,
+            onClick = {
+                playerConnection.playQueue(
+                    ListQueue(
+                        title = context.getString(R.string.cached),
+                        items = cachedSongs.map { it.toMediaItem() }
+                    )
+                )
+            }
+        )
         if (inSelectMode) {
             CenterAlignedTopAppBar(
                 title = {

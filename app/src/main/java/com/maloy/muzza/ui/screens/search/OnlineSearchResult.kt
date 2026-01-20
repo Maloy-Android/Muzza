@@ -279,20 +279,21 @@ fun OnlineSearchResult(
             }
         }
         itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().let { songs ->
-            if (songs.isNotEmpty() && (searchFilter == FILTER_SONG || searchFilter == FILTER_VIDEO)) {
-                HideOnScrollFAB(
-                    lazyListState = lazyListState,
-                    icon = R.drawable.play,
-                    onClick = {
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = if (searchFilter == FILTER_SONG) context.getString(R.string.filter_songs) else context.getString(R.string.filter_videos),
-                                items = songs.map { it.toMediaItem() }
-                            )
+            HideOnScrollFAB(
+                visible = songs.isNotEmpty() && (searchFilter == FILTER_SONG || searchFilter == FILTER_VIDEO),
+                lazyListState = lazyListState,
+                icon = R.drawable.play,
+                onClick = {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = if (searchFilter == FILTER_SONG) context.getString(R.string.filter_songs) else context.getString(
+                                R.string.filter_videos
+                            ),
+                            items = songs.map { it.toMediaItem() }
                         )
-                    }
-                )
-            }
+                    )
+                }
+            )
         }
     }
 

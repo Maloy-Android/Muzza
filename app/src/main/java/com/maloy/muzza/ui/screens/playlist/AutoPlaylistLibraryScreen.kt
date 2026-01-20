@@ -558,8 +558,7 @@ fun AutoPlaylistLibraryScreen(
                                             SongMenu(
                                                 originalSong = songWrapper,
                                                 navController = navController,
-                                                onDismiss = menuState::dismiss,
-                                                isFromCache = true,
+                                                onDismiss = menuState::dismiss
                                             )
                                         }
                                     }) {
@@ -659,7 +658,6 @@ fun AutoPlaylistLibraryScreen(
                                     selection = selection.mapNotNull { songId ->
                                         librarySongs.find { it.id == songId }
                                     },
-                                    isFromCache = true,
                                     onDismiss = menuState::dismiss,
                                     onExitSelectionMode = onExitSelectionMode
                                 )

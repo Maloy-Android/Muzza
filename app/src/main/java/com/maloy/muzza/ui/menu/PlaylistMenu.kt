@@ -422,9 +422,6 @@ fun PlaylistMenu(
         ) {
             showEditDialog = true
         }
-        item {
-            HorizontalDivider()
-        }
         if (songs.isNotEmpty()) {
             item {
                 HorizontalDivider()

@@ -287,6 +287,10 @@ fun HomeScreen(
     val ytGridItem: @Composable (YTItem) -> Unit = { item ->
         YouTubeGridItem(
             item = item,
+            test = when (item) {
+                is SongItem -> false
+                else -> true
+            },
             isActive = item.id in listOf(mediaMetadata?.album?.id, mediaMetadata?.id, mediaMetadata?.playlist?.id),
             isPlaying = isPlaying,
             thumbnailRatio = 1f,

@@ -66,6 +66,7 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.YouTubeQueue
@@ -291,83 +292,34 @@ fun SongMenu(
             }
         }
 
-        if (playlistSong != null) {
-            Column(
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    onDismiss()
+                    playerConnection.player.togglePlayPause()
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.play),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.play),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        onDismiss()
-                        database.transaction {
-                            coroutineScope.launch {
-                                playlist?.id?.let { playlistId ->
-                                    if (playlistSong.map.setVideoId != null) {
-                                        YouTube.removeFromPlaylist(
-                                            playlistId,
-                                            playlistSong.map.songId,
-                                            playlistSong.map.setVideoId
-                                        )
-                                    }
-                                }
-                            }
-                            move(
-                                playlistSong.map.playlistId,
-                                playlistSong.map.position,
-                                Int.MAX_VALUE
-                            )
-                            delete(playlistSong.map.copy(position = Int.MAX_VALUE))
-                        }
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.playlist_remove),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.remove_from_playlist),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        showChoosePlaylistDialog = true
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.playlist_add),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.add_to_playlist),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
-            }
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
         }
         if (!song.song.isLocal) {
             Column(
@@ -470,7 +422,7 @@ fun SongMenu(
                 HorizontalDivider()
             }
         }
-        if (playlistSong != null) {
+        if (playlistSong == null) {
             ListMenuItem(
                 icon = R.drawable.playlist_add,
                 title = R.string.add_to_playlist
@@ -479,6 +431,32 @@ fun SongMenu(
             }
             item {
                 HorizontalDivider()
+            }
+        } else {
+            ListMenuItem(
+                icon = R.drawable.playlist_remove,
+                title = R.string.remove_from_playlist
+            ) {
+                onDismiss()
+                database.transaction {
+                    coroutineScope.launch {
+                        playlist?.id?.let { playlistId ->
+                            if (playlistSong.map.setVideoId != null) {
+                                YouTube.removeFromPlaylist(
+                                    playlistId,
+                                    playlistSong.map.songId,
+                                    playlistSong.map.setVideoId
+                                )
+                            }
+                        }
+                    }
+                    move(
+                        playlistSong.map.playlistId,
+                        playlistSong.map.position,
+                        Int.MAX_VALUE
+                    )
+                    delete(playlistSong.map.copy(position = Int.MAX_VALUE))
+                }
             }
         }
         if (!song.song.isLocal)  {

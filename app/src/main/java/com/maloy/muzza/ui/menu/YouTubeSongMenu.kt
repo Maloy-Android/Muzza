@@ -59,6 +59,7 @@ import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -249,18 +250,18 @@ fun YouTubeSongMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    showChoosePlaylistDialog = true
+                    playerConnection.player.togglePlayPause()
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.playlist_add),
+                painter = painterResource(R.drawable.play),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.add_to_playlist),
+                text = stringResource(R.string.play),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
@@ -331,6 +332,12 @@ fun YouTubeSongMenu(
         }
         item {
             HorizontalDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.playlist_add,
+            title = R.string.add_to_playlist
+        ) {
+            showChoosePlaylistDialog = true
         }
         if (librarySong?.song?.inLibrary != null) {
             ListMenuItem(

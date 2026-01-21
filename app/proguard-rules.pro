@@ -90,3 +90,30 @@
  -dontwarn javax.script.**
  -keep class jdk.dynalink.** { *; }
  -dontwarn jdk.dynalink.**
+
+ ## Legacy NewPipeExtractor rules (kept for compatibility)
+ -keep class org.schabi.newpipe.extractor.services.youtube.protos.** { *; }
+ -keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
+ -keep class org.mozilla.javascript.** { *; }
+ -keep class org.mozilla.javascript.engine.** { *; }
+ -dontwarn org.mozilla.javascript.JavaToJSONConverters
+ -dontwarn org.mozilla.javascript.tools.**
+ -keep class javax.script.** { *; }
+ -dontwarn javax.script.**
+ -keep class jdk.dynalink.** { *; }
+ -dontwarn jdk.dynalink.**
+
+ ## Rules for PipePipeExtractor
+ -keep class project.pipepipe.extractor.** { *; }
+ -keep class project.pipepipe.shared.** { *; }
+
+ ## Netty rules (used by PipePipeExtractor dependencies)
+ -dontwarn io.netty.**
+ -dontwarn org.apache.log4j.**
+ -dontwarn org.apache.logging.log4j.**
+ -dontwarn reactor.blockhound.**
+ -dontwarn io.micrometer.context.**
+ -dontwarn javax.enterprise.inject.**
+
+ ## Lettuce (Redis client used by PipePipeExtractor)
+ -dontwarn io.lettuce.core.**

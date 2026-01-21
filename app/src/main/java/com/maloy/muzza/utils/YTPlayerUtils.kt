@@ -8,12 +8,10 @@ import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
-import com.maloy.innertube.models.YouTubeClient.Companion.IOS
 import com.maloy.innertube.models.YouTubeClient.Companion.IPADOS
 import com.maloy.innertube.models.YouTubeClient.Companion.MOBILE
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5
 import com.maloy.innertube.models.YouTubeClient.Companion.TVHTML5_SIMPLY_EMBEDDED_PLAYER
-import com.maloy.innertube.models.YouTubeClient.Companion.VISIONOS
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_CREATOR
 import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
@@ -40,8 +38,6 @@ object YTPlayerUtils {
         MOBILE,
         TVHTML5,
         TVHTML5_SIMPLY_EMBEDDED_PLAYER,
-        IOS,
-        VISIONOS,
         WEB,
         WEB_CREATOR
     )
@@ -196,7 +192,7 @@ object YTPlayerUtils {
         playlistId: String? = null,
     ): Result<PlayerResponse> {
         Timber.tag(logTag).d("Fetching metadata-only player response for videoId: $videoId using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
-        return YouTube.player(videoId, playlistId, client = MAIN_CLIENT)
+        return YouTube.player(videoId, playlistId, client = WEB_REMIX)
             .onSuccess { Timber.tag(logTag).d("Successfully fetched metadata") }
             .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata") }
     }

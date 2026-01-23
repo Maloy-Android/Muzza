@@ -175,8 +175,6 @@ class MusicService : MediaLibraryService(),
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()
 
-    private val songUrlCache = HashMap<String, Pair<String, Long>>()
-
     private lateinit var connectivityManager: ConnectivityManager
 
     private val audioQuality by enumPreference(this, AudioQualityKey, AudioQuality.AUTO)
@@ -854,6 +852,7 @@ class MusicService : MediaLibraryService(),
     }
 
     private fun createDataSourceFactory(): DataSource.Factory {
+        val songUrlCache = HashMap<String, Pair<String, Long>>()
         return ResolvingDataSource.Factory(createCacheDataSource()) { dataSpec ->
             val mediaId = dataSpec.key ?: error("No media id")
 
@@ -898,11 +897,6 @@ class MusicService : MediaLibraryService(),
             ) {
                 scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
                 return@Factory dataSpec
-            }
-
-            songUrlCache[mediaId]?.takeIf { it.second > System.currentTimeMillis() }?.let {
-                scope.launch(Dispatchers.IO) { recoverSong(mediaId) }
-                return@Factory dataSpec.withUri(it.first.toUri())
             }
 
             val playbackData = runBlocking(Dispatchers.IO) {

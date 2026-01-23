@@ -37,9 +37,9 @@ subprojects {
         kotlinOptions {
             if (project.findProperty("enableComposeCompilerReports") == "true") {
                 arrayOf("reports", "metrics").forEach {
-                    freeCompilerArgs = freeCompilerArgs + listOf(
-                        "-P", "plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${project.rootDir.absolutePath}/compose_metrics"
-                    )
+                    freeCompilerArgs += listOf(
+                                            "-P", "plugin:androidx.compose.compiler.plugins.kotlin:${it}Destination=${project.rootDir.absolutePath}/compose_metrics"
+                                        )
                 }
             }
         }

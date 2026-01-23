@@ -44,6 +44,7 @@ import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.LibraryContinuationPage
 import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
+import com.maloy.innertube.pages.NewPipeDownloaderImpl
 import com.maloy.innertube.pages.NewReleaseAlbumPage
 import com.maloy.innertube.pages.NextPage
 import com.maloy.innertube.pages.NextResult
@@ -63,6 +64,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import org.schabi.newpipe.extractor.NewPipe
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -72,6 +74,10 @@ import kotlin.random.Random
  */
 object YouTube {
     private val innerTube = InnerTube()
+
+    init {
+        NewPipe.init(NewPipeDownloaderImpl(proxy))
+    }
 
     var locale: YouTubeLocale
         get() = innerTube.locale

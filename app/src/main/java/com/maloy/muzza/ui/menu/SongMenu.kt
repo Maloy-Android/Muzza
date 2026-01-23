@@ -69,6 +69,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListDialog
@@ -302,7 +303,12 @@ fun SongMenu(
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
                     onDismiss()
-                    playerConnection.player.togglePlayPause()
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = song.song.title,
+                            items = listOf(song.toMediaItem())
+                        )
+                    )
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,

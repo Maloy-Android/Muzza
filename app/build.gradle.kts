@@ -59,6 +59,13 @@ android {
 //            isUniversalApk = false
 //        }
 //    }
+
+    packaging {
+        resources {
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/io.netty.versions.properties"
+        }
+    }
     
     signingConfigs {
         getByName("debug") {

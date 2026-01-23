@@ -15,5 +15,5 @@ dependencies {
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
     testImplementation(libs.junit)
-    implementation(libs.extractor)
+    implementation(libs.newpipe.extractor)
 }

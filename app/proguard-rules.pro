@@ -90,3 +90,11 @@
  -dontwarn javax.script.**
  -keep class jdk.dynalink.** { *; }
  -dontwarn jdk.dynalink.**
+
+ -dontwarn io.micrometer.**
+ -dontwarn reactor.util.context.ReactorContextAccessor
+ -dontwarn reactor.blockhound.**
+ -dontwarn javax.enterprise.**
+ -dontwarn org.apache.log4j.**
+ -dontwarn org.apache.logging.log4j.**
+ -dontwarn okhttp3.internal.**

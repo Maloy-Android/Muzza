@@ -521,7 +521,7 @@ fun TopPlaylistScreen(
                             }
                         }
                     }
-                    if (filteredSongs!!.isNotEmpty()) {
+                    if (filteredSongs!!.size > 1) {
                         item {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,

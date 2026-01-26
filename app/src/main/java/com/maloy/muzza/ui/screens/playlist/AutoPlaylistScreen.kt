@@ -691,7 +691,7 @@ fun AutoPlaylistScreen(
                             }
                         }
                     }
-                    if (filteredSongs?.isNotEmpty() == true) {
+                    if (filteredSongs?.size!! > 1) {
                         item {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,

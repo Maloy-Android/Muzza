@@ -101,6 +101,7 @@ data class ArtistPage(
                 explicit = renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,
+                musicVideoType = renderer.musicVideoType,
                 endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
                     ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint
             )
@@ -128,6 +129,7 @@ data class ArtistPage(
                                 album = null,
                                 duration = null,
                                 thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                                musicVideoType = renderer.musicVideoType,
                                 explicit = renderer.subtitleBadges?.any {
                                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                                 } == true

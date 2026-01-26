@@ -1,5 +1,7 @@
 package com.maloy.innertube.models
 
+import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
+
 sealed class YTItem {
     abstract val id: String
     abstract val title: String
@@ -28,8 +30,12 @@ data class SongItem(
     override val thumbnail: String,
     override val explicit: Boolean = false,
     val endpoint: WatchEndpoint? = null,
-    val historyRemoveToken: String? = null
+    val historyRemoveToken: String? = null,
+    val musicVideoType: String? = null
 ) : YTItem() {
+    val isVideoSong: Boolean
+        get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
+
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"
 }

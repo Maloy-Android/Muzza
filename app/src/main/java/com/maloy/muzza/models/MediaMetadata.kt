@@ -2,6 +2,7 @@ package com.maloy.muzza.models
 
 import androidx.compose.runtime.Immutable
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.muzza.db.entities.*
 import com.maloy.muzza.ui.utils.resize
 import java.io.Serializable
@@ -21,6 +22,7 @@ data class MediaMetadata(
     val explicit: Boolean = false,
     val blurSync: Boolean = false,
     val blurThumbnail: String? = null,
+    val isVideoSong: Boolean = false,
 ) : Serializable {
     data class Artist(
         val id: String?,
@@ -45,7 +47,8 @@ data class MediaMetadata(
         albumId = album?.id,
         albumName = album?.title,
         isLocal = isLocal,
-        localPath = localPath
+        localPath = localPath,
+        isVideoSong = isVideoSong
     )
 }
 
@@ -73,7 +76,8 @@ fun Song.toMediaMetadata() = MediaMetadata(
         )
     },
     isLocal = song.isLocal,
-    localPath = song.localPath
+    localPath = song.localPath,
+    isVideoSong = song.isVideoSong
 )
 
 fun SongItem.toMediaMetadata() = MediaMetadata(
@@ -94,7 +98,8 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
         )
     },
     explicit = explicit,
-    setVideoId = setVideoId
+    setVideoId = setVideoId,
+    isVideoSong = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
 )
 
 fun Playlist.toMediaMetadata() = MediaMetadata(

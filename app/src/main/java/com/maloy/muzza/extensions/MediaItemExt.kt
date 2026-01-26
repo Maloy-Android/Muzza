@@ -1,6 +1,7 @@
 package com.maloy.muzza.extensions
 
 import android.content.Context
+import android.os.Bundle
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata.MEDIA_TYPE_MUSIC
@@ -65,6 +66,11 @@ fun Song.toMediaItemWithPlaylist(playlistId: String, context: Context? = null) =
             .setArtworkUri(song.thumbnailUrl?.resize(544, 544)?.toUri())
             .setAlbumTitle(song.albumName)
             .setMediaType(MEDIA_TYPE_MUSIC)
+            .setExtras(
+                Bundle().apply {
+                    putBoolean("isVideoSong", song.isVideoSong)
+                }
+            )
             .build()
     )
     .build()

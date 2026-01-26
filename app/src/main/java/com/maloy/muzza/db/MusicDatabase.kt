@@ -62,7 +62,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 13,
+    version = 20,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -95,6 +95,7 @@ abstract class InternalDatabase : RoomDatabase() {
             MusicDatabase(
                 delegate = Room.databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
                     .addMigrations(MIGRATION_1_2)
+                    .addMigrations(MIGRATION_19_20)
                     .build()
             )
     }
@@ -412,5 +413,11 @@ class Migration16To17 : AutoMigrationSpec {
 class Migration18To19 : AutoMigrationSpec {
     override fun onPostMigrate(db: SupportSQLiteDatabase) {
         db.execSQL("UPDATE song SET explicit = 0 WHERE explicit IS NULL")
+    }
+}
+
+val MIGRATION_19_20 = object : Migration(19, 20) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE song ADD COLUMN isVideoSong INTEGER NOT NULL DEFAULT 0")
     }
 }

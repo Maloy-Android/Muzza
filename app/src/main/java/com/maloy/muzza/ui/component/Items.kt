@@ -545,6 +545,8 @@ fun SongGridItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     fillMaxWidth: Boolean = false,
+    videoThumbnailSize: Boolean = false,
+    thumbnailRatio: Float = if (song.song.isVideoSong) 16f / 9 else 1f,
     contentScale: ContentScale = ContentScale.Fit,
 ) = GridItem(
     title = song.song.title,
@@ -580,6 +582,7 @@ fun SongGridItem(
             }
         } else {
             ItemThumbnail(
+                videoThumbnailSize = !videoThumbnailSize,
                 thumbnailUrl = song.song.thumbnailUrl,
                 isActive = isActive,
                 isPlaying = isPlaying,
@@ -590,7 +593,7 @@ fun SongGridItem(
             )
         }
         ItemsPlayButton(
-            visible = !isActive,
+            visible = !isActive && !song.song.isVideoSong,
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(
@@ -600,8 +603,18 @@ fun SongGridItem(
                 )
             }
         )
+        ItemsVideoPlayButton(
+            visible = !isActive && song.song.isVideoSong
+        ) {
+            playerConnection.playQueue(
+                ListQueue(
+                    title = song.title,
+                    items = listOf(song.toMediaItem())
+                )
+            )
+        }
         ItemsMenuButton(
-            visible = !isActive,
+            visible = !isActive && song.song.isVideoSong,
             onClick = {
                 menuState.show {
                     SongMenu(
@@ -614,6 +627,7 @@ fun SongGridItem(
         )
     },
     fillMaxWidth = fillMaxWidth,
+    thumbnailRatio = thumbnailRatio,
     modifier = modifier
 )
 
@@ -1562,7 +1576,7 @@ fun YouTubeGridItem(
     item: YTItem,
     navController: NavController,
     modifier: Modifier = Modifier,
-    test: Boolean = true,
+    videoThumbnailSize: Boolean = false,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
@@ -1586,7 +1600,7 @@ fun YouTubeGridItem(
             Icon.Download(downloads[item.id]?.state)
         }
     },
-    thumbnailRatio: Float = if (item is SongItem) 16f / 9 else 1f,
+    thumbnailRatio: Float = if (item is SongItem && item.isVideoSong) 16f / 9 else 1f,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     fillMaxWidth: Boolean = false,
@@ -1635,27 +1649,15 @@ fun YouTubeGridItem(
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
         val coroutineScope = rememberCoroutineScope()
 
-        if (test) {
-            ItemThumbnail(
-                test = true,
-                thumbnailUrl = item.thumbnail,
-                isActive = isActive,
-                isPlaying = isPlaying,
-                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
-                    ThumbnailCornerRadius
-                ),
-            )
-        } else {
-            ItemThumbnail(
-                test = false,
-                thumbnailUrl = item.thumbnail,
-                isActive = isActive,
-                isPlaying = isPlaying,
-                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
-                    ThumbnailCornerRadius
-                ),
-            )
-        }
+        ItemThumbnail(
+            videoThumbnailSize = !videoThumbnailSize,
+            thumbnailUrl = item.thumbnail,
+            isActive = isActive,
+            isPlaying = isPlaying,
+            shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
+                ThumbnailCornerRadius
+            ),
+        )
 
         ItemsPlayButton(
             visible = item is AlbumItem && !isActive,
@@ -1683,7 +1685,36 @@ fun YouTubeGridItem(
             }
         )
         ItemsPlayButton(
-            visible = (item is PlaylistItem || item is SongItem) && !isActive,
+            visible = (item is PlaylistItem || item is SongItem && !item.isVideoSong) && !isActive,
+            onClick = {
+                if (item is PlaylistItem) {
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) {
+                            YouTube.playlist(item.id).completed()
+                                .getOrNull()?.songs.orEmpty()
+                        }
+                            .let { songs ->
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = item.title,
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
+                                    )
+                                )
+                            }
+                    }
+                } else if (item is SongItem) {
+                    playerConnection.playQueue(
+                        YouTubeQueue(
+                            item.endpoint
+                                ?: WatchEndpoint(videoId = item.id),
+                            item.toMediaMetadata()
+                        )
+                    )
+                }
+            }
+        )
+        ItemsVideoPlayButton(
+            visible = (item is SongItem && item.isVideoSong) && !isActive,
             onClick = {
                 if (item is PlaylistItem) {
                     coroutineScope.launch {
@@ -1712,7 +1743,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsMenuButton(
-            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem) && !isActive,
+            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem && ! item.isVideoSong) && !isActive,
             onClick = {
                 menuState.show {
                     when (item) {
@@ -1757,7 +1788,7 @@ fun ItemThumbnail(
     shape: Shape,
     modifier: Modifier = Modifier,
     albumIndex: Int? = null,
-    test: Boolean = true
+    videoThumbnailSize: Boolean = true
 ) {
     Box(
         contentAlignment = Alignment.Center,
@@ -1774,7 +1805,7 @@ fun ItemThumbnail(
                     style = MaterialTheme.typography.labelLarge
                 )
             }
-        } else if (test) {
+        } else if (!videoThumbnailSize) {
             AsyncImage(
                 model = thumbnailUrl,
                 contentDescription = null,
@@ -1897,6 +1928,36 @@ fun BoxScope.ItemsPlayButton(
             contentAlignment = Alignment.Center,
             modifier = Modifier
                 .size(36.dp)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = ActiveBoxAlpha))
+                .clickable(onClick = onClick)
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.play),
+                contentDescription = null,
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@Composable
+fun BoxScope.ItemsVideoPlayButton(
+    visible: Boolean,
+    onClick: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = Modifier
+            .align(Alignment.Center)
+            .padding(8.dp)
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(46.dp)
                 .clip(CircleShape)
                 .background(Color.Black.copy(alpha = ActiveBoxAlpha))
                 .clickable(onClick = onClick)

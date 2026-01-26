@@ -16,4 +16,15 @@ data class PlaylistPanelVideoRenderer(
     val unplayableText: Runs?,
     val menu: Menu?,
     val navigationEndpoint: NavigationEndpoint,
-)
+    val thumbnailOverlay: MusicResponsiveListItemRenderer.Overlay?,
+) {
+    val musicVideoType: String?
+        get() =
+            thumbnailOverlay
+                ?.musicItemThumbnailOverlayRenderer
+                ?.content
+                ?.musicPlayButtonRenderer
+                ?.playNavigationEndpoint
+                ?.musicVideoType
+                ?:navigationEndpoint.musicVideoType
+}

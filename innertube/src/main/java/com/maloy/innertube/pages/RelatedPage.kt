@@ -38,6 +38,7 @@ data class RelatedPage(
                 },
                 duration = null,
                 thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                musicVideoType = renderer.musicVideoType,
                 explicit = renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null

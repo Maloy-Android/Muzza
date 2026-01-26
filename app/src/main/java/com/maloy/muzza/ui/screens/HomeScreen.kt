@@ -205,6 +205,7 @@ fun HomeScreen(
         when (it) {
             is Song -> SongGridItem(
                 song = it,
+                videoThumbnailSize = it.song.isVideoSong,
                 modifier = Modifier
                     .fillMaxWidth()
                     .combinedClickable(
@@ -288,13 +289,12 @@ fun HomeScreen(
     val ytGridItem: @Composable (YTItem) -> Unit = { item ->
         YouTubeGridItem(
             item = item,
-            test = when (item) {
-                is SongItem -> false
+            videoThumbnailSize = when (item) {
+                is SongItem -> item.isVideoSong
                 else -> true
             },
             isActive = item.id in listOf(mediaMetadata?.album?.id, mediaMetadata?.id, mediaMetadata?.playlist?.id),
             isPlaying = isPlaying,
-            thumbnailRatio = 1f,
             navController = navController,
             modifier = Modifier
                 .combinedClickable(

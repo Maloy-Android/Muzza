@@ -10,7 +10,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.GlobalScope
 import java.time.LocalDateTime
 
 @Immutable
@@ -38,6 +37,8 @@ data class SongEntity(
     val localPath: String?,
     @ColumnInfo(name = "contentUri") 
     val contentUri: String? = null,
+    @ColumnInfo(name = "isVideoSong", defaultValue = "false")
+    val isVideoSong: Boolean = false,
 ) {
 
     val isLocalSong: Boolean

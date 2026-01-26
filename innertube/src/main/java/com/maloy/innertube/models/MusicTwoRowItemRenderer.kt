@@ -30,4 +30,15 @@ data class MusicTwoRowItemRenderer(
                 navigationEndpoint.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_AUDIOBOOK
     val isArtist: Boolean
         get() = navigationEndpoint.browseEndpoint?.browseEndpointContextSupportedConfigs?.browseEndpointContextMusicConfig?.pageType == MUSIC_PAGE_TYPE_ARTIST
+
+    val musicVideoType: String?
+        get() =
+            thumbnailOverlay
+                ?.musicItemThumbnailOverlayRenderer
+                ?.content
+                ?.musicPlayButtonRenderer
+                ?.playNavigationEndpoint
+                ?.musicVideoType
+                ?:navigationEndpoint.musicVideoType
+
 }

@@ -556,8 +556,8 @@ fun ArtistScreen(
                                             is PlaylistItem -> mediaMetadata?.playlist?.id == item.id
                                             else -> false
                                         },
-                                        test = when (item) {
-                                            is SongItem -> false
+                                        videoThumbnailSize = when (item) {
+                                            is SongItem -> item.isVideoSong
                                             else -> true
                                         },
                                         isPlaying = isPlaying,

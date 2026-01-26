@@ -107,6 +107,7 @@ data class LibraryPage(
                         duration = null,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,
+                        musicVideoType = renderer.musicVideoType,
                         explicit = renderer.subtitleBadges?.any {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } == true
@@ -145,6 +146,7 @@ data class LibraryPage(
                     explicit = renderer.badges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null,
+                    musicVideoType = renderer.musicVideoType,
                     endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint
                 )
 

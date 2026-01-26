@@ -60,6 +60,7 @@ data class SearchSummaryPage(
                         },
                         duration = subtitle.lastOrNull()?.firstOrNull()?.text?.parseTime(),
                         thumbnail = renderer.thumbnail.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        musicVideoType = null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null
@@ -153,6 +154,7 @@ data class SearchSummaryPage(
                         },
                         duration = secondaryLine.lastOrNull()?.firstOrNull()?.text?.parseTime(),
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        musicVideoType = null,
                         explicit = renderer.badges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null

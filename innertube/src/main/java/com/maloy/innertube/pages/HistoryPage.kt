@@ -56,6 +56,7 @@ data class HistoryPage(
                 } != null,
                 endpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
                     ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint,
+                musicVideoType = renderer.musicVideoType,
                 historyRemoveToken = renderer.menu?.menuRenderer?.items?.find {
                     it.menuServiceItemRenderer?.icon?.iconType == "REMOVE_FROM_HISTORY"
                 }?.menuServiceItemRenderer?.serviceEndpoint?.feedbackEndpoint?.feedbackToken

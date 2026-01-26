@@ -74,11 +74,13 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppBarHeight
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
@@ -103,8 +105,10 @@ import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.ui.utils.resize
+import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer
+import kotlin.collections.contains
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -134,6 +138,11 @@ fun ArtistScreen(
     val monthlyListeners = artistPage?.monthlyListenerCount
     val libraryArtist by viewModel.libraryArtist.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState()
+
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
 
     val lazyListState = rememberLazyListState()
 
@@ -426,7 +435,7 @@ fun ArtistScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-                if (librarySongs.isNotEmpty()) {
+                if (!isLoggedIn && librarySongs.isNotEmpty()) {
                     item {
                         NavigationTitle(
                             title = stringResource(R.string.from_your_library), onClick = {

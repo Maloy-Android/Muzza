@@ -582,7 +582,7 @@ fun SongGridItem(
             }
         } else {
             ItemThumbnail(
-                videoThumbnailSize = !videoThumbnailSize,
+                videoThumbnailSize = videoThumbnailSize,
                 thumbnailUrl = song.song.thumbnailUrl,
                 isActive = isActive,
                 isPlaying = isPlaying,
@@ -614,7 +614,7 @@ fun SongGridItem(
             )
         }
         ItemsMenuButton(
-            visible = !isActive && song.song.isVideoSong,
+            visible = !isActive && !song.song.isVideoSong,
             onClick = {
                 menuState.show {
                     SongMenu(
@@ -1650,7 +1650,7 @@ fun YouTubeGridItem(
         val coroutineScope = rememberCoroutineScope()
 
         ItemThumbnail(
-            videoThumbnailSize = !videoThumbnailSize,
+            videoThumbnailSize = item is SongItem && videoThumbnailSize,
             thumbnailUrl = item.thumbnail,
             isActive = isActive,
             isPlaying = isPlaying,

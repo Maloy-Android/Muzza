@@ -452,6 +452,7 @@ fun SongListItem(
                     } else {
                         ItemThumbnail(
                             thumbnailUrl = song.song.thumbnailUrl,
+                            videoThumbnailSize = false,
                             albumIndex = albumIndex,
                             isActive = isActive,
                             isPlaying = isPlaying,
@@ -1276,6 +1277,7 @@ fun MediaMetadataListItem(
             } else {
                 ItemThumbnail(
                     thumbnailUrl = mediaMetadata.thumbnailUrl,
+                    videoThumbnailSize = false,
                     isActive = isActive,
                     isPlaying = isPlaying,
                     shape = RoundedCornerShape(ThumbnailCornerRadius),
@@ -1554,6 +1556,7 @@ private fun BaseListItemContent(
         thumbnailContent = {
             ItemThumbnail(
                 thumbnailUrl = item.thumbnail,
+                videoThumbnailSize = false,
                 albumIndex = albumIndex,
                 isActive = isActive,
                 isPlaying = isPlaying,

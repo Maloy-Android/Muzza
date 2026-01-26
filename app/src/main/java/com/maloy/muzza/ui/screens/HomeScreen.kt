@@ -765,6 +765,20 @@ fun HomeScreen(
                                 )
                             }
                         },
+                        onClick = it.endpoint?.let { endpoint ->
+                            {
+                                when {
+                                    endpoint.browseId == "FEmusic_moods_and_genres" ->
+                                        navController.navigate("mood_and_genres")
+
+                                    endpoint.params != null ->
+                                        navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
+
+                                    else ->
+                                        navController.navigate("browse/${endpoint.browseId}")
+                                }
+                            }
+                        },
                         modifier = Modifier.animateItem()
                     )
                 }

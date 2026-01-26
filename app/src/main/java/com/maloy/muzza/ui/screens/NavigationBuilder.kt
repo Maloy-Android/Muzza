@@ -217,17 +217,31 @@ fun NavGraphBuilder.navigationBuilder(
     ) {
         TopPlaylistScreen(navController, scrollBehavior)
     }
-    composable ("AutoPlaylistLibrary") {
-        AutoPlaylistLibraryScreen(navController,scrollBehavior)
+    composable(
+        route = "browse/{browseId}",
+        arguments = listOf(
+            navArgument("browseId") {
+                type = NavType.StringType
+            }
+        )
+    ) {
+        BrowseScreen(
+            navController,
+            scrollBehavior,
+            it.arguments?.getString("browseId")
+        )
+    }
+    composable("AutoPlaylistLibrary") {
+        AutoPlaylistLibraryScreen(navController, scrollBehavior)
     }
     composable("CachedPlaylist") {
-        CachePlaylistScreen(navController,scrollBehavior)
+        CachePlaylistScreen(navController, scrollBehavior)
     }
     composable("AutoPlaylistLocal") {
-        AutoPlaylistLocalScreen(navController,scrollBehavior)
+        AutoPlaylistLocalScreen(navController, scrollBehavior)
     }
     composable("settings") {
-        SettingsScreen( navController, scrollBehavior)
+        SettingsScreen(navController, scrollBehavior)
     }
     composable("settings/appearance") {
         AppearanceSettings(navController, scrollBehavior)

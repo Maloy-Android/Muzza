@@ -346,6 +346,9 @@ fun YouTubeSongMenu(
         ) {
             showChoosePlaylistDialog = true
         }
+        item {
+            HorizontalDivider()
+        }
         if (librarySong?.song?.inLibrary != null) {
             ListMenuItem(
                 icon = R.drawable.library_add_check,

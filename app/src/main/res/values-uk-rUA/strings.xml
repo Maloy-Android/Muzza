@@ -540,6 +540,10 @@
     <string name="login_failed">Помилка входу</string>
     <string name="logout">Вийти</string>
     <string name="enable_discord_rpc">Увімкнути Rich Presenсe</string>
+    <string name="discord_use_details">Використовувати деталі замість стану</string>
+    <string name="discord_use_details_description">Показувати назву пісні на видному місці замість імен виконавців</string>
+    <string name="muzza_listening">Muzza слухає</string>
+    <string name="login_by_token">Вхід за допомогою токена</string>
 
     <string name="about">Про програму</string>
     <string name="app_version">Версія застосунку</string>

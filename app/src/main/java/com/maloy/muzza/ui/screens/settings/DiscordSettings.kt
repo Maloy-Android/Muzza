@@ -2,7 +2,6 @@ package com.maloy.muzza.ui.screens.settings
 
 import android.content.Intent
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,7 +14,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -27,8 +25,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ProvideTextStyle
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
@@ -36,8 +32,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -68,6 +66,16 @@ import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import androidx.core.net.toUri
+import androidx.media3.common.Player.STATE_READY
+import com.maloy.muzza.constants.DiscordUseDetailsKey
+import com.maloy.muzza.constants.DiscordUserAvatarKay
+import com.maloy.muzza.ui.component.InfoLabel
+import com.maloy.muzza.ui.component.PreferenceEntry
+import com.maloy.muzza.ui.component.SongProgressBar
+import com.maloy.muzza.ui.component.SwitchPreference
+import com.maloy.muzza.ui.component.TextFieldDialog
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -77,32 +85,91 @@ fun DiscordSettings(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val song by playerConnection.currentSong.collectAsState(null)
-    val coroutineScope = rememberCoroutineScope()
 
     var discordToken by rememberPreference(DiscordTokenKey, "")
     var discordUsername by rememberPreference(DiscordUsernameKey, "")
     var discordName by rememberPreference(DiscordNameKey, "")
+    var discordUserAvatar by rememberPreference(DiscordUserAvatarKay, "")
+
+    val playbackState by playerConnection.playbackState.collectAsState()
+    var position by rememberSaveable(playbackState) {
+        mutableLongStateOf(playerConnection.player.currentPosition)
+    }
+    val (useDetails, onUseDetailsChange) = rememberPreference(
+        key = DiscordUseDetailsKey,
+        defaultValue = false
+    )
 
     LaunchedEffect(discordToken) {
         val token = discordToken
-        if (token.isEmpty()) return@LaunchedEffect
-        coroutineScope.launch(Dispatchers.IO) {
+        if (token.isEmpty()) {
+            discordUsername = ""
+            discordName = ""
+            discordUserAvatar = ""
+            return@LaunchedEffect
+        }
+        launch(Dispatchers.IO) {
             KizzyRPC.getUserInfo(token).onSuccess {
                 discordUsername = it.username
                 discordName = it.name
+                discordUserAvatar = if (it.userAvatar.isNotEmpty()) {
+                    "https://cdn.discordapp.com/avatars/${it.id}/${it.userAvatar}.png"
+                } else {
+                    ""
+                }
+            }.onFailure {
+                discordUsername = ""
+                discordName = ""
             }
         }
     }
 
-    val (discordRPC, onDiscordRPCChange) = rememberPreference(key = EnableDiscordRPCKey, defaultValue = true)
+
+    LaunchedEffect(playbackState) {
+        if (playbackState == STATE_READY) {
+            while (isActive) {
+                delay(100)
+                position = playerConnection.player.currentPosition
+            }
+        }
+    }
+
+    val (discordRPC, onDiscordRPCChange) = rememberPreference(
+        key = EnableDiscordRPCKey,
+        defaultValue = true
+    )
     val isLoggedIn = remember(discordToken) { discordToken != "" }
+
+    var showTokenDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showTokenDialog) {
+        TextFieldDialog(
+            onDismiss = { showTokenDialog = false },
+            icon = { Icon(painterResource(R.drawable.token), null) },
+            onDone = {
+                discordToken = it
+                showTokenDialog = false
+            },
+            singleLine = true,
+            isInputValid = { it.isNotEmpty() },
+            extraContent = {
+                InfoLabel(text = stringResource(R.string.login_by_token))
+            }
+        )
+    }
 
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Horizontal + WindowInsetsSides.Bottom))
             .verticalScroll(rememberScrollState()),
     ) {
-        Spacer(Modifier.windowInsetsPadding(LocalPlayerAwareWindowInsets.current.only(WindowInsetsSides.Top)))
+        Spacer(
+            Modifier.windowInsetsPadding(
+                LocalPlayerAwareWindowInsets.current.only(
+                    WindowInsetsSides.Top
+                )
+            )
+        )
 
         ElevatedCard(
             modifier = Modifier
@@ -124,14 +191,25 @@ fun DiscordSettings(
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        painter = painterResource(R.drawable.discord),
-                        contentDescription = null,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .padding(8.dp),
-                        tint = MaterialTheme.colorScheme.primary
-                    )
+                    if (isLoggedIn && discordUserAvatar.isNotEmpty()) {
+                        AsyncImage(
+                            model = discordUserAvatar,
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape),
+                            contentScale = ContentScale.Crop,
+                        )
+                    } else {
+                        Icon(
+                            painter = painterResource(R.drawable.discord),
+                            contentDescription = null,
+                            modifier = Modifier
+                                .size(48.dp)
+                                .padding(8.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
 
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
@@ -183,7 +261,27 @@ fun DiscordSettings(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                SwitchPreferenceDiscord(
+                if (!isLoggedIn) {
+                    PreferenceEntry(
+                        title = {
+                            Text(stringResource(R.string.token_shown))
+                        },
+                        icon = { Icon(painterResource(R.drawable.token), null) },
+                        onClick = {
+                            showTokenDialog = true
+                        }
+                    )
+                }
+
+                SwitchPreference(
+                    title = { Text(stringResource(R.string.discord_use_details)) },
+                    description = stringResource(R.string.discord_use_details_description),
+                    checked = useDetails,
+                    onCheckedChange = onUseDetailsChange,
+                    isEnabled = isLoggedIn && discordRPC,
+                )
+
+                SwitchPreference(
                     title = {
                         Text(
                             stringResource(R.string.enable_discord_rpc),
@@ -204,7 +302,7 @@ fun DiscordSettings(
                 title = stringResource(R.string.preview),
                 modifier = Modifier.padding(bottom = 8.dp)
             )
-            RichPresence(song)
+            RichPresence(song, position)
         }
     }
 
@@ -226,7 +324,7 @@ fun DiscordSettings(
 }
 
 @Composable
-fun RichPresence(song: Song?) {
+fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
     val context = LocalContext.current
 
     ElevatedCard(
@@ -241,7 +339,7 @@ fun RichPresence(song: Song?) {
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = stringResource(R.string.listen_to_muzza),
+                text = stringResource(R.string.muzza_listening),
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.ExtraBold
                 ),
@@ -318,7 +416,8 @@ fun RichPresence(song: Song?) {
                     Spacer(Modifier.height(4.dp))
 
                     Text(
-                        text = song?.artists?.joinToString { it.name } ?: stringResource(R.string.artist),
+                        text = song?.artists?.joinToString { it.name }
+                            ?: stringResource(R.string.artist),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
@@ -334,6 +433,13 @@ fun RichPresence(song: Song?) {
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
+
+                    if (song != null) {
+                        SongProgressBar(
+                            currentTimeMillis = currentPlaybackTimeMillis,
+                            durationMillis = song.song.duration.times(1000L),
+                        )
+                    }
                 }
             }
 
@@ -342,8 +448,10 @@ fun RichPresence(song: Song?) {
             OutlinedButton(
                 enabled = song != null,
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW,
-                        "https://music.youtube.com/watch?v=${song?.id}".toUri())
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        "https://music.youtube.com/watch?v=${song?.id}".toUri()
+                    )
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -359,8 +467,10 @@ fun RichPresence(song: Song?) {
 
             OutlinedButton(
                 onClick = {
-                    val intent = Intent(Intent.ACTION_VIEW,
-                        "https://github.com/Maloy-Android/Muzza".toUri())
+                    val intent = Intent(
+                        Intent.ACTION_VIEW,
+                        "https://github.com/Maloy-Android/Muzza".toUri()
+                    )
                     context.startActivity(intent)
                 },
                 modifier = Modifier.fillMaxWidth(),
@@ -373,88 +483,4 @@ fun RichPresence(song: Song?) {
             }
         }
     }
-}
-
-@Composable
-fun PreferenceEntryDiscord(
-    modifier: Modifier,
-    title: @Composable () -> Unit,
-    description: String? = null,
-    content: (@Composable () -> Unit)? = null,
-    icon: (@Composable () -> Unit)? = null,
-    trailingContent: (@Composable () -> Unit)? = null,
-    onClick: (() -> Unit)? = null,
-    isEnabled: Boolean = true,
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(
-                enabled = isEnabled && onClick != null,
-                onClick = onClick ?: {}
-            )
-            .alpha(if (isEnabled) 1f else 0.5f)
-            .padding(horizontal = 16.dp, vertical = 16.dp)
-    ) {
-        if (icon != null) {
-            Box(
-                modifier = Modifier.padding(horizontal = 4.dp)
-            ) {
-                icon()
-            }
-
-            Spacer(Modifier.width(12.dp))
-        }
-
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier.weight(1f)
-        ) {
-            ProvideTextStyle(MaterialTheme.typography.titleMedium) {
-                title()
-            }
-
-            if (description != null) {
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.titleSmall,
-                    color = MaterialTheme.colorScheme.secondary
-                )
-            }
-
-            content?.invoke()
-        }
-
-        if (trailingContent != null) {
-            Spacer(Modifier.width(12.dp))
-            trailingContent()
-        }
-    }
-}
-
-@Composable
-fun SwitchPreferenceDiscord(
-    modifier: Modifier = Modifier,
-    title: @Composable () -> Unit,
-    description: String? = null,
-    icon: (@Composable () -> Unit)? = null,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-    isEnabled: Boolean = true,
-) {
-    PreferenceEntryDiscord(
-        modifier = modifier,
-        title = title,
-        description = description,
-        icon = icon,
-        trailingContent = {
-            Switch(
-                checked = checked,
-                onCheckedChange = onCheckedChange
-            )
-        },
-        onClick = { onCheckedChange(!checked) },
-        isEnabled = isEnabled
-    )
 }

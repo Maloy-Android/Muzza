@@ -1,36 +1,20 @@
-/*
- *
- *  ******************************************************************
- *  *  * Copyright (C) 2022
- *  *  * ApiService.kt is part of Kizzy
- *  *  *  and can not be copied and/or distributed without the express
- *  *  * permission of yzziK(Vaibhav)
- *  *  *****************************************************************
- *
- *
- */
 package com.my.kizzy.remote
 
 import io.ktor.client.HttpClient
-import io.ktor.client.plugins.HttpTimeout
+import io.ktor.client.plugins.cache.HttpCache
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.forms.MultiPartFormDataContent
-import io.ktor.client.request.forms.formData
 import io.ktor.client.request.get
 import io.ktor.client.request.parameter
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
 import io.ktor.client.request.url
-import io.ktor.http.Headers
-import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
-import java.io.File
+import java.util.logging.Logger
 
 /**
  * Modified by Zion Huang
  */
 class ApiService {
+    private val logger = Logger.getLogger(ApiService::class.java.name)
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json {
@@ -38,35 +22,20 @@ class ApiService {
                 encodeDefaults = true
             })
         }
-        install(HttpTimeout) {
-            connectTimeoutMillis = 30_000
-            requestTimeoutMillis = 30_000
-            socketTimeoutMillis = 30_000
-        }
+        install(HttpCache)
     }
 
-    suspend fun getImage(url: String) = runCatching {
+    suspend fun getImage(urls: List<String>) = runCatching {
+        logger.info("Requesting image proxy for URLs: $urls")
         client.get {
             url("$BASE_URL/image")
-            parameter("url", url)
+            urls.forEach { parameter("url", it) }
         }
-    }
-
-    suspend fun uploadImage(file: File) = runCatching {
-        client.post {
-            url("$BASE_URL/upload")
-            setBody(MultiPartFormDataContent(
-                formData {
-                    append("\"temp\"", file.readBytes(), Headers.build {
-                        append(HttpHeaders.ContentType, "image/*")
-                        append(HttpHeaders.ContentDisposition, "filename=\"${file.name}\"")
-                    })
-                }
-            ))
-        }
+    }.onFailure {
+        logger.severe("Image proxy request failed: ${it.stackTraceToString()}")
     }
 
     companion object {
-        const val BASE_URL = "https://kizzy-api.cjjdxhdjd.workers.dev"
+        const val BASE_URL = "https://metrolist-discord-rpc-api.adrieldsilvas-2.workers.dev"
     }
 }

@@ -1,11 +1,11 @@
 package com.maloy.muzza.ui.screens.settings
 
 import android.annotation.SuppressLint
+import android.os.Build
+import android.view.View
 import android.view.ViewGroup
-import android.webkit.CookieManager
-import android.webkit.JavascriptInterface
-import android.webkit.WebResourceRequest
-import android.webkit.WebStorage
+import android.webkit.JsResult
+import android.webkit.WebChromeClient
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import androidx.activity.compose.BackHandler
@@ -32,13 +32,19 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import timber.log.Timber
+
+private const val JS_SNIPPET =
+    "javascript:(function()%7Bvar%20i%3Ddocument.createElement('iframe')%3Bdocument.body.appendChild(i)%3Balert(i.contentWindow.localStorage.token.slice(1,-1))%7D)()"
+
+private const val MOTOROLA = "motorola"
+private const val SAMSUNG_USER_AGENT =
+    "Mozilla/5.0 (Linux; Android 14; SM-S921U; Build/UP1A.231005.007) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/129.0.0.0 Mobile Safari/537.36"
 
 @SuppressLint("SetJavaScriptEnabled")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DiscordLoginScreen(
-    navController: NavController,
-) {
+fun DiscordLoginScreen(navController: NavController) {
     val scope = rememberCoroutineScope()
     var discordToken by rememberPreference(DiscordTokenKey, "")
     var webView: WebView? = null
@@ -54,38 +60,47 @@ fun DiscordLoginScreen(
                     ViewGroup.LayoutParams.MATCH_PARENT
                 )
 
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
+
+                if (Build.MANUFACTURER.equals(MOTOROLA, ignoreCase = true)) {
+                    settings.userAgentString = SAMSUNG_USER_AGENT
+                }
+
                 webViewClient = object : WebViewClient() {
                     override fun shouldOverrideUrlLoading(
-                        webView: WebView,
-                        request: WebResourceRequest,
+                        view: WebView,
+                        url: String,
                     ): Boolean {
-                        stopLoading()
-                        if (request.url.toString().endsWith("/app")) {
-                            loadUrl("javascript:Android.onRetrieveToken((webpackChunkdiscord_app.push([[''],{},e=>{m=[];for(let c in e.c)m.push(e.c[c])}]),m).find(m=>m?.exports?.default?.getToken!==void 0).exports.default.getToken());")
+                        if (url.endsWith("/app")) {
+                            view.stopLoading()
+                            view.loadUrl(JS_SNIPPET)
+                            view.visibility = View.GONE
                         }
                         return false
                     }
                 }
-                settings.apply {
-                    javaScriptEnabled = true
-                    domStorageEnabled = true
-                    setSupportZoom(true)
-                    builtInZoomControls = true
-                }
-                val cookieManager = CookieManager.getInstance()
-                cookieManager.removeAllCookies(null)
-                cookieManager.flush()
 
-                WebStorage.getInstance().deleteAllData()
-                addJavascriptInterface(object {
-                @JavascriptInterface
-                fun onRetrieveToken(token: String) {
-                    discordToken = token
-                    scope.launch(Dispatchers.Main) {
-                        navController.navigateUp()
+                webChromeClient = object : WebChromeClient() {
+                    override fun onJsAlert(
+                        view: WebView,
+                        url: String,
+                        message: String,
+                        result: JsResult
+                    ): Boolean {
+                        Timber.d("Discord Token received")
+                        if (message.isNotBlank() && message != "null" && message != "undefined") {
+                            discordToken = message
+                            scope.launch(Dispatchers.Main) {
+                                navController.navigateUp()
+                            }
+                        }
+                        view.visibility = View.GONE
+                        result.confirm()
+                        return true
                     }
                 }
-                }, "Android")
+
                 webView = this
                 loadUrl("https://discord.com/login")
             }

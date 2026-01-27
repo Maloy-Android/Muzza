@@ -513,6 +513,10 @@
     <string name="login_failed">Login failed</string>
     <string name="logout">Logout</string>
     <string name="enable_discord_rpc">Enable Rich Presence</string>
+    <string name="discord_use_details">Use details instead of state</string>
+    <string name="discord_use_details_description">Show song title prominently instead of artist names</string>
+    <string name="muzza_listening">Muzza listening</string>
+    <string name="login_by_token">Login by token</string>
 
     <string name="about">About</string>
     <string name="app_version">App version</string>

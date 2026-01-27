@@ -40,10 +40,22 @@ open class KizzyRPC(token: String) {
         return discordWebSocket.isWebSocketConnected()
     }
 
+    open suspend fun close() {
+        if (!isRpcRunning()) {
+            discordWebSocket.connect()
+        }
+        val presence = Presence(
+            activities = emptyList()
+        )
+        discordWebSocket.sendActivity(presence)
+    }
+
     suspend fun setActivity(
         name: String,
         state: String?,
+        stateUrl: String? = null,
         details: String?,
+        detailsUrl: String? = null,
         largeImage: RpcImage?,
         smallImage: RpcImage?,
         largeText: String? = null,
@@ -52,6 +64,7 @@ open class KizzyRPC(token: String) {
         startTime: Long? = null,
         endTime: Long? = null,
         type: Type = Type.LISTENING,
+        statusDisplayType: StatusDisplayType = StatusDisplayType.NAME,
         streamUrl: String? = null,
         applicationId: String? = null,
         status: String? = "online",
@@ -60,17 +73,34 @@ open class KizzyRPC(token: String) {
         if (!isRpcRunning()) {
             discordWebSocket.connect()
         }
+        val images = listOfNotNull(largeImage, smallImage)
+        val externalImages = images.filterIsInstance<RpcImage.ExternalImage>()
+        val imageUrls = externalImages.map { it.image }
+        val resolvedImages = kizzyRepository.getImages(imageUrls)?.results?.associate { it.originalUrl to it.id } ?: emptyMap()
         val presence = Presence(
             activities = listOf(
                 Activity(
                     name = name,
                     state = state,
+                    stateUrl = stateUrl,
                     details = details,
+                    detailsUrl = detailsUrl,
                     type = type.value,
+                    statusDisplayType = statusDisplayType.value,
                     timestamps = Timestamps(startTime, endTime),
                     assets = Assets(
-                        largeImage = largeImage?.resolveImage(kizzyRepository),
-                        smallImage = smallImage?.resolveImage(kizzyRepository),
+                        largeImage = largeImage?.let {
+                            when (it) {
+                                is RpcImage.DiscordImage -> "mp:${it.image}"
+                                is RpcImage.ExternalImage -> resolvedImages[it.image]
+                            }
+                        },
+                        smallImage = smallImage?.let {
+                            when (it) {
+                                is RpcImage.DiscordImage -> "mp:${it.image}"
+                                is RpcImage.ExternalImage -> resolvedImages[it.image]
+                            }
+                        },
                         largeText = largeText,
                         smallText = smallText
                     ),
@@ -87,26 +117,31 @@ open class KizzyRPC(token: String) {
         discordWebSocket.sendActivity(presence)
     }
 
-    enum class Type(val value: Int) {
-        PLAYING(0),
-        STREAMING(1),
+
+    enum class StatusDisplayType(val value: Int) {
+        NAME(0),
+        STATE(1),
+        DETAILS(2)
+    }
+
+        enum class Type(val value: Int) {
         LISTENING(2),
-        WATCHING(3),
-        COMPETING(5)
     }
 
     companion object {
         suspend fun getUserInfo(token: String): Result<UserInfo> = runCatching {
             val client = HttpClient()
-            val response = client.get("https://discord.com/api/v9/users/@me") {
+            val response = client.get("https://discord.com/api/v10/users/@me") {
                 header("Authorization", token)
             }.bodyAsText()
             val json = JSONObject(response)
+            val id = json.getString("id")
             val username = json.getString("username")
-            val name = json.getString("global_name")
+            val userAvatar = json.optString("avatar")
+            val name = json.optString("global_name", username)
             client.close()
 
-            UserInfo(username, name)
+            UserInfo(id , username, name, userAvatar)
         }
     }
 }

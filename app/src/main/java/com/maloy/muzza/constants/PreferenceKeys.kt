@@ -100,7 +100,10 @@ val DisableScreenshotKey = booleanPreferencesKey("disableScreenshot")
 val DiscordTokenKey = stringPreferencesKey("discordToken")
 val DiscordUsernameKey = stringPreferencesKey("discordUsername")
 val DiscordNameKey = stringPreferencesKey("discordName")
+
+val DiscordUserAvatarKay = stringPreferencesKey("discordUserAvatar")
 val EnableDiscordRPCKey = booleanPreferencesKey("discordRPCEnable")
+val DiscordUseDetailsKey = booleanPreferencesKey("discordUseDetails")
 
 val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")

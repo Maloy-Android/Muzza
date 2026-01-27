@@ -68,8 +68,10 @@ fun LoginScreen(
                                     accountEmail = it.email.orEmpty()
                                     accountChannelHandle = it.channelHandle.orEmpty()
                                     accountImageUrl = it.thumbnailUrl.orEmpty()
+                                    YouTube.useLoginForBrowse = true
                                 }.onFailure {
                                     reportException(it)
+                                    YouTube.useLoginForBrowse = false
                                 }
                             }
                         }

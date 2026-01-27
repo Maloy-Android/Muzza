@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,11 +75,6 @@ fun AccountSettings(
         mutableStateOf(false)
     }
 
-    LaunchedEffect(Unit) {
-        if (isLoggedIn) YouTube.useLoginForBrowse = true
-        if (!isLoggedIn) YouTube.useLoginForBrowse = false
-    }
-
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -114,7 +108,13 @@ fun AccountSettings(
             trailingContent = {
                 if (isLoggedIn) {
                     OutlinedButton(onClick = {
+                        onAccountNameChange("")
+                        onAccountEmailChange("")
+                        onAccountChannelHandleChange("")
+                        onAccountImageChange("")
+                        onVisitorDataChange("")
                         onInnerTubeCookieChange("")
+                        YouTube.useLoginForBrowse = false
                     },
                     ) {
                         Text(stringResource(R.string.logout))

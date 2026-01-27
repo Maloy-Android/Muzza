@@ -53,4 +53,9 @@ class BrowseViewModel @Inject constructor(
             }
         }
     }
+    init{
+        viewModelScope.launch {
+            load()
+        }
+    }
 }

@@ -52,6 +52,7 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.YouTubeGridItem
+import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
@@ -59,6 +60,7 @@ import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.viewmodels.YouTubePlaylistsViewModel
+import kotlin.collections.isNotEmpty
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
@@ -121,11 +123,10 @@ fun YouTubePlaylistsScreen(
                         items = playlists.orEmpty(),
                         key = { it.id }
                     ) { item ->
-                        YouTubeGridItem(
+                        YouTubeListItem(
                             item = item,
                             isActive = mediaMetadata?.playlist?.id == item.id,
                             isPlaying = isPlaying,
-                            navController = navController,
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {
@@ -145,10 +146,12 @@ fun YouTubePlaylistsScreen(
                                 )
                         )
                     }
-                    if (playlists == null) {
-                        items(8) {
-                            ShimmerHost {
-                                ListItemPlaceHolder()
+                    if (playlists?.isEmpty() != true) {
+                        item(key = "loading") {
+                            ShimmerHost{
+                                repeat(8) {
+                                    ListItemPlaceHolder()
+                                }
                             }
                         }
                     }
@@ -199,11 +202,12 @@ fun YouTubePlaylistsScreen(
                                 )
                         )
                     }
-
-                    if (playlists == null) {
-                        items(8) {
-                            ShimmerHost {
-                                GridItemPlaceHolder(fillMaxWidth = true)
+                    if (playlists?.isEmpty() != true) {
+                        item(key = "loading") {
+                            ShimmerHost{
+                                repeat(8) {
+                                    GridItemPlaceHolder()
+                                }
                             }
                         }
                     }

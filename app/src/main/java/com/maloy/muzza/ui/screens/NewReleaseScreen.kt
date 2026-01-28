@@ -53,6 +53,7 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
+import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.utils.backToMain
@@ -156,6 +157,13 @@ fun NewReleaseScreen(
                                     }
                                 )
                         )
+                    }
+                    if (newReleaseAlbums.isEmpty()) {
+                        items(8) {
+                            ShimmerHost {
+                                ListItemPlaceHolder()
+                            }
+                        }
                     }
                 }
                 LazyColumnScrollbar(

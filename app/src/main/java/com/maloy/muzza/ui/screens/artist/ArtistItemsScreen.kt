@@ -407,6 +407,13 @@ fun ArtistItemsScreen(
                                     .animateItem()
                             )
                         }
+                        if (itemsPage?.continuation != null) {
+                            item(key = "loading") {
+                                ShimmerHost(Modifier.animateItem()) {
+                                    ListItemPlaceHolder()
+                                }
+                            }
+                        }
                     }
                     LazyColumnScrollbar(
                         visible = lazyChecker,

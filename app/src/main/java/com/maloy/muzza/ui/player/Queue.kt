@@ -343,27 +343,17 @@ fun Queue(
                                     tint = onBackgroundColor
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
-                                if (sleepTimerEnabled) {
-                                    Text(
-                                        text = makeTimeString(sleepTimerTimeLeft),
-                                        color = onBackgroundColor,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier
-                                            .sizeIn(maxWidth = 80.dp)
-                                            .basicMarquee()
-                                    )
-                                } else {
-                                    Text(
-                                        text = stringResource(R.string.sleep_timer),
-                                        color = onBackgroundColor,
-                                        maxLines = 2,
-                                        overflow = TextOverflow.Ellipsis,
-                                        modifier = Modifier
-                                            .sizeIn(maxWidth = 80.dp)
-                                            .basicMarquee()
-                                    )
-                                }
+                                Text(
+                                    text = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else stringResource(
+                                        R.string.sleep_timer
+                                    ),
+                                    color = onBackgroundColor,
+                                    maxLines = if (sleepTimerEnabled) 1 else 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier
+                                        .sizeIn(maxWidth = 80.dp)
+                                        .basicMarquee()
+                                )
                             }
                         }
 

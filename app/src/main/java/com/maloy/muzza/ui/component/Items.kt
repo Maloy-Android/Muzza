@@ -501,6 +501,7 @@ fun SongListItem(
                 } else {
                     ItemThumbnail(
                         thumbnailUrl = song.song.thumbnailUrl,
+                        videoThumbnailSize = false,
                         albumIndex = albumIndex,
                         isActive = isActive,
                         isPlaying = isPlaying,

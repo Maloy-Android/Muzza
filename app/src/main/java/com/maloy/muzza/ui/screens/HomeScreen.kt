@@ -411,8 +411,8 @@ fun HomeScreen(
             item {
                 if (!homePage?.chips.isNullOrEmpty() && showContentFilter) {
                     ChipsRow(
-                        chips = homePage?.chips?.mapNotNull { chip ->
-                            chip?.let { it to it.title }
+                        chips = homePage?.chips?.map { chip ->
+                            chip.let { it to it.title }
                         } ?: emptyList(),
                         currentValue = selectedChip,
                         onValueUpdate = {

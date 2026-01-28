@@ -16,7 +16,7 @@ import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.models.oddElements
 
 data class HomePage(
-    val chips: List<Chip?>?,
+    val chips: List<Chip>?,
     val sections: List<Section>,
     val continuation: String? = null,
 ) {

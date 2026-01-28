@@ -439,11 +439,11 @@ fun MediaMetadataMenu(
                     showSelectArtistDialog = true
                 }
             }
+        }
+        if (!mediaMetadata.isLocal && mediaMetadata.album != null) {
             item {
                 HorizontalDivider()
             }
-        }
-        if (!mediaMetadata.isLocal && mediaMetadata.album != null) {
             ListMenuItem(
                 icon = R.drawable.album,
                 title = R.string.view_album

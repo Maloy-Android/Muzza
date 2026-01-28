@@ -409,8 +409,10 @@ fun ArtistItemsScreen(
                         }
                         if (itemsPage?.continuation != null) {
                             item(key = "loading") {
-                                ShimmerHost(Modifier.animateItem()) {
-                                    ListItemPlaceHolder()
+                                ShimmerHost {
+                                    repeat(8) {
+                                        ListItemPlaceHolder()
+                                    }
                                 }
                             }
                         }
@@ -505,6 +507,10 @@ fun ArtistItemsScreen(
                             }
                         }
                     }
+                    LazyVerticalGridScrollbar(
+                        visible = gridChecker,
+                        state = lazyGridState
+                    )
                 }
             }
         }
@@ -518,15 +524,6 @@ fun ArtistItemsScreen(
             )
         }
     }
-
-    LazyColumnScrollbar(
-        visible = lazyChecker,
-        state = lazyListState
-    )
-    LazyVerticalGridScrollbar(
-        visible = gridChecker,
-        state = lazyGridState
-    )
 
     CenterAlignedTopAppBar(
         title = {

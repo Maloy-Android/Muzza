@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -60,6 +61,7 @@ import com.maloy.muzza.constants.LibraryViewType
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
+import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.utils.rememberEnumPreference
 
@@ -125,17 +127,15 @@ fun BrowseScreen(
                             items = items,
                             key = { it.id }
                         ) { item ->
-                            YouTubeGridItem(
+                            YouTubeListItem(
                                 item = item,
                                 isPlaying = isPlaying,
-                                fillMaxWidth = true,
                                 isActive = when (item) {
                                     is SongItem -> mediaMetadata?.id == item.id
                                     is AlbumItem -> mediaMetadata?.album?.id == item.id
                                     is PlaylistItem -> mediaMetadata?.playlist?.id == item.id
                                     else -> false
                                 },
-                                navController = navController,
                                 modifier = Modifier
                                     .combinedClickable(
                                         onClick = {
@@ -179,10 +179,11 @@ fun BrowseScreen(
                                     )
                             )
                         }
-
-                        if (items.isEmpty()) {
-                            items(8) {
-                                ShimmerHost {
+                    }
+                    if (items?.isNotEmpty() != true) {
+                        item(key = "loading") {
+                            ShimmerHost{
+                                repeat(8) {
                                     ListItemPlaceHolder()
                                 }
                             }

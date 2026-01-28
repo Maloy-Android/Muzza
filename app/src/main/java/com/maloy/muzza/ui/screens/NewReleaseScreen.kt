@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -125,13 +126,13 @@ fun NewReleaseScreen(
                             trailingContent = {
                                 androidx.compose.material3.IconButton(
                                     onClick = {
-                                            menuState.show {
-                                                YouTubeAlbumMenu(
-                                                    albumItem = album,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
+                                        menuState.show {
+                                            YouTubeAlbumMenu(
+                                                albumItem = album,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
                                     }
                                 ) {
                                     Icon(
@@ -159,9 +160,11 @@ fun NewReleaseScreen(
                         )
                     }
                     if (newReleaseAlbums.isEmpty()) {
-                        items(8) {
+                        item(key = "loading") {
                             ShimmerHost {
-                                ListItemPlaceHolder()
+                                repeat(8) {
+                                    ListItemPlaceHolder()
+                                }
                             }
                         }
                     }

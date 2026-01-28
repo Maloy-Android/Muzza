@@ -46,6 +46,7 @@ import com.maloy.muzza.viewmodels.BrowseViewModel
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 
@@ -62,6 +63,7 @@ fun BrowseScreen(
 ) {
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val lazyGridState = rememberLazyGridState()
 
@@ -96,6 +98,12 @@ fun BrowseScreen(
                         item = item,
                         isPlaying = isPlaying,
                         fillMaxWidth = true,
+                        isActive = when (item) {
+                            is SongItem -> mediaMetadata?.id == item.id
+                            is AlbumItem -> mediaMetadata?.album?.id == item.id
+                            is PlaylistItem -> mediaMetadata?.playlist?.id == item.id
+                            else -> false
+                        },
                         navController = navController,
                         modifier = Modifier
                             .combinedClickable(
@@ -175,6 +183,7 @@ fun BrowseScreen(
                     contentDescription = null
                 )
             }
-        }
+        },
+        scrollBehavior = scrollBehavior
     )
 }

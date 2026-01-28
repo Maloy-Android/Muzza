@@ -29,8 +29,8 @@ class ArtistItemsViewModel @Inject constructor(
     private val browseId = savedStateHandle.get<String>("browseId")!!
     private val params = savedStateHandle.get<String>("params")
 
-    val title = MutableStateFlow("")
     val itemsPage = MutableStateFlow<ItemsPage?>(null)
+    val title = savedStateHandle.get<String>("title")
 
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
@@ -45,7 +45,6 @@ class ArtistItemsViewModel @Inject constructor(
                     params = params
                 )
             ).onSuccess { artistItemsPage ->
-                title.value = artistItemsPage.title
                 itemsPage.value = ItemsPage(
                     items = artistItemsPage.items.distinctBy { it.id },
                     continuation = artistItemsPage.continuation

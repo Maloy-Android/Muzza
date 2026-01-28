@@ -111,7 +111,7 @@ fun ArtistItemsScreen(
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
 
-    val title by viewModel.title.collectAsState()
+    val title = viewModel.title?: return
     val itemsPage by viewModel.itemsPage.collectAsState()
     val songIndex: Map<String, SongItem> by remember(itemsPage) {
         derivedStateOf {

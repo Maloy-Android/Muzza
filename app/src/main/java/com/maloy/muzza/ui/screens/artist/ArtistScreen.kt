@@ -499,13 +499,11 @@ fun ArtistScreen(
                     if (section.items.isNotEmpty()) {
                         item {
                             NavigationTitle(
-                                title = section.title, onClick = section.moreEndpoint?.let {
-                                    {
-                                        navController.navigate(
-                                            "artist/${viewModel.artistId}/items?browseId=${it.browseId}?params=${it.params}",
-                                        )
-                                    }
-                                })
+                                title = section.title,
+                                onClick = section.moreEndpoint?.let {
+                                    { navController.navigate("artist/${viewModel.artistId}/items" + "?browseId=${it.browseId}" + "&params=${it.params}" + "&title=${section.title}") }
+                                }
+                            )
                         }
                     }
 

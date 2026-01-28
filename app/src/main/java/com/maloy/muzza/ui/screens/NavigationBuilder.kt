@@ -145,7 +145,7 @@ fun NavGraphBuilder.navigationBuilder(
         ArtistSongsScreen(navController, scrollBehavior)
     }
     composable(
-        route = "artist/{artistId}/items?browseId={browseId}?params={params}",
+        route = "artist/{artistId}/items?browseId={browseId}&params={params}&title={title}",
         arguments = listOf(
             navArgument("artistId") {
                 type = NavType.StringType
@@ -155,6 +155,10 @@ fun NavGraphBuilder.navigationBuilder(
                 nullable = true
             },
             navArgument("params") {
+                type = NavType.StringType
+                nullable = true
+            },
+            navArgument("title") {
                 type = NavType.StringType
                 nullable = true
             }

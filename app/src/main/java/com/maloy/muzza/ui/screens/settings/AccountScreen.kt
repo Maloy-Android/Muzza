@@ -147,6 +147,7 @@ fun AccountSettings(
                             it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
                         }
                     }
+                    if (innerTubeCookie.isNotEmpty()) YouTube.useLoginForBrowse = true
                 },
                 onDismiss = { showTokenEditor = false },
                 singleLine = false,

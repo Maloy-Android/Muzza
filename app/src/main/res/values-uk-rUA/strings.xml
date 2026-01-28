@@ -295,20 +295,6 @@
     <string name="seek_value_20">20 секунд</string>
     <string name="seek_value_25">25 секунд</string>
     <string name="seek_value_30">30 секунд</string>
-    <string name="seek_backward_5">На 5 секунд назад</string>
-    <string name="seek_forward_5">На 5 секунд уперед</string>
-    <string name="seek_backward_10">На 10 секунд назад</string>
-    <string name="seek_forward_10">На 10 секунд уперед</string>
-    <string name="seek_backward_15">На 15 секунд назад</string>
-    <string name="seek_forward_15">На 15 секунд уперед</string>
-    <string name="seek_backward_20">На 20 секунд назад</string>
-    <string name="seek_forward_20">На 20 секунд уперед</string>
-    <string name="seek_backward_25">На 25 секунд назад</string>
-    <string name="seek_forward_25">На 25 секунд уперед</string>
-    <string name="seek_backward_30">На 30 секунд назад</string>
-    <string name="seek_forward_30">На 30 секунд уперед</string>
-
-    <string name="mrzavka">Це улюблений трек мерзотниці мяу ❤️</string>
 
     <!-- Player action -->
     <string name="action_like">Поставити «Подобається»</string>

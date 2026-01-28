@@ -5,9 +5,7 @@ package com.maloy.muzza.ui.player
 import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.drawable.BitmapDrawable
-import android.widget.Toast
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -22,19 +20,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -42,15 +36,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
-import androidx.compose.foundation.lazy.grid.items
-import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -63,7 +52,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -84,7 +72,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -111,8 +98,6 @@ import com.maloy.muzza.constants.NowPlayingPaddingKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerHorizontalPadding
-import com.maloy.muzza.constants.PlayerStyle
-import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.QueuePeekHeight
 import com.maloy.muzza.constants.ShowLyricsKey
@@ -121,7 +106,6 @@ import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.SongDurationTimeSkip
 import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.fullScreenLyricsKey
-import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
@@ -135,7 +119,6 @@ import com.maloy.muzza.ui.component.ResizableIconButton
 import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.theme.extractGradientColors
-import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -145,7 +128,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.withContext
 import me.saket.squiggles.SquigglySlider
-import kotlin.math.max
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
@@ -194,8 +176,6 @@ fun BottomSheetPlayer(
         key = PlayerBackgroundStyleKey,
         defaultValue = PlayerBackgroundStyle.DEFAULT
     )
-
-    val (playerStyle) = rememberEnumPreference(PlayerStyleKey, defaultValue = PlayerStyle.NEW)
 
     val useDarkTheme = remember(darkTheme, isSystemInDarkTheme) {
         if (darkTheme == DarkMode.AUTO) isSystemInDarkTheme else darkTheme == DarkMode.ON
@@ -272,65 +252,12 @@ fun BottomSheetPlayer(
         }
     }
 
-    val thumbnailLazyGridState = rememberLazyGridState()
-    val horizontalLazyGridItemWidthFactor = 1f
-    val thumbnailSnapLayoutInfoProvider = remember(thumbnailLazyGridState) {
-        SnapLayoutInfoProvider(
-            lazyGridState = thumbnailLazyGridState,
-            positionInLayout = { layoutSize, itemSize ->
-                (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
-            }
-        )
-    }
-    val previousMediaMetadata =
-        if (playerConnection.player.hasPreviousMediaItem()) {
-            val previousIndex = playerConnection.player.previousMediaItemIndex
-            playerConnection.player.getMediaItemAt(previousIndex).metadata
-        } else null
-
-    val nextMediaMetadata = if (playerConnection.player.hasNextMediaItem()) {
-        val nextIndex = playerConnection.player.nextMediaItemIndex
-        playerConnection.player.getMediaItemAt(nextIndex).metadata
-    } else null
-
-    val mediaItems = listOfNotNull(previousMediaMetadata, mediaMetadata, nextMediaMetadata)
-    val currentMediaIndex = mediaItems.indexOf(mediaMetadata)
-
-    val currentItem by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemIndex } }
-    val itemScrollOffset by remember { derivedStateOf { thumbnailLazyGridState.firstVisibleItemScrollOffset } }
-
-    LaunchedEffect(itemScrollOffset) {
-        if (!thumbnailLazyGridState.isScrollInProgress || itemScrollOffset != 0) return@LaunchedEffect
-
-        if (currentItem > currentMediaIndex)
-            playerConnection.player.seekToNext()
-        else if (currentItem < currentMediaIndex)
-            playerConnection.player.seekToPreviousMediaItem()
-    }
-
-
-    LaunchedEffect(mediaMetadata, canSkipPrevious, canSkipNext) {
-        val index = maxOf(0, currentMediaIndex)
-        if (state.isExpanded)
-            thumbnailLazyGridState.animateScrollToItem(index)
-        else
-            thumbnailLazyGridState.scrollToItem(index)
-    }
-
     LaunchedEffect(!showLyrics && !fullScreenLyrics) {
         fullScreenLyrics = true
     }
 
     LaunchedEffect(!showLyrics) {
         fullScreenLyrics = true
-    }
-
-    if (currentSong?.song?.id in listOf("0IuRPqAZBi4", "ZNbSs6Z0lkA")) {
-        Toast.makeText(
-            context,
-            context.getString(R.string.mrzavka),
-            Toast.LENGTH_LONG
-        ).show()
     }
 
     val queueSheetState = rememberBottomSheetState(
@@ -635,60 +562,34 @@ fun BottomSheetPlayer(
                         )
                     }
 
-                    if (playerStyle == PlayerStyle.NEW) {
-                        FilledTonalIconButton(
-                            onClick = { playerConnection.player.seekToPrevious() },
-                            modifier = Modifier.size(48.dp),
-                            enabled = canSkipPrevious
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_previous),
-                                contentDescription = null,
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    } else {
-                        FilledTonalIconButton(
-                            onClick = {},
+                    FilledTonalIconButton(
+                        onClick = {},
+                        modifier = Modifier.size(48.dp),
+                        enabled = canSkipPrevious
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.skip_previous),
+                            contentDescription = null,
                             modifier = Modifier
-                                .size(48.dp),
-                            enabled = canSkipPrevious
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_previous),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .combinedClickable(
-                                        onClick = { playerConnection.player.seekToPrevious() },
-                                        onLongClick = {
-                                            Toast.makeText(
-                                                context, context.getString(
-                                                    when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
-                                                        SongDurationTimeSkip.TEN -> R.string.seek_backward_10
-                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
-                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
-                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
-                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
-                                                    }
-                                                ), Toast.LENGTH_LONG
-                                            ).show()
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            playerConnection.player.seekTo(
-                                                playerConnection.player.currentPosition - when (songDurationTimeSkip) {
-                                                    SongDurationTimeSkip.FIVE -> 5000
-                                                    SongDurationTimeSkip.TEN -> 10000
-                                                    SongDurationTimeSkip.FIFTEEN -> 15000
-                                                    SongDurationTimeSkip.TWENTY -> 20000
-                                                    SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                    SongDurationTimeSkip.THIRTY -> 30000
-                                                }
-                                            )
-                                        }
-                                    )
-                            )
-                        }
+                                .clip(RoundedCornerShape(48.dp))
+                                .size(24.dp)
+                                .combinedClickable(
+                                    onClick = { playerConnection.player.seekToPrevious() },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        playerConnection.player.seekTo(
+                                            playerConnection.player.currentPosition - when (songDurationTimeSkip) {
+                                                SongDurationTimeSkip.FIVE -> 5000
+                                                SongDurationTimeSkip.TEN -> 10000
+                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                SongDurationTimeSkip.THIRTY -> 30000
+                                            }
+                                        )
+                                    }
+                                )
+                        )
                     }
 
                     FilledTonalIconButton(
@@ -717,59 +618,34 @@ fun BottomSheetPlayer(
                         )
                     }
 
-                    if (playerStyle == PlayerStyle.NEW) {
-                        FilledTonalIconButton(
-                            modifier = Modifier.size(48.dp),
-                            onClick = { playerConnection.player.seekToNext() },
-                            enabled = canSkipNext
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_next),
-                                contentDescription = stringResource(R.string.next),
-                                modifier = Modifier.size(24.dp)
-                            )
-                        }
-                    } else {
-                        FilledTonalIconButton(
-                            modifier = Modifier.size(48.dp),
-                            onClick = {},
-                            enabled = canSkipNext
-                        ) {
-                            Icon(
-                                painter = painterResource(R.drawable.skip_next),
-                                contentDescription = stringResource(R.string.next),
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .combinedClickable(
-                                        onClick = { playerConnection.player.seekToNext() },
-                                        onLongClick = {
-                                            Toast.makeText(
-                                                context, context.getString(
-                                                    when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
-                                                        SongDurationTimeSkip.TEN -> R.string.seek_forward_10
-                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
-                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
-                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
-                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
-                                                    }
-                                                ), Toast.LENGTH_LONG
-                                            ).show()
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            playerConnection.player.seekTo(
-                                                playerConnection.player.currentPosition + when (songDurationTimeSkip) {
-                                                    SongDurationTimeSkip.FIVE -> 5000
-                                                    SongDurationTimeSkip.TEN -> 10000
-                                                    SongDurationTimeSkip.FIFTEEN -> 15000
-                                                    SongDurationTimeSkip.TWENTY -> 20000
-                                                    SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                    SongDurationTimeSkip.THIRTY -> 30000
-                                                }
-                                            )
-                                        }
-                                    )
-                            )
-                        }
+                    FilledTonalIconButton(
+                        modifier = Modifier.size(48.dp),
+                        onClick = {},
+                        enabled = canSkipNext
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.skip_next),
+                            contentDescription = stringResource(R.string.next),
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(48.dp))
+                                .size(24.dp)
+                                .combinedClickable(
+                                    onClick = { playerConnection.player.seekToNext() },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        playerConnection.player.seekTo(
+                                            playerConnection.player.currentPosition + when (songDurationTimeSkip) {
+                                                SongDurationTimeSkip.FIVE -> 5000
+                                                SongDurationTimeSkip.TEN -> 10000
+                                                SongDurationTimeSkip.FIFTEEN -> 15000
+                                                SongDurationTimeSkip.TWENTY -> 20000
+                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
+                                                SongDurationTimeSkip.THIRTY -> 30000
+                                            }
+                                        )
+                                    }
+                                )
+                        )
                     }
 
                     FilledTonalIconButton(
@@ -892,115 +768,64 @@ fun BottomSheetPlayer(
                 )
             }
         }
-        if (LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            val vPadding = max(
-                WindowInsets.safeDrawing.getTop(LocalDensity.current),
-                WindowInsets.safeDrawing.getBottom(LocalDensity.current)
-            )
-            val vPaddingDp = with(LocalDensity.current) { vPadding.toDp() }
-            val verticalInsets =
-                WindowInsets(left = 0.dp, top = vPaddingDp, right = 0.dp, bottom = vPaddingDp)
-            Row(
-                modifier = Modifier
-                    .windowInsetsPadding(
-                        WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal)
-                            .add(verticalInsets)
-                    )
-                    .fillMaxSize()
-            ) {
-                BoxWithConstraints(
-                    contentAlignment = Alignment.Center,
+        when (LocalConfiguration.current.orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                Row(
                     modifier = Modifier
-                        .weight(1f)
-                        .nestedScroll(state.preUpPostDownNestedScrollConnection)
+                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                        .padding(bottom = queueSheetState.collapsedBound)
                 ) {
-                    val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
-
-                    LazyHorizontalGrid(
-                        state = thumbnailLazyGridState,
-                        rows = GridCells.Fixed(1),
-                        contentPadding = PaddingValues(vertical = 16.dp),
-                        flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = state.isExpanded && !showLyrics
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.weight(1f)
                     ) {
-                        items(
-                            items = mediaItems,
-                            key = { it.id }
-                        ) {
-                            Thumbnail(
-                                sliderPositionProvider = { sliderPosition },
-                                modifier = Modifier
-                                    .width(horizontalLazyGridItemWidth)
-                                    .animateContentSize(),
-                                contentScale = ContentScale.Crop,
-                                showLyricsOnClick = true,
-                                customMediaMetadata = it
-                            )
+                        Thumbnail(
+                            sliderPositionProvider = { sliderPosition },
+                            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
+                        )
+                    }
+
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier
+                            .weight(1f)
+                            .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
+                    ) {
+                        Spacer(Modifier.weight(1f))
+
+                        mediaMetadata?.let {
+                            controlsContent(it)
                         }
+
+                        Spacer(Modifier.weight(1f))
                     }
                 }
+            }
 
+            else -> {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier
-                        .weight(if (showLyrics) 0.65f else 1f, false)
-                        .animateContentSize()
-                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
+                        .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
+                        .padding(bottom = queueSheetState.collapsedBound)
                 ) {
-                    Spacer(Modifier.weight(1f))
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Thumbnail(
+                            sliderPositionProvider = { sliderPosition },
+                            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
+                            showLyricsOnClick = true
+                        )
+                    }
 
                     mediaMetadata?.let {
                         controlsContent(it)
                     }
 
-                    Spacer(Modifier.weight(1f))
+                    Spacer(Modifier.height(32.dp))
                 }
-            }
-        } else {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                    .padding(bottom = queueSheetState.collapsedBound)
-            ) {
-                BoxWithConstraints(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .weight(1f)
-                        .nestedScroll(state.preUpPostDownNestedScrollConnection)
-                ) {
-                    val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
-
-                    LazyHorizontalGrid(
-                        state = thumbnailLazyGridState,
-                        rows = GridCells.Fixed(1),
-                        flingBehavior = rememberSnapFlingBehavior(thumbnailSnapLayoutInfoProvider),
-                        userScrollEnabled = state.isExpanded && !showLyrics
-                    ) {
-                        items(
-                            items = mediaItems,
-                            key = { it.id }
-                        ) {
-                            Thumbnail(
-                                modifier = Modifier
-                                    .width(horizontalLazyGridItemWidth)
-                                    .animateContentSize(),
-                                contentScale = ContentScale.Crop,
-                                sliderPositionProvider = { sliderPosition },
-                                showLyricsOnClick = true,
-                                customMediaMetadata = it
-                            )
-                        }
-                    }
-                }
-
-                Spacer(Modifier.height(8.dp))
-
-                mediaMetadata?.let {
-                    controlsContent(it)
-                }
-
-                Spacer(Modifier.height(24.dp))
             }
         }
 

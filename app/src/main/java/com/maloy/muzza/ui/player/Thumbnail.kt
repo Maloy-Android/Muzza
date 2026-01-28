@@ -16,7 +16,6 @@ import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -42,9 +41,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.LayoutDirection
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -52,18 +48,16 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.PlaybackException
+import androidx.media3.common.Player.STATE_ENDED
 import coil.compose.AsyncImage
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.R
 import com.maloy.muzza.constants.PlayerHorizontalPadding
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.ShowLyricsKey
-import com.maloy.muzza.constants.SongDurationTimeSkip
-import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
-import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.Lyrics
 import com.maloy.muzza.utils.imageCache
@@ -76,20 +70,15 @@ import kotlin.math.roundToInt
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
-    showLyricsOnClick: Boolean = false,
-    contentScale: ContentScale = ContentScale.Fit,
-    customMediaMetadata: MediaMetadata? = null
+    showLyricsOnClick: Boolean = false
 ) {
-    val (songDurationTimeSkip) = rememberEnumPreference(
-        SongDurationTimeSkipKey, defaultValue = SongDurationTimeSkip.FIVE)
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
+    val playbackState by playerConnection.playbackState.collectAsState()
     val currentView = LocalView.current
-    val context = LocalContext.current
 
     val error: PlaybackException? by playerConnection.error.collectAsState()
-    val playerMediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val mediaMetadata = customMediaMetadata ?: playerMediaMetadata
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
@@ -115,7 +104,6 @@ fun Thumbnail(
     )
 
     var offsetX by remember { mutableFloatStateOf(0f) }
-    val layoutDirection = LocalLayoutDirection.current
     var showSeekEffect by remember { mutableStateOf(false) }
     var seekDirection by remember { mutableStateOf("") }
 
@@ -164,200 +152,60 @@ fun Thumbnail(
                         )
                     },
             ) {
-                if (mediaMetadata?.isLocal == false) {
-                    if (playerStyle == PlayerStyle.NEW) {
-                        AsyncImage(
-                            model = mediaMetadata.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .graphicsLayer {
-                                    translationX = offsetX * 0.5f
-                                    alpha = thumbnailAlpha
-                                    scaleX = thumbnailScale
-                                    scaleY = thumbnailScale
+                if (mediaMetadata?.isLocal != true) {
+                    AsyncImage(
+                        model = mediaMetadata?.thumbnailUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .offset { IntOffset(offsetX.roundToInt(), 0) }
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .graphicsLayer {
+                                translationX = offsetX * 0.5f
+                                alpha = thumbnailAlpha
+                                scaleX = thumbnailScale
+                                scaleY = thumbnailScale
+                            }
+                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                            .clickable {
+                                if (playbackState == STATE_ENDED) {
+                                    playerConnection.player.seekTo(0, 0)
+                                    playerConnection.player.playWhenReady = true
+                                } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
+                                    showLyrics = !showLyrics
+                                } else {
+                                    playerConnection.player.togglePlayPause()
                                 }
-                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onDoubleTap = { offset ->
-                                            val currentPosition =
-                                                playerConnection.player.currentPosition
-                                            if ((layoutDirection == LayoutDirection.Ltr && offset.x < size.width / 2) ||
-                                                (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
-                                            ) {
-                                                playerConnection.player.seekTo(
-                                                    (currentPosition - when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> 5000
-                                                        SongDurationTimeSkip.TEN -> 10000
-                                                        SongDurationTimeSkip.FIFTEEN -> 15000
-                                                        SongDurationTimeSkip.TWENTY -> 20000
-                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                        SongDurationTimeSkip.THIRTY -> 30000
-                                                    }).coerceAtLeast(
-                                                        0
-                                                    )
-                                                )
-                                                seekDirection =
-                                                    context.getString(when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
-                                                        SongDurationTimeSkip.TEN -> R.string.seek_backward_10
-                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
-                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
-                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
-                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
-                                                    })
-                                            } else {
-                                                playerConnection.player.seekTo(
-                                                    (currentPosition + when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> 5000
-                                                        SongDurationTimeSkip.TEN -> 10000
-                                                        SongDurationTimeSkip.FIFTEEN -> 15000
-                                                        SongDurationTimeSkip.TWENTY -> 20000
-                                                        SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                        SongDurationTimeSkip.THIRTY -> 30000
-                                                    }).coerceAtMost(
-                                                        playerConnection.player.duration
-                                                    )
-                                                )
-                                                seekDirection =
-                                                    context.getString(when (songDurationTimeSkip) {
-                                                        SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
-                                                        SongDurationTimeSkip.TEN -> R.string.seek_forward_10
-                                                        SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
-                                                        SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
-                                                        SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
-                                                        SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
-                                                    })
-                                            }
-                                            showSeekEffect = true
-                                        }
-                                    )
-                                }
-                        )
-                    } else {
-                        AsyncImage(
-                            model = mediaMetadata.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .graphicsLayer {
-                                    translationX = offsetX * 0.5f
-                                    alpha = thumbnailAlpha
-                                    scaleX = thumbnailScale
-                                    scaleY = thumbnailScale
-                                }
-                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                                .clickable(enabled = showLyricsOnClick) { showLyrics = !showLyrics }
-                        )
-                    }
+                            }
+                    )
                 } else {
-                    if (mediaMetadata?.isLocal == true) {
-                        if (playerStyle == PlayerStyle.NEW) {
-                            mediaMetadata.let {
-                                AsyncLocalImage(
-                                    image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                                    contentDescription = null,
-                                    contentScale = contentScale,
-                                    modifier = Modifier
-                                        .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                        .graphicsLayer {
-                                            translationX = offsetX * 0.5f
-                                            alpha = thumbnailAlpha
-                                            scaleX = thumbnailScale
-                                            scaleY = thumbnailScale
-                                        }
-                                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                                        .pointerInput(Unit) {
-                                            detectTapGestures(
-                                                onDoubleTap = { offset ->
-                                                    val currentPosition =
-                                                        playerConnection.player.currentPosition
-                                                    if ((layoutDirection == LayoutDirection.Ltr && offset.x < size.width / 2) ||
-                                                        (layoutDirection == LayoutDirection.Rtl && offset.x > size.width / 2)
-                                                    ) {
-                                                        playerConnection.player.seekTo(
-                                                            (currentPosition - when (songDurationTimeSkip) {
-                                                                SongDurationTimeSkip.FIVE -> 5000
-                                                                SongDurationTimeSkip.TEN -> 10000
-                                                                SongDurationTimeSkip.FIFTEEN -> 15000
-                                                                SongDurationTimeSkip.TWENTY -> 20000
-                                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                                SongDurationTimeSkip.THIRTY -> 30000
-                                                            }).coerceAtLeast(
-                                                                0
-                                                            )
-                                                        )
-                                                        seekDirection =
-                                                            context.getString(when (songDurationTimeSkip) {
-                                                                SongDurationTimeSkip.FIVE -> R.string.seek_backward_5
-                                                                SongDurationTimeSkip.TEN -> R.string.seek_backward_10
-                                                                SongDurationTimeSkip.FIFTEEN -> R.string.seek_backward_15
-                                                                SongDurationTimeSkip.TWENTY -> R.string.seek_backward_20
-                                                                SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_backward_25
-                                                                SongDurationTimeSkip.THIRTY -> R.string.seek_backward_30
-                                                            })
-                                                    } else {
-                                                        playerConnection.player.seekTo(
-                                                            (currentPosition + when (songDurationTimeSkip) {
-                                                                SongDurationTimeSkip.FIVE -> 5000
-                                                                SongDurationTimeSkip.TEN -> 10000
-                                                                SongDurationTimeSkip.FIFTEEN -> 15000
-                                                                SongDurationTimeSkip.TWENTY -> 20000
-                                                                SongDurationTimeSkip.TWENTYFIVE -> 25000
-                                                                SongDurationTimeSkip.THIRTY -> 30000
-                                                            }).coerceAtMost(
-                                                                playerConnection.player.duration
-                                                            )
-                                                        )
-                                                        seekDirection =
-                                                            context.getString(when (songDurationTimeSkip) {
-                                                                SongDurationTimeSkip.FIVE -> R.string.seek_forward_5
-                                                                SongDurationTimeSkip.TEN -> R.string.seek_forward_10
-                                                                SongDurationTimeSkip.FIFTEEN -> R.string.seek_forward_15
-                                                                SongDurationTimeSkip.TWENTY -> R.string.seek_forward_20
-                                                                SongDurationTimeSkip.TWENTYFIVE -> R.string.seek_forward_25
-                                                                SongDurationTimeSkip.THIRTY -> R.string.seek_forward_30
-                                                            })
-                                                    }
-                                                    showSeekEffect = true
-                                                }
-                                            )
-                                        }
-                                )
+                    AsyncLocalImage(
+                        image = { imageCache.getLocalThumbnail(mediaMetadata?.localPath, false) },
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .offset { IntOffset(offsetX.roundToInt(), 0) }
+                            .fillMaxWidth()
+                            .aspectRatio(1f)
+                            .graphicsLayer {
+                                translationX = offsetX * 0.5f
+                                alpha = thumbnailAlpha
+                                scaleX = thumbnailScale
+                                scaleY = thumbnailScale
                             }
-                        } else {
-                            mediaMetadata.let {
-                                AsyncLocalImage(
-                                    image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                                    contentDescription = null,
-                                    contentScale = contentScale,
-                                    modifier = Modifier
-                                        .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                        .fillMaxWidth()
-                                        .aspectRatio(1f)
-                                        .graphicsLayer {
-                                            translationX = offsetX * 0.5f
-                                            alpha = thumbnailAlpha
-                                            scaleX = thumbnailScale
-                                            scaleY = thumbnailScale
-                                        }
-                                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                                        .clickable(enabled = showLyricsOnClick) {
-                                            showLyrics = !showLyrics
-                                        }
-                                )
+                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                            .clickable {
+                                if (playbackState == STATE_ENDED) {
+                                    playerConnection.player.seekTo(0, 0)
+                                    playerConnection.player.playWhenReady = true
+                                } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
+                                    showLyrics = !showLyrics
+                                } else {
+                                    playerConnection.player.togglePlayPause()
+                                }
                             }
-                        }
-                    }
+                    )
                 }
             }
         }
@@ -412,7 +260,7 @@ fun Thumbnail(
             error?.let { playbackException ->
                 PlaybackError(
                     error = playbackException,
-                    retry = playerConnection.player::prepare ,
+                    retry = playerConnection.player::prepare,
                 )
             }
         }

@@ -206,7 +206,7 @@ fun YouTubePlaylistsScreen(
                         item(key = "loading") {
                             ShimmerHost{
                                 repeat(8) {
-                                    GridItemPlaceHolder()
+                                    GridItemPlaceHolder(fillMaxWidth = true)
                                 }
                             }
                         }

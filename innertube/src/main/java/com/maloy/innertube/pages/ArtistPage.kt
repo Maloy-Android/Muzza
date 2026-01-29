@@ -166,7 +166,7 @@ data class ArtistPage(
                             ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         author = Artist(
-                            name = renderer.subtitle?.runs?.lastOrNull()?.text ?: return null,
+                            name = renderer.subtitle?.runs?.firstOrNull()?.text ?: return null,
                             id = null
                         ),
                         songCountText = null,

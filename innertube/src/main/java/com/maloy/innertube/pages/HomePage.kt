@@ -159,6 +159,7 @@ data class HomePage(
                             id = renderer.navigationEndpoint.browseEndpoint?.browseId
                                 ?: return null,
                             title = renderer.title.runs?.lastOrNull()?.text ?: return null,
+                            subscriptions = renderer.subtitle?.runs?.firstOrNull()?.text,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
                             shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {

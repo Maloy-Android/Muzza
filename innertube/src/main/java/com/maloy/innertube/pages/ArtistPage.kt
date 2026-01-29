@@ -191,6 +191,7 @@ data class ArtistPage(
                     ArtistItem(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                         title = renderer.title.runs?.lastOrNull()?.text ?: return null,
+                        subscriptions = renderer.subtitle?.runs?.firstOrNull()?.text,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,
                         channelId = renderer.menu?.menuRenderer?.items?.find {

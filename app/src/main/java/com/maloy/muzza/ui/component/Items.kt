@@ -1632,19 +1632,21 @@ fun YouTubeGridItem(
                 item.year?.toString()
             )
 
-            is ArtistItem -> null
+            is ArtistItem -> joinByBullet(item.subscriptions)
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         }
 
-        if (subtitle != null) {
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.secondary,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-        }
+        Text(
+            text = subtitle,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary,
+            maxLines = when (item) {
+                is ArtistItem -> 1
+                else -> 2
+            },
+            textAlign = if (item is ArtistItem) TextAlign.Center else TextAlign.Start,
+            overflow = TextOverflow.Ellipsis,
+        )
     },
     badges = badges,
     thumbnailContent = {

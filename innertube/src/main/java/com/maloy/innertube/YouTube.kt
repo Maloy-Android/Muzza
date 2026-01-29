@@ -6,7 +6,6 @@ import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.BrowseEndpoint
 import com.maloy.innertube.models.GridRenderer
-import com.maloy.innertube.models.MusicCarouselShelfRenderer
 import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicShelfRenderer
@@ -248,6 +247,7 @@ val response = innerTube.browse(WEB_REMIX, browseId).body<BrowseResponse>()
             artist = ArtistItem(
                 id = browseId,
                 channelId = response.header?.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer?.channelId,
+                subscriptions = null,
                 title = response.header?.musicImmersiveHeaderRenderer?.title?.runs?.firstOrNull()?.text
                     ?: response.header?.musicVisualHeaderRenderer?.title?.runs?.firstOrNull()?.text!!,
                 thumbnail = response.header.musicImmersiveHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()

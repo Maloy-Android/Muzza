@@ -130,7 +130,7 @@ fun YouTubePlaylistsScreen(
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {
-                                        navController.navigate("online_playlist/${item.id}")
+                                        navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
                                     },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -186,7 +186,7 @@ fun YouTubePlaylistsScreen(
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {
-                                        navController.navigate("online_playlist/${item.id}")
+                                        navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
                                     },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)

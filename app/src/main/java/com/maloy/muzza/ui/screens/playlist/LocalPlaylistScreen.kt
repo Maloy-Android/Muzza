@@ -1168,7 +1168,7 @@ fun LocalPlaylistHeader(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
 
-                if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal || playlistAuthors?.isEmpty() != true) {
+                if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal || playlistAuthors?.isNotEmpty() != true) {
                     Text(
                         text = accountName,
                         style = MaterialTheme.typography.titleMedium.copy(

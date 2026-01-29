@@ -22,19 +22,6 @@ data class Playlist(
         )
     )
     val songThumbnails: List<String?>,
-
-    @Relation(
-        entity = ArtistEntity::class,
-        entityColumn = "id",
-        parentColumn = "id",
-        associateBy =
-            Junction(
-                value = SortedSongArtistMap::class,
-                parentColumn = "playlistId",
-                entityColumn = "artistId",
-            ),
-    )
-    val artists: List<ArtistEntity>,
 ) : LocalItem() {
     override val id: String
         get() = playlist.id

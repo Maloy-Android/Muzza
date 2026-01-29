@@ -40,6 +40,7 @@ class OnlinePlaylistViewModel @Inject constructor(
     private val playlistId = savedStateHandle.get<String>("playlistId")!!
 
     val playlist = MutableStateFlow<PlaylistItem?>(null)
+    val authors = savedStateHandle.get<String>("authors")
 
     private val _playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
 

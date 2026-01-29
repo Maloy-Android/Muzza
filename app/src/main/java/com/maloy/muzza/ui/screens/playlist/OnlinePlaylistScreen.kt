@@ -81,15 +81,11 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastSumBy
@@ -176,6 +172,7 @@ fun OnlinePlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val playlist by viewModel.playlist.collectAsState()
+    val authors = viewModel.authors?: return
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
 
@@ -405,12 +402,12 @@ fun OnlinePlaylistScreen(
 
                                     Spacer(Modifier.height(8.dp))
 
-                                    if (playlist.id == "LM") {
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            horizontalArrangement = Arrangement.Center,
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        if (playlist.id == "LM") {
                                             if (accountImageUrl.isNotEmpty()) {
                                                 Box(
                                                     modifier = Modifier
@@ -439,30 +436,14 @@ fun OnlinePlaylistScreen(
                                                     )
                                                 )
                                             }
-                                        }
-                                    }
-                                    if (playlist.id != "LM") {
-                                        playlist.author?.let { artist ->
-                                            Text(buildAnnotatedString {
-                                                withStyle(
-                                                    style = MaterialTheme.typography.titleMedium.copy(
-                                                        fontWeight = FontWeight.Normal,
-                                                        color = MaterialTheme.colorScheme.onBackground
-                                                    ).toSpanStyle()
-                                                ) {
-                                                    if (artist.id != null) {
-                                                        val link =
-                                                            LinkAnnotation.Clickable(artist.id!!) {
-                                                                navController.navigate("artist/${artist.id!!}")
-                                                            }
-                                                        withLink(link) {
-                                                            append(artist.name)
-                                                        }
-                                                    } else {
-                                                        append(artist.name)
-                                                    }
-                                                }
-                                            })
+                                        } else if (playlist.id != "LM" && authors.isNotEmpty()) {
+                                            Text(
+                                                text = authors,
+                                                style = MaterialTheme.typography.titleMedium.copy(
+                                                    fontWeight = FontWeight.Normal,
+                                                    color = MaterialTheme.colorScheme.onBackground
+                                                )
+                                            )
                                         }
                                     }
 

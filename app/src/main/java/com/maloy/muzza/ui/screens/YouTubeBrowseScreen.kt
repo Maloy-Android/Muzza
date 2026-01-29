@@ -254,7 +254,7 @@ fun YouTubeBrowseScreen(
                                                     when (item) {
                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                        is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
                                                         else -> item
                                                     }
                                                 },

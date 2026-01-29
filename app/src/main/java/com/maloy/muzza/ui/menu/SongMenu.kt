@@ -66,7 +66,6 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -463,6 +462,9 @@ fun SongMenu(
                     )
                     delete(playlistSong.map.copy(position = Int.MAX_VALUE))
                 }
+            }
+            item {
+                HorizontalDivider()
             }
         }
         if (!song.song.isLocal)  {

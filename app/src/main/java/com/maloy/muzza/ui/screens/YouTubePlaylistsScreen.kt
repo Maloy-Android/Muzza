@@ -202,12 +202,10 @@ fun YouTubePlaylistsScreen(
                                 )
                         )
                     }
-                    if (playlists?.isEmpty() != true) {
-                        item(key = "loading") {
-                            ShimmerHost{
-                                repeat(8) {
-                                    GridItemPlaceHolder(fillMaxWidth = true)
-                                }
+                    if (playlists == null) {
+                        items(8) {
+                            ShimmerHost {
+                                GridItemPlaceHolder(fillMaxWidth = true)
                             }
                         }
                     }

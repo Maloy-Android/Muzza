@@ -26,9 +26,11 @@ import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
@@ -420,8 +422,7 @@ fun LocalPlaylistScreen(
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues(),
-            modifier = Modifier
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
         ) {
             if (filteredSongs.isEmpty() && isSearching) {
                 item {
@@ -909,7 +910,7 @@ fun LocalPlaylistHeader(
     val scope = rememberCoroutineScope()
     val menuState = LocalMenuState.current
 
-    val playlistAuthors = playlist.playlist.playlistAuthors?: return
+    val playlistAuthors = playlist.playlist.playlistAuthors
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
     val rotationAnimation by animateFloatAsState(
@@ -1028,7 +1029,7 @@ fun LocalPlaylistHeader(
 
     Column(
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = modifier.padding(12.dp)
+        modifier = Modifier.padding(12.dp)
     ) {
         if (customThumbnailUri != null) {
             AsyncImage(
@@ -1117,8 +1118,7 @@ fun LocalPlaylistHeader(
         Spacer(Modifier.height(12.dp))
         Column(
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AutoResizeText(
                 text = playlist.playlist.name,
@@ -1168,9 +1168,17 @@ fun LocalPlaylistHeader(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
 
-                if ((isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) || (!playlist.playlist.isLocal && playlistAuthors.isNotEmpty())) {
+                if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal || playlistAuthors?.isEmpty() != true) {
                     Text(
-                        text = if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) accountName else playlistAuthors,
+                        text = accountName,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                    )
+                } else if (!playlistAuthors.isEmpty() && !playlist.playlist.isLocal) {
+                    Text(
+                        text = playlistAuthors,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onBackground

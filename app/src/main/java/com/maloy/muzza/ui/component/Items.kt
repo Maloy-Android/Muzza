@@ -1550,7 +1550,7 @@ private fun BaseListItemContent(
                 item.year?.toString()
             )
 
-            is ArtistItem -> null
+            is ArtistItem -> joinByBullet(item.subscriptions)
             is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
         },
         badges = badges,

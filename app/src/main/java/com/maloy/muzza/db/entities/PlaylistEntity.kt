@@ -19,6 +19,7 @@ data class PlaylistEntity(
     @PrimaryKey val id: String = generatePlaylistId(),
     val name: String,
     val browseId: String? = null,
+    val playlistAuthors: String?= null,
     val createdAt: LocalDateTime? = LocalDateTime.now(),
     val lastUpdateTime: LocalDateTime? = LocalDateTime.now(),
     @ColumnInfo(name = "isEditable", defaultValue = true.toString())

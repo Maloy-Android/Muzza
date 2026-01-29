@@ -130,6 +130,7 @@ class SyncUtils @Inject constructor(
                 if (playlistEntity == null) {
                     playlistEntity = PlaylistEntity(
                         name = playlist.title,
+                        playlistAuthors = playlist.author?.name,
                         browseId = playlist.id,
                         thumbnailUrl = playlist.thumbnail,
                         isEditable = playlist.isEditable,

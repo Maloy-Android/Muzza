@@ -105,6 +105,7 @@ fun YouTubePlaylistMenu(
                             database.transaction {
                                 val playlistEntity = PlaylistEntity(
                                     name = playlist.title,
+                                    playlistAuthors = playlist.author?.name,
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
                                     isEditable = true,
@@ -524,6 +525,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                             database.transaction {
                                 val playlistEntity = PlaylistEntity(
                                     name = playlist.title,
+                                    playlistAuthors = playlist.author?.name,
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
                                     isEditable = true,

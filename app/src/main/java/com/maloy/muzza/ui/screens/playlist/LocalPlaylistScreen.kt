@@ -909,6 +909,8 @@ fun LocalPlaylistHeader(
     val scope = rememberCoroutineScope()
     val menuState = LocalMenuState.current
 
+    val playlistAuthors = playlist.playlist.playlistAuthors?: return
+
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
     val rotationAnimation by animateFloatAsState(
         targetValue = refetchIconDegree,
@@ -1166,9 +1168,9 @@ fun LocalPlaylistHeader(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
 
-                if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) {
+                if ((isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) || (!playlist.playlist.isLocal && playlistAuthors.isNotEmpty())) {
                     Text(
-                        text = accountName,
+                        text = if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal) accountName else playlistAuthors,
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.Normal,
                             color = MaterialTheme.colorScheme.onBackground

@@ -54,7 +54,8 @@ fun Song.toMediaItemWithPlaylist(playlistId: String, context: Context? = null) =
     .setTag(
         toMediaMetadata().copy(
             playlist = MediaMetadata.Playlist(
-                id = playlistId
+                id = playlistId,
+                author = null
             )
         )
     )
@@ -99,7 +100,8 @@ fun SongItem.toMediaItemWithPlaylist(playlistId: String) = MediaItem.Builder()
     .setTag(
         toMediaMetadata().copy(
             playlist = MediaMetadata.Playlist(
-                id = playlistId
+                id = playlistId,
+                author = null
             )
         )
     )

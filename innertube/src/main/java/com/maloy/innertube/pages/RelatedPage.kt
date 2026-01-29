@@ -101,13 +101,11 @@ data class RelatedPage(
                 renderer.isPlaylist -> PlaylistItem(
                     id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL") ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    author = renderer.subtitle?.runs?.getOrNull(2)?.let {
-                        Artist(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
-                        )
-                    },
-                    songCountText = renderer.subtitle?.runs?.getOrNull(4)?.text,
+                    author = Artist(
+                        name = renderer.subtitle?.runs?.lastOrNull()?.text ?: return null,
+                        id = null
+                    ),
+                    songCountText = renderer.subtitle.runs.getOrNull(4)?.text,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                     playEndpoint = renderer.thumbnailOverlay
                         ?.musicItemThumbnailOverlayRenderer?.content

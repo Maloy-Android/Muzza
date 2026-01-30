@@ -81,6 +81,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
+import androidx.compose.ui.util.fastSumBy
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.exoplayer.offline.Download
@@ -122,6 +123,7 @@ import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.viewmodels.AlbumViewModel
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -145,6 +147,10 @@ fun AlbumScreen(
     val otherVersions by viewModel.otherVersions.collectAsState()
 
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val songsLength = remember(albumWithSongs) {
+        albumWithSongs?.songs?.fastSumBy { it.song.duration }
+    }
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
@@ -364,6 +370,12 @@ fun AlbumScreen(
                                     }
                                 }
                             }
+
+                            Text(
+                                text = makeTimeString(songsLength!! * 1000L),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Normal
+                            )
 
                             Spacer(Modifier.height(12.dp))
 

@@ -19,7 +19,7 @@ data class RecentActivityEntity(
     val thumbnail: String?,
     val playLstAuthor: Artist?,
     val albumArtists: List<Artist>?,
-    val subscriptions: String?,
+    val artistViews: String?,
     val explicit: Boolean,
     val shareLink: String,
     val type: RecentActivityType,

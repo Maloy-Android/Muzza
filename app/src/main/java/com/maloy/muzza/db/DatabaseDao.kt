@@ -970,7 +970,7 @@ interface DatabaseDao {
                         radioPlaylistId = null,
                         shufflePlaylistId = null,
                         playLstAuthor = null,
-                        subscriptions = null
+                        subscriptions= null
                     )
                 )
             }
@@ -989,7 +989,7 @@ interface DatabaseDao {
                         radioPlaylistId = item.radioEndpoint?.playlistId,
                         shufflePlaylistId = item.shuffleEndpoint.playlistId,
                         albumArtists = null,
-                        subscriptions = null
+                        subscriptions= null
                     )
                 )
             }

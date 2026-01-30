@@ -902,7 +902,7 @@
       },
       {
         "tableName": "recent_activity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `thumbnail` TEXT, `playLstAuthor` TEXT, `albumArtists` TEXT, `subscriptions` TEXT, `explicit` INTEGER NOT NULL, `shareLink` TEXT NOT NULL, `type` TEXT NOT NULL, `playlistId` TEXT, `radioPlaylistId` TEXT, `shufflePlaylistId` TEXT, `date` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `title` TEXT NOT NULL, `thumbnail` TEXT, `playLstAuthor` TEXT, `albumArtists` TEXT, `artistViews` TEXT, `explicit` INTEGER NOT NULL, `shareLink` TEXT NOT NULL, `type` TEXT NOT NULL, `playlistId` TEXT, `radioPlaylistId` TEXT, `shufflePlaylistId` TEXT, `date` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -932,8 +932,8 @@
             "affinity": "TEXT"
           },
           {
-            "fieldPath": "subscriptions",
-            "columnName": "subscriptions",
+            "fieldPath": "artistViews",
+            "columnName": "artistViews",
             "affinity": "TEXT"
           },
           {

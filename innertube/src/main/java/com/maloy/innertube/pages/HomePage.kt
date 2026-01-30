@@ -72,29 +72,19 @@ data class HomePage(
             private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
                 return when {
                     renderer.isSong -> {
-                        val subtitleRuns = renderer.subtitle?.runs ?: return null
-                        val (artistRuns, albumRuns) = subtitleRuns.partition { run ->
-                            run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
-                        }
-                        val artists = artistRuns.map {
-                            Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
-                            )
-                        }
+                        val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                            artists = artists,
-                            album = albumRuns.firstOrNull { run ->
-                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true
-                            }?.let { run ->
-                                val endpoint = run.navigationEndpoint?.browseEndpoint ?: return null
-                                Album(
-                                    name = run.text,
-                                    id = endpoint.browseId
+                            artists = renderer.subtitle?.runs?.getOrNull(if (isVideo) 2 else 1)?.let {
+                                listOf(
+                                    Artist(
+                                        name = it.text,
+                                        id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                    )
                                 )
-                            },
+                            } ?: emptyList(),
+                            album = null,
                             duration = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,

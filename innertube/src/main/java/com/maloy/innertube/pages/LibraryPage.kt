@@ -78,43 +78,6 @@ data class LibraryPage(
                     }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint ?: return null,
                 )
 
-                renderer.isSong -> {
-                    val subtitleRuns = renderer.subtitle?.runs ?: return null
-                    val (artistRuns, albumRuns) = subtitleRuns.partition { run ->
-                        run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true
-                    }
-
-                    val artists = artistRuns.map {
-                        Artist(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
-                        )
-                    }.takeIf { it.isNotEmpty() } ?: return null
-
-                    SongItem(
-                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
-                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = artists,
-                        album = albumRuns.firstOrNull {
-                            it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("MPREb_") == true
-                        }?.let { run ->
-                            run.navigationEndpoint?.browseEndpoint?.let { endpoint ->
-                                Album(
-                                    name = run.text,
-                                    id = endpoint.browseId
-                                )
-                            }
-                        },
-                        duration = null,
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
-                            ?: return null,
-                        musicVideoType = renderer.musicVideoType,
-                        explicit = renderer.subtitleBadges?.any {
-                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } == true
-                    )
-                }
-
                 else -> null
             }
         }

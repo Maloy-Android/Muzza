@@ -936,6 +936,9 @@ fun LocalPlaylistHeader(
     val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
     val accountName by rememberPreference(AccountNameKey, "")
 
+    val playlistUserTitle = isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal
+    val playlistAuthorTitle = playlistAuthors?.isEmpty() != true && !playlist.playlist.isLocal
+
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
     fun saveImageToPrivateStorage(uri: Uri): Uri? {
@@ -1168,23 +1171,19 @@ fun LocalPlaylistHeader(
                     Spacer(modifier = Modifier.width(8.dp))
                 }
 
-                if (isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal || playlistAuthors?.isNotEmpty() != true) {
-                    Text(
-                        text = accountName,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
+                Text(
+                    text = if (playlistUserTitle) {
+                        accountName
+                    } else if (playlistAuthorTitle) {
+                        playlistAuthors ?: stringResource(R.string.unknow_playlist_author)
+                    } else {
+                        stringResource(R.string.playlist_author)
+                    },
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Normal,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
-                } else if (!playlistAuthors.isEmpty() && !playlist.playlist.isLocal) {
-                    Text(
-                        text = playlistAuthors,
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-                }
+                )
             }
 
             Text(

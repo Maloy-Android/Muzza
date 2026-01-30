@@ -121,6 +121,8 @@
     <string name="playlist_is_empty">Плейлист пуст</string>
     <string name="remove_download_playlist_confirm">Вы уверены, что хотите удалить все песни из плейлиста «%s» из хранилища загруженной музыки?</string>
     <string name="delete_playlist_confirm">Вы уверены, что хотите удалить плейлист «%s»?</string>
+    <string name="playlist_author">Ваш плейлист</string>
+    <string name="unknow_playlist_author">Неизвестный автор</string>
 
     <string name="off">Выключить</string>
 

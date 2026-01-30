@@ -967,7 +967,8 @@ interface DatabaseDao {
                         type = RecentActivityType.ALBUM,
                         playlistId = item.playlistId,
                         radioPlaylistId = null,
-                        shufflePlaylistId = null
+                        shufflePlaylistId = null,
+                        playlistAuthor = null
                     )
                 )
             }
@@ -977,6 +978,7 @@ interface DatabaseDao {
                     RecentActivityEntity(
                         id = item.id,
                         title = item.title,
+                        playlistAuthor = item.author?.name,
                         thumbnail = item.thumbnail,
                         explicit = item.explicit,
                         shareLink = item.shareLink,
@@ -999,7 +1001,8 @@ interface DatabaseDao {
                         type = RecentActivityType.ARTIST,
                         playlistId = item.playEndpoint?.playlistId,
                         radioPlaylistId = item.radioEndpoint?.playlistId,
-                        shufflePlaylistId = item.shuffleEndpoint?.playlistId
+                        shufflePlaylistId = item.shuffleEndpoint?.playlistId,
+                        playlistAuthor = null
                     )
                 )
             }

@@ -1355,7 +1355,7 @@ fun YouTubeCardItem(
                 text = when (item.type) {
                     RecentActivityType.ALBUM -> item.albumArtists.orEmpty().joinToString(", ")
                     RecentActivityType.PLAYLIST -> item.playLstAuthor?.name ?: return
-                    RecentActivityType.ARTIST -> item.artistViews.orEmpty()
+                    RecentActivityType.ARTIST -> item.subscriptions.orEmpty()
                 },
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,

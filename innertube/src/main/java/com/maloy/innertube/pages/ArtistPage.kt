@@ -122,10 +122,11 @@ data class ArtistPage(
         private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
                 renderer.isSong -> {
+                    val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = listOfNotNull(renderer.subtitle?.runs?.getOrNull(2)?.let {
+                        artists = listOfNotNull(renderer.subtitle?.runs?.getOrNull(if (isVideo) 0 else 2)?.let {
                             Artist(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId

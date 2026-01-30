@@ -132,8 +132,9 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.YouTubeListItem
-import com.maloy.muzza.ui.component.shimmer.ButtonPlaceholder
+import com.maloy.muzza.ui.component.shimmer.ButtonRowPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
+import com.maloy.muzza.ui.component.shimmer.PlaylistAlbumItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
@@ -879,36 +880,32 @@ fun OnlinePlaylistScreen(
                     item {
                         ShimmerHost {
                             Column(Modifier.padding(12.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Spacer(
-                                        modifier = Modifier
-                                            .size(AlbumThumbnailSize)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                            .background(MaterialTheme.colorScheme.onSurface)
-                                    )
-
-                                    Spacer(Modifier.width(16.dp))
-
-                                    Column(
-                                        verticalArrangement = Arrangement.Center,
-                                    ) {
-                                        TextPlaceholder()
-                                        TextPlaceholder()
-                                        TextPlaceholder()
-                                    }
-                                }
+                                PlaylistAlbumItemPlaceHolder()
 
                                 Spacer(Modifier.padding(8.dp))
 
-                                Row {
-                                    ButtonPlaceholder(Modifier.weight(1f))
+                                ButtonRowPlaceHolder(buttonCount = if (playlist?.id == "LM") 2 else 3)
 
-                                    Spacer(Modifier.width(12.dp))
+                                Spacer(Modifier.padding(8.dp))
 
-                                    ButtonPlaceholder(Modifier.weight(1f))
+                                ButtonRowPlaceHolder(buttonCount = 2)
+
+                                Spacer(Modifier.padding(8.dp))
+
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 12.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    TextPlaceholder(
+                                        modifier = Modifier
+                                            .fillMaxWidth(0.4f)
+                                            .height(20.dp)
+                                    )
                                 }
                             }
-
                             repeat(6) {
                                 ListItemPlaceHolder()
                             }

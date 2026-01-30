@@ -475,7 +475,7 @@ fun HomeScreen(
                                 },
                                 onClick = {
                                     when (item.type) {
-                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}")
+                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}?author=${item.playLstAuthor?.name}")
                                         ALBUM -> navController.navigate("album/${item.id}")
                                         ARTIST -> navController.navigate("artist/${item.id}")
                                     }

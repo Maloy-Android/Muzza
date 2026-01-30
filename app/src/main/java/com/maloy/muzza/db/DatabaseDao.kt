@@ -961,13 +961,16 @@ interface DatabaseDao {
                     RecentActivityEntity(
                         id = item.browseId,
                         title = item.title,
+                        albumArtists = item.artists,
                         thumbnail = item.thumbnail,
                         explicit = item.explicit,
                         shareLink = item.shareLink,
                         type = RecentActivityType.ALBUM,
                         playlistId = item.playlistId,
                         radioPlaylistId = null,
-                        shufflePlaylistId = null
+                        shufflePlaylistId = null,
+                        playLstAuthor = null,
+                        subscriptions= null
                     )
                 )
             }
@@ -977,13 +980,16 @@ interface DatabaseDao {
                     RecentActivityEntity(
                         id = item.id,
                         title = item.title,
+                        playLstAuthor = item.author,
                         thumbnail = item.thumbnail,
                         explicit = item.explicit,
                         shareLink = item.shareLink,
                         type = RecentActivityType.PLAYLIST,
                         playlistId = item.id,
                         radioPlaylistId = item.radioEndpoint?.playlistId,
-                        shufflePlaylistId = item.shuffleEndpoint.playlistId
+                        shufflePlaylistId = item.shuffleEndpoint.playlistId,
+                        albumArtists = null,
+                        subscriptions= null
                     )
                 )
             }
@@ -993,13 +999,16 @@ interface DatabaseDao {
                     RecentActivityEntity(
                         id = item.id,
                         title = item.title,
+                        subscriptions= item.subscriptions,
                         thumbnail = item.thumbnail,
                         explicit = item.explicit,
                         shareLink = item.shareLink,
                         type = RecentActivityType.ARTIST,
                         playlistId = item.playEndpoint?.playlistId,
                         radioPlaylistId = item.radioEndpoint?.playlistId,
-                        shufflePlaylistId = item.shuffleEndpoint?.playlistId
+                        shufflePlaylistId = item.shuffleEndpoint?.playlistId,
+                        albumArtists = null,
+                        playLstAuthor = null
                     )
                 )
             }

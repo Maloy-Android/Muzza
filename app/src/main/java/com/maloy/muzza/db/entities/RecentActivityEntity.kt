@@ -3,6 +3,7 @@ package com.maloy.muzza.db.entities
 import androidx.compose.runtime.Immutable
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import com.maloy.innertube.models.Artist
 import java.time.LocalDateTime
 
 @Immutable
@@ -16,6 +17,9 @@ data class RecentActivityEntity(
     @PrimaryKey val id: String,
     val title: String,
     val thumbnail: String?,
+    val playLstAuthor: Artist?,
+    val albumArtists: List<Artist>?,
+    val artistViews: String?,
     val explicit: Boolean,
     val shareLink: String,
     val type: RecentActivityType,

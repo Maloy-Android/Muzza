@@ -100,7 +100,6 @@ import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.RecentActivityEntity
-import com.maloy.muzza.db.entities.RecentActivityType
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
@@ -1309,7 +1308,7 @@ fun YouTubeCardItem(
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = modifier
-            .height(68.dp)
+            .height(60.dp)
             .width((screenWidthDp.dp - 12.dp) / 2)
             .padding(6.dp)
             .clip(RoundedCornerShape(6.dp))
@@ -1348,19 +1347,6 @@ fun YouTubeCardItem(
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Start,
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.padding(bottom = 2.dp)
-            )
-            Text(
-                text = when (item.type) {
-                    RecentActivityType.ALBUM -> item.albumArtists.orEmpty().joinToString(", ")
-                    RecentActivityType.PLAYLIST -> item.playLstAuthor?.name ?: return
-                    RecentActivityType.ARTIST -> item.artistViews.orEmpty()
-                },
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Start,
-                maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
         }

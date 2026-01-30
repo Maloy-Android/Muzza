@@ -73,10 +73,11 @@ data class HomePage(
                 return when {
                     renderer.isSong -> {
                         val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
+                        val album = renderer.subtitle?.runs?.getOrNull(0) ?: return null
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                            artists = renderer.subtitle?.runs?.getOrNull(if (isVideo) 2 else 1)?.let {
+                            artists = renderer.subtitle.runs.getOrNull(if (isVideo) 2 else 1)?.let {
                                 listOf(
                                     Artist(
                                         name = it.text,
@@ -84,7 +85,12 @@ data class HomePage(
                                     )
                                 )
                             } ?: emptyList(),
-                            album = null,
+                            album = album.let {
+                                Album(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                                )
+                            },
                             duration = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,

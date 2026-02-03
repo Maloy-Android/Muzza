@@ -69,11 +69,13 @@ import androidx.core.net.toUri
 import androidx.media3.common.Player.STATE_READY
 import com.maloy.muzza.constants.DiscordUseDetailsKey
 import com.maloy.muzza.constants.DiscordUserAvatarKay
+import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.InfoLabel
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.SongProgressBar
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.utils.imageCache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -355,27 +357,46 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                 Box(
                     Modifier.size(108.dp),
                 ) {
-                    AsyncImage(
-                        model = song?.song?.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(96.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .align(Alignment.TopStart)
-                            .aspectRatio(1f)
-                            .run {
-                                if (song == null) {
-                                    border(
-                                        2.dp,
-                                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
-                                        RoundedCornerShape(12.dp)
-                                    )
-                                } else {
-                                    this
-                                }
+                    if (song?.song?.isLocal == true) {
+                        AsyncLocalImage(
+                            image = {
+                                imageCache.getLocalThumbnail(
+                                    song.song.localPath,
+                                    false
+                                )
                             },
-                    )
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(96.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .align(Alignment.TopStart)
+                                .aspectRatio(1f)
+                                .run { this },
+                        )
+                    } else {
+                        AsyncImage(
+                            model = song?.song?.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .size(96.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                                .align(Alignment.TopStart)
+                                .aspectRatio(1f)
+                                .run {
+                                    if (song == null) {
+                                        border(
+                                            2.dp,
+                                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f),
+                                            RoundedCornerShape(12.dp)
+                                        )
+                                    } else {
+                                        this
+                                    }
+                                },
+                        )
+                    }
 
                     song?.artists?.firstOrNull()?.thumbnailUrl?.let {
                         Box(

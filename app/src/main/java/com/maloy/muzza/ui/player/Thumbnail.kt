@@ -58,6 +58,7 @@ import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.Lyrics
 import com.maloy.muzza.utils.imageCache
@@ -70,6 +71,7 @@ import kotlin.math.roundToInt
 fun Thumbnail(
     sliderPositionProvider: () -> Long?,
     modifier: Modifier = Modifier,
+    mediaMetadata: MediaMetadata,
     showLyricsOnClick: Boolean = false
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -78,8 +80,6 @@ fun Thumbnail(
     val currentView = LocalView.current
 
     val error: PlaybackException? by playerConnection.error.collectAsState()
-    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, 3)
@@ -152,60 +152,67 @@ fun Thumbnail(
                         )
                     },
             ) {
-                if (mediaMetadata?.isLocal != true) {
-                    AsyncImage(
-                        model = mediaMetadata?.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .offset { IntOffset(offsetX.roundToInt(), 0) }
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .graphicsLayer {
-                                translationX = offsetX * 0.5f
-                                alpha = thumbnailAlpha
-                                scaleX = thumbnailScale
-                                scaleY = thumbnailScale
-                            }
-                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                            .clickable {
-                                if (playbackState == STATE_ENDED) {
-                                    playerConnection.player.seekTo(0, 0)
-                                    playerConnection.player.playWhenReady = true
-                                } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
-                                    showLyrics = !showLyrics
-                                } else {
-                                    playerConnection.player.togglePlayPause()
+                mediaMetadata.let { currentSong ->
+                    if (currentSong.isLocal) {
+                        AsyncLocalImage(
+                            image = {
+                                imageCache.getLocalThumbnail(
+                                    mediaMetadata.localPath,
+                                    false
+                                )
+                            },
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .graphicsLayer {
+                                    translationX = offsetX * 0.5f
+                                    alpha = thumbnailAlpha
+                                    scaleX = thumbnailScale
+                                    scaleY = thumbnailScale
                                 }
-                            }
-                    )
-                } else {
-                    AsyncLocalImage(
-                        image = { imageCache.getLocalThumbnail(mediaMetadata?.localPath, false) },
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .offset { IntOffset(offsetX.roundToInt(), 0) }
-                            .fillMaxWidth()
-                            .aspectRatio(1f)
-                            .graphicsLayer {
-                                translationX = offsetX * 0.5f
-                                alpha = thumbnailAlpha
-                                scaleX = thumbnailScale
-                                scaleY = thumbnailScale
-                            }
-                            .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                            .clickable {
-                                if (playbackState == STATE_ENDED) {
-                                    playerConnection.player.seekTo(0, 0)
-                                    playerConnection.player.playWhenReady = true
-                                } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
-                                    showLyrics = !showLyrics
-                                } else {
-                                    playerConnection.player.togglePlayPause()
+                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                                .clickable {
+                                    if (playbackState == STATE_ENDED) {
+                                        playerConnection.player.seekTo(0, 0)
+                                        playerConnection.player.playWhenReady = true
+                                    } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
+                                        showLyrics = !showLyrics
+                                    } else {
+                                        playerConnection.player.togglePlayPause()
+                                    }
                                 }
-                            }
-                    )
+                        )
+                    } else {
+                        AsyncImage(
+                            model = mediaMetadata.thumbnailUrl,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .offset { IntOffset(offsetX.roundToInt(), 0) }
+                                .fillMaxWidth()
+                                .aspectRatio(1f)
+                                .graphicsLayer {
+                                    translationX = offsetX * 0.5f
+                                    alpha = thumbnailAlpha
+                                    scaleX = thumbnailScale
+                                    scaleY = thumbnailScale
+                                }
+                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                                .clickable {
+                                    if (playbackState == STATE_ENDED) {
+                                        playerConnection.player.seekTo(0, 0)
+                                        playerConnection.player.playWhenReady = true
+                                    } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
+                                        showLyrics = !showLyrics
+                                    } else {
+                                        playerConnection.player.togglePlayPause()
+                                    }
+                                }
+                        )
+                    }
                 }
             }
         }

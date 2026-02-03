@@ -781,7 +781,8 @@ fun BottomSheetPlayer(
                     ) {
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
-                            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection)
+                            modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
+                            mediaMetadata = mediaMetadata?: return@Box
                         )
                     }
 
@@ -816,7 +817,8 @@ fun BottomSheetPlayer(
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                            showLyricsOnClick = true
+                            showLyricsOnClick = true,
+                            mediaMetadata = mediaMetadata?: return@Box
                         )
                     }
 

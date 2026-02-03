@@ -7,7 +7,6 @@ import android.content.Intent
 import android.media.audiofx.AudioEffect
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -34,7 +33,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
@@ -909,57 +907,4 @@ fun TempoPitchDialog(
             }
         }
     )
-}
-
-@Composable
-fun <T> ValueAdjuster(
-    @DrawableRes icon: Int,
-    currentValue: T,
-    values: List<T>,
-    onValueUpdate: (T) -> Unit,
-    valueText: (T) -> String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(24.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = modifier
-    ) {
-        Icon(
-            painter = painterResource(icon),
-            contentDescription = null,
-            modifier = Modifier.size(28.dp)
-        )
-
-        IconButton(
-            enabled = currentValue != values.first(),
-            onClick = {
-                onValueUpdate(values[values.indexOf(currentValue) - 1])
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.remove),
-                contentDescription = null
-            )
-        }
-
-        Text(
-            text = valueText(currentValue),
-            style = MaterialTheme.typography.titleMedium,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.width(80.dp)
-        )
-
-        IconButton(
-            enabled = currentValue != values.last(),
-            onClick = {
-                onValueUpdate(values[values.indexOf(currentValue) + 1])
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.add),
-                contentDescription = null
-            )
-        }
-    }
 }

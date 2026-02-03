@@ -827,7 +827,8 @@ fun DetailsDialog(
                             context,
                             it
                         )
-                    }
+                    },
+                    stringResource(R.string.file_path) to mediaMetadata?.localPath
                 ).forEach { (label, text) ->
                     val displayText = text ?: stringResource(R.string.unknown)
                     Text(

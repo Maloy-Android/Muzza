@@ -193,6 +193,7 @@
     <string name="file_size">File size</string>
     <string name="unknown">Unknown</string>
     <string name="copied">Copied to clipboard</string>
+    <string name="file_path">File path</string>
 
     <string name="edit_lyrics">Edit lyrics</string>
     <string name="search_lyrics">Search lyrics</string>

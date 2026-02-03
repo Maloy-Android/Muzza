@@ -195,6 +195,7 @@
     <string name="file_size">Размер файла</string>
     <string name="unknown">Неизвестно</string>
     <string name="copied">Скопировано</string>
+    <string name="file_path">Путь к файлу</string>
 
     <string name="edit_lyrics">Редактировать текст песни</string>
     <string name="search_lyrics">Поиск текста песни</string>

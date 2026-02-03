@@ -138,11 +138,17 @@ data class ArtistPage(
                             )
                         })
                     }
+                    val alum = renderer.subtitle?.runs?.getOrNull(0) ?: return null
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                         artists = artists,
-                        album = null,
+                        album = alum.let {
+                            Album(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                            )
+                        },
                         duration = null,
                         musicVideoType = renderer.musicVideoType,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()

@@ -19,6 +19,35 @@ data class LibraryPage(
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
+                renderer.isSong -> {
+                    val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
+                    val album = renderer.subtitle?.runs?.getOrNull(0)
+                    SongItem(
+                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        artists = renderer.subtitle?.runs?.getOrNull(if (isVideo) 1 else 2)?.let {
+                            listOf(
+                                Artist(
+                                    name = it.text,
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                )
+                            )
+                        } ?: emptyList(),
+                        album = album.let { album ->
+                            Album(
+                                name = album?.text ?: return null,
+                                id = album.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                            )
+                        },
+                        duration = null,
+                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
+                            ?: return null,
+                        musicVideoType = renderer.musicVideoType,
+                        explicit = renderer.subtitleBadges?.any {
+                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
+                        } == true
+                    )
+                }
                 renderer.isAlbum -> AlbumItem(
                     browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                     playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content

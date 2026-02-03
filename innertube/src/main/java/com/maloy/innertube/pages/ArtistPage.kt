@@ -123,15 +123,25 @@ data class ArtistPage(
             return when {
                 renderer.isSong -> {
                     val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
-                    SongItem(
-                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
-                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = listOfNotNull(renderer.subtitle?.runs?.getOrNull(if (isVideo) 0 else 2)?.let {
+                    val artists = if (isVideo) {
+                        listOfNotNull(renderer.subtitle?.runs?.getOrNull(0)?.let {
                             Artist(
                                 name = it.text,
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
-                        }),
+                        })
+                    } else {
+                        listOfNotNull(renderer.subtitle?.runs?.lastOrNull()?.let {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        })
+                    }
+                    SongItem(
+                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
+                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
+                        artists = artists,
                         album = null,
                         duration = null,
                         musicVideoType = renderer.musicVideoType,

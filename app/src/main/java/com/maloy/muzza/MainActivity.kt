@@ -359,6 +359,11 @@ class MainActivity : ComponentActivity() {
                     permissionsLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
                 }
             }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+                    permissionsLauncher.launch(arrayOf(Manifest.permission.POST_NOTIFICATIONS))
+                }
+            }
 
             MuzzaTheme(
                 darkTheme = useDarkTheme,

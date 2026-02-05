@@ -82,6 +82,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.source.ShuffleOrder.DefaultShuffleOrder
 import androidx.navigation.NavController
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
@@ -96,6 +97,7 @@ import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
@@ -129,6 +131,9 @@ fun Queue(
 ) {
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
@@ -586,7 +591,7 @@ fun Queue(
                             )
                         }
 
-                        if (!lockQueue && !inSelectMode) {
+                        if (!lockQueue && !inSelectMode && !isListenTogetherGuest) {
                             SwipeToDismissBox(
                                 state = dismissState,
                                 backgroundContent = {},
@@ -715,6 +720,7 @@ fun Queue(
                 .padding(12.dp)
         ) {
             IconButton(
+                enabled = !isListenTogetherGuest,
                 modifier = Modifier.align(Alignment.CenterStart),
                 onClick = {
                     coroutineScope.launch {
@@ -770,7 +776,7 @@ fun Queue(
                     }
                 ) {
                     Icon(
-                        painter = if (lockQueue) painterResource(R.drawable.lock) else painterResource(
+                        painter = if (lockQueue || isListenTogetherGuest) painterResource(R.drawable.lock) else painterResource(
                             R.drawable.lock_open
                         ),
                         contentDescription = null,

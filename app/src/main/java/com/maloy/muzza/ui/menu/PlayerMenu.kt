@@ -72,6 +72,7 @@ import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
@@ -122,6 +123,7 @@ fun PlayerMenu(
     val artists = remember(mediaMetadata.artists) {
         mediaMetadata.artists.filter { it.id != null }
     }
+    val listenTogetherManager = LocalListenTogetherManager.current
 
     val sleepTimerEnabled = remember(
         playerConnection.service.sleepTimer.triggerTime,
@@ -572,6 +574,39 @@ fun PlayerMenu(
         )
     ) {
         if (!mediaMetadata.isLocal) {
+            if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+                ListMenuItem(
+                    icon = R.drawable.queue_music,
+                    title = R.string.suggest_to_host
+                ) {
+                    val durationMs = if (mediaMetadata.duration > 0) mediaMetadata.duration.toLong() * 1000 else 180000L
+                    val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                        id = mediaMetadata.id,
+                        title = mediaMetadata.title,
+                        artist = mediaMetadata.artists.joinToString(", ") { it.name },
+                        album = mediaMetadata.album?.id,
+                        duration = durationMs,
+                        thumbnail = mediaMetadata.thumbnailUrl
+                    )
+                    listenTogetherManager.suggestTrack(trackInfo)
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
+            if (listenTogetherManager != null && listenTogetherManager.isInRoom) {
+                ListMenuItem(
+                    icon = R.drawable.logout,
+                    title = R.string.listen_together_leave_room
+                ) {
+                    listenTogetherManager.leaveRoom()
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
             DownloadListMenu(
                 state = download?.state,
                 onDownload = {

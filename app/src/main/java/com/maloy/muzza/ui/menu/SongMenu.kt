@@ -57,6 +57,7 @@ import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
@@ -101,6 +102,9 @@ fun SongMenu(
 
     val scope = rememberCoroutineScope()
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
+
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
     val cacheViewModel = viewModel<CachePlaylistViewModel>()
 
@@ -406,6 +410,27 @@ fun SongMenu(
         )
     ) {
         if (!song.song.isLocal) {
+            if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+                ListMenuItem(
+                    icon = R.drawable.queue_music,
+                    title = R.string.suggest_to_host
+                ) {
+                    val durationMs = if (song.song.duration > 0) song.song.duration.toLong() * 1000 else 180000L
+                    val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                        id = song.id,
+                        title = song.song.title,
+                        artist = song.artists.joinToString(", ") { it.name },
+                        album = song.song.albumName,
+                        duration = durationMs,
+                        thumbnail = song.thumbnailUrl
+                    )
+                    listenTogetherManager.suggestTrack(trackInfo)
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
             ListMenuItem(
                 icon = R.drawable.playlist_play,
                 title = R.string.play_next

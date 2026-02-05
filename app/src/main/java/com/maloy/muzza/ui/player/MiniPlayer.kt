@@ -42,6 +42,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.offset
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.input.pointer.pointerInput
@@ -52,6 +55,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import coil.compose.AsyncImage
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.MiniPlayerHeight
@@ -59,6 +63,7 @@ import com.maloy.muzza.constants.MiniPlayerStyle
 import com.maloy.muzza.constants.MiniPlayerStyleKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.utils.imageCache
@@ -81,6 +86,10 @@ fun MiniPlayer(
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
+    val isMuted by playerConnection.isMuted.collectAsState()
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
     val currentView = LocalView.current
     val layoutDirection = LocalLayoutDirection.current
@@ -97,30 +106,40 @@ fun MiniPlayer(
                 .fillMaxWidth()
                 .height(MiniPlayerHeight)
                 .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-                .pointerInput(Unit) {
+                .pointerInput(isListenTogetherGuest, Unit) {
                     detectHorizontalDragGestures(
-                        onDragStart = {},
+                        onDragStart = {
+                            if (isListenTogetherGuest) {
+                                return@detectHorizontalDragGestures
+                            }
+                        },
                         onDragCancel = {
-                            offsetX = 0f
+                            if (!isListenTogetherGuest) {
+                                offsetX = 0f
+                            }
                         },
                         onHorizontalDrag = { _, dragAmount ->
-                            val adjustedDragAmount =
-                                if (layoutDirection == LayoutDirection.Rtl) -dragAmount else dragAmount
-                            offsetX += adjustedDragAmount
+                            if (!isListenTogetherGuest) {
+                                val adjustedDragAmount =
+                                    if (layoutDirection == LayoutDirection.Rtl) -dragAmount else dragAmount
+                                offsetX += adjustedDragAmount
+                            }
                         },
                         onDragEnd = {
-                            val threshold = 0.15f * currentView.width
+                            if (!isListenTogetherGuest) {
+                                val threshold = 0.15f * currentView.width
 
-                            when {
-                                offsetX > threshold && canSkipPrevious -> {
-                                    playerConnection.player.seekToPreviousMediaItem()
-                                }
+                                when {
+                                    offsetX > threshold && canSkipPrevious -> {
+                                        playerConnection.player.seekToPreviousMediaItem()
+                                    }
 
-                                offsetX < -threshold && canSkipNext -> {
-                                    playerConnection.player.seekToNext()
+                                    offsetX < -threshold && canSkipNext -> {
+                                        playerConnection.player.seekToNext()
+                                    }
                                 }
+                                offsetX = 0f
                             }
-                            offsetX = 0f
                         }
                     )
                 }
@@ -155,33 +174,48 @@ fun MiniPlayer(
                     }
                 ) {
                     Icon(
-                        painter = if (currentSong?.song?.liked == true) painterResource(R.drawable.favorite) else painterResource(R.drawable.favorite_border),
+                        painter = if (currentSong?.song?.liked == true) painterResource(R.drawable.favorite) else painterResource(
+                            R.drawable.favorite_border
+                        ),
                         tint = if (currentSong?.song?.liked == true) MaterialTheme.colorScheme.error else LocalContentColor.current,
                         contentDescription = null
                     )
                 }
-                IconButton(
-                    onClick = {
-                        if (playbackState == Player.STATE_ENDED) {
-                            playerConnection.player.seekTo(0, 0)
-                            playerConnection.player.playWhenReady = true
-                        } else {
-                            playerConnection.player.togglePlayPause()
-                        }
-                    },
-                ) {
-                    Icon(
-                        painter = painterResource(
+                if (!isListenTogetherGuest) {
+                    IconButton(
+                        onClick = {
                             if (playbackState == Player.STATE_ENDED) {
-                                R.drawable.replay
-                            } else if (isPlaying) {
-                                R.drawable.pause
+                                playerConnection.player.seekTo(0, 0)
+                                playerConnection.player.playWhenReady = true
                             } else {
-                                R.drawable.play
-                            },
-                        ),
-                        contentDescription = null,
-                    )
+                                playerConnection.player.togglePlayPause()
+                            }
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                if (playbackState == Player.STATE_ENDED) {
+                                    R.drawable.replay
+                                } else if (isPlaying) {
+                                    R.drawable.pause
+                                } else {
+                                    R.drawable.play
+                                },
+                            ),
+                            contentDescription = null,
+                        )
+                    }
+                } else {
+                    IconButton(
+                        onClick = { playerConnection.toggleMute() },
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isMuted) Icons.AutoMirrored.Rounded.VolumeOff
+                                else Icons.AutoMirrored.Rounded.VolumeUp,
+                            contentDescription = null,
+                        )
+                    }
                 }
             }
             if (offsetX.absoluteValue > 50f) {
@@ -231,7 +265,7 @@ fun MiniPlayer(
                 }
 
                 IconButton(
-                    enabled = canSkipNext,
+                    enabled = canSkipNext && !isListenTogetherGuest,
                     onClick = playerConnection::seekToPrevious
                 ) {
                     Icon(
@@ -242,24 +276,45 @@ fun MiniPlayer(
                     )
                 }
 
-                IconButton(
-                    onClick = {
-                        if (playbackState == Player.STATE_ENDED) {
-                            playerConnection.player.seekTo(0, 0)
-                            playerConnection.player.playWhenReady = true
-                        } else {
-                            playerConnection.player.togglePlayPause()
-                        }
+                if (!isListenTogetherGuest) {
+                    IconButton(
+                        onClick = {
+                            if (playbackState == Player.STATE_ENDED) {
+                                playerConnection.player.seekTo(0, 0)
+                                playerConnection.player.playWhenReady = true
+                            } else {
+                                playerConnection.player.togglePlayPause()
+                            }
+                        },
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                if (playbackState == Player.STATE_ENDED) {
+                                    R.drawable.replay
+                                } else if (isPlaying) {
+                                    R.drawable.pause
+                                } else {
+                                    R.drawable.play
+                                },
+                            ),
+                            contentDescription = null,
+                        )
                     }
-                ) {
-                    Icon(
-                        painter = painterResource(if (playbackState == Player.STATE_ENDED) R.drawable.replay else if (isPlaying) R.drawable.pause else R.drawable.play),
-                        contentDescription = null
-                    )
+                } else {
+                    IconButton(
+                        onClick = { playerConnection.toggleMute() },
+                    ) {
+                        Icon(
+                            imageVector =
+                                if (isMuted) Icons.AutoMirrored.Rounded.VolumeOff
+                                else Icons.AutoMirrored.Rounded.VolumeUp,
+                            contentDescription = null,
+                        )
+                    }
                 }
 
                 IconButton(
-                    enabled = canSkipNext,
+                    enabled = canSkipNext && !isListenTogetherGuest,
                     onClick = playerConnection::seekToNext
                 ) {
                     Icon(

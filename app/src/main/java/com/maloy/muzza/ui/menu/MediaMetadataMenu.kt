@@ -49,6 +49,7 @@ import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
@@ -77,6 +78,7 @@ fun MediaMetadataMenu(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val listenTogetherManager = LocalListenTogetherManager.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(mediaMetadata.id).collectAsState(initial = null)
 
@@ -349,6 +351,27 @@ fun MediaMetadataMenu(
         )
     ) {
         if (!mediaMetadata.isLocal) {
+            if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+                ListMenuItem(
+                    icon = R.drawable.queue_music,
+                    title = R.string.suggest_to_host
+                ) {
+                    val durationMs = if (mediaMetadata.duration > 0) mediaMetadata.duration.toLong() * 1000 else 180000L
+                    val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                        id = mediaMetadata.id,
+                        title = mediaMetadata.title,
+                        artist = mediaMetadata.artists.joinToString(", ") { it.name },
+                        album = mediaMetadata.album?.id,
+                        duration = durationMs,
+                        thumbnail = mediaMetadata.thumbnailUrl
+                    )
+                    listenTogetherManager.suggestTrack(trackInfo)
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
             ListMenuItem(
                 icon = R.drawable.playlist_play,
                 title = R.string.play_next

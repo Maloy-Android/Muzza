@@ -9,6 +9,8 @@ import androidx.media3.datasource.cache.SimpleCache
 import com.maloy.muzza.constants.MaxSongCacheSizeKey
 import com.maloy.muzza.db.InternalDatabase
 import com.maloy.muzza.db.MusicDatabase
+import com.maloy.muzza.listentogether.ListenTogetherClient
+import com.maloy.muzza.listentogether.ListenTogetherManager
 import com.maloy.muzza.utils.LmImageCacheMgr
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
@@ -95,4 +97,15 @@ object AppModule {
             }
         }
     }
+    @Singleton
+    @Provides
+    fun provideListenTogetherClient(
+        @ApplicationContext context: Context,
+    ): ListenTogetherClient = ListenTogetherClient(context)
+
+    @Singleton
+    @Provides
+    fun provideListenTogetherManager(
+        client: ListenTogetherClient,
+    ): ListenTogetherManager = ListenTogetherManager(client)
 }

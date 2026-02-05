@@ -24,6 +24,7 @@ data class MediaMetadata(
     val blurThumbnail: String? = null,
     val isVideoSong: Boolean = false,
     val author: String? = null,
+    val suggestedBy: String? = null
 ) : Serializable {
     data class Artist(
         val id: String?,
@@ -101,7 +102,8 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
     },
     explicit = explicit,
     setVideoId = setVideoId,
-    isVideoSong = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
+    isVideoSong = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV,
+    suggestedBy = null
 )
 
 fun Playlist.toMediaMetadata() = MediaMetadata(

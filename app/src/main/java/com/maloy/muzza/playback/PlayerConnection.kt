@@ -90,6 +90,16 @@ class PlayerConnection(
 
     val error = MutableStateFlow<PlaybackException?>(null)
 
+    val isMuted = service.isMuted
+
+    var shouldBlockPlaybackChanges: (() -> Boolean)? = null
+
+    @Volatile
+    var allowInternalSync: Boolean = false
+
+    var onSkipPrevious: (() -> Unit)? = null
+    var onSkipNext: (() -> Unit)? = null
+
     init {
         player.addListener(this)
 
@@ -105,17 +115,30 @@ class PlayerConnection(
     }
 
     fun playQueue(queue: Queue) {
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            return
+        }
         service.playQueue(queue)
     }
 
     fun playNext(item: MediaItem) = playNext(listOf(item))
     fun playNext(items: List<MediaItem>) {
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            return
+        }
         service.playNext(items)
     }
 
     fun addToQueue(item: MediaItem) = addToQueue(listOf(item))
     fun addToQueue(items: List<MediaItem>) {
+        if (!allowInternalSync && shouldBlockPlaybackChanges?.invoke() == true) {
+            return
+        }
         service.addToQueue(items)
+    }
+
+    fun toggleMute() {
+        service.toggleMute()
     }
 
     fun toggleLike() {
@@ -124,14 +147,46 @@ class PlayerConnection(
 
     fun seekToNext() {
         player.seekToNext()
-        player.prepare()
+        if (player.playbackState == Player.STATE_IDLE || player.playbackState == STATE_ENDED) {
+            player.prepare()
+        }
+        player.playWhenReady = true
+        onSkipNext?.invoke()
+    }
+
+    var onRestartSong: (() -> Unit)? = null
+
+    fun seekToPrevious() {
+        if (player.currentPosition > 3000 || !player.hasPreviousMediaItem()) {
+            player.seekTo(0)
+            if (player.playbackState == Player.STATE_IDLE || player.playbackState == STATE_ENDED) {
+                player.prepare()
+            }
+            player.playWhenReady = true
+            onRestartSong?.invoke()
+        } else {
+            player.seekToPreviousMediaItem()
+            if (player.playbackState == Player.STATE_IDLE || player.playbackState == STATE_ENDED) {
+                player.prepare()
+            }
+            player.playWhenReady = true
+            onSkipPrevious?.invoke()
+        }
+    }
+
+    fun play() {
+        if (player.playbackState == Player.STATE_IDLE) {
+            player.prepare()
+        }
         player.playWhenReady = true
     }
 
-    fun seekToPrevious() {
-        player.seekToPrevious()
-        player.prepare()
-        player.playWhenReady = true
+    fun pause() {
+        player.playWhenReady = false
+    }
+
+    fun seekTo(position: Long) {
+      player.seekTo(position)
     }
 
     override fun onPlaybackStateChanged(state: Int) {

@@ -52,6 +52,7 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
@@ -86,6 +87,7 @@ fun YouTubeSongMenu(
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
+    val listenTogetherManager = LocalListenTogetherManager.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val librarySong by database.song(song.id).collectAsState(initial = null)
     val download by LocalDownloadUtil.current.getDownload(song.id).collectAsState(initial = null)
@@ -320,6 +322,28 @@ fun YouTubeSongMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
+        if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+            ListMenuItem(
+                icon = R.drawable.queue_music,
+                title = R.string.suggest_to_host
+            ) {
+                val durationMs = if ((song.duration ?: return@ListMenuItem) > 0) song.duration?.toLong()
+                    ?.times(1000) ?: return@ListMenuItem else  180000L
+                val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                    id = song.id,
+                    title = song.title,
+                    artist = song.artists.joinToString(", ") { it.name },
+                    album = song.album?.id,
+                    duration = durationMs,
+                    thumbnail = song.thumbnail
+                )
+                listenTogetherManager.suggestTrack(trackInfo)
+                onDismiss()
+            }
+            item {
+                HorizontalDivider()
+            }
+        }
         ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next

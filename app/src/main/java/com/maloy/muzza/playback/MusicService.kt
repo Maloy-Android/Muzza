@@ -106,6 +106,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.lyrics.LyricsHelper
 import com.maloy.muzza.models.PersistQueue
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.data.AudioSettings
 import com.maloy.muzza.playback.queues.EmptyQueue
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.Queue
@@ -198,6 +199,12 @@ class MusicService : MediaLibraryService(),
     private var isNormalizationEnabled = false
     val playerVolume = MutableStateFlow(dataStore.get(PlayerVolumeKey, 1f).coerceIn(0f, 1f))
 
+    val isMuted = MutableStateFlow(false)
+
+    fun toggleMute() {
+        isMuted.value = !isMuted.value
+    }
+
     lateinit var sleepTimer: SleepTimer
 
     @Inject
@@ -216,7 +223,7 @@ class MusicService : MediaLibraryService(),
     private var discordRpc: DiscordRPC? = null
 
     private var lastPlaybackSpeed = 1.0f
-    private var discordUpdateJob: kotlinx.coroutines.Job? = null
+    private var discordUpdateJob: Job? = null
 
 
     private var bluetoothReceiver: BroadcastReceiver? = null
@@ -375,19 +382,19 @@ class MusicService : MediaLibraryService(),
 
         combine(
             playerVolume,
+            isMuted,
             dataStore.data
                 .map { it[AudioNormalizationKey] ?: true }
                 .distinctUntilChanged(),
-            currentFormat
-        ) { volume, normalizeAudio, format ->
-            Triple(volume, normalizeAudio, format)
-        }.collectLatest(scope) { (volume, normalizeAudio, format) ->
-            player.volume = volume
-            isNormalizationEnabled = normalizeAudio
-
+            currentFormat,
+        ) { volume, muted, normalizeAudio, format ->
+            AudioSettings(volume, muted, normalizeAudio, format)
+        }.collectLatest(scope) { settings ->
+            player.volume = if (settings.muted) 0f else settings.volume
+            isNormalizationEnabled = settings.normalizeAudio
             try {
-                if (normalizeAudio && format?.loudnessDb != null) {
-                    var gain = (-format.loudnessDb * 100).toInt()
+                if (settings.normalizeAudio && settings.format?.loudnessDb != null) {
+                    var gain = (-settings.format.loudnessDb * 100).toInt()
                     gain = gain.coerceIn(MIN_GAIN_MB, MAX_GAIN_MB)
 
                     loudnessEnhancer?.setTargetGain(gain)
@@ -816,7 +823,7 @@ class MusicService : MediaLibraryService(),
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
             currentMediaMetadata.value = player.currentMetadata
         }
-        if (!player.isPlaying && !events.containsAny(Player.EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
+        if (!player.isPlaying && !events.containsAny(EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
                 scope.launch {
                     discordRpc?.close()
                 }

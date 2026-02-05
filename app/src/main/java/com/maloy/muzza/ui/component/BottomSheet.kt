@@ -60,6 +60,7 @@ fun BottomSheet(
     modifier: Modifier = Modifier,
     backgroundColor: Color = MaterialTheme.colorScheme.surface,
     collapsedBackgroundColor: Color = Color.Transparent,
+    isExpandable: Boolean = true,
     onDismiss: (() -> Unit)? = null,
     collapsedContent: @Composable BoxScope.() -> Unit,
     content: @Composable BoxScope.() -> Unit,
@@ -73,7 +74,8 @@ fun BottomSheet(
                     .coerceAtLeast(0)
                 IntOffset(x = 0, y = y)
             }
-            .pointerInput(state) {
+            .pointerInput(state, isExpandable) {
+                if (!isExpandable) return@pointerInput
                 val velocityTracker = VelocityTracker()
 
                 detectVerticalDragGestures(

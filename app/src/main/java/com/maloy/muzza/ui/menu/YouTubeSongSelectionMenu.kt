@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.extensions.toMediaItem
@@ -34,6 +35,7 @@ fun YouTubeSongSelectionMenu(
 ) {
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val listenTogetherManager = LocalListenTogetherManager.current
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -63,6 +65,31 @@ fun YouTubeSongSelectionMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
         ),
     ) {
+        if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+            ListMenuItem(
+                icon = R.drawable.queue_music,
+                title = R.string.suggest_to_host
+            ) {
+                selection.forEach { song ->
+                    val durationMs =
+                        if ((song.duration ?: return@ListMenuItem) > 0) song.duration?.toLong()
+                            ?.times(1000) ?: return@ListMenuItem else 180000L
+                    val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                        id = song.id,
+                        title = song.title,
+                        artist = song.artists.joinToString(", ") { it.name },
+                        album = song.album?.id,
+                        duration = durationMs,
+                        thumbnail = song.thumbnail
+                    )
+                    listenTogetherManager.suggestTrack(trackInfo)
+                    onDismiss()
+                }
+            }
+            item {
+                HorizontalDivider()
+            }
+        }
         ListMenuItem(
             icon = R.drawable.play,
             title = R.string.play,

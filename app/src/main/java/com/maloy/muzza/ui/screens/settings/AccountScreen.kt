@@ -212,6 +212,17 @@ fun AccountSettings(
             icon = { Icon(painterResource(R.drawable.discord), null) },
             onClick = { navController.navigate("settings/discord") }
         )
+        PreferenceGroupTitle(
+            title = stringResource(R.string.listen_together)
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.listen_together)) },
+            icon = { Icon(painterResource(R.drawable.group), null) },
+            description = stringResource(R.string.listen_together_desc),
+            onClick = {
+                navController.navigate("settings/account/listen_together")
+            }
+        )
     }
     CenterAlignedTopAppBar(
         title = { Text(stringResource(R.string.account)) },

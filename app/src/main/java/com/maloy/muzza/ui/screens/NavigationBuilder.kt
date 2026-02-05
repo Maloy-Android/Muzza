@@ -41,6 +41,7 @@ import com.maloy.muzza.ui.screens.playlist.TopPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
 import com.maloy.muzza.ui.screens.settings.ContentSettings
+import com.maloy.muzza.ui.screens.settings.ListenTogetherSettings
 import com.maloy.muzza.ui.screens.settings.import_from_spotify.ImportFromSpotifyScreen
 
 @SuppressLint("UnrememberedMutableState")
@@ -78,6 +79,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("new_release") {
         NewReleaseScreen(navController, scrollBehavior)
+    }
+    composable("settings/account/listen_together") {
+        ListenTogetherSettings(navController, scrollBehavior)
     }
     composable(
         route = "search/{query}",

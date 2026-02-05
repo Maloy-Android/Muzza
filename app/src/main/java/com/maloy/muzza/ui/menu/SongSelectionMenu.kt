@@ -28,6 +28,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.Song
@@ -58,6 +59,7 @@ fun SongSelectionMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val listenTogetherManager = LocalListenTogetherManager.current
 
     val allInLibrary by remember(selection) {
         mutableStateOf(selection.isNotEmpty() && selection.all { it.song.inLibrary != null })
@@ -114,6 +116,30 @@ fun SongSelectionMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding(),
         ),
     ) {
+        if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+            ListMenuItem(
+                icon = R.drawable.queue_music,
+                title = R.string.suggest_to_host
+            ) {
+                selection.forEach { song ->
+                    val durationMs =
+                        if (song.song.duration > 0) song.song.duration.toLong() * 1000 else 180000L
+                    val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                        id = song.id,
+                        title = song.song.title,
+                        artist = song.artists.joinToString(", ") { it.name },
+                        album = song.song.albumName,
+                        duration = durationMs,
+                        thumbnail = song.thumbnailUrl
+                    )
+                    listenTogetherManager.suggestTrack(trackInfo)
+                    onDismiss()
+                }
+            }
+            item {
+                HorizontalDivider()
+            }
+        }
         ListMenuItem(
             icon = R.drawable.play,
             title = R.string.play,

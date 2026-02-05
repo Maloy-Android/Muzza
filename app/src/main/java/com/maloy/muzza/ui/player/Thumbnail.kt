@@ -50,6 +50,7 @@ import androidx.compose.ui.unit.sp
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player.STATE_ENDED
 import coil.compose.AsyncImage
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.constants.PlayerHorizontalPadding
 import com.maloy.muzza.constants.PlayerStyle
@@ -78,6 +79,8 @@ fun Thumbnail(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val playbackState by playerConnection.playbackState.collectAsState()
     val currentView = LocalView.current
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
     val error: PlaybackException? by playerConnection.error.collectAsState()
     var showLyrics by rememberPreference(ShowLyricsKey, false)
@@ -132,7 +135,7 @@ fun Thumbnail(
                                 offsetX = 0f
                             },
                             onHorizontalDrag = { _, dragAmount ->
-                                if (swipeThumbnail) {
+                                if (swipeThumbnail && !isGuest) {
                                     offsetX += dragAmount
                                 }
                             },
@@ -180,6 +183,8 @@ fun Thumbnail(
                                         playerConnection.player.playWhenReady = true
                                     } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
                                         showLyrics = !showLyrics
+                                    } else if (isGuest) {
+                                        playerConnection.isMuted
                                     } else {
                                         playerConnection.player.togglePlayPause()
                                     }
@@ -207,6 +212,8 @@ fun Thumbnail(
                                         playerConnection.player.playWhenReady = true
                                     } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
                                         showLyrics = !showLyrics
+                                    } else if (isGuest) {
+                                        playerConnection.isMuted
                                     } else {
                                         playerConnection.player.togglePlayPause()
                                     }

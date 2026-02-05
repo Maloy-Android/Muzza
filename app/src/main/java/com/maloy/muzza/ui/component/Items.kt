@@ -88,6 +88,7 @@ import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.utils.completed
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.GridThumbnailHeight
@@ -103,6 +104,7 @@ import com.maloy.muzza.db.entities.RecentActivityEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
+import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
@@ -328,6 +330,9 @@ fun SongListItem(
     contentScale: ContentScale = ContentScale.Fit,
 ) {
     val context = LocalContext.current
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
     val playerConnection = LocalPlayerConnection.current ?: return
     val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
     val colorScheme = MaterialTheme.colorScheme
@@ -336,7 +341,7 @@ fun SongListItem(
 
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
-    if (isSwipeable && swipeSongToDismiss) {
+    if (isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
         SwipeToDismissBox(
             state = dismissState,
             backgroundContent = {
@@ -1410,10 +1415,13 @@ fun YouTubeListItem(
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
-    if (item is SongItem && isSwipeable && swipeSongToDismiss) {
+    if (item is SongItem && isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
         val context = LocalContext.current
         val playerConnection = LocalPlayerConnection.current ?: return
         val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })

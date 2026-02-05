@@ -237,6 +237,7 @@ fun EditTextPreference(
 
     if (showDialog) {
         TextFieldDialog(
+            icon = icon,
             initialTextFieldValue = TextFieldValue(
                 text = value,
                 selection = TextRange(value.length)

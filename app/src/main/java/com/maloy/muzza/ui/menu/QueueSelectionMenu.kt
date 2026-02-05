@@ -26,6 +26,7 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.extensions.metadata
@@ -45,6 +46,7 @@ fun QueueSelectionMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val listenTogetherManager = LocalListenTogetherManager.current
 
     val downloadUtil = LocalDownloadUtil.current
     var downloadState by remember {
@@ -91,6 +93,31 @@ fun QueueSelectionMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
+        if (listenTogetherManager != null && listenTogetherManager.isInRoom && !listenTogetherManager.isHost) {
+            ListMenuItem(
+                icon = R.drawable.queue_music,
+                title = R.string.suggest_to_host
+            ) {
+                selection.forEach { song ->
+                    val durationMs =
+                        if ((song.mediaItem.metadata?.duration ?: return@ListMenuItem) > 0) song.mediaItem.metadata?.duration?.toLong()
+                            ?.times(1000) ?: return@ListMenuItem else 180000L
+                    val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
+                        id = song.mediaItem.metadata?.id ?: return@ListMenuItem,
+                        title = song.mediaItem.metadata?.title ?: return@ListMenuItem,
+                        artist = song.mediaItem.metadata?.artists?.joinToString(", ") { it.name } ?: return@ListMenuItem,
+                        album = song.mediaItem.metadata?.album?.id,
+                        duration = durationMs,
+                        thumbnail = song.mediaItem.metadata?.thumbnailUrl
+                    )
+                    listenTogetherManager.suggestTrack(trackInfo)
+                    onDismiss()
+                }
+            }
+            item {
+                HorizontalDivider()
+            }
+        }
         ListMenuItem(
             icon = R.drawable.play,
             title = R.string.play,

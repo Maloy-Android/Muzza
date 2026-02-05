@@ -62,6 +62,7 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -193,16 +194,20 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var syncUtils: SyncUtils
 
+    @Inject
+    lateinit var listenTogetherManager: com.maloy.muzza.listentogether.ListenTogetherManager
+
     private var playerConnection by mutableStateOf<PlayerConnection?>(null)
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service is MusicBinder) {
-                playerConnection =
-                    PlayerConnection(this@MainActivity, service, database, lifecycleScope)
+                playerConnection = PlayerConnection(this@MainActivity, service, database, lifecycleScope)
+                listenTogetherManager.setPlayerConnection(playerConnection)
             }
         }
 
         override fun onServiceDisconnected(name: ComponentName?) {
+            listenTogetherManager.setPlayerConnection(null)
             playerConnection?.dispose()
             playerConnection = null
         }
@@ -266,7 +271,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         WindowCompat.setDecorFitsSystemWindows(window, false)
-
+        listenTogetherManager.initialize()
         lifecycleScope.launch {
             dataStore.data
                 .map { it[DisableScreenshotKey] ?: false }
@@ -490,6 +495,12 @@ class MainActivity : ComponentActivity() {
                         defaultValue = false
                     )
 
+                    var showListenTogetherDialog by rememberSaveable { mutableStateOf(false) }
+                    val pendingSuggestions by listenTogetherManager.pendingSuggestions.collectAsState()
+                    val mediaMetadata by playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) }
+                    val listenTogetherRole by listenTogetherManager.role.collectAsState()
+                    val listenTogetherStatus by listenTogetherManager.connectionState.collectAsState()
+
                     LaunchedEffect(Unit) {
                         if (!firstSetupPassed) {
                             navController.navigate("setup_wizard")
@@ -639,7 +650,8 @@ class MainActivity : ComponentActivity() {
                         LocalDownloadUtil provides downloadUtil,
                         LocalShimmerTheme provides ShimmerTheme,
                         LocalSyncUtils provides syncUtils,
-                        LocalSnackbarHostState provides snackbarHostState
+                        LocalSnackbarHostState provides snackbarHostState,
+                        LocalListenTogetherManager provides listenTogetherManager
                     ) {
                         NavHost(
                             navController = navController,
@@ -1130,6 +1142,7 @@ val LocalSyncUtils = staticCompositionLocalOf<SyncUtils> { error("No SyncUtils p
 val LocalSnackbarHostState =
     staticCompositionLocalOf<SnackbarHostState> { error("No SnackbarHostState provided") }
 
+val LocalListenTogetherManager = staticCompositionLocalOf<com.maloy.muzza.listentogether.ListenTogetherManager?> { null }
 
 @Composable
 fun SettingsIconWithUpdateBadge(

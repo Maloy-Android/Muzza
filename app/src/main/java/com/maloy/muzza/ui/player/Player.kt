@@ -41,6 +41,11 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.VolumeOff
+import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.VolumeUp
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -89,6 +94,7 @@ import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkMode
@@ -109,6 +115,7 @@ import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
+import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.BottomSheet
@@ -171,6 +178,10 @@ fun BottomSheetPlayer(
     val context = LocalContext.current
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
+    val isMuted by playerConnection.isMuted.collectAsState()
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
     val playerBackground by rememberEnumPreference(
         key = PlayerBackgroundStyleKey,
@@ -553,7 +564,7 @@ fun BottomSheetPlayer(
                             else
                                 MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        enabled = true
+                        enabled = !isListenTogetherGuest
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.shuffle),
@@ -565,7 +576,7 @@ fun BottomSheetPlayer(
                     FilledTonalIconButton(
                         onClick = {},
                         modifier = Modifier.size(48.dp),
-                        enabled = canSkipPrevious
+                        enabled = canSkipPrevious && !isListenTogetherGuest
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_previous),
@@ -574,6 +585,7 @@ fun BottomSheetPlayer(
                                 .clip(RoundedCornerShape(48.dp))
                                 .size(24.dp)
                                 .combinedClickable(
+                                    enabled = !isListenTogetherGuest,
                                     onClick = { playerConnection.player.seekToPrevious() },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -592,36 +604,55 @@ fun BottomSheetPlayer(
                         )
                     }
 
-                    FilledTonalIconButton(
-                        onClick = {
-                            if (playbackState == STATE_ENDED) {
-                                playerConnection.player.seekTo(0, 0)
-                                playerConnection.player.playWhenReady = true
-                            } else {
-                                playerConnection.player.togglePlayPause()
-                            }
-                        },
-                        modifier = Modifier.size(72.dp),
-                        colors = IconButtonDefaults.filledTonalIconButtonColors(
-                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                        )
-                    ) {
-                        Icon(
-                            painter = painterResource(
-                                if (playbackState == STATE_ENDED) R.drawable.replay
-                                else if (isPlaying) R.drawable.pause
-                                else R.drawable.play
-                            ),
-                            contentDescription = null,
-                            modifier = Modifier.size(36.dp)
-                        )
+                    if (!isListenTogetherGuest) {
+                        FilledTonalIconButton(
+                            onClick = {
+                                if (playbackState == STATE_ENDED) {
+                                    playerConnection.player.seekTo(0, 0)
+                                    playerConnection.player.playWhenReady = true
+                                } else {
+                                    playerConnection.player.togglePlayPause()
+                                }
+                            },
+                            modifier = Modifier.size(72.dp),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    if (playbackState == STATE_ENDED) R.drawable.replay
+                                    else if (isPlaying) R.drawable.pause
+                                    else R.drawable.play
+                                ),
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                    } else {
+                        FilledTonalIconButton(
+                            onClick = { playerConnection.toggleMute() },
+                            modifier = Modifier.size(72.dp),
+                            colors = IconButtonDefaults.filledTonalIconButtonColors(
+                                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                        ) {
+                            Icon(
+                                imageVector =
+                                    if (isMuted) Icons.AutoMirrored.Rounded.VolumeOff
+                                    else Icons.AutoMirrored.Rounded.VolumeUp,
+                                contentDescription = null,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
                     }
 
                     FilledTonalIconButton(
                         modifier = Modifier.size(48.dp),
                         onClick = {},
-                        enabled = canSkipNext
+                        enabled = canSkipNext && !isListenTogetherGuest
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.skip_next),
@@ -630,6 +661,7 @@ fun BottomSheetPlayer(
                                 .clip(RoundedCornerShape(48.dp))
                                 .size(24.dp)
                                 .combinedClickable(
+                                    enabled = !isListenTogetherGuest,
                                     onClick = { playerConnection.player.seekToNext() },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -661,7 +693,7 @@ fun BottomSheetPlayer(
                             else
                                 MaterialTheme.colorScheme.onSurfaceVariant
                         ),
-                        enabled = true
+                        enabled = !isListenTogetherGuest
                     ) {
                         Icon(
                             painter = painterResource(

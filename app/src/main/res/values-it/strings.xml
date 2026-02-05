@@ -257,7 +257,6 @@
     <string name="remove_from_queue">Rimuovi dalla coda</string>
     <string name="slider_style">Stile slider</string>
     <string name="keep_listening">Continua ad ascoltare</string>
-    <string name="your_youtube_playlists">Le tue playlist di YouTube</string>
     <string name="duplicates_description_multiple">La canzone %d è già nella tua playlist</string>
     <string name="duplicates_description_single">La canzone è già nella tua playlist</string>
     <string name="delete_playlist_confirm">Vuoi davvero rimuovere la playlist \"%s\"?</string>

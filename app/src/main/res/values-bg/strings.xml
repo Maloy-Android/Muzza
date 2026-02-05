@@ -23,6 +23,5 @@
     <string name="account">Акаунт</string>
     <string name="quick_picks_empty">Слушайте песни, за да генерирате своя бърз избор</string>
     <string name="forgotten_favorites">Забравени любими</string>
-    <string name="your_youtube_playlists">Вашите плейлисти в YouTube</string>
     <string name="most_played_songs">Най-пускани песни</string>
 </resources>

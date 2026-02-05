@@ -255,7 +255,6 @@
     <string name="player">Oynatıcı</string>
     <string name="duplicates">Yinelenenler</string>
     <string name="duplicates_description_single">Şarkı zaten çalma listenizde var</string>
-    <string name="your_youtube_playlists">YouTube çalma listeleriniz</string>
     <string name="remove_from_playlist">Çalma listesinden kaldır</string>
     <string name="player_text_alignment">Oynatıcı metin hizalaması</string>
     <string name="slider_style">Kaydırma biçimi</string>

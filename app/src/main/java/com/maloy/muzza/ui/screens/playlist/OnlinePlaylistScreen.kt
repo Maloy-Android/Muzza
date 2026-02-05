@@ -1063,7 +1063,7 @@ fun OnlinePlaylistScreen(
                             contentDescription = null
                         )
                     }
-                } else if (!isSearching && !isLoading) {
+                } else if (!isSearching && !isLoading && songs.isNotEmpty()) {
                     IconButton(
                         onClick = { isSearching = true }
                     ) {
@@ -1073,7 +1073,7 @@ fun OnlinePlaylistScreen(
                         )
                     }
                 }
-                if (!isSearching && !inSelectMode && !isLoading) {
+                if (!isSearching && !inSelectMode && !isLoading && songs.isNotEmpty()) {
                     IconButton(
                         onClick = {
                             menuState.show {

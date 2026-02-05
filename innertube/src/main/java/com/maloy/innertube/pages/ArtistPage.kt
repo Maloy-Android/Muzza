@@ -122,33 +122,24 @@ data class ArtistPage(
         private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
                 renderer.isSong -> {
-                    val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
-                    val artists = if (isVideo) {
-                        listOfNotNull(renderer.subtitle?.runs?.getOrNull(0)?.let {
-                            Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
-                            )
-                        })
-                    } else {
-                        listOfNotNull(renderer.subtitle?.runs?.lastOrNull()?.let {
-                            Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
-                            )
-                        })
-                    }
-                    val alum = renderer.subtitle?.runs?.getOrNull(0) ?: return null
+                    val subtitleRuns = renderer.subtitle?.runs?.oddElements() ?: return null
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = artists,
-                        album = alum.let {
-                            Album(
+                        artists = subtitleRuns.filter {
+                            it.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true ||
+                                    it.navigationEndpoint?.browseEndpoint != null
+                        }.map {
+                            Artist(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
+                        }.ifEmpty {
+                            subtitleRuns.firstOrNull()?.let {
+                                listOf(Artist(name = it.text, id = null))
+                            } ?: emptyList()
                         },
+                        album = null,
                         duration = null,
                         musicVideoType = renderer.musicVideoType,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()

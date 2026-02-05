@@ -72,23 +72,27 @@ data class HomePage(
             private fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
                 return when {
                     renderer.isSong -> {
-                        val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
-                        val album = renderer.subtitle?.runs?.getOrNull(0) ?: return null
+                        val subtitleRuns = renderer.subtitle?.runs?.oddElements() ?: return null
+                        val album = renderer.subtitle.runs.getOrNull(0) ?: return null
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                            artists = renderer.subtitle.runs.getOrNull(if (isVideo) 2 else 1)?.let {
-                                listOf(
-                                    Artist(
-                                        name = it.text,
-                                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                                    )
+                            artists = subtitleRuns.filter { run ->
+                                run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true || (run.navigationEndpoint?.browseEndpoint != null && !run.navigationEndpoint.browseEndpoint.browseId.startsWith("MPREb_"))
+                            }.map { run ->
+                                Artist(
+                                    name = run.text,
+                                    id = run.navigationEndpoint?.browseEndpoint?.browseId
                                 )
-                            } ?: emptyList(),
+                            }.ifEmpty {
+                                subtitleRuns.firstOrNull()?.let { run ->
+                                    listOf(Artist(name = run.text, id = null))
+                                } ?: emptyList()
+                            },
                             album = album.let {
                                 Album(
                                     name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return@let null
                                 )
                             },
                             duration = null,
@@ -152,12 +156,10 @@ data class HomePage(
 
                     renderer.isArtist -> {
                         ArtistItem(
-                            id = renderer.navigationEndpoint.browseEndpoint?.browseId
-                                ?: return null,
-                            title = renderer.title.runs?.lastOrNull()?.text ?: return null,
+                            id = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
+                            title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                             subscriptions = renderer.subtitle?.runs?.firstOrNull()?.text,
-                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
-                                ?: return null,
+                            thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                             shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {
                                 it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
                             }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint

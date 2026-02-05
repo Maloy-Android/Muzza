@@ -115,7 +115,7 @@ fun YouTubePlaylistMenu(
                                         )?.value?.toIntOrNull()
                                     },
                                     playEndpointParams = playlist.playEndpoint?.params,
-                                    shuffleEndpointParams = playlist.shuffleEndpoint.params,
+                                    shuffleEndpointParams = playlist.shuffleEndpoint?.params,
                                     radioEndpointParams = playlist.radioEndpoint?.params
                                 ).toggleLike()
                                 insert(playlistEntity)
@@ -535,7 +535,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                         )?.value?.toIntOrNull()
                                     },
                                     playEndpointParams = playlist.playEndpoint?.params,
-                                    shuffleEndpointParams = playlist.shuffleEndpoint.params,
+                                    shuffleEndpointParams = playlist.shuffleEndpoint?.params,
                                     radioEndpointParams = playlist.radioEndpoint?.params
                                 ).toggleLike()
                                 insert(playlistEntity)

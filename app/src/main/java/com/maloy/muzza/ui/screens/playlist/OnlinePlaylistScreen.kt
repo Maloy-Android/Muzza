@@ -474,7 +474,7 @@ fun OnlinePlaylistScreen(
                                                                     ).find(it)?.value?.toIntOrNull()
                                                                 },
                                                                 playEndpointParams = playlist.playEndpoint?.params,
-                                                                shuffleEndpointParams = playlist.shuffleEndpoint.params,
+                                                                shuffleEndpointParams = playlist.shuffleEndpoint?.params,
                                                                 radioEndpointParams = playlist.radioEndpoint?.params
                                                             ).toggleLike()
                                                             insert(playlistEntity)

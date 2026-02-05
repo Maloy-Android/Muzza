@@ -628,7 +628,7 @@ interface DatabaseDao {
                 isEditable = playlistItem.isEditable,
                 remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                 playEndpointParams = playlistItem.playEndpoint?.params,
-                shuffleEndpointParams = playlistItem.shuffleEndpoint.params,
+                shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
                 radioEndpointParams = playlistItem.radioEndpoint?.params
             )
         )
@@ -985,7 +985,7 @@ interface DatabaseDao {
                         type = RecentActivityType.PLAYLIST,
                         playlistId = item.id,
                         radioPlaylistId = item.radioEndpoint?.playlistId,
-                        shufflePlaylistId = item.shuffleEndpoint.playlistId
+                        shufflePlaylistId = item.shuffleEndpoint?.playlistId
                     )
                 )
             }

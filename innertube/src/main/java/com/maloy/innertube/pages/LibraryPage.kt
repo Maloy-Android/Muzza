@@ -7,6 +7,7 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicTwoRowItemRenderer
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.Run
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.oddElements
@@ -19,47 +20,13 @@ data class LibraryPage(
     companion object {
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
-                renderer.isSong -> {
-                    val isVideo = renderer.musicVideoType?.contains("MUSIC_VIDEO_TYPE_") == true
-                    val album = renderer.subtitle?.runs?.getOrNull(0)
-                    SongItem(
-                        id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
-                        title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = renderer.subtitle?.runs?.getOrNull(if (isVideo) 1 else 2)?.let {
-                            listOf(
-                                Artist(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId
-                                )
-                            )
-                        } ?: emptyList(),
-                        album = album.let { album ->
-                            Album(
-                                name = album?.text ?: return null,
-                                id = album.navigationEndpoint?.browseEndpoint?.browseId ?: return null
-                            )
-                        },
-                        duration = null,
-                        thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
-                            ?: return null,
-                        musicVideoType = renderer.musicVideoType,
-                        explicit = renderer.subtitleBadges?.any {
-                            it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } == true
-                    )
-                }
                 renderer.isAlbum -> AlbumItem(
                     browseId = renderer.navigationEndpoint.browseEndpoint?.browseId ?: return null,
                     playlistId = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
-                        Artist(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
-                        )
-                    }?:return null,
+                    artists = parseArtists(renderer.subtitle?.runs),
                     year = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
@@ -78,18 +45,18 @@ data class LibraryPage(
                         )
                     },
                     songCountText = renderer.subtitle?.runs?.lastOrNull()?.text,
-                    thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()!!,
+                    thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                     playEndpoint = renderer.thumbnailOverlay
                         ?.musicItemThumbnailOverlayRenderer?.content
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint,
                     shuffleEndpoint = renderer.menu?.menuRenderer?.items?.find {
                         it.menuNavigationItemRenderer?.icon?.iconType == "MUSIC_SHUFFLE"
-                    }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
-                    radioEndpoint = renderer.menu.menuRenderer.items.find {
+                    }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
+                    radioEndpoint = renderer.menu?.menuRenderer?.items?.find {
                         it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                     }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
-                    isEditable = renderer.menu.menuRenderer.items.find {
+                    isEditable = renderer.menu?.menuRenderer?.items?.find {
                         it.menuNavigationItemRenderer?.icon?.iconType == "EDIT"
                     } != null
                 )
@@ -160,6 +127,22 @@ data class LibraryPage(
 
                 else -> null
             }
+        }
+        private fun parseArtists(runs: List<Run>?): List<Artist> {
+            val artists = mutableListOf<Artist>()
+            if (runs != null) {
+                for (run in runs) {
+                    if (run.navigationEndpoint != null) {
+                        artists.add(
+                            Artist(
+                                id = run.navigationEndpoint.browseEndpoint?.browseId!!,
+                                name = run.text
+                            )
+                        )
+                    }
+                }
+            }
+            return artists
         }
     }
 }

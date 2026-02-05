@@ -205,13 +205,6 @@ fun PlayerMenu(
                                 onValueChange = { sleepTimerValue = it },
                                 valueRange = 5f..120f,
                                 steps = (120 - 5) / 5 - 1,
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                },
                             )
                         }
 
@@ -229,6 +222,13 @@ fun PlayerMenu(
                                 onValueChange = { sleepTimerValue = it },
                                 valueRange = 5f..120f,
                                 steps = (120 - 5) / 5 - 1,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                }
                             )
                         }
                     }
@@ -331,14 +331,7 @@ fun PlayerMenu(
                 Slider(
                     value = playerVolume.value,
                     onValueChange = { playerConnection.service.playerVolume.value = it },
-                    valueRange = 0f..1f,
-                    thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                    track = { sliderState ->
-                        PlayerSliderTrack(
-                            sliderState = sliderState,
-                            colors = SliderDefaults.colors()
-                        )
-                    }
+                    valueRange = 0f..1f
                 )
             }
             SliderStyle.SQUIGGLY -> {
@@ -353,6 +346,13 @@ fun PlayerMenu(
                     value = playerVolume.value,
                     onValueChange = { playerConnection.service.playerVolume.value = it },
                     valueRange = 0f..1f,
+                    thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                    track = { sliderState ->
+                        PlayerSliderTrack(
+                            sliderState = sliderState,
+                            colors = SliderDefaults.colors()
+                        )
+                    }
                 )
             }
         }

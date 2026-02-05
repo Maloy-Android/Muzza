@@ -318,13 +318,6 @@ fun CounterDialog(
                                 value = tempValue.intValue.toFloat(),
                                 onValueChange = { tempValue.intValue = it.toInt() },
                                 valueRange = lowerBound.toFloat()..upperBound.toFloat(),
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                }
                             )
                         }
                         SliderStyle.SQUIGGLY -> {
@@ -339,6 +332,13 @@ fun CounterDialog(
                                 value = tempValue.intValue.toFloat(),
                                 onValueChange = { tempValue.intValue = it.toInt() },
                                 valueRange = lowerBound.toFloat()..upperBound.toFloat(),
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                }
                             )
                         }
                     }

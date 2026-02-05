@@ -243,20 +243,7 @@ fun AppearanceSettings(
                         onValueChange = {
                             sliderValue = it
                         },
-                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                        track = { sliderState ->
-                            PlayerSliderTrack(
-                                sliderState = sliderState,
-                                colors = SliderDefaults.colors()
-                            )
-                        },
-                        modifier = Modifier
-                            .weight(1f)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onPress = {}
-                                )
-                            }
+                        modifier = Modifier.weight(1f)
                     )
                 }
                 Column(
@@ -316,7 +303,20 @@ fun AppearanceSettings(
                         onValueChange = {
                             sliderValue = it
                         },
-                        modifier = Modifier.weight(1f)
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
+                        },
+                        modifier = Modifier
+                            .weight(1f)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onPress = {}
+                                )
+                            }
                     )
                 }
             }

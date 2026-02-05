@@ -236,13 +236,6 @@ fun Queue(
                                 onValueChange = { sleepTimerValue = it },
                                 valueRange = 5f..120f,
                                 steps = (120 - 5) / 5 - 1,
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                },
                             )
                         }
 
@@ -260,6 +253,13 @@ fun Queue(
                                 onValueChange = { sleepTimerValue = it },
                                 valueRange = 5f..120f,
                                 steps = (120 - 5) / 5 - 1,
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                }
                             )
                         }
                     }

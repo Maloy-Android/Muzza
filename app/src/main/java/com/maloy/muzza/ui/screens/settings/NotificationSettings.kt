@@ -156,29 +156,26 @@ fun NotificationSettings(
             stringResource(R.string.misc)
         )
 
-        AnimatedVisibility(permissionGranted) {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                PreferenceEntry(
-                    title = { Text(stringResource(R.string.advanced_notification_settings_title)) },
-                    icon = { Icon(painterResource(R.drawable.notification_on), null) },
-                    onClick = {
-                        try {
-                            context.startActivity(
-                                Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
-                                    putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
-                                }
-                            )
-                        } catch (e: ActivityNotFoundException) {
-                            Toast.makeText(
-                                context,
-                                R.string.intent_advanced_notification_settings_not_found,
-                                Toast.LENGTH_LONG
-                            ).show()
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.advanced_notification_settings_title)) },
+            icon = { Icon(painterResource(R.drawable.notification_on), null) },
+            onClick = {
+                try {
+                    context.startActivity(
+                        Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                            putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
                         }
-                    }
-                )
-            }
-        }
+                    )
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(
+                        context,
+                        R.string.intent_advanced_notification_settings_not_found,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            },
+            isEnabled = permissionGranted && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        )
     }
 
     CenterAlignedTopAppBar(

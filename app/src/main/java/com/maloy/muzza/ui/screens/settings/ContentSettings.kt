@@ -112,29 +112,28 @@ fun ContentSettings(
             onValueSelected = onContentCountryChange
         )
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.open_supported_links)) },
-                description = stringResource(R.string.configure_supported_links),
-                icon = { Icon(painterResource(R.drawable.add_link), null) },
-                onClick = {
-                    try {
-                        context.startActivity(
-                            Intent(
-                                Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
-                                "package:${context.packageName}".toUri()
-                            ),
-                        )
-                    } catch (_: ActivityNotFoundException) {
-                        Toast.makeText(
-                            context,
-                            R.string.intent_supported_links_not_found,
-                            Toast.LENGTH_LONG
-                        ).show()
-                    }
-                },
-            )
-        }
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.open_supported_links)) },
+            description = stringResource(R.string.configure_supported_links),
+            icon = { Icon(painterResource(R.drawable.add_link), null) },
+            onClick = {
+                try {
+                    context.startActivity(
+                        Intent(
+                            Settings.ACTION_APP_OPEN_BY_DEFAULT_SETTINGS,
+                            "package:${context.packageName}".toUri()
+                        ),
+                    )
+                } catch (_: ActivityNotFoundException) {
+                    Toast.makeText(
+                        context,
+                        R.string.intent_supported_links_not_found,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+            },
+            isEnabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+        )
 
         PreferenceGroupTitle(title = stringResource(R.string.content))
         SwitchPreference(

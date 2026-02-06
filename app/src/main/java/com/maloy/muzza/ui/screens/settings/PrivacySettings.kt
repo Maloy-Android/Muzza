@@ -173,14 +173,13 @@ fun PrivacySettings(
             title = stringResource(R.string.listen_history)
         )
 
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.adding_played_songs_to_ytm_history)) },
-                icon = { Icon(painterResource(R.drawable.history), null) },
-                checked = addingPlayedSongsToYtmHistory,
-                onCheckedChange = onAddingPlayedSongsToYtmHistoryChange
-            )
-        }
+        SwitchPreference(
+            title = { Text(stringResource(R.string.adding_played_songs_to_ytm_history)) },
+            icon = { Icon(painterResource(R.drawable.history), null) },
+            checked = addingPlayedSongsToYtmHistory,
+            onCheckedChange = onAddingPlayedSongsToYtmHistoryChange,
+            isEnabled = isLoggedIn
+        )
 
         SwitchPreference(
             title = { Text(stringResource(R.string.pause_listen_history)) },

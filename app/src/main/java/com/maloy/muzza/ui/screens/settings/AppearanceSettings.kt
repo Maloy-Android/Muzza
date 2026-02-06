@@ -361,16 +361,15 @@ fun AppearanceSettings(
             }
         )
 
-        AnimatedVisibility(useDarkTheme) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.pure_black)) },
-                icon = { Icon(painterResource(R.drawable.contrast), null) },
-                checked = pureBlack,
-                onCheckedChange = { checked ->
-                    onPureBlackChange(checked)
-                }
-            )
-        }
+        SwitchPreference(
+            title = { Text(stringResource(R.string.pure_black)) },
+            icon = { Icon(painterResource(R.drawable.contrast), null) },
+            checked = pureBlack,
+            onCheckedChange = { checked ->
+                onPureBlackChange(checked)
+            },
+            isEnabled = useDarkTheme
+        )
 
         PreferenceEntry(
             title = { Text(stringResource(R.string.slider_style)) },
@@ -396,14 +395,13 @@ fun AppearanceSettings(
             onCheckedChange = onShowContentFilterChange
         )
 
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.recent_activity)) },
-                icon = { Icon(Icons.Rounded.QueryStats, null) },
-                checked = showRecentActivity,
-                onCheckedChange = onShowRecentActivityChange
-            )
-        }
+        SwitchPreference(
+            title = { Text(stringResource(R.string.recent_activity)) },
+            icon = { Icon(Icons.Rounded.QueryStats, null) },
+            checked = showRecentActivity,
+            onCheckedChange = onShowRecentActivityChange,
+            isEnabled = isLoggedIn
+        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.player)
@@ -477,14 +475,13 @@ fun AppearanceSettings(
             onCheckedChange = onNowPlayingEnableChange
         )
 
-        AnimatedVisibility(nowPlayingEnable) {
-            PreferenceEntry(
-                title = { Text(stringResource(R.string.now_playing_padding)) },
-                description = "$nowPlayingPadding",
-                icon = { Icon(painterResource(R.drawable.arrow_downward), null) },
-                onClick = { showNowPlayingPaddingDialog = true }
-            )
-        }
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.now_playing_padding)) },
+            description = "$nowPlayingPadding",
+            icon = { Icon(painterResource(R.drawable.arrow_downward), null) },
+            onClick = { showNowPlayingPaddingDialog = true },
+            isEnabled = nowPlayingEnable
+        )
 
         PreferenceGroupTitle(
             title = stringResource(R.string.misc)
@@ -535,7 +532,7 @@ fun AppearanceSettings(
                     GridCellSize.BIG -> stringResource(R.string.big)
                     GridCellSize.SMALL -> stringResource(R.string.small)
                 }
-            },
+            }
         )
     }
 

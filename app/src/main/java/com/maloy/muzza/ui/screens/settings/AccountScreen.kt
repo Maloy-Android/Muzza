@@ -184,15 +184,13 @@ fun AccountSettings(
                 }
             },
         )
-        if (isLoggedIn) {
-            SwitchPreference(
-                title = { Text(stringResource(R.string.ytm_sync)) },
-                icon = { Icon(painterResource(R.drawable.cached), null) },
-                checked = ytmSync,
-                onCheckedChange = onYtmSyncChange,
-                isEnabled = true
-            )
-        }
+        SwitchPreference(
+            title = { Text(stringResource(R.string.ytm_sync)) },
+            icon = { Icon(painterResource(R.drawable.cached), null) },
+            checked = ytmSync,
+            onCheckedChange = onYtmSyncChange,
+            isEnabled = isLoggedIn,
+        )
         PreferenceGroupTitle(
             title = stringResource(R.string.title_spotify)
         )

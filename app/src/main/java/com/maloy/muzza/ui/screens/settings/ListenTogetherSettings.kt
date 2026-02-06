@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
@@ -68,8 +69,9 @@ import com.maloy.muzza.constants.ListenTogetherUsernameKey
 import com.maloy.muzza.listentogether.ConnectionState
 import com.maloy.muzza.listentogether.ListenTogetherEvent
 import com.maloy.muzza.listentogether.RoomRole
-import com.maloy.muzza.ui.component.EditTextPreference
+import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
+import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.ListenTogetherViewModel
@@ -110,6 +112,38 @@ fun ListenTogetherSettings(
     var showCreateRoomDialog by rememberSaveable { mutableStateOf(false) }
     var showJoinRoomDialog by rememberSaveable { mutableStateOf(false) }
     var roomCodeInput by rememberSaveable { mutableStateOf("") }
+
+    var showUserNameEditDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showUserNameEditDialog) {
+        TextFieldDialog(
+            title = { Text(stringResource(R.string.listen_together_username)) },
+            icon = { Icon(painter = painterResource(R.drawable.person), null) },
+            placeholder = { Text(stringResource(R.string.listen_together_username))},
+            onDismiss = { showUserNameEditDialog = false },
+            initialTextFieldValue = TextFieldValue(username),
+            onDone = {
+                if (roomState == null) {
+                    username = it
+                } else {
+                    Toast.makeText(context, context.getString(R.string.listen_together_cannot_edit_username_in_room), Toast.LENGTH_SHORT).show()
+                }
+            },
+        )
+    }
+
+    var showServerLinkEditDialog by rememberSaveable { mutableStateOf(false) }
+
+    if (showServerLinkEditDialog) {
+        TextFieldDialog(
+            title = { Text(stringResource(R.string.listen_together_server_url)) },
+            icon = { Icon(painter = painterResource(R.drawable.add_link), null) },
+            placeholder = { Text(stringResource(R.string.listen_together_server_url))},
+            onDismiss = { showServerLinkEditDialog = false },
+            initialTextFieldValue = TextFieldValue(serverUrl),
+            onDone = { serverUrl = it }
+        )
+    }
 
     LaunchedEffect(Unit) {
         viewModel.events.collectLatest { event ->
@@ -678,24 +712,18 @@ fun ListenTogetherSettings(
                 title = stringResource(R.string.settings)
             )
 
-            EditTextPreference(
+            PreferenceEntry(
                 title = { Text(stringResource(R.string.listen_together_server_url)) },
+                description = serverUrl,
                 icon = { Icon(painter = painterResource(R.drawable.add_link), null) },
-                value = serverUrl,
-                onValueChange = { serverUrl = it }
+                onClick = { showServerLinkEditDialog = true }
             )
 
-            EditTextPreference(
+            PreferenceEntry(
                 title = { Text(stringResource(R.string.listen_together_username)) },
+                description = username,
                 icon = { Icon(painter = painterResource(R.drawable.person), null) },
-                value = username,
-                onValueChange = {
-                    if (roomState == null) {
-                        username = it
-                    } else {
-                        Toast.makeText(context, context.getString(R.string.listen_together_cannot_edit_username_in_room), Toast.LENGTH_SHORT).show()
-                    }
-                },
+                onClick = { showUserNameEditDialog = true },
                 isEnabled = roomState == null
             )
             Spacer(modifier = Modifier.height(16.dp))

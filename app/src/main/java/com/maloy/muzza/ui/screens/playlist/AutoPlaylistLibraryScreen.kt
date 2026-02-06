@@ -1,6 +1,8 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -17,13 +19,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.LibraryMusic
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -44,16 +51,19 @@ import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
+import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
+import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
@@ -67,13 +77,18 @@ import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.AutoPlaylistLibraryViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
+import kotlin.collections.contains
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -86,6 +101,9 @@ fun AutoPlaylistLibraryScreen(
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
+
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -107,6 +125,20 @@ fun AutoPlaylistLibraryScreen(
             lazyListState.firstVisibleItemIndex > 0
         }
     }
+    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
+
+    val rotationAnimation by animateFloatAsState(
+        targetValue = refetchIconDegree,
+        animationSpec = tween(durationMillis = 800),
+        label = ""
+    )
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
+
+    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn =
+        remember(innerTubeCookie) {
+            "SAPISID" in parseCookieString(innerTubeCookie)
+        }
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
         SongSortType.CREATE_DATE
@@ -166,6 +198,14 @@ fun AutoPlaylistLibraryScreen(
 
     var downloadState by remember {
         mutableIntStateOf(Download.STATE_STOPPED)
+    }
+
+    LaunchedEffect(Unit) {
+        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+            withContext(Dispatchers.IO) {
+                viewModel.syncLibrarySongs()
+            }
+        }
     }
 
     LaunchedEffect(librarySongs) {
@@ -252,8 +292,15 @@ fun AutoPlaylistLibraryScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(
             state = lazyListState,
@@ -326,6 +373,7 @@ fun AutoPlaylistLibraryScreen(
                                                         songs = librarySongs,
                                                         coroutineScope = scope,
                                                         onDismiss = menuState::dismiss,
+                                                        showSyncLibrarySongsButton = true,
                                                         syncUtils = null
                                                     )
                                                 }
@@ -411,6 +459,31 @@ fun AutoPlaylistLibraryScreen(
                                                     contentDescription = null
                                                 )
                                             }
+                                        }
+                                    }
+                                    if (isLoggedIn && ytmSync && isInternetAvailable(context)) {
+                                        Button(
+                                            onClick = {
+                                                refetchIconDegree -= 360
+                                                scope.launch(Dispatchers.IO) {
+                                                    viewModel.syncLibrarySongs()
+                                                    snackbarHostState.showSnackbar(
+                                                        context.getString(
+                                                            R.string.playlist_synced
+                                                        )
+                                                    )
+                                                }
+                                            },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.sync),
+                                                contentDescription = null,
+                                                modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                                            )
                                         }
                                     }
                                     Button(
@@ -600,6 +673,15 @@ fun AutoPlaylistLibraryScreen(
                     }
                 }
             }
+        }
+        if (filteredSongs.isNotEmpty() && isLoggedIn && ytmSync && isInternetAvailable(context) && !isSearching) {
+            PullToRefreshDefaults.Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
         LazyColumnScrollbar(
             visible = lazyChecker,

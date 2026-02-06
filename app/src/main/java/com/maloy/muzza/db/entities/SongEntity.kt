@@ -40,13 +40,8 @@ data class SongEntity(
     @ColumnInfo(name = "isVideoSong", defaultValue = "false")
     val isVideoSong: Boolean = false,
 ) {
-
-    val isLocalSong: Boolean
-        get() = id.startsWith("LA")
-
     fun localToggleLike() = copy(
-        liked = !liked,
-        inLibrary = if (!liked) inLibrary ?: LocalDateTime.now() else inLibrary
+        liked = !liked
     ).also {
         CoroutineScope(Dispatchers.IO).launch() {
             YouTube.likeVideo(id, !liked)
@@ -57,9 +52,14 @@ data class SongEntity(
     fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch() {
             YouTube.likeVideo(id, !liked)
-            this.cancel()
         }
     }
 
-    fun toggleLibrary() = copy(inLibrary = if (inLibrary == null) LocalDateTime.now() else null)
+    fun toggleLibrary() = copy(
+        inLibrary = if (inLibrary == null) LocalDateTime.now() else null,
+    ).also {
+        CoroutineScope(Dispatchers.IO).launch {
+            YouTube.addVideoToLibrary(id,inLibrary == null)
+        }
+    }
 }

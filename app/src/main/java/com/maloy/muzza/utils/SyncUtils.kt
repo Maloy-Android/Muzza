@@ -57,6 +57,29 @@ class SyncUtils @Inject constructor(
             }
         }
     }
+    suspend fun syncLibrarySongs() {
+        YouTube.library("FEmusic_liked_videos").completed().onSuccess { page ->
+            val songs = page.items.filterIsInstance<SongItem>().reversed()
+            database.librarySongsByNameAsc().first()
+                .filter {
+                    !it.song.isLocal && it.id !in songs.map(SongItem::id)
+                }
+                .filterNot { it.song.inLibrary != null }
+                .forEach { database.update(it.song.toggleLibrary()) }
+
+            songs.forEach { song ->
+                val dbSong = database.song(song.id).firstOrNull()
+                database.transaction {
+                    when (dbSong) {
+                        null -> insert(song.toMediaMetadata(), SongEntity::toggleLibrary)
+                        else -> if (dbSong.song.inLibrary != null && !dbSong.song.isLocal) {
+                            update(dbSong.song.toggleLibrary())
+                        }
+                    }
+                }
+            }
+        }
+    }
     suspend fun syncLikedAlbums() {
         YouTube.library("FEmusic_liked_albums").completed().onSuccess { page ->
             val albums = page.items.filterIsInstance<AlbumItem>().reversed()

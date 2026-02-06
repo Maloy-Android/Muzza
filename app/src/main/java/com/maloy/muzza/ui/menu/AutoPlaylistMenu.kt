@@ -93,6 +93,7 @@ fun AutoPlaylistMenu(
     thumbnail: String?,
     showSyncLikedSongsButton: Boolean = false,
     showSyncLocalSongsButton: Boolean = false,
+    showSyncLibrarySongsButton: Boolean = false,
     showRemoveFromCacheButton: Boolean = false,
     showM3UBackupButton: Boolean = true,
     syncUtils: SyncUtils?,
@@ -442,6 +443,26 @@ fun AutoPlaylistMenu(
                 refetchIconDegree -= 360
                 coroutineScope.launch(Dispatchers.IO) {
                     syncUtils?.syncLikedSongs()
+                }
+            }
+        }
+        if (showSyncLibrarySongsButton && isLoggedIn && ytmSync && isInternetAvailable(context)) {
+            item {
+                HorizontalDivider()
+            }
+            ListMenuItem(
+                icon = {
+                    Icon(
+                        painter = painterResource(R.drawable.sync),
+                        contentDescription = null,
+                        modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                    )
+                },
+                title = R.string.sync
+            ) {
+                refetchIconDegree -= 360
+                coroutineScope.launch(Dispatchers.IO) {
+                    syncUtils?.syncLibrarySongs()
                 }
             }
         }

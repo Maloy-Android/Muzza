@@ -121,30 +121,6 @@ class InnerTube {
             )
         )
     }
-    suspend fun addToLibrary(
-        client: YouTubeClient,
-        videoId: String,
-    ) = httpClient.post("library/library") {
-        ytClient(client, setLogin = true)
-        setBody(
-            LibraryBody(
-                context = client.toContext(locale,visitorData,dataSyncId),
-                target = LibraryBody.Target.VideoTarget(videoId)
-            )
-        )
-    }
-    suspend fun removeFromLibrary(
-        client: YouTubeClient,
-        videoId: String,
-    ) = httpClient.post("library/removelibrary") {
-        ytClient(client, setLogin = true)
-        setBody(
-            LibraryBody(
-                context = client.toContext(locale,visitorData,dataSyncId),
-                target = LibraryBody.Target.VideoTarget(videoId)
-            )
-        )
-    }
     suspend fun likePlaylist(
         client: YouTubeClient,
         playlistId: String,

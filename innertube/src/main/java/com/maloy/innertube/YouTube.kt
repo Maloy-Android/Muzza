@@ -698,13 +698,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             innerTube.unlikeVideo(WEB_REMIX, videoId)
     }
 
-    suspend fun addVideoToLibrary(videoId: String, library: Boolean) = runCatching {
-        if (library)
-            innerTube.addToLibrary(WEB_REMIX,videoId)
-        else
-            innerTube.removeFromLibrary(WEB_REMIX,videoId)
-    }
-
     suspend fun likePlaylist(playlistId: String, like: Boolean) = runCatching {
         if (like)
             innerTube.likePlaylist(WEB_REMIX, playlistId)

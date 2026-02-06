@@ -558,7 +558,6 @@ fun LibraryMixScreen(
                                             songs = librarySongs,
                                             coroutineScope = coroutineScope,
                                             onDismiss = menuState::dismiss,
-                                            showSyncLibrarySongsButton = true,
                                             syncUtils = null
                                         )
                                     }

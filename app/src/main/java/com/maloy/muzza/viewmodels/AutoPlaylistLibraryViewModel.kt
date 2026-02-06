@@ -9,33 +9,24 @@ import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
-import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class AutoPlaylistLibraryViewModel @Inject constructor(
     @ApplicationContext context: Context,
     private val database: MusicDatabase,
-    private val syncUtils: SyncUtils
 ) : ViewModel() {
-    private val _error = MutableStateFlow<String?>(null)
-    val error = _error.asStateFlow()
-    private val _isRefreshing = MutableStateFlow(false)
-    val isRefreshing = _isRefreshing.asStateFlow()
     @OptIn(ExperimentalCoroutinesApi::class)
     val librarySongs =
         context.dataStore.data
@@ -45,7 +36,7 @@ class AutoPlaylistLibraryViewModel @Inject constructor(
             }
             .distinctUntilChanged()
             .flatMapLatest { (sortType, descending) ->
-            database.librarySongsByNameAsc()
+            database.librarySongs(SongSortType.CREATE_DATE, true)
                 .flowOn(Dispatchers.IO)
                 .map { songs ->
                     when (sortType) {
@@ -65,28 +56,5 @@ class AutoPlaylistLibraryViewModel @Inject constructor(
                     }.reversed(descending)
                 }
         }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())
-
-    fun syncLibrarySongs() {
-        viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLibrarySongs() }
-    }
-
-    fun refresh() {
-        viewModelScope.launch {
-            try {
-                _isRefreshing.value = true
-                viewModelScope.launch(
-                    Dispatchers.IO
-                ) {
-                    syncUtils.syncLibrarySongs()
-                }
-
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _error.value = "Failed to refresh playlist"
-            } finally {
-                _isRefreshing.value = false
-            }
-        }
-    }
 }
 

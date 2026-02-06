@@ -600,7 +600,7 @@ fun SongGridItem(
             )
         }
         ItemsPlayButton(
-            visible = !isActive && !song.song.isVideoSong,
+            visible = !isActive && (!song.song.isVideoSong || song.song.albumId != null),
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(
@@ -611,7 +611,7 @@ fun SongGridItem(
             }
         )
         ItemsVideoPlayButton(
-            visible = !isActive && song.song.isVideoSong
+            visible = !isActive && (song.song.isVideoSong || song.song.albumId == null),
         ) {
             playerConnection.playQueue(
                 ListQueue(
@@ -621,7 +621,7 @@ fun SongGridItem(
             )
         }
         ItemsMenuButton(
-            visible = !isActive && !song.song.isVideoSong,
+            visible = !isActive && (!song.song.isVideoSong && song.song.albumId != null),
             onClick = {
                 menuState.show {
                     SongMenu(
@@ -1705,7 +1705,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsPlayButton(
-            visible = (item is PlaylistItem || item is SongItem && !item.isVideoSong) && !isActive,
+            visible = (item is PlaylistItem || item is SongItem && (!item.isVideoSong && item.album?.id != null)) && !isActive,
             onClick = {
                 if (item is PlaylistItem) {
                     coroutineScope.launch {
@@ -1734,7 +1734,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsVideoPlayButton(
-            visible = (item is SongItem && item.isVideoSong) && !isActive,
+            visible = (item is SongItem && (item.isVideoSong || item.album?.id == null)) && !isActive,
             onClick = {
                 if (item is PlaylistItem) {
                     coroutineScope.launch {
@@ -1763,7 +1763,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsMenuButton(
-            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem && ! item.isVideoSong) && !isActive,
+            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem && (!item.isVideoSong && item.album?.id != null)) && !isActive,
             onClick = {
                 menuState.show {
                     when (item) {

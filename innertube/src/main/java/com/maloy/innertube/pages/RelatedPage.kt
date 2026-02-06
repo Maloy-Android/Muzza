@@ -54,7 +54,7 @@ data class RelatedPage(
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
+                    artists = renderer.subtitle?.runs?.oddElements()?.drop(0)?.map {
                         Artist(
                             name = it.text,
                             id = it.navigationEndpoint?.browseEndpoint?.browseId

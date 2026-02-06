@@ -994,7 +994,10 @@ fun PlaylistListItem(
     ListItem(
         title = playlist.playlist.name,
         badges = badges,
-        subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
+        subtitle = joinByBullet(
+            playlist.playlist.playlistAuthors,
+            pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount)
+        ),
         thumbnailContent = {
             Box(
                 modifier = Modifier
@@ -1136,7 +1139,10 @@ fun PlaylistGridItem(
 
     GridItem(
         title = playlist.playlist.name,
-        subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
+        subtitle = joinByBullet(
+            playlist.playlist.playlistAuthors,
+            pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount)
+        ),
         badges = badges,
         thumbnailContent = {
             val width = maxWidth

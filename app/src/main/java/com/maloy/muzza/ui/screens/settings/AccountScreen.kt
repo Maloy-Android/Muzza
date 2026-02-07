@@ -24,11 +24,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
@@ -43,7 +40,6 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.ui.component.IconButton
-import com.maloy.muzza.ui.component.InfoLabel
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
@@ -68,11 +64,47 @@ fun AccountSettings(
     }
     val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
 
-    var showToken: Boolean by remember {
-        mutableStateOf(false)
-    }
     var showTokenEditor by remember {
         mutableStateOf(false)
+    }
+
+    val text = if (isLoggedIn) {
+        """
+         ***INNERTUBE COOKIE*** =$innerTubeCookie
+         ***VISITOR DATA*** =$visitorData
+         ***ACCOUNT NAME*** =$accountName
+         ***ACCOUNT ImageUrl*** =$accountImageUrl
+         ***ACCOUNT EMAIL*** =$accountEmail
+         ***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle
+         """.trimIndent()
+    } else ""
+
+    if (showTokenEditor) {
+        TextFieldDialog(
+            title = { Text(stringResource(R.string.login_by_token)) },
+            icon = { Icon(painter = painterResource(R.drawable.token), null) },
+            placeholder = { Text(stringResource(R.string.token_placeholder))},
+            onDismiss = { showTokenEditor = false },
+            singleLine = false,
+            maxLines = 20,
+            isInputValid = {
+                it.isNotEmpty() && "SAPISID" in parseCookieString(it)
+            },
+            initialTextFieldValue = TextFieldValue(text),
+            onDone = { data ->
+                data.split("\n").forEach {
+                    when {
+                        it.startsWith("***INNERTUBE COOKIE*** =") -> onInnerTubeCookieChange(it.substringAfter("="))
+                        it.startsWith("***VISITOR DATA*** =") -> onVisitorDataChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT ImageUrl*** =") -> onAccountImageChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
+                    }
+                }
+                if (innerTubeCookie.isNotEmpty()) YouTube.useLoginForBrowse = true
+            }
+        )
     }
 
     Column(
@@ -123,69 +155,11 @@ fun AccountSettings(
             },
             onClick = { if (!isLoggedIn) navController.navigate("login") }
         )
-        if (showTokenEditor) {
-            val text = if (isLoggedIn) {
-                """
-                ***INNERTUBE COOKIE*** =$innerTubeCookie
-                ***VISITOR DATA*** =$visitorData
-                ***ACCOUNT NAME*** =$accountName
-                ***ACCOUNT ImageUrl*** =$accountImageUrl
-                ***ACCOUNT EMAIL*** =$accountEmail
-                ***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle
-            """.trimIndent()
-            } else ""
-
-            TextFieldDialog(
-                modifier = Modifier,
-                initialTextFieldValue = TextFieldValue(text),
-                placeholder = { Text(stringResource(R.string.token_placeholder))},
-                onDone = { data ->
-                    data.split("\n").forEach {
-                        when {
-                            it.startsWith("***INNERTUBE COOKIE*** =") -> onInnerTubeCookieChange(it.substringAfter("="))
-                            it.startsWith("***VISITOR DATA*** =") -> onVisitorDataChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT ImageUrl*** =") -> onAccountImageChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
-                            it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
-                        }
-                    }
-                    if (innerTubeCookie.isNotEmpty()) YouTube.useLoginForBrowse = true
-                },
-                onDismiss = { showTokenEditor = false },
-                singleLine = false,
-                maxLines = 20,
-                isInputValid = {
-                    it.isNotEmpty() && "SAPISID" in parseCookieString(it)
-                },
-                extraContent = {
-                    InfoLabel(text = stringResource(R.string.token_adv_login_description))
-                }
-            )
-        }
         PreferenceEntry(
-            title = {
-                if (showToken) {
-                    Text(stringResource(R.string.token_shown))
-                    Text(
-                        text = if (isLoggedIn) innerTubeCookie else stringResource(R.string.not_logged_in),
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Light,
-                        overflow = TextOverflow.Ellipsis,
-                        maxLines = 1
-                    )
-                } else {
-                    Text(stringResource(R.string.token_hidden))
-                }
-            },
+            title = { Text(stringResource(R.string.login_by_token))},
+            description = stringResource(R.string.token_adv_login_description),
             icon = { Icon(painterResource(R.drawable.token), null) },
-            onClick = {
-                if (!showToken) {
-                    showToken = true
-                } else {
-                    showTokenEditor = true
-                }
-            },
+            onClick = { showTokenEditor = true },
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.ytm_sync)) },

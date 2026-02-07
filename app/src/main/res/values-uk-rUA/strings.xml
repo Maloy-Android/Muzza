@@ -425,7 +425,7 @@
     <string name="not_logged_in">Не авторизовано</string>
     <string name="token_hidden">Показати токен</string>
     <string name="token_shown">Натисніть ще раз, щоб скопіювати або відредагувати</string>
-    <string name="token_adv_login_description">Це розширений спосіб входу в систему. Як альтернативу веб-порталу, Ви можете безпосередньо ввести або оновити свій логін тут. Наприклад, це може прискорити вхід на декількох пристроях. Будь ласка, зверніть увагу, що будь-які неприпустимі формати токенів, які програма не зможе проаналізувати, не будуть прийняті</string>
+    <string name="token_adv_login_description">Швидкий вхід по токену без використання web</string>
     <string name="token_placeholder">Твій жетон</string>
     <string name="import_from_spotify">Імпорт з Spotify</string>
     <string name="ytm_sync">Автоматична синхронізація з вашим аккаунтом</string>

@@ -431,6 +431,7 @@
     <string name="token_hidden">Показать токен</string>
     <string name="token_shown">Нажмите еще раз, чтобы скопировать или отредактировать</string>
     <string name="token_adv_login_description">Это РАСШИРЕННЫЙ способ входа в систему. В качестве альтернативы веб-порталу вы можете напрямую ввести или обновить свой логин здесь. Например, это может ускорить вход в систему на нескольких устройствах. Пожалуйста, обратите внимание, что любые недопустимые форматы токенов, которые приложение не сможет проанализировать, не будут приняты</string>
+    <string name="token_placeholder">Ваш токен</string>
     <string name="import_from_spotify">Импорт из spotify</string>
     <string name="ytm_sync">Автоматическая синхронизация с вашим аккаунтом</string>
     <string name="content_language">Язык контента</string>

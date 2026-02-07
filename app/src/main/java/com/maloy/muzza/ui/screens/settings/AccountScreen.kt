@@ -124,7 +124,8 @@ fun AccountSettings(
             onClick = { if (!isLoggedIn) navController.navigate("login") }
         )
         if (showTokenEditor) {
-            val text = """
+            val text = if (isLoggedIn) {
+                """
                 ***INNERTUBE COOKIE*** =$innerTubeCookie
                 ***VISITOR DATA*** =$visitorData
                 ***ACCOUNT NAME*** =$accountName
@@ -132,10 +133,12 @@ fun AccountSettings(
                 ***ACCOUNT EMAIL*** =$accountEmail
                 ***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle
             """.trimIndent()
+            } else ""
 
             TextFieldDialog(
                 modifier = Modifier,
                 initialTextFieldValue = TextFieldValue(text),
+                placeholder = { Text(stringResource(R.string.token_placeholder))},
                 onDone = { data ->
                     data.split("\n").forEach {
                         when {

@@ -370,9 +370,9 @@
     <string name="gradient">Градиент</string>
     <string name="blur">Размытие</string>
     <string name="blurmv">Размытие (движение)</string>
-    <string name="grid_cell_size">Размер ячеек</string>
+    <string name="grid_cell_size">Размер элементов</string>
     <string name="slim_navbar">Показывать названия кнопок навигационной панели</string>
-    <string name="two_line_song_item_label">Название песни в две строки</string>
+    <string name="two_line_song_item_label">Названия элементов в две строки</string>
     <string name="small">Маленький</string>
     <string name="big">Большой</string>
     <string name="NewVersion">Доступна новая версия</string>

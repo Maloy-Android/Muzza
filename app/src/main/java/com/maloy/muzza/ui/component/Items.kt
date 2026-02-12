@@ -762,6 +762,7 @@ fun AlbumListItem(
         )
     },
     trailingContent = trailingContent,
+    isActive = isActive,
     modifier = modifier
 )
 
@@ -1052,6 +1053,7 @@ fun PlaylistListItem(
         },
         trailingContent = trailingContent,
         modifier = modifier,
+        isActive = isActive,
         isTwoLineLabel = twoLineLabel
     )
 }

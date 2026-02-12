@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -33,6 +32,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Checkbox
@@ -64,6 +64,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -77,6 +78,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.compose.ui.window.DialogProperties
 import androidx.media3.common.Timeline
@@ -93,7 +95,6 @@ import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SliderStyle
 import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.constants.TwoLineSongItemLabelKey
-import com.maloy.muzza.constants.fullScreenLyricsKey
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.togglePlayPause
@@ -132,7 +133,8 @@ fun Queue(
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val listenTogetherManager = LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val listenTogetherRoleState =
+        listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -294,7 +296,7 @@ fun Queue(
             ) {
                 if (playerStyle == PlayerStyle.NEW) {
                     Row(
-                        horizontalArrangement = Arrangement.SpaceBetween,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier
                             .fillMaxWidth()
@@ -304,26 +306,26 @@ fun Queue(
                                     .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
                             ),
                     ) {
-                        TextButton(onClick = { state.expandSoft() }) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                        TextButton(
+                            onClick = { state.expandSoft() },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(
+                                    color = onBackgroundColor.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(24.dp)
+                                )
+                        ) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.queue_music),
                                     contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
+                                    modifier = Modifier.size(24.dp),
                                     tint = onBackgroundColor
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = stringResource(R.string.queue),
-                                    color = onBackgroundColor,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .sizeIn(maxWidth = 80.dp)
-                                        .basicMarquee()
                                 )
                             }
                         }
@@ -335,68 +337,113 @@ fun Queue(
                                 } else {
                                     showSleepTimerDialog = true
                                 }
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(
+                                    color = if (sleepTimerEnabled) {
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                    } else {
+                                        onBackgroundColor.copy(alpha = 0.1f)
+                                    },
+                                    shape = RoundedCornerShape(24.dp)
+                                )
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
-                            ) {
-                                Icon(
-                                    painter = painterResource(R.drawable.bedtime),
-                                    contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = onBackgroundColor
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = if (sleepTimerEnabled) makeTimeString(sleepTimerTimeLeft) else stringResource(
-                                        R.string.sleep_timer
-                                    ),
-                                    color = onBackgroundColor,
-                                    maxLines = if (sleepTimerEnabled) 1 else 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .sizeIn(maxWidth = 80.dp)
-                                        .basicMarquee()
-                                )
+                            if (sleepTimerEnabled) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.bedtime),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                        tint = MaterialTheme.colorScheme.primary
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text(
+                                        text = makeTimeString(sleepTimerTimeLeft),
+                                        color = MaterialTheme.colorScheme.primary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Medium
+                                    )
+                                }
+                            } else {
+                                Box(
+                                    contentAlignment = Alignment.Center,
+                                    modifier = Modifier.fillMaxSize()
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.bedtime),
+                                        contentDescription = null,
+                                        modifier = Modifier.size(24.dp),
+                                        tint = onBackgroundColor
+                                    )
+                                }
                             }
                         }
 
                         TextButton(
                             onClick = {
                                 showLyrics = !showLyrics
-                            }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .clip(RoundedCornerShape(24.dp))
+                                .background(
+                                    color = if (showLyrics) {
+                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                                    } else {
+                                        onBackgroundColor.copy(alpha = 0.1f)
+                                    },
+                                    shape = RoundedCornerShape(24.dp)
+                                )
                         ) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Center
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
                             ) {
                                 Icon(
                                     painter = painterResource(R.drawable.lyrics),
                                     contentDescription = null,
-                                    modifier = Modifier.size(20.dp),
-                                    tint = onBackgroundColor
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text(
-                                    text = stringResource(R.string.lyrics),
-                                    color = onBackgroundColor,
-                                    maxLines = 2,
-                                    overflow = TextOverflow.Ellipsis,
-                                    modifier = Modifier
-                                        .sizeIn(maxWidth = 80.dp)
-                                        .basicMarquee()
+                                    modifier = Modifier.size(24.dp),
+                                    tint = if (showLyrics)
+                                        MaterialTheme.colorScheme.primary
+                                    else onBackgroundColor
                                 )
                             }
                         }
                     }
                 } else {
-                    IconButton(onClick = { state.expandSoft() }) {
-                        Icon(
-                            painter = painterResource(R.drawable.expand_less),
-                            tint = onBackgroundColor,
-                            contentDescription = null,
-                        )
+                    IconButton(
+                        onClick = { state.expandSoft() },
+                        modifier = Modifier
+                            .height(48.dp)
+                            .width(120.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(
+                                color = onBackgroundColor.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(24.dp)
+                            ),
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.expand_less),
+                                tint = onBackgroundColor,
+                                contentDescription = null,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -516,7 +563,10 @@ fun Queue(
                             }
                         }
 
-                        val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
+                        val (twoLineLabel) = rememberPreference(
+                            TwoLineSongItemLabelKey,
+                            defaultValue = false
+                        )
                         val content = @Composable {
                             MediaMetadataListItem(
                                 mediaMetadata = window.mediaItem.metadata!!,

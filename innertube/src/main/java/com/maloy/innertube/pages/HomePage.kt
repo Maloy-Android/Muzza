@@ -84,15 +84,11 @@ data class HomePage(
                                     name = run.text,
                                     id = run.navigationEndpoint?.browseEndpoint?.browseId
                                 )
-                            }.ifEmpty {
-                                subtitleRuns.firstOrNull()?.let { run ->
-                                    listOf(Artist(name = run.text, id = null))
-                                } ?: emptyList()
                             },
                             album = album.let {
                                 Album(
                                     name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return@let null
+                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                                 )
                             },
                             duration = null,

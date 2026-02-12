@@ -400,6 +400,10 @@ fun ListenTogetherSettings(
                                     viewModel.disconnect()
                                     Toast.makeText(context, R.string.listen_together_disconnected, Toast.LENGTH_SHORT).show()
                                 },
+                                border = BorderStroke(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colorScheme.error
+                                ),
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(

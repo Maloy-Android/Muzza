@@ -1013,17 +1013,6 @@ fun PlaylistListItem(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                    PlayingIndicatorBox(
-                        isActive = isActive,
-                        playWhenReady = isPlaying,
-                        color = Color.White,
-                        modifier = Modifier
-                            .size(ListThumbnailSize)
-                            .background(
-                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    )
                 } else {
                     PlaylistThumbnail(
                         thumbnails = playlist.thumbnails,
@@ -1047,18 +1036,18 @@ fun PlaylistListItem(
                         },
                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )
-                    PlayingIndicatorBox(
-                        isActive = isActive,
-                        playWhenReady = isPlaying,
-                        color = Color.White,
-                        modifier = Modifier
-                            .size(ListThumbnailSize)
-                            .background(
-                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    )
                 }
+                PlayingIndicatorBox(
+                    isActive = isActive,
+                    playWhenReady = isPlaying,
+                    color = Color.White,
+                    modifier = Modifier
+                        .size(ListThumbnailSize)
+                        .background(
+                            color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                )
             }
         },
         trailingContent = trailingContent,
@@ -1159,17 +1148,6 @@ fun PlaylistGridItem(
                         contentScale = ContentScale.Crop,
                         modifier = Modifier.fillMaxSize()
                     )
-                    PlayingIndicatorBox(
-                        isActive = isActive,
-                        playWhenReady = isPlaying,
-                        color = Color.White,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    )
                 } else {
                     PlaylistThumbnail(
                         thumbnails = playlist.thumbnails,
@@ -1186,18 +1164,18 @@ fun PlaylistGridItem(
                         },
                         shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )
-                    PlayingIndicatorBox(
-                        isActive = isActive,
-                        playWhenReady = isPlaying,
-                        color = Color.White,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    )
                 }
+                PlayingIndicatorBox(
+                    isActive = isActive,
+                    playWhenReady = isPlaying,
+                    color = Color.White,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                            shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        )
+                )
             }
             ItemsPlayButton(
                 visible = songs.isNotEmpty() && !isActive,

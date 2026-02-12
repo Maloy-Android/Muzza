@@ -132,7 +132,7 @@ class SyncUtils @Inject constructor(
                         playlistAuthors = playlist.author?.name,
                         browseId = playlist.id,
                         thumbnailUrl = playlist.thumbnail,
-                        isEditable = playlist.isEditable,
+                        isEditable = true,
                         bookmarkedAt = LocalDateTime.now(),
                         remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                         playEndpointParams = playlist.playEndpoint?.params,

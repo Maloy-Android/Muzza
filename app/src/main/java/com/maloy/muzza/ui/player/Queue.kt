@@ -598,7 +598,7 @@ fun Queue(
                                             )
                                         }
 
-                                        if (!lockQueue) {
+                                        if (!lockQueue && !isListenTogetherGuest) {
                                             IconButton(
                                                 onClick = { },
                                                 modifier = Modifier.draggableHandle()
@@ -826,7 +826,7 @@ fun Queue(
                     }
                 ) {
                     Icon(
-                        painter = if (lockQueue || isListenTogetherGuest) painterResource(R.drawable.lock) else painterResource(
+                        painter = if (lockQueue && !isListenTogetherGuest) painterResource(R.drawable.lock) else painterResource(
                             R.drawable.lock_open
                         ),
                         contentDescription = null,

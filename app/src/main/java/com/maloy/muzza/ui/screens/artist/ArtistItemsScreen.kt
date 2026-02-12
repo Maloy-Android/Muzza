@@ -298,6 +298,10 @@ fun ArtistItemsScreen(
                     }
                 )
             }
+            LazyColumnScrollbar(
+                visible = lazyChecker,
+                state = lazyListState
+            )
         } else {
             when (viewType) {
                 LibraryViewType.LIST -> {

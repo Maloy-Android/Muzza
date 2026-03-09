@@ -605,4 +605,38 @@ DO NOT PANIC IF IT LOOKS STUCK; sometimes retrieval may take some time.</string>
     <string name="user_name">User name</string>
     <string name="listen_together_cannot_edit_username_in_room">Cannot edit username while in a room</string>
     <string name="error_username_empty">Username is required.</string>
+
+    <string name="palette_dynamic">Dynamic</string>
+    <string name="palette_crimson">Crimson</string>
+    <string name="palette_rose">Rose</string>
+    <string name="palette_purple">Purple</string>
+    <string name="palette_deep_purple">Deep Purple</string>
+    <string name="palette_indigo">Indigo</string>
+    <string name="palette_blue">Blue</string>
+    <string name="palette_sky_blue">Sky Blue</string>
+    <string name="palette_cyan">Cyan</string>
+    <string name="palette_teal">Teal</string>
+    <string name="palette_green">Green</string>
+    <string name="palette_light_green">Light Green</string>
+    <string name="palette_lime">Lime</string>
+    <string name="palette_yellow">Yellow</string>
+    <string name="palette_amber">Amber</string>
+    <string name="palette_orange">Orange</string>
+    <string name="palette_deep_orange">Deep Orange</string>
+    <string name="palette_brown">Brown</string>
+    <string name="palette_grey">Grey</string>
+    <string name="palette_blue_grey">Blue Grey</string>
+
+    <string name="cd_back">Back</string>
+    <string name="cd_pure_black_mode">Pure Black mode</string>
+    <string name="cd_light_mode">Light mode</string>
+    <string name="cd_dark_mode">Dark mode</string>
+    <string name="cd_system_mode">System mode</string>
+    <string name="cd_palette_item">%1$s palette</string>
+
+    <string name="theme_desc">Customize your app theme</string>
+    <string name="theme_colors">Theme &amp; Colors</string>
+    <string name="theme_mode">Theme Mode</string>
+    <string name="color_palette">Color Palette</string>
+    <string name="use_system_colors">Use system colors</string>
 </resources>

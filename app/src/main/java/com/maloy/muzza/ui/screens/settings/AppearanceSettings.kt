@@ -44,6 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -69,6 +70,7 @@ import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
 import com.maloy.muzza.constants.PureBlackKey
+import com.maloy.muzza.constants.SelectedThemeColorKey
 import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.SliderStyle
@@ -87,6 +89,7 @@ import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
+import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -125,6 +128,13 @@ fun AppearanceSettings(
     val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
         if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
     }
+
+
+    val (selectedThemeColorInt) = rememberPreference(
+        SelectedThemeColorKey,
+        defaultValue = DefaultThemeColor.toArgb()
+    )
+    val isUsingCustomColor = selectedThemeColorInt != DefaultThemeColor.toArgb()
 
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
@@ -347,18 +357,11 @@ fun AppearanceSettings(
             onCheckedChange = onDynamicThemeChange
         )
 
-        EnumListPreference(
-            title = { Text(stringResource(R.string.dark_theme)) },
-            icon = { Icon(painterResource(R.drawable.dark_mode), null) },
-            selectedValue = darkMode,
-            onValueSelected = onDarkModeChange,
-            valueText = {
-                when (it) {
-                    DarkMode.ON -> stringResource(R.string.dark_theme_on)
-                    DarkMode.OFF -> stringResource(R.string.dark_theme_off)
-                    DarkMode.AUTO -> stringResource(R.string.dark_theme_follow_system)
-                }
-            }
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.theme)) },
+            icon = { Icon(painterResource(R.drawable.palette), null) },
+            description = null,
+            onClick = { navController.navigate("settings/appearance/theme") }
         )
 
         SwitchPreference(

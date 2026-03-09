@@ -11,6 +11,7 @@ import java.time.ZoneOffset
 val DynamicThemeKey = booleanPreferencesKey("dynamicTheme")
 val DarkModeKey = stringPreferencesKey("darkMode")
 val PureBlackKey = booleanPreferencesKey("pureBlack")
+val SelectedThemeColorKey = intPreferencesKey("selectedThemeColor")
 val LyricsTextPositionKey = stringPreferencesKey("lyricsTextPosition")
 val LyricFontSizeKey = intPreferencesKey("lyricFontSize")
 val SliderStyleKey = stringPreferencesKey("sliderStyle")

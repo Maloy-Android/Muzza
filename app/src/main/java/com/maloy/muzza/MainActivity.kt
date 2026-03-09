@@ -77,6 +77,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
@@ -127,6 +129,7 @@ import com.maloy.muzza.constants.PauseSearchHistoryKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SearchSource
 import com.maloy.muzza.constants.SearchSourceKey
+import com.maloy.muzza.constants.SelectedThemeColorKey
 import com.maloy.muzza.constants.SlimNavBarKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.db.MusicDatabase
@@ -313,14 +316,23 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(useDarkTheme) {
                 setSystemBarAppearance(useDarkTheme)
             }
+            val (selectedThemeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
+            val selectedThemeColor = Color(selectedThemeColorInt)
+
             var themeColor by rememberSaveable(stateSaver = ColorSaver) {
-                mutableStateOf(DefaultThemeColor)
+                mutableStateOf(selectedThemeColor)
+            }
+
+            LaunchedEffect(selectedThemeColor) {
+                if (!enableDynamicTheme) {
+                    themeColor = selectedThemeColor
+                }
             }
 
             LaunchedEffect(playerConnection, enableDynamicTheme, isSystemInDarkTheme) {
                 val playerConnection = playerConnection
                 if (!enableDynamicTheme || playerConnection == null) {
-                    themeColor = DefaultThemeColor
+                    themeColor = selectedThemeColor
                     return@LaunchedEffect
                 }
                 playerConnection.service.currentMediaMetadata.collectLatest { song ->
@@ -334,13 +346,13 @@ class MainActivity : ComponentActivity() {
                                         .build()
                                 )
                                 (result.drawable as? BitmapDrawable)?.bitmap?.extractThemeColor()
-                                    ?: DefaultThemeColor
+                                    ?: selectedThemeColor
                             } else {
                                 imageCache.getLocalThumbnail(song.localPath)?.extractThemeColor()
-                                    ?: DefaultThemeColor
+                                    ?: selectedThemeColor
                             }
                         }
-                    } else DefaultThemeColor
+                    } else selectedThemeColor
                 }
             }
             if (checkSelfPermission(mediaPermissionLevel) == PackageManager.PERMISSION_DENIED) {
@@ -505,6 +517,10 @@ class MainActivity : ComponentActivity() {
                     val mediaMetadata by playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) }
                     val listenTogetherRole by listenTogetherManager.role.collectAsState()
                     val listenTogetherStatus by listenTogetherManager.connectionState.collectAsState()
+
+
+                    val (selectedThemeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
+                    val selectedThemeColor = Color(selectedThemeColorInt)
 
                     LaunchedEffect(Unit) {
                         if (!firstSetupPassed) {

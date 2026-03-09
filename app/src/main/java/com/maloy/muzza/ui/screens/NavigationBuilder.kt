@@ -42,6 +42,7 @@ import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
 import com.maloy.muzza.ui.screens.settings.ContentSettings
 import com.maloy.muzza.ui.screens.settings.ListenTogetherSettings
+import com.maloy.muzza.ui.screens.settings.ThemeScreen
 import com.maloy.muzza.ui.screens.settings.import_from_spotify.ImportFromSpotifyScreen
 
 @SuppressLint("UnrememberedMutableState")
@@ -79,6 +80,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("new_release") {
         NewReleaseScreen(navController, scrollBehavior)
+    }
+    composable(route = "settings/appearance/theme") {
+        ThemeScreen(navController)
     }
     composable("settings/account/listen_together") {
         ListenTogetherSettings(navController, scrollBehavior)

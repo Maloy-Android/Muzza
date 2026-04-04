@@ -44,8 +44,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeOff
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
-import androidx.compose.material.icons.rounded.VolumeOff
-import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.filled.Fullscreen
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
@@ -123,7 +122,9 @@ import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.ResizableIconButton
+import com.maloy.muzza.ui.component.ResizableImageButton
 import com.maloy.muzza.ui.component.rememberBottomSheetState
+import com.maloy.muzza.ui.menu.LyricsMenu
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.theme.extractGradientColors
 import com.maloy.muzza.utils.imageCache
@@ -144,7 +145,7 @@ fun BottomSheetPlayer(
     modifier: Modifier = Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-
+    val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val menuState = LocalMenuState.current
     val isSystemInDarkTheme = isSystemInDarkTheme()
     val darkTheme by rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
@@ -161,7 +162,7 @@ fun BottomSheetPlayer(
         MaterialTheme.colorScheme.surfaceContainer
     }
 
-    val showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
+    var showLyrics by rememberPreference(ShowLyricsKey, defaultValue = false)
 
     var fullScreenLyrics by rememberPreference(fullScreenLyricsKey, defaultValue = true)
 
@@ -174,13 +175,15 @@ fun BottomSheetPlayer(
     val queueTitle by playerConnection.queueTitle.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
+    val currentSongThumbnail = mediaMetadata?.thumbnailUrl
 
     val context = LocalContext.current
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
     val isMuted by playerConnection.isMuted.collectAsState()
     val listenTogetherManager = LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val listenTogetherRoleState =
+        listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
 
     val playerBackground by rememberEnumPreference(
@@ -298,250 +301,308 @@ fun BottomSheetPlayer(
         }
     ) {
         val controlsContent: @Composable ColumnScope.(MediaMetadata) -> Unit = { mediaMetadata ->
-            if (fullScreenLyrics) {
-                Row(
-                    horizontalArrangement = Arrangement.Start,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PlayerHorizontalPadding)
-                ) {
-                    Row {
-                        if (!firstArtistThumbnail.isNullOrEmpty()) {
+            Row(
+                horizontalArrangement = Arrangement.Start,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = PlayerHorizontalPadding)
+            ) {
+                Row {
+                    if (!firstArtistThumbnail.isNullOrEmpty() && !showLyrics) {
+                        Box(
+                            modifier = Modifier
+                                .size(52.dp)
+                                .clip(RoundedCornerShape(26.dp))
+                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                        ) {
+                            AsyncImage(
+                                model = firstArtistThumbnail,
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(26.dp))
+                                    .clickable(enabled = mediaMetadata.artists.first().id != null && !mediaMetadata.isLocal) {
+                                        navController.navigate("artist/${mediaMetadata.artists.first().id}")
+                                        state.collapseSoft()
+                                    }
+                            )
+                        }
+                    } else {
+                        if (!currentSongThumbnail.isNullOrEmpty() && showLyrics) {
                             Box(
                                 modifier = Modifier
                                     .size(52.dp)
-                                    .clip(RoundedCornerShape(26.dp))
+                                    .clip(RoundedCornerShape(13.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 AsyncImage(
-                                    model = firstArtistThumbnail,
+                                    model = currentSongThumbnail,
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .clip(RoundedCornerShape(26.dp))
-                                        .clickable(enabled = mediaMetadata.artists.first().id != null && !mediaMetadata.isLocal) {
-                                            navController.navigate("artist/${mediaMetadata.artists.first().id}")
+                                        .clip(RoundedCornerShape(13.dp))
+                                        .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
+                                            navController.navigate("album/${mediaMetadata.album!!.id}")
                                             state.collapseSoft()
                                         }
                                 )
                             }
-                            Spacer(modifier = Modifier.width(12.dp))
                         }
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                        ) {
+                    }
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                ) {
+                    AnimatedContent(
+                        targetState = mediaMetadata.title,
+                        transitionSpec = { fadeIn() togetherWith fadeOut() },
+                        label = "",
+                    ) { title ->
+                        Text(
+                            text = title,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            color = onBackgroundColor,
+                            modifier =
+                                Modifier
+                                    .basicMarquee()
+                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
+                                        navController.navigate("album/${mediaMetadata.album!!.id}")
+                                        state.collapseSoft()
+                                    },
+                        )
+                    }
+
+                    Row(
+                        modifier = Modifier.offset(y = 25.dp)
+                    ) {
+                        mediaMetadata.artists.fastForEachIndexed { index, artist ->
                             AnimatedContent(
-                                targetState = mediaMetadata.title,
+                                targetState = artist.name,
                                 transitionSpec = { fadeIn() togetherWith fadeOut() },
                                 label = "",
-                            ) { title ->
+                            ) { name ->
                                 Text(
-                                    text = title,
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    text = name,
+                                    style = MaterialTheme.typography.titleMedium,
                                     color = onBackgroundColor,
+                                    maxLines = 1,
                                     modifier =
-                                        Modifier
-                                            .basicMarquee()
-                                            .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
-                                                navController.navigate("album/${mediaMetadata.album!!.id}")
-                                                state.collapseSoft()
-                                            },
+                                        Modifier.clickable(enabled = artist.id != null && !mediaMetadata.isLocal) {
+                                            navController.navigate("artist/${artist.id}")
+                                            state.collapseSoft()
+                                        },
                                 )
                             }
 
-                            Row(
-                                modifier = Modifier.offset(y = 25.dp)
-                            ) {
-                                mediaMetadata.artists.fastForEachIndexed { index, artist ->
-                                    AnimatedContent(
-                                        targetState = artist.name,
-                                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                                        label = "",
-                                    ) { name ->
-                                        Text(
-                                            text = name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            color = onBackgroundColor,
-                                            maxLines = 1,
-                                            modifier =
-                                                Modifier.clickable(enabled = artist.id != null && !mediaMetadata.isLocal) {
-                                                    navController.navigate("artist/${artist.id}")
-                                                    state.collapseSoft()
-                                                },
-                                        )
-                                    }
-
-                                    if (index != mediaMetadata.artists.lastIndex) {
-                                        AnimatedContent(
-                                            targetState = ", ",
-                                            transitionSpec = { fadeIn() togetherWith fadeOut() },
-                                            label = "",
-                                        ) { comma ->
-                                            Text(
-                                                text = comma,
-                                                style = MaterialTheme.typography.titleMedium,
-                                                color = onBackgroundColor,
-                                            )
-                                        }
-                                    }
+                            if (index != mediaMetadata.artists.lastIndex) {
+                                AnimatedContent(
+                                    targetState = ", ",
+                                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                                    label = "",
+                                ) { comma ->
+                                    Text(
+                                        text = comma,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        color = onBackgroundColor,
+                                    )
                                 }
                             }
-                        }
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .offset(y = 5.dp)
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            ResizableIconButton(
-                                icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier
-                                    .align(Alignment.Center)
-                                    .size(24.dp),
-                                onClick = {
-                                    playerConnection.toggleLike()
-                                    currentSong?.song?.localToggleLike()
-                                }
-                            )
-                        }
-
-                        Spacer(modifier = Modifier.width(7.dp))
-
-                        Box(
-                            modifier = Modifier
-                                .offset(y = 5.dp)
-                                .size(36.dp)
-                                .clip(RoundedCornerShape(24.dp))
-                                .background(MaterialTheme.colorScheme.primary)
-                        ) {
-                            ResizableIconButton(
-                                icon = R.drawable.more_vert,
-                                color = MaterialTheme.colorScheme.onPrimary,
-                                modifier = Modifier
-                                    .size(24.dp)
-                                    .align(Alignment.Center),
-                                onClick = {
-                                    menuState.show {
-                                        PlayerMenu(
-                                            mediaMetadata = mediaMetadata,
-                                            navController = navController,
-                                            bottomSheetState = state,
-                                            onShowDetailsDialog = { showDetailsDialog = true },
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                }
-                            )
                         }
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(modifier = Modifier.width(10.dp))
 
-                when (sliderStyle) {
-                    SliderStyle.DEFAULT -> {
-                        Slider(
-                            value = (sliderPosition ?: position).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                            onValueChange = {
-                                sliderPosition = it.toLong()
-                            },
-                            onValueChangeFinished = {
-                                sliderPosition?.let {
-                                    playerConnection.player.seekTo(it)
-                                    position = it
-                                }
-                                sliderPosition = null
-                            },
-                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                if (!showLyrics) {
+                    Box(
+                        modifier = Modifier
+                            .offset(y = 5.dp)
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        ResizableIconButton(
+                            icon = if (currentSong?.song?.liked == true) R.drawable.favorite else R.drawable.favorite_border,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(24.dp),
+                            onClick = {
+                                playerConnection.toggleLike()
+                                currentSong?.song?.localToggleLike()
+                            }
                         )
                     }
-
-                    SliderStyle.SQUIGGLY -> {
-                        SquigglySlider(
-                            value = (sliderPosition ?: position).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                            onValueChange = {
-                                sliderPosition = it.toLong()
-                            },
-                            onValueChangeFinished = {
-                                sliderPosition?.let {
-                                    playerConnection.player.seekTo(it)
-                                    position = it
-                                }
-                                sliderPosition = null
-                            },
-                            squigglesSpec = SquigglySlider.SquigglesSpec(
-                                amplitude = if (isPlaying) 2.dp else 0.dp,
-                                strokeWidth = 4.dp,
-                            ),
-                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
-                        )
-                    }
-
-                    SliderStyle.COMPOSE -> {
-                        Slider(
-                            value = (sliderPosition ?: position).toFloat(),
-                            valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
-                            onValueChange = {
-                                sliderPosition = it.toLong()
-                            },
-                            onValueChangeFinished = {
-                                sliderPosition?.let {
-                                    playerConnection.player.seekTo(it)
-                                    position = it
-                                }
-                                sliderPosition = null
-                            },
-                            thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                            track = { sliderState ->
-                                PlayerSliderTrack(
-                                    sliderState = sliderState,
-                                    colors = SliderDefaults.colors()
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .offset(y = 5.dp)
+                            .size(36.dp)
+                            .clip(RoundedCornerShape(24.dp))
+                            .background(MaterialTheme.colorScheme.primary)
+                    ) {
+                        ResizableImageButton(
+                            icon = Icons.Default.Fullscreen,
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .size(24.dp)
+                                .combinedClickable(
+                                    onClick = {
+                                        fullScreenLyrics = !fullScreenLyrics
+                                    },
+                                    onLongClick = {
+                                        fullScreenLyrics = !fullScreenLyrics
+                                        showLyrics = !showLyrics
+                                    }
                                 )
-                            },
-                            modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
                         )
                     }
                 }
-                Spacer(Modifier.height(4.dp))
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
+                Spacer(modifier = Modifier.width(7.dp))
+
+                Box(
                     modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = PlayerHorizontalPadding + 4.dp)
+                        .offset(y = 5.dp)
+                        .size(36.dp)
+                        .clip(RoundedCornerShape(24.dp))
+                        .background(MaterialTheme.colorScheme.primary)
                 ) {
-                    Text(
-                        text = makeTimeString(sliderPosition ?: position),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = onBackgroundColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                    ResizableIconButton(
+                        icon = R.drawable.more_vert,
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier
+                            .size(24.dp)
+                            .align(Alignment.Center),
+                        onClick = {
+                            menuState.show {
+                                if (!showLyrics) {
+                                    PlayerMenu(
+                                        mediaMetadata = mediaMetadata,
+                                        navController = navController,
+                                        bottomSheetState = state,
+                                        onShowDetailsDialog = { showDetailsDialog = true },
+                                        onDismiss = menuState::dismiss
+                                    )
+                                } else {
+                                    LyricsMenu(
+                                        lyricsProvider = { lyricsEntity },
+                                        mediaMetadataProvider = { mediaMetadata },
+                                        onDismiss = menuState::dismiss,
+                                        navController = navController,
+                                        state = state
+                                    )
+                                }
+                            }
+                        }
                     )
+                }
+            }
 
-                    Text(
-                        text = if (duration != C.TIME_UNSET) makeTimeString(duration) else "",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = onBackgroundColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            Spacer(Modifier.height(12.dp))
+
+            when (sliderStyle) {
+                SliderStyle.DEFAULT -> {
+                    Slider(
+                        value = (sliderPosition ?: position).toFloat(),
+                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        onValueChange = {
+                            sliderPosition = it.toLong()
+                        },
+                        onValueChangeFinished = {
+                            sliderPosition?.let {
+                                playerConnection.player.seekTo(it)
+                                position = it
+                            }
+                            sliderPosition = null
+                        },
+                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
                     )
                 }
 
-                Spacer(Modifier.height(12.dp))
+                SliderStyle.SQUIGGLY -> {
+                    SquigglySlider(
+                        value = (sliderPosition ?: position).toFloat(),
+                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        onValueChange = {
+                            sliderPosition = it.toLong()
+                        },
+                        onValueChangeFinished = {
+                            sliderPosition?.let {
+                                playerConnection.player.seekTo(it)
+                                position = it
+                            }
+                            sliderPosition = null
+                        },
+                        squigglesSpec = SquigglySlider.SquigglesSpec(
+                            amplitude = if (isPlaying) 2.dp else 0.dp,
+                            strokeWidth = 4.dp,
+                        ),
+                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding),
+                    )
+                }
 
+                SliderStyle.COMPOSE -> {
+                    Slider(
+                        value = (sliderPosition ?: position).toFloat(),
+                        valueRange = 0f..(if (duration == C.TIME_UNSET) 0f else duration.toFloat()),
+                        onValueChange = {
+                            sliderPosition = it.toLong()
+                        },
+                        onValueChangeFinished = {
+                            sliderPosition?.let {
+                                playerConnection.player.seekTo(it)
+                                position = it
+                            }
+                            sliderPosition = null
+                        },
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
+                        },
+                        modifier = Modifier.padding(horizontal = PlayerHorizontalPadding)
+                    )
+                }
+            }
+            Spacer(Modifier.height(4.dp))
+
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = PlayerHorizontalPadding + 4.dp)
+            ) {
+                Text(
+                    text = makeTimeString(sliderPosition ?: position),
+                    style = MaterialTheme.typography.labelMedium,
+                    color = onBackgroundColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+
+                Text(
+                    text = if (duration != C.TIME_UNSET) makeTimeString(duration) else "",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = onBackgroundColor,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            if (fullScreenLyrics) {
+                Spacer(Modifier.height(12.dp))
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -814,7 +875,7 @@ fun BottomSheetPlayer(
                         Thumbnail(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
-                            mediaMetadata = mediaMetadata?: return@Box
+                            mediaMetadata = mediaMetadata ?: return@Box
                         )
                     }
 
@@ -850,7 +911,7 @@ fun BottomSheetPlayer(
                             sliderPositionProvider = { sliderPosition },
                             modifier = Modifier.nestedScroll(state.preUpPostDownNestedScrollConnection),
                             showLyricsOnClick = true,
-                            mediaMetadata = mediaMetadata?: return@Box
+                            mediaMetadata = mediaMetadata ?: return@Box
                         )
                     }
 

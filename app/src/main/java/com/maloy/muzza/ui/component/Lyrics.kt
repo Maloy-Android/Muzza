@@ -34,7 +34,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Fullscreen
 import androidx.compose.material.icons.rounded.Image
 import androidx.compose.material.icons.rounded.TextFields
 import androidx.compose.material3.BasicAlertDialog
@@ -106,7 +105,6 @@ import com.maloy.muzza.lyrics.LyricsUtils.findCurrentLineIndex
 import com.maloy.muzza.lyrics.LyricsUtils.parseLyrics
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
-import com.maloy.muzza.ui.menu.LyricsMenu
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -129,7 +127,6 @@ fun Lyrics(
     modifier: Modifier = Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val menuState = LocalMenuState.current
     val density = LocalDensity.current
     val landscapeOffset = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
     val context = LocalContext.current
@@ -490,7 +487,7 @@ fun Lyrics(
                         )
                     }
                 } else {
-                    if (!fullScreenLyrics || playerStyle == PlayerStyle.OLD) {
+                    if (playerStyle == PlayerStyle.OLD) {
                         IconButton(
                             onClick = {
                                 fullScreenLyrics = !fullScreenLyrics
@@ -504,35 +501,6 @@ fun Lyrics(
                             )
                         }
                     }
-                    IconButton(
-                        onClick = {
-                            fullScreenLyrics = !fullScreenLyrics
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Rounded.Fullscreen,
-                            contentDescription = null,
-                            tint = textColor
-                        )
-                    }
-                    IconButton(
-                        onClick = {
-                            menuState.show {
-                                LyricsMenu(
-                                    lyricsProvider = { lyricsEntity },
-                                    mediaMetadataProvider = { metadata },
-                                    onDismiss = menuState::dismiss
-                                )
-                            }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.more_vert),
-                            contentDescription = stringResource(R.string.more_options),
-                            tint = textColor
-                        )
-                    }
-
                 }
             }
         }

@@ -46,12 +46,14 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.LyricsEntity
 import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
@@ -62,6 +64,8 @@ import com.maloy.muzza.viewmodels.LyricsMenuViewModel
 
 @Composable
 fun LyricsMenu(
+    state: BottomSheetState,
+    navController: NavController,
     lyricsProvider: () -> LyricsEntity?,
     mediaMetadataProvider: () -> MediaMetadata,
     onDismiss: () -> Unit,
@@ -154,7 +158,6 @@ fun LyricsMenu(
                     onClick = {
                         showDeleteLyric = false
                         onDismiss()
-
                         lyricsProvider()?.let {
                             database.query {
                                 delete(it)
@@ -378,6 +381,17 @@ fun LyricsMenu(
             ) {
                 showDeleteLyric = true
             }
+        }
+        item {
+            HorizontalDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.settings,
+            title = R.string.more_options
+        ) {
+            onDismiss()
+            navController.navigate("settings/player/lyrics")
+            state.collapseSoft()
         }
     }
 }

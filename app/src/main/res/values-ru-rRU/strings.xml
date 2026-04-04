@@ -329,7 +329,8 @@
     <!-- Settings -->
     <string name="settings">Настройки</string>
     <string name="appearance">Внешний вид</string>
-    <string name="theme">Тема</string>
+    <string name="theme">Темы и цвета</string>
+    <string name="theme_description">Кастомизиция тем и цветов приложения</string>
     <string name="proxy">ПРОКСИ</string>
     <string name="enable_dynamic_theme">Включить динамическую тему</string>
     <string name="listen_youtube_music">Слушать в YouTube Music</string>

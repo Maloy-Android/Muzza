@@ -134,7 +134,7 @@ fun ThemeScreen(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text(stringResource(R.string.theme_colors)) },
+                title = { Text(stringResource(R.string.theme)) },
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(

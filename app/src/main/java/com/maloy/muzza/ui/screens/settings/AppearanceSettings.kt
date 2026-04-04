@@ -1,11 +1,9 @@
 package com.maloy.muzza.ui.screens.settings
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,7 +42,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -53,10 +50,7 @@ import androidx.navigation.NavController
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.DarkMode
-import com.maloy.muzza.constants.DarkModeKey
 import com.maloy.muzza.constants.DefaultOpenTabKey
-import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.GridCellSize
 import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
@@ -69,8 +63,6 @@ import com.maloy.muzza.constants.PlayerBackgroundStyle
 import com.maloy.muzza.constants.PlayerBackgroundStyleKey
 import com.maloy.muzza.constants.PlayerStyle
 import com.maloy.muzza.constants.PlayerStyleKey
-import com.maloy.muzza.constants.PureBlackKey
-import com.maloy.muzza.constants.SelectedThemeColorKey
 import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.SliderStyle
@@ -89,7 +81,6 @@ import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference
-import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -102,9 +93,6 @@ fun AppearanceSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
 ) {
-    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
-    val (darkMode, onDarkModeChange) = rememberEnumPreference(DarkModeKey, defaultValue = DarkMode.AUTO)
-    val (pureBlack, onPureBlackChange) = rememberPreference(PureBlackKey, defaultValue = false)
     val (swipeSongToDismiss, onSwipeSongToDismissChange) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (sliderStyle, onSliderStyleChange) = rememberEnumPreference(SliderStyleKey, defaultValue = SliderStyle.DEFAULT)
     val (defaultOpenTab, onDefaultOpenTabChange) = rememberEnumPreference(DefaultOpenTabKey, defaultValue = NavigationTab.HOME)
@@ -123,18 +111,6 @@ fun AppearanceSettings(
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
     }
-
-    val isSystemInDarkTheme = isSystemInDarkTheme()
-    val useDarkTheme = remember(darkMode, isSystemInDarkTheme) {
-        if (darkMode == DarkMode.AUTO) isSystemInDarkTheme else darkMode == DarkMode.ON
-    }
-
-
-    val (selectedThemeColorInt) = rememberPreference(
-        SelectedThemeColorKey,
-        defaultValue = DefaultThemeColor.toArgb()
-    )
-    val isUsingCustomColor = selectedThemeColorInt != DefaultThemeColor.toArgb()
 
     val (playerBackground, onPlayerBackgroundChange) =
         rememberEnumPreference(
@@ -350,28 +326,11 @@ fun AppearanceSettings(
             title = stringResource(R.string.theme)
         )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_dynamic_theme)) },
-            icon = { Icon(painterResource(R.drawable.palette), null) },
-            checked = dynamicTheme,
-            onCheckedChange = onDynamicThemeChange
-        )
-
         PreferenceEntry(
             title = { Text(stringResource(R.string.theme)) },
             icon = { Icon(painterResource(R.drawable.palette), null) },
-            description = null,
+            description = stringResource(R.string.theme_description),
             onClick = { navController.navigate("settings/appearance/theme") }
-        )
-
-        SwitchPreference(
-            title = { Text(stringResource(R.string.pure_black)) },
-            icon = { Icon(painterResource(R.drawable.contrast), null) },
-            checked = pureBlack,
-            onCheckedChange = { checked ->
-                onPureBlackChange(checked)
-            },
-            isEnabled = useDarkTheme
         )
 
         PreferenceEntry(

@@ -29,6 +29,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.EnableKugouKey
 import com.maloy.muzza.constants.EnableLrcLibKey
+import com.maloy.muzza.constants.EnableSimpMusicKey
 import com.maloy.muzza.constants.LyricFontSizeKey
 import com.maloy.muzza.constants.LyricTrimKey
 import com.maloy.muzza.constants.LyricsPosition
@@ -55,6 +56,7 @@ fun LyricsSettings(
 ) {
     val (enableKugou, onEnableKugouChange) = rememberPreference(key = EnableKugouKey, defaultValue = true)
     val (lyricsPosition, onLyricsPositionChange) = rememberEnumPreference(LyricsTextPositionKey, defaultValue = LyricsPosition.CENTER)
+    val (enableSimpMusic, onEnableSimpMusicChange) = rememberPreference(key = EnableSimpMusicKey, defaultValue = true)
     val (enableLrcLib, onEnableLrcLibChange) = rememberPreference(key = EnableLrcLibKey, defaultValue = true)
     val (preferredProvider, onPreferredProviderChange) = rememberEnumPreference(key = PreferredLyricsProviderKey, defaultValue = PreferredLyricsProvider.LRCLIB)
     val (multilineLrc, onMultilineLrcChange) = rememberPreference(MultilineLrcKey, defaultValue = true)
@@ -91,6 +93,12 @@ fun LyricsSettings(
             title = stringResource(R.string.main)
         )
 
+        SwitchPreference(
+            title = { Text(stringResource(R.string.enable_simp_music))},
+            icon = { Icon(painterResource(R.drawable.lyrics),null) },
+            checked = enableSimpMusic,
+            onCheckedChange = onEnableSimpMusicChange
+        )
         SwitchPreference(
             title = { Text(stringResource(R.string.enable_kugou)) },
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
@@ -145,7 +153,7 @@ fun LyricsSettings(
             title = { Text(stringResource(R.string.default_lyrics_provider)) },
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
             selectedValue = preferredProvider,
-            values = listOf(PreferredLyricsProvider.KUGOU, PreferredLyricsProvider.LRCLIB),
+            values = listOf(PreferredLyricsProvider.KUGOU, PreferredLyricsProvider.LRCLIB, PreferredLyricsProvider.SIMPMUSIC),
             valueText = {
                 it.name.toLowerCase(androidx.compose.ui.text.intl.Locale.current)
                     .capitalize(androidx.compose.ui.text.intl.Locale.current)

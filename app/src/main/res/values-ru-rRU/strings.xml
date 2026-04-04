@@ -509,6 +509,7 @@
     <string name="ignore_battery_optimizations_description">Включите эту функцию, чтобы система не ограничивала работу приложения в фоне. Это обеспечит корректную работу даже когда приложение не активно.</string>
     <string name="enable_lrclib">Включить провайдера текстов LrcLib</string>
     <string name="enable_kugou">Включить провайдера текстов KuGou</string>
+    <string name="enable_simp_music">Включить провайдера текстов SimpMusic</string>
     <string name="default_lyrics_provider">Поставшик текстов по умолчанию</string>
     <string name="lyrics_multiline_title">Многострочные тексты песен</string>
     <string name="lyrics_multiline_description">Рассматривать все строки между точками синхронизации как один лирический текст</string>

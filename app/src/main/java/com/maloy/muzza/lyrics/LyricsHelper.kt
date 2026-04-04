@@ -19,15 +19,20 @@ class LyricsHelper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
     private val PREFER_LOCAL_LYRIC = true
-    private var lyricsProviders = listOf(LrcLibLyricsProvider,KuGouLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
+    private var lyricsProviders = listOf(LrcLibLyricsProvider,KuGouLyricsProvider,
+        SimpMusicLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
     val preferred = context.dataStore.data.map {
         it[PreferredLyricsProviderKey].toEnum(PreferredLyricsProvider.LRCLIB)
     }.distinctUntilChanged()
         .map {
             lyricsProviders = if (it == PreferredLyricsProvider.LRCLIB) {
                 listOf(LrcLibLyricsProvider,KuGouLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
-            } else {
+            } else if (it == PreferredLyricsProvider.KUGOU) {
                 listOf(KuGouLyricsProvider, LrcLibLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
+            } else {
+                listOf(
+                    SimpMusicLyricsProvider,LrcLibLyricsProvider,KuGouLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider
+                )
             }
         }
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)

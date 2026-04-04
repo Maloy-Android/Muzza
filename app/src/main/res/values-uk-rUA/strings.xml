@@ -503,6 +503,7 @@
     <string name="ignore_battery_optimizations_description">Увімкніть цю функцію, щоб система не обмежувала роботу додатка у фоновому режимі. Це забезпечить коректну роботу навіть коли додаток не використовується.</string>
     <string name="enable_lrclib">Увімкнути провайдера текстів LrcLib</string>
     <string name="enable_kugou">Увімкнути провайдера текстів KuGou</string>
+    <string name="enable_simp_music">Увімкнути провайдера текстів SimpMusic</string>
     <string name="default_lyrics_provider">Поставшик текстів за замовчуванням</string>
     <string name="lyrics_multiline_title">Багаторядкові тексти пісень</string>
     <string name="lyrics_multiline_description">Розглядати всі рядки між точками синхронізації як один ліричний текст</string>

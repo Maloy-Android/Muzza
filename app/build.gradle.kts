@@ -168,9 +168,11 @@ dependencies {
     implementation(projects.innertube)
     implementation(projects.kugou)
     implementation(projects.lrclib)
+    implementation(projects.simpmusic)
     implementation(projects.kizzy)
 
     implementation(libs.ktor.client.core)
+    implementation(libs.ktor.client.cio)
 
     coreLibraryDesugaring(libs.desugaring)
 

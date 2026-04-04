@@ -65,6 +65,7 @@ val EnableKugouKey = booleanPreferencesKey("enableKugou")
 val MultilineLrcKey = booleanPreferencesKey("multilineLrc")
 val LyricTrimKey = booleanPreferencesKey("lyricTrim")
 val EnableLrcLibKey = booleanPreferencesKey("enableLrcLib")
+val EnableSimpMusicKey = booleanPreferencesKey("enableSimpMusic")
 val HideExplicitKey = booleanPreferencesKey("hideExplicit")
 val ProxyEnabledKey = booleanPreferencesKey("proxyEnabled")
 val ProxyUrlKey = stringPreferencesKey("proxyUrl")
@@ -141,7 +142,7 @@ enum class LibraryViewType {
 }
 
 enum class PreferredLyricsProvider {
-    KUGOU, LRCLIB
+    KUGOU, LRCLIB, SIMPMUSIC
 }
 
 enum class SongSortType {

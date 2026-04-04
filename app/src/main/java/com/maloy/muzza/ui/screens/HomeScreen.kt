@@ -5,6 +5,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.WindowInsets
@@ -418,6 +419,29 @@ fun HomeScreen(
                             viewModel.toggleChip(it)
                         }
                     )
+                }
+            }
+
+            if (isLoading && homePage?.chips.isNullOrEmpty() && showContentFilter) {
+                item(key = "chips_shimmer") {
+                    ShimmerHost(Modifier.animateItem()) {
+                        LazyRow(
+                            contentPadding =
+                                WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        ) {
+                            items(5) {
+                                TextPlaceholder(
+                                    height = 30.dp,
+                                    shape = RoundedCornerShape(32.dp),
+                                    modifier = Modifier.width(72.dp),
+                                )
+                            }
+                        }
+                    }
                 }
             }
 

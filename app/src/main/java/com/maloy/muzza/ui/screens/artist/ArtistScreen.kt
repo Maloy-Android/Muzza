@@ -150,7 +150,9 @@ fun ArtistScreen(
 
     val transparentAppBar by remember {
         derivedStateOf {
-            lazyListState.firstVisibleItemIndex <= 1
+            val isAtTop = lazyListState.firstVisibleItemIndex == 0
+            val offset = lazyListState.firstVisibleItemScrollOffset
+            isAtTop && offset < 5
         }
     }
     val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()

@@ -12,6 +12,8 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -34,8 +36,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.SdCard
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SwipeToDismissBox
@@ -100,15 +105,19 @@ import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.PlaylistEntity
+import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.db.entities.RecentActivityEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
+import com.maloy.muzza.models.data.CommunityPlaylistItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
+import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.PlaylistMenu
@@ -1362,6 +1371,367 @@ fun YouTubeCardItem(
                     barWidth = 3.dp,
                     isPlaying = isPlaying
                 )
+            }
+        }
+    }
+}
+
+@Composable
+fun CommunityPlaylistCard(
+    item: CommunityPlaylistItem,
+    navController: NavController,
+    isPlaying: Boolean = false,
+    currentPlaylistId: String? = null,
+    currentSongId: String? = null,
+    onCardClick: () -> Unit = {},
+    onCardLongClick: () -> Unit = {}
+) {
+    val menuState = LocalMenuState.current
+    val database = LocalDatabase.current
+    val playerConnection = LocalPlayerConnection.current
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val isListenTogetherGuest = listenTogetherManager?.let { it.isInRoom && !it.isHost } ?: false
+    val scope = rememberCoroutineScope()
+    val isDark = isSystemInDarkTheme()
+
+    val containerColor =
+        if (isDark) {
+            MaterialTheme.colorScheme.surfaceColorAtElevation(1.dp)
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        }
+
+    val dbPlaylist by database.playlistByBrowseId(item.playlist.id).collectAsState(initial = null)
+    val isBookmarked = dbPlaylist?.playlist?.bookmarkedAt != null
+    val isPlaylistActive = currentPlaylistId == item.playlist.id
+
+    Card(
+        modifier = Modifier
+            .width(320.dp)
+            .height(420.dp)
+            .combinedClickable(
+                onClick = onCardClick,
+                onLongClick = onCardLongClick
+            ),
+        colors = CardDefaults.cardColors(containerColor = containerColor),
+        shape = RoundedCornerShape(28.dp),
+    ) {
+        Column(modifier = Modifier.fillMaxSize()) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+            ) {
+                // 2x2 Grid of thumbnails
+                Box(
+                    modifier = Modifier
+                        .size(100.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                ) {
+                    Column(modifier = Modifier.fillMaxSize()) {
+                        Row(modifier = Modifier.weight(1f)) {
+                            AsyncImage(
+                                model = item.songs
+                                    .getOrNull(0)
+                                    ?.thumbnail
+                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize(),
+                            )
+                            AsyncImage(
+                                model = item.songs
+                                    .getOrNull(1)
+                                    ?.thumbnail
+                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize(),
+                            )
+                        }
+                        Row(modifier = Modifier.weight(1f)) {
+                            AsyncImage(
+                                model = item.songs
+                                    .getOrNull(2)
+                                    ?.thumbnail
+                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize(),
+                            )
+                            AsyncImage(
+                                model = item.songs
+                                    .getOrNull(3)
+                                    ?.thumbnail
+                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                contentDescription = null,
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .fillMaxSize(),
+                            )
+                        }
+                    }
+
+                    PlayingIndicatorBox(
+                        isActive = isPlaylistActive,
+                        playWhenReady = isPlaying,
+                        color = Color.White,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                color = Color.Black.copy(alpha = 0.5f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                    )
+                }
+
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = item.playlist.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = item.playlist.author?.name ?: "",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                        maxLines = 1,
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .padding(horizontal = 16.dp),
+            ) {
+                item.songs.take(3).forEachIndexed { _, song ->
+                    val isSongActive = currentSongId == song.id
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .combinedClickable(
+                                onClick = {
+                                    if (!isListenTogetherGuest) {
+                                        playerConnection?.playQueue(
+                                            YouTubeQueue(
+                                                song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                song.toMediaMetadata(),
+                                            )
+                                        )
+                                    }
+                                },
+                                onLongClick = {
+                                    menuState.show {
+                                        YouTubeSongMenu(
+                                            song = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                }
+                            ),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(56.dp)
+                                .clip(RoundedCornerShape(12.dp))
+                        ) {
+                            AsyncImage(
+                                model = song.thumbnail.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                contentDescription = null,
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                            )
+
+                            PlayingIndicatorBox(
+                                isActive = isSongActive,
+                                playWhenReady = isPlaying,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
+                            )
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = song.title,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            Text(
+                                text = song.artists.joinToString(", ") { it.name },
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    }
+                }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 16.dp),
+                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+            ) {
+                IconButton(
+                    onClick = {
+                        if (!isListenTogetherGuest) {
+                            item.playlist.playEndpoint?.let {
+                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        if (!isListenTogetherGuest) {
+                            item.playlist.radioEndpoint?.let {
+                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            CircleShape
+                        ),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.radio),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+
+                IconButton(
+                    onClick = {
+                        scope.launch(Dispatchers.IO) {
+                            if (dbPlaylist?.playlist == null) {
+                                database.transaction {
+                                    val playlistEntity =
+                                        PlaylistEntity(
+                                            name = item.playlist.title,
+                                            browseId = item.playlist.id,
+                                            thumbnailUrl = item.playlist.thumbnail,
+                                            remoteSongCount =
+                                                item.playlist.songCountText
+                                                    ?.split(" ")
+                                                    ?.firstOrNull()
+                                                    ?.toIntOrNull(),
+                                            playEndpointParams = item.playlist.playEndpoint?.params,
+                                            shuffleEndpointParams = item.playlist.shuffleEndpoint?.params,
+                                            radioEndpointParams = item.playlist.radioEndpoint?.params,
+                                        ).toggleLike()
+                                    insert(playlistEntity)
+                                    scope.launch(Dispatchers.IO) {
+                                        item.songs
+                                            .ifEmpty {
+                                                YouTube
+                                                    .playlist(item.playlist.id)
+                                                    .completed()
+                                                    .getOrNull()
+                                                    ?.songs
+                                                    .orEmpty()
+                                            }.map { it.toMediaMetadata() }
+                                            .onEach(::insert)
+                                            .mapIndexed { index, song ->
+                                                PlaylistSongMap(
+                                                    songId = song.id,
+                                                    playlistId = playlistEntity.id,
+                                                    position = index,
+                                                    setVideoId = song.setVideoId,
+                                                )
+                                            }.forEach(::insert)
+                                    }
+                                }
+                            } else {
+                                database.transaction {
+                                    val currentPlaylist = dbPlaylist!!.playlist
+                                    update(currentPlaylist.toggleLike())
+                                }
+                            }
+                        }
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            CircleShape
+                        ),
+                ) {
+                    Icon(
+                        painter = painterResource(if (isBookmarked) R.drawable.library_add_check else R.drawable.library_add),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                IconButton(
+                    onClick = {
+                        menuState.show {
+                            YouTubePlaylistMenu(
+                                playlist = item.playlist,
+                                navController = navController,
+                                coroutineScope = scope,
+                                onDismiss = menuState::dismiss,
+                            )
+                        }
+                    },
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                            CircleShape
+                        ),
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.more_vert),
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
             }
         }
     }

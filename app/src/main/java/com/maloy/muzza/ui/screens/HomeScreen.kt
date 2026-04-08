@@ -8,6 +8,7 @@ import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -73,6 +74,7 @@ import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
+import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -94,12 +96,14 @@ import com.maloy.muzza.db.entities.RecentActivityType.ARTIST
 import com.maloy.muzza.db.entities.RecentActivityType.PLAYLIST
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ChipsRow
+import com.maloy.muzza.ui.component.CommunityPlaylistCard
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
@@ -113,6 +117,7 @@ import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubeArtistMenu
@@ -142,6 +147,7 @@ fun HomeScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val quickPicks by viewModel.quickPicks.collectAsState()
+    val communityPlaylists by viewModel.communityPlaylists.collectAsState()
     val forgottenFavorites by viewModel.forgottenFavorites.collectAsState()
     val keepListening by viewModel.keepListening.collectAsState()
     val similarRecommendations by viewModel.similarRecommendations.collectAsState()
@@ -690,9 +696,47 @@ fun HomeScreen(
                         }
                     }
                 }
-            }
 
-            if (selectedChip == null) {
+                communityPlaylists?.takeIf { it.isNotEmpty() }?.let { playlists ->
+                    item(key = "community_playlists_title") {
+                        NavigationTitle(
+                            title = stringResource(R.string.from_the_community),
+                            modifier = Modifier.animateItem(),
+                        )
+                    }
+
+                    item(key = "community_playlists_content") {
+                        LazyRow(
+                            contentPadding = PaddingValues(horizontal = 16.dp),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp),
+                            modifier = Modifier.animateItem(),
+                        ) {
+                            items(playlists) { item ->
+                                CommunityPlaylistCard(
+                                    item = item,
+                                    currentPlaylistId = mediaMetadata?.id,
+                                    currentSongId = mediaMetadata?.id,
+                                    isPlaying = isPlaying,
+                                    navController = navController,
+                                    onCardClick = {
+                                        navController.navigate("online_playlist/${item.playlist.id}?author=${item.playlist.author?.name}")
+                                    },
+                                    onCardLongClick = {
+                                        menuState.show {
+                                            YouTubePlaylistMenu(
+                                                playlist = item.playlist,
+                                                navController = navController,
+                                                coroutineScope = scope,
+                                                onDismiss = menuState::dismiss,
+                                            )
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
                 similarRecommendations?.forEach {
                     item {
                         NavigationTitle(

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
@@ -17,6 +18,7 @@ import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.SimilarRecommendation
+import com.maloy.muzza.models.data.CommunityPlaylistItem
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
@@ -24,10 +26,12 @@ import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -41,6 +45,7 @@ class HomeViewModel @Inject constructor(
     val isLoading = MutableStateFlow(false)
 
     val quickPicks = MutableStateFlow<List<Song>?>(null)
+    val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
     val forgottenFavorites = MutableStateFlow<List<Song>?>(null)
     val keepListening = MutableStateFlow<List<LocalItem>?>(null)
     val similarRecommendations = MutableStateFlow<List<SimilarRecommendation>?>(null)
@@ -172,6 +177,79 @@ class HomeViewModel @Inject constructor(
                 explorePage.value?.newReleaseAlbums.orEmpty()
 
         isLoading.value = false
+        viewModelScope.launch(Dispatchers.IO) { getCommunityPlaylists() }
+    }
+
+    private suspend fun getCommunityPlaylists() {
+        val fromTimeStamp = System.currentTimeMillis() - 86400000L * 7 * 4
+        val artistSeeds = database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
+            .filter { it.artist.isYouTubeArtist }
+            .shuffled().take(3)
+        val songSeeds = database.mostPlayedSongs(fromTimeStamp, limit = 5).first()
+            .shuffled().take(2)
+
+        val candidatePlaylists = java.util.Collections.synchronizedList(mutableListOf<PlaylistItem>())
+
+        coroutineScope {
+            artistSeeds.forEach { seed ->
+                launch(Dispatchers.IO) {
+                    YouTube.artist(seed.id).onSuccess { page ->
+                        page.sections.forEach { section ->
+                            section.items.filterIsInstance<PlaylistItem>().forEach { playlist ->
+                                if (playlist.author?.name != "YouTube Music" &&
+                                    playlist.author?.name != "YouTube" &&
+                                    playlist.author?.name != "Playlist" &&
+                                    playlist.author?.name != seed.artist.name &&
+                                    !playlist.id.startsWith("RD") &&
+                                    !playlist.id.startsWith("OLAK")
+                                ) {
+                                    candidatePlaylists.add(playlist)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            songSeeds.map { seed ->
+                launch(Dispatchers.IO) {
+                    val endpoint = YouTube.next(WatchEndpoint(videoId = seed.id)).getOrNull()?.relatedEndpoint
+                    if (endpoint != null) {
+                        YouTube.related(endpoint).onSuccess { page ->
+                            page.playlists.forEach { playlist ->
+                                if (playlist.author?.name != "YouTube Music" &&
+                                    playlist.author?.name != "YouTube" &&
+                                    playlist.author?.name != "Playlist" &&
+                                    !playlist.id.startsWith("RD") &&
+                                    !playlist.id.startsWith("OLAK")
+                                ) {
+                                    candidatePlaylists.add(playlist)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        val uniqueCandidates = candidatePlaylists.distinctBy { it.id }.shuffled().take(5)
+        val playlists = java.util.Collections.synchronizedList(mutableListOf<CommunityPlaylistItem>())
+        coroutineScope {
+            uniqueCandidates.map { playlist ->
+                launch(Dispatchers.IO) {
+                    YouTube.playlist(playlist.id).onSuccess { page ->
+                        val songs = page.songs.take(10)
+                        if (songs.isNotEmpty()) {
+                            val songCountText = page.playlist.songCountText ?: playlist.songCountText
+                            val updatedPlaylist = playlist.copy(songCountText = songCountText)
+                            playlists.add(CommunityPlaylistItem(updatedPlaylist, songs))
+                        }
+                    }
+                }
+            }.joinAll()
+        }
+
+        communityPlaylists.value = playlists.shuffled()
     }
 
     fun refresh() {

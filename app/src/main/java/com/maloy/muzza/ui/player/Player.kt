@@ -336,18 +336,34 @@ fun BottomSheetPlayer(
                                     .clip(RoundedCornerShape(13.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                AsyncImage(
-                                    model = currentSongThumbnail,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(13.dp))
-                                        .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
-                                            navController.navigate("album/${mediaMetadata.album!!.id}")
-                                            state.collapseSoft()
-                                        }
-                                )
+                                if (!mediaMetadata.isLocal) {
+                                    AsyncImage(
+                                        model = currentSongThumbnail,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(13.dp))
+                                            .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
+                                                navController.navigate("album/${mediaMetadata.album!!.id}")
+                                                state.collapseSoft()
+                                            }
+                                    )
+                                } else {
+                                    AsyncLocalImage(
+                                        image = {
+                                            imageCache.getLocalThumbnail(
+                                                mediaMetadata.localPath,
+                                                false
+                                            )
+                                        },
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(13.dp))
+                                    )
+                                }
                             }
                         }
                     }

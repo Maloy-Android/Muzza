@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -17,10 +18,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,9 +31,9 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,10 +42,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.PlaybackException
@@ -66,7 +67,7 @@ import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.delay
-import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 @Composable
 fun Thumbnail(
@@ -106,7 +107,6 @@ fun Thumbnail(
         label = "thumbnailScale"
     )
 
-    var offsetX by remember { mutableFloatStateOf(0f) }
     var showSeekEffect by remember { mutableStateOf(false) }
     var seekDirection by remember { mutableStateOf("") }
 
@@ -124,102 +124,140 @@ fun Thumbnail(
                 .fillMaxSize()
                 .statusBarsPadding()
         ) {
-            Box(
+            BoxWithConstraints(
                 contentAlignment = Alignment.Center,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(horizontal = PlayerHorizontalPadding)
-                    .pointerInput(Unit) {
-                        detectHorizontalDragGestures(
-                            onDragCancel = {
-                                offsetX = 0f
-                            },
-                            onHorizontalDrag = { _, dragAmount ->
-                                if (swipeThumbnail && !isGuest) {
-                                    offsetX += dragAmount
-                                }
-                            },
-                            onDragEnd = {
-                                println(offsetX)
-                                if (offsetX > 300) {
-                                    if (playerConnection.player.previousMediaItemIndex != -1) {
-                                        playerConnection.player.seekToPreviousMediaItem()
-                                    }
-                                } else if (offsetX < -300) {
-                                    if (playerConnection.player.nextMediaItemIndex != -1) {
-                                        playerConnection.player.seekToNext()
-                                    }
-                                }
-                                offsetX = 0f
-                            },
-                        )
-                    },
             ) {
-                mediaMetadata.let { currentSong ->
-                    if (currentSong.isLocal) {
+                val widthPx = constraints.maxWidth.toFloat()
+                val spacingPx = with(LocalDensity.current) { 40.dp.toPx() }
+                val itemWidth = widthPx + spacingPx
+
+                val offsetX = remember { Animatable(0f) }
+                val coroutineScope = rememberCoroutineScope()
+
+                var lockedPrevMetadata by remember { mutableStateOf<MediaMetadata?>(null) }
+                var lockedNextMetadata by remember { mutableStateOf<MediaMetadata?>(null) }
+
+                LaunchedEffect(mediaMetadata, offsetX.isRunning) {
+                    if (!offsetX.isRunning && offsetX.value == 0f) {
+                        val prevIndex = playerConnection.player.previousMediaItemIndex
+                        val nextIndex = playerConnection.player.nextMediaItemIndex
+
+                        lockedPrevMetadata = if (prevIndex != -1) {
+                            playerConnection.player.getMediaItemAt(prevIndex).localConfiguration?.tag as? MediaMetadata
+                        } else null
+
+                        lockedNextMetadata = if (nextIndex != -1) {
+                            playerConnection.player.getMediaItemAt(nextIndex).localConfiguration?.tag as? MediaMetadata
+                        } else null
+                    }
+                }
+
+                LaunchedEffect(mediaMetadata) {
+                    if (!offsetX.isRunning) offsetX.snapTo(0f)
+                }
+
+                val onCoverClick = {
+                    when {
+                        playbackState == STATE_ENDED -> {
+                            playerConnection.player.seekTo(0, 0)
+                            playerConnection.player.playWhenReady = true
+                        }
+                        playerStyle == PlayerStyle.OLD && showLyricsOnClick -> {
+                            showLyrics = !showLyrics
+                        }
+                        isGuest -> {
+                            playerConnection.toggleMute()
+                        }
+                        else -> {
+                            playerConnection.player.togglePlayPause()
+                        }
+                    }
+                }
+
+                val renderCover: @Composable (MediaMetadata, Float) -> Unit = { metadata, xOffset ->
+                    val coverModifier = Modifier
+                        .fillMaxWidth()
+                        .aspectRatio(1f)
+                        .graphicsLayer {
+                            translationX = xOffset
+                            alpha = thumbnailAlpha
+                            scaleX = thumbnailScale
+                            scaleY = thumbnailScale
+                        }
+                        .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
+                        .clickable(onClick = onCoverClick)
+
+                    if (metadata.isLocal) {
                         AsyncLocalImage(
-                            image = {
-                                imageCache.getLocalThumbnail(
-                                    mediaMetadata.localPath,
-                                    false
-                                )
-                            },
+                            image = { imageCache.getLocalThumbnail(metadata.localPath, false) },
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .graphicsLayer {
-                                    translationX = offsetX * 0.5f
-                                    alpha = thumbnailAlpha
-                                    scaleX = thumbnailScale
-                                    scaleY = thumbnailScale
-                                }
-                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                                .clickable {
-                                    if (playbackState == STATE_ENDED) {
-                                        playerConnection.player.seekTo(0, 0)
-                                        playerConnection.player.playWhenReady = true
-                                    } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
-                                        showLyrics = !showLyrics
-                                    } else if (isGuest) {
-                                        playerConnection.isMuted
-                                    } else {
-                                        playerConnection.player.togglePlayPause()
-                                    }
-                                }
+                            modifier = coverModifier
                         )
                     } else {
                         AsyncImage(
-                            model = mediaMetadata.thumbnailUrl,
+                            model = metadata.thumbnailUrl,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .offset { IntOffset(offsetX.roundToInt(), 0) }
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .graphicsLayer {
-                                    translationX = offsetX * 0.5f
-                                    alpha = thumbnailAlpha
-                                    scaleX = thumbnailScale
-                                    scaleY = thumbnailScale
-                                }
-                                .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                                .clickable {
-                                    if (playbackState == STATE_ENDED) {
-                                        playerConnection.player.seekTo(0, 0)
-                                        playerConnection.player.playWhenReady = true
-                                    } else if (playerStyle == PlayerStyle.OLD && showLyricsOnClick) {
-                                        showLyrics = !showLyrics
-                                    } else if (isGuest) {
-                                        playerConnection.isMuted
-                                    } else {
-                                        playerConnection.player.togglePlayPause()
-                                    }
-                                }
+                            modifier = coverModifier
                         )
                     }
+                }
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .pointerInput(isGuest, swipeThumbnail) {
+                            if (isGuest || !swipeThumbnail) return@pointerInput
+                            detectHorizontalDragGestures(
+                                onDragCancel = {
+                                    coroutineScope.launch { offsetX.animateTo(0f, spring()) }
+                                },
+                                onHorizontalDrag = { _, dragAmount ->
+                                    coroutineScope.launch {
+                                        val newValue = offsetX.value + dragAmount
+                                        val limitedValue = when {
+                                            newValue > 0 && lockedPrevMetadata == null -> newValue * 0.2f
+                                            newValue < 0 && lockedNextMetadata == null -> newValue * 0.2f
+                                            else -> newValue
+                                        }
+                                        offsetX.snapTo(limitedValue)
+                                    }
+                                },
+                                onDragEnd = {
+                                    coroutineScope.launch {
+                                        val threshold = widthPx / 4
+                                        when {
+                                            offsetX.value > threshold && lockedPrevMetadata != null -> {
+                                                offsetX.animateTo(itemWidth, tween(300))
+                                                playerConnection.player.seekToPreviousMediaItem()
+                                                offsetX.snapTo(0f)
+                                            }
+                                            offsetX.value < -threshold && lockedNextMetadata != null -> {
+                                                offsetX.animateTo(-itemWidth, tween(300))
+                                                playerConnection.player.seekToNext()
+                                                offsetX.snapTo(0f)
+                                            }
+                                            else -> {
+                                                offsetX.animateTo(0f, spring(stiffness = Spring.StiffnessLow))
+                                            }
+                                        }
+                                    }
+                                }
+                            )
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (offsetX.value < 0f && lockedNextMetadata != null) {
+                        renderCover(lockedNextMetadata!!, offsetX.value + itemWidth)
+                    }
+                    if (offsetX.value > 0f && lockedPrevMetadata != null) {
+                        renderCover(lockedPrevMetadata!!, offsetX.value - itemWidth)
+                    }
+                    renderCover(mediaMetadata, offsetX.value)
                 }
             }
         }
@@ -274,7 +312,7 @@ fun Thumbnail(
             error?.let { playbackException ->
                 PlaybackError(
                     error = playbackException,
-                    retry = playerConnection.player::prepare,
+                    retry = { playerConnection.player.prepare() },
                 )
             }
         }

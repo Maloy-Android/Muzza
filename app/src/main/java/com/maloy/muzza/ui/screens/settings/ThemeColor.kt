@@ -78,8 +78,10 @@ import com.materialkolor.rememberDynamicColorScheme
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
+import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.PureBlackKey
 import com.maloy.muzza.constants.SelectedThemeColorKey
+import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.theme.MuzzaTheme
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -130,6 +132,13 @@ fun ThemeScreen(
     val configuration = LocalConfiguration.current
     val isLandscape = configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
+    val (_, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val handleColorSelection: (Color) -> Unit = { color ->
+        onSelectedThemeColorChange(color.toArgb())
+        val isDynamicColor = color == DefaultThemeColor
+        onDynamicThemeChange(isDynamicColor)
+    }
+
     Scaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
@@ -155,7 +164,7 @@ fun ThemeScreen(
                 pureBlack = pureBlack,
                 onPureBlackChange = onPureBlackChange,
                 selectedThemeColor = selectedThemeColor,
-                onSelectedThemeColorChange = { onSelectedThemeColorChange(it.toArgb()) }
+                onSelectedThemeColorChange = handleColorSelection
             )
         } else {
             PortraitThemeLayout(
@@ -165,7 +174,7 @@ fun ThemeScreen(
                 pureBlack = pureBlack,
                 onPureBlackChange = onPureBlackChange,
                 selectedThemeColor = selectedThemeColor,
-                onSelectedThemeColorChange = { onSelectedThemeColorChange(it.toArgb()) }
+                onSelectedThemeColorChange = handleColorSelection
             )
         }
     }
@@ -284,6 +293,17 @@ fun ThemeControls(
     selectedThemeColor: Color,
     onSelectedThemeColorChange: (Color) -> Unit
 ) {
+    val (pureBlack, onPureBlackChangeRaw) = rememberPreference(PureBlackKey, defaultValue = false)
+    val onPureBlackChange: (Boolean) -> Unit = { enabled ->
+        onPureBlackChangeRaw(enabled)
+    }
+    val (dynamicTheme, onDynamicThemeChange) = rememberPreference(DynamicThemeKey, defaultValue = true)
+    val (selectedThemeColorInt) = rememberPreference(
+        SelectedThemeColorKey,
+        DefaultThemeColor.toArgb()
+    )
+    val selectedThemeColor = Color(selectedThemeColorInt)
+    val isUsingCustomColor = selectedThemeColorInt != DefaultThemeColor.toArgb()
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -373,7 +393,10 @@ fun ThemeControls(
                 )
 
                 LazyRow(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterHorizontally),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        12.dp,
+                        Alignment.CenterHorizontally
+                    ),
                     contentPadding = PaddingValues(horizontal = 4.dp)
                 ) {
                     items(PaletteColors) { palette ->
@@ -388,11 +411,20 @@ fun ThemeControls(
                             palette = palette,
                             isSelected = isSelected,
                             onClick = {
-                                val colorToSave = if (isDynamicPalette) DefaultThemeColor else palette.seedColor
+                                val colorToSave =
+                                    if (isDynamicPalette) DefaultThemeColor else palette.seedColor
                                 onSelectedThemeColorChange(colorToSave)
                             }
                         )
                     }
+                }
+                if (!isUsingCustomColor) {
+                    SwitchPreference(
+                        title = { Text(stringResource(R.string.enable_dynamic_theme)) },
+                        icon = { Icon(painterResource(R.drawable.palette), null) },
+                        checked = dynamicTheme,
+                        onCheckedChange = onDynamicThemeChange
+                    )
                 }
             }
         }

@@ -329,14 +329,14 @@ fun BottomSheetPlayer(
                             )
                         }
                     } else {
-                        if (!currentSongThumbnail.isNullOrEmpty() && showLyrics) {
+                        if (showLyrics) {
                             Box(
                                 modifier = Modifier
                                     .size(52.dp)
                                     .clip(RoundedCornerShape(13.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                if (!mediaMetadata.isLocal) {
+                                if (!mediaMetadata.isLocal && !currentSongThumbnail.isNullOrEmpty()) {
                                     AsyncImage(
                                         model = currentSongThumbnail,
                                         contentDescription = null,
@@ -344,7 +344,7 @@ fun BottomSheetPlayer(
                                         modifier = Modifier
                                             .fillMaxSize()
                                             .clip(RoundedCornerShape(13.dp))
-                                            .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
+                                            .clickable(enabled = mediaMetadata.album != null) {
                                                 navController.navigate("album/${mediaMetadata.album!!.id}")
                                                 state.collapseSoft()
                                             }

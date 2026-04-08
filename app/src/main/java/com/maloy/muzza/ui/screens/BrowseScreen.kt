@@ -62,6 +62,7 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
+import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -134,6 +135,42 @@ fun BrowseScreen(
                                     is AlbumItem -> mediaMetadata?.album?.id == item.id
                                     is PlaylistItem -> mediaMetadata?.playlist?.id == item.id
                                     else -> false
+                                }, trailingContent = {
+                                    androidx.compose.material3.IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                when (item) {
+                                                    is SongItem -> YouTubeSongMenu(
+                                                        song = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+
+                                                    is AlbumItem -> YouTubeAlbumMenu(
+                                                        albumItem = item,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+
+                                                    is PlaylistItem -> YouTubePlaylistMenu(
+                                                        playlist = item,
+                                                        navController = navController,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+
+                                                    is ArtistItem -> YouTubeArtistMenu(
+                                                        artist = item,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            }
+                                        }) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null,
+                                        )
+                                    }
                                 },
                                 modifier = Modifier
                                     .combinedClickable(

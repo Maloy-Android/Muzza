@@ -124,25 +124,33 @@ class SyncUtils @Inject constructor(
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
             playlistList.onEach { playlist ->
-                var playlistEntity =
-                    dbPlaylists.find { playlist.id == it.playlist.browseId }?.playlist
+                var playlistEntity = dbPlaylists
+                    .find { playlist.id == it.playlist.browseId }?.playlist
+
                 if (playlistEntity == null) {
-                    playlistEntity = PlaylistEntity(
-                        name = playlist.title,
-                        playlistAuthors = playlist.author?.name,
-                        browseId = playlist.id,
-                        thumbnailUrl = playlist.thumbnail,
-                        isEditable = true,
-                        bookmarkedAt = LocalDateTime.now(),
-                        remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
-                        playEndpointParams = playlist.playEndpoint?.params,
-                        shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                        radioEndpointParams = playlist.radioEndpoint?.params
-                    )
+                    val existingById = database.getPlaylistByBrowseId(playlist.id)
+                    if (existingById == null) {
+                        playlistEntity = PlaylistEntity(
+                            name = playlist.title,
+                            playlistAuthors = playlist.author?.name,
+                            browseId = playlist.id,
+                            thumbnailUrl = playlist.thumbnail,
+                            isEditable = true,
+                            bookmarkedAt = LocalDateTime.now(),
+                            remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
+                            playEndpointParams = playlist.playEndpoint?.params,
+                            shuffleEndpointParams = playlist.shuffleEndpoint?.params,
+                            radioEndpointParams = playlist.radioEndpoint?.params
+                        )
 
-                    database.insert(playlistEntity)
-                } else database.update(playlistEntity, playlist)
-
+                        database.insert(playlistEntity)
+                    } else {
+                        playlistEntity = existingById
+                        database.update(existingById, playlist)
+                    }
+                } else {
+                    database.update(playlistEntity, playlist)
+                }
                 syncPlaylist(playlist.id, playlistEntity.id)
             }
         }

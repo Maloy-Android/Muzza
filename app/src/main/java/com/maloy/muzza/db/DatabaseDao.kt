@@ -51,6 +51,7 @@ import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.ui.utils.resize
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import java.time.LocalDateTime
 
@@ -597,6 +598,11 @@ interface DatabaseDao {
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE browseId = :browseId")
     fun playlistByBrowseId(browseId: String): Flow<Playlist?>
+
+    suspend fun getPlaylistByBrowseId(browseId: String): PlaylistEntity? {
+        return playlistsByNameAsc().first()
+            .find { it.playlist.browseId == browseId }?.playlist
+    }
 
     @Query("SELECT songId from playlist_song_map WHERE playlistId = :playlistId AND songId IN (:songIds)")
     fun playlistDuplicates(

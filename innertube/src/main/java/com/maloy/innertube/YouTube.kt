@@ -1,5 +1,6 @@
 package com.maloy.innertube
 
+import com.maloy.innertube.constants.YouTubeConstants
 import com.maloy.innertube.models.AccountInfo
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.Artist
@@ -122,33 +123,97 @@ object YouTube {
 
     suspend fun searchSummary(query: String): Result<SearchSummaryPage> = runCatching {
         val response = innerTube.search(WEB_REMIX, query).body<SearchResponse>()
-        SearchSummaryPage(
-            summaries = response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.mapNotNull { it ->
-                if (it.musicCardShelfRenderer != null)
-                    SearchSummary(
-                        title = it.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text ?: "Top result",
-                        items = listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(it.musicCardShelfRenderer))
+        val allSummaries = mutableListOf<SearchSummary>()
+        response.contents?.tabbedSearchResultsRenderer?.tabs?.firstOrNull()
+            ?.tabRenderer?.content?.sectionListRenderer?.contents?.forEach { section ->
+                if (section.musicCardShelfRenderer != null) {
+                    val items =
+                        listOfNotNull(SearchSummaryPage.fromMusicCardShelfRenderer(section.musicCardShelfRenderer))
                             .plus(
-                                it.musicCardShelfRenderer.contents
+                                section.musicCardShelfRenderer.contents
                                     ?.mapNotNull { it.musicResponsiveListItemRenderer }
                                     ?.mapNotNull(SearchSummaryPage.Companion::fromMusicResponsiveListItemRenderer)
                                     .orEmpty()
                             )
                             .distinctBy { it.id }
-                            .ifEmpty { null } ?: return@mapNotNull null
-                    )
-                else
-                    SearchSummary(
-                        title = it.musicShelfRenderer?.title?.runs?.firstOrNull()?.text ?: "Other",
-                        items = it.musicShelfRenderer?.contents?.getItems()
-                            ?.mapNotNull {
-                                SearchSummaryPage.fromMusicResponsiveListItemRenderer(it)
+
+                    if (items.isNotEmpty()) {
+                        allSummaries.add(
+                            SearchSummary(
+                                title = section.musicCardShelfRenderer.header?.musicCardShelfHeaderBasicRenderer?.title?.runs?.firstOrNull()?.text
+                                    ?: YouTubeConstants.DEFAULT_TOP_RESULT,
+                                items = items
+                            )
+                        )
+                    }
+                } else if (section.musicShelfRenderer != null) {
+                    val items = section.musicShelfRenderer.contents?.getItems()
+                        ?.mapNotNull { SearchSummaryPage.fromMusicResponsiveListItemRenderer(it) }
+                        ?.distinctBy { it.id }
+                        ?: emptyList()
+
+                    if (items.isEmpty()) return@forEach
+
+                    val apiTitle = section.musicShelfRenderer.title?.runs?.firstOrNull()?.text
+
+                    if (apiTitle != null) {
+                        allSummaries.add(SearchSummary(title = apiTitle, items = items))
+                    } else {
+                        val grouped = items.groupBy { item ->
+                            when (item) {
+                                is AlbumItem -> "Albums"
+                                is ArtistItem -> "Artists"
+                                is PlaylistItem -> "Playlists"
+                                is SongItem -> when {
+                                    item.isVideoSong -> "Videos"
+                                    else -> "Songs"
+                                }
                             }
-                            ?.distinctBy { it.id }
-                            ?.ifEmpty { null } ?: return@mapNotNull null
-                    )
-            }!!
-        )
+                        }
+                        val sectionOrder = listOf(
+                            "Songs",
+                            "Videos",
+                            "Albums",
+                            "Artists",
+                            "Playlists",
+                            YouTubeConstants.DEFAULT_OTHER_RESULTS
+                        )
+                        sectionOrder.forEach { sectionName ->
+                            grouped[sectionName]?.let { groupItems ->
+                                if (groupItems.isNotEmpty()) {
+                                    allSummaries.add(
+                                        SearchSummary(
+                                            title = sectionName,
+                                            items = groupItems
+                                        )
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+        val mergedSummaries = allSummaries
+            .groupBy { it.title }
+            .map { (title, sections) ->
+                SearchSummary(
+                    title = title,
+                    items = sections.flatMap { it.items }.distinctBy { it.id }
+                )
+            }
+            .sortedBy { summary ->
+                when (summary.title) {
+                    YouTubeConstants.DEFAULT_TOP_RESULT -> 0
+                    "Songs" -> 1
+                    "Videos" -> 2
+                    "Albums" -> 3
+                    "Artists" -> 4
+                    "Playlists" -> 5
+                    else -> 6
+                }
+            }
+        SearchSummaryPage(summaries = mergedSummaries)
     }
 
     suspend fun search(query: String, filter: SearchFilter): Result<SearchResult> = runCatching {

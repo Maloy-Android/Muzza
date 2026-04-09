@@ -31,6 +31,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -76,6 +78,7 @@ fun BrowseScreen(
         key = browseId,
     ),
 ) {
+    val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -183,8 +186,16 @@ fun BrowseScreen(
                                             }
                                         },
                                         onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show {
                                                 when (item) {
+                                                    is SongItem ->
+                                                        YouTubeSongMenu(
+                                                            song = item,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+
                                                     is AlbumItem ->
                                                         YouTubeAlbumMenu(
                                                             albumItem = item,
@@ -207,8 +218,6 @@ fun BrowseScreen(
                                                             onDismiss = menuState::dismiss
                                                         )
                                                     }
-
-                                                    else -> {}
                                                 }
                                             }
                                         }
@@ -270,8 +279,15 @@ fun BrowseScreen(
                                             }
                                         },
                                         onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show {
                                                 when (item) {
+                                                    is SongItem ->
+                                                        YouTubeSongMenu(
+                                                            song = item,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
                                                     is AlbumItem ->
                                                         YouTubeAlbumMenu(
                                                             albumItem = item,
@@ -294,8 +310,6 @@ fun BrowseScreen(
                                                             onDismiss = menuState::dismiss
                                                         )
                                                     }
-
-                                                    else -> {}
                                                 }
                                             }
                                         }

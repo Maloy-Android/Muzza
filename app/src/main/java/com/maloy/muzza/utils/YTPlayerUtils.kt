@@ -208,16 +208,22 @@ object YTPlayerUtils {
     ): PlayerResponse.StreamingData.Format? {
         Timber.tag(logTag).d("Finding format with audioQuality: $audioQuality, network metered: ${connectivityManager.isActiveNetworkMetered}")
 
-        val format = playerResponse.streamingData?.adaptiveFormats
-            ?.filter { it.isAudio && it.isOriginal}
-            ?.maxByOrNull {
-                it.bitrate * when (audioQuality) {
-                    AudioQuality.AUTO -> if (connectivityManager.isActiveNetworkMetered) -1 else 1 - 5
-                    AudioQuality.MAX -> 5
-                    AudioQuality.HIGH -> 1
-                    AudioQuality.LOW -> -1
-                } + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
+        val candidates = playerResponse.streamingData?.adaptiveFormats
+            ?.filter { it.isAudio && it.isOriginal }
+
+        val format = when (audioQuality) {
+            AudioQuality.MAX -> candidates?.maxByOrNull { it.bitrate }
+            AudioQuality.AUTO -> candidates?.maxByOrNull {
+                val qualityMultiplier = if (connectivityManager.isActiveNetworkMetered) -1 else 1
+                it.bitrate * qualityMultiplier + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
             }
+            AudioQuality.HIGH -> candidates?.maxByOrNull {
+                it.bitrate * 1 + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
+            }
+            AudioQuality.LOW -> candidates?.maxByOrNull {
+                it.bitrate * -1 + (if (it.mimeType.startsWith("audio/webm")) 10240 else 0)
+            }
+        }
 
         if (format != null) {
             Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")

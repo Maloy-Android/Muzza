@@ -25,9 +25,8 @@ fun TextPlaceholder(
     Spacer(
         modifier = modifier
             .padding(vertical = 4.dp)
-            .background(MaterialTheme.colorScheme.onSurface)
+            .background(color = MaterialTheme.colorScheme.onSurface, shape = shape)
             .fillMaxWidth(remember { 0.25f + Random.nextFloat() * 0.5f })
             .height(height)
-            .clip(shape)
     )
 }

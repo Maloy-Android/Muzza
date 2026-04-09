@@ -7,6 +7,7 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
+import com.maloy.innertube.models.clean
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.models.splitBySeparator
 
@@ -14,16 +15,17 @@ object SearchSuggestionPage {
     fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): YTItem? {
         return when {
             renderer.isSong -> {
+                val secondaryLine =
+                    renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.splitBySeparator()
+                        ?.clean()
                 SongItem(
                     id = renderer.playlistItemData?.videoId ?: return null,
-                    title = renderer.flexColumns.firstOrNull()
-                        ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
-                        ?.text ?: return null,
-                    artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.splitBySeparator()
-                        ?.getOrNull(1)?.oddElements()?.map {
+                    title = renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text
+                        ?: return null,
+                    artists = secondaryLine?.firstOrNull()?.oddElements()?.map {
                             Artist(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId,
                             )
                         } ?: return null,
                     album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {

@@ -445,15 +445,17 @@ fun YouTubeSongMenu(
             }
         }
         song.album?.let { album ->
-            ListMenuItem(
-                icon = R.drawable.album,
-                title = R.string.view_album
-            ) {
-                navController.navigate("album/${album.id}")
-                onDismiss()
-            }
-            item {
-                HorizontalDivider()
+            if (!song.isVideoSong) {
+                ListMenuItem(
+                    icon = R.drawable.album,
+                    title = R.string.view_album
+                ) {
+                    navController.navigate("album/${album.id}")
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
             }
         }
         ListMenuItem(

@@ -554,7 +554,7 @@ fun SongMenu(
             item {
                 HorizontalDivider()
             }
-            if (song.song.albumId != null) {
+            if (song.song.albumId != null && !song.song.isVideoSong) {
                 ListMenuItem(
                     icon = R.drawable.album,
                     title = R.string.view_album

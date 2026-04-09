@@ -217,7 +217,7 @@ fun HomeScreen(
                     .combinedClickable(
                         onClick = {
                             it.song.albumId.let { albumId ->
-                                if (albumId?.isNotEmpty() == true) {
+                                if (albumId?.isNotEmpty() == true && !it.song.isVideoSong) {
                                     navController.navigate("album/${albumId}")
                                 }
                             }
@@ -308,7 +308,7 @@ fun HomeScreen(
                         when (item) {
                             is SongItem -> {
                                 item.album?.id.let { albumId ->
-                                    if (albumId?.isNotEmpty() == true) {
+                                    if (albumId?.isNotEmpty() == true && !item.isVideoSong) {
                                         navController.navigate("album/${albumId}")
                                     }
                                 }

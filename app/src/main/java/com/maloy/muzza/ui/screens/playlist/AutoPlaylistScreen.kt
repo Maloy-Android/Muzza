@@ -177,7 +177,7 @@ fun AutoPlaylistScreen(
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-    val startVoiceInput = rememberVoiceInput(
+    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
         onResult = { recognizedText ->
             searchQuery = TextFieldValue(recognizedText)
         }
@@ -912,7 +912,7 @@ fun AutoPlaylistScreen(
                                 .fillMaxWidth()
                                 .focusRequester(focusRequester),
                             trailingIcon = {
-                                if (searchQuery.text.isEmpty()) {
+                                if (searchQuery.text.isEmpty() && isVoiceInputAvailable) {
                                     IconButton(
                                         onClick = startVoiceInput
                                     ) {

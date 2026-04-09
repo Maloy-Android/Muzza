@@ -123,7 +123,7 @@ fun HistoryScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-    val startVoiceInput = rememberVoiceInput(
+    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
         onResult = { recognizedText ->
             query = TextFieldValue(recognizedText)
         }
@@ -541,7 +541,7 @@ fun HistoryScreen(
                         .fillMaxWidth()
                         .focusRequester(focusRequester),
                     trailingIcon = {
-                        if (query.text.isEmpty()) {
+                        if (query.text.isEmpty() && isVoiceInputAvailable) {
                             IconButton(
                                 onClick = startVoiceInput
                             ) {

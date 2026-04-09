@@ -421,7 +421,7 @@ class MainActivity : ComponentActivity() {
                     var voiceInputText by rememberSaveable(stateSaver = TextFieldValue.Saver) {
                         mutableStateOf(TextFieldValue())
                     }
-                    val startVoiceInput = rememberVoiceInput(
+                    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
                         onResult = { recognizedText ->
                             voiceInputText = TextFieldValue(recognizedText)
                         }
@@ -916,7 +916,7 @@ class MainActivity : ComponentActivity() {
                                 },
                                 trailingIcon = {
                                     if (active) {
-                                        if (query.text.isEmpty()) {
+                                        if (query.text.isEmpty() && isVoiceInputAvailable) {
                                             IconButton(
                                                 onClick = startVoiceInput
                                             ) {

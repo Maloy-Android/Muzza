@@ -260,7 +260,8 @@ fun LyricsMenu(
                                 upsert(
                                     LyricsEntity(
                                         id = searchMediaMetadata.id,
-                                        lyrics = result.lyrics
+                                        lyrics = result.lyrics,
+                                        provider = lyricsProvider()?.provider ?: "Manual",
                                     )
                                 )
                             }

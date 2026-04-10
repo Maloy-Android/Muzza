@@ -233,6 +233,9 @@ fun Lyrics(
         }
     }
 
+
+    val isLyricsProviderShown = lyricsEntity?.provider != null && lyricsEntity?.provider != "Unknown" && lyricsEntity?.provider != "Manual" && !isSelectionModeActive
+
     val lazyListState = rememberLazyListState()
 
 
@@ -321,6 +324,22 @@ fun Lyrics(
         ) {
             val displayedCurrentLineIndex = if (isSeeking || isSelectionModeActive) deferredCurrentLineIndex else currentLineIndex
 
+            if (isLyricsProviderShown) {
+                item {
+                    lyricsEntity?.provider?.let { currentProvider ->
+                        Text(
+                            text = stringResource(R.string.lyrics_from,currentProvider),
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.Medium,
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                        )
+                    }
+                }
+            }
             if (lyrics == null) {
                 item {
                     ShimmerHost {

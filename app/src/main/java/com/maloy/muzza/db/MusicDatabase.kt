@@ -62,7 +62,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 20,
+    version = 21,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -82,6 +82,7 @@ class MusicDatabase(
         AutoMigration(from = 16, to = 17, spec = Migration16To17::class),
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19, spec = Migration18To19::class),
+        AutoMigration(from = 19, to = 20, spec = Migration19To20::class)
     ]
 )
 @TypeConverters(Converters::class)
@@ -419,5 +420,35 @@ class Migration18To19 : AutoMigrationSpec {
 val MIGRATION_19_20 = object : Migration(19, 20) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE song ADD COLUMN isVideoSong INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "song", columnName = "explicit"),
+    DeleteColumn(tableName = "song", columnName = "year"),
+    DeleteColumn(tableName = "song", columnName = "date"),
+    DeleteColumn(tableName = "song", columnName = "dateModified"),
+    DeleteColumn(tableName = "song", columnName = "likedDate"),
+    DeleteColumn(tableName = "album", columnName = "likedDate"),
+    DeleteColumn(tableName = "album", columnName = "inLibrary"),
+)
+@DeleteTable(
+    tableName = "playCount"
+)
+class Migration19To20: AutoMigrationSpec {
+    override fun onPostMigrate(db: SupportSQLiteDatabase) {
+        var columnExists = false
+        db.query("PRAGMA table_info(lyrics)").use { cursor ->
+            val nameIndex = cursor.getColumnIndex("name")
+            while (cursor.moveToNext()) {
+                if (cursor.getString(nameIndex) == "provider") {
+                    columnExists = true
+                    break
+                }
+            }
+        }
+        if (!columnExists) {
+            db.execSQL("ALTER TABLE lyrics ADD COLUMN provider TEXT NOT NULL DEFAULT 'Unknown'")
+        }
     }
 }

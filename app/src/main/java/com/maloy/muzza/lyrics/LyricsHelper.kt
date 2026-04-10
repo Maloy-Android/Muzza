@@ -9,8 +9,13 @@ import com.maloy.muzza.db.entities.LyricsEntity.Companion.LYRICS_NOT_FOUND
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.utils.dataStore
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.async
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
@@ -18,7 +23,6 @@ import javax.inject.Inject
 class LyricsHelper @Inject constructor(
     @ApplicationContext private val context: Context,
 ) {
-    private val PREFER_LOCAL_LYRIC = true
     private var lyricsProviders = listOf(LrcLibLyricsProvider,KuGouLyricsProvider,
         SimpMusicLyricsProvider, YouTubeSubtitleLyricsProvider, YouTubeLyricsProvider)
     val preferred = context.dataStore.data.map {
@@ -37,36 +41,43 @@ class LyricsHelper @Inject constructor(
         }
     private val cache = LruCache<String, List<LyricsResult>>(MAX_CACHE_SIZE)
 
-    suspend fun getLyrics(mediaMetadata: MediaMetadata): String {
+    suspend fun getLyrics(mediaMetadata: MediaMetadata): LyricsWithProvider {
         val cached = cache.get(mediaMetadata.id)?.firstOrNull()
         if (cached != null) {
-            return cached.lyrics
-        }
-        val localLyrics = getLocalLyrics(mediaMetadata)
-        var remoteLyrics: String?
-
-        // fallback to secondary provider when primary is unavailable
-        if (PREFER_LOCAL_LYRIC) {
-            if (localLyrics != null) {
-                return localLyrics
-            }
-
-            // "lazy eval" the remote lyrics cuz it is laughably slow
-            remoteLyrics= getRemoteLyrics(mediaMetadata)
-            if (remoteLyrics != null) {
-                return remoteLyrics
-            }
-        } else {
-            remoteLyrics= getRemoteLyrics(mediaMetadata)
-            if (remoteLyrics != null) {
-                return remoteLyrics
-            } else if (localLyrics != null) {
-                return localLyrics
-            }
-
+            return LyricsWithProvider(cached.lyrics, cached.providerName)
         }
 
-        return LYRICS_NOT_FOUND
+        if (!isInternetAvailable(context)) {
+            return LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+        }
+
+        val scope = CoroutineScope(SupervisorJob())
+        val deferred = scope.async {
+            for (provider in lyricsProviders) {
+                if (provider.isEnabled(context)) {
+                    try {
+                        val result = provider.getLyrics(
+                            mediaMetadata.id,
+                            mediaMetadata.title,
+                            mediaMetadata.artists.joinToString { it.name },
+                            mediaMetadata.duration,
+                        )
+                        result.onSuccess { lyrics ->
+                            return@async LyricsWithProvider(lyrics, provider.name)
+                        }.onFailure {
+                            reportException(it)
+                        }
+                    } catch (e: Exception) {
+                        reportException(e)
+                    }
+                }
+            }
+            return@async LyricsWithProvider(LYRICS_NOT_FOUND, "Unknown")
+        }
+
+        val result = deferred.await()
+        scope.cancel()
+        return result
     }
 
     /**
@@ -147,4 +158,9 @@ class LyricsHelper @Inject constructor(
 data class LyricsResult(
     val providerName: String,
     val lyrics: String,
+)
+
+data class LyricsWithProvider(
+    val lyrics: String,
+    val provider: String,
 )

@@ -82,8 +82,10 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.db.entities.ArtistEntity
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.IconButton
@@ -440,9 +442,19 @@ fun ArtistScreen(
                 if (!isLoggedIn && librarySongs.isNotEmpty()) {
                     item {
                         NavigationTitle(
-                            title = stringResource(R.string.from_your_library), onClick = {
+                            title = stringResource(R.string.from_your_library),
+                            onClick = {
                                 navController.navigate("artist/${viewModel.artistId}/songs")
-                            })
+                            },
+                            onPlayAllClick = {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = context.getString(R.string.from_your_library),
+                                        items = librarySongs.map { it.toMediaItem() }
+                                    )
+                                )
+                            }
+                        )
                     }
 
                     items(

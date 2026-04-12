@@ -152,7 +152,20 @@ fun YouTubeBrowseScreen(
                 if (it.items.isNotEmpty()) {
                     it.title?.let { title ->
                         item {
-                            NavigationTitle(title)
+                            if (it.items.all { item -> item is SongItem }) {
+                                NavigationTitle(title, onPlayAllClick = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = title,
+                                            items = it.items.distinctBy { it.id }
+                                                .map { (it as SongItem).toMediaItem() }
+                                        )
+                                    )
+                                }
+                                )
+                            } else {
+                                NavigationTitle(title)
+                            }
                         }
                     }
                     if (it.items.all { item -> item is SongItem }) {

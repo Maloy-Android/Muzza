@@ -95,9 +95,11 @@ import com.maloy.muzza.db.entities.RecentActivityType.ALBUM
 import com.maloy.muzza.db.entities.RecentActivityType.ARTIST
 import com.maloy.muzza.db.entities.RecentActivityType.PLAYLIST
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.AlbumGridItem
@@ -520,7 +522,16 @@ fun HomeScreen(
                     item {
                         NavigationTitle(
                             title = stringResource(R.string.quick_picks),
-                            modifier = Modifier.animateItem()
+                            modifier = Modifier.animateItem(),
+                            onPlayAllClick = {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = context.getString(R.string.quick_picks),
+                                        items = quickPicks.distinctBy { it.id }
+                                            .map { it.toMediaItem() }
+                                    )
+                                )
+                            }
                         )
                     }
 

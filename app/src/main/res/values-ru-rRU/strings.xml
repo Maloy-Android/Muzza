@@ -85,6 +85,7 @@
     <string name="filter_videos">Видео</string>
     <string name="filter_albums">Альбомы</string>
     <string name="filter_artists">Исполнители</string>
+    <string name="filter_profiles">Профили</string>
     <string name="filter_playlists">Плейлисты</string>
     <string name="filter_community_playlists">Плейлисты сообщества</string>
     <string name="filter_featured_playlists">Избранные плейлисты</string>

@@ -162,7 +162,7 @@ object YouTube {
                         val grouped = items.groupBy { item ->
                             when (item) {
                                 is AlbumItem -> "Albums"
-                                is ArtistItem -> "Artists"
+                                is ArtistItem -> if (item.isProfile) "Profiles" else "Artists"
                                 is PlaylistItem -> "Playlists"
                                 is SongItem -> when {
                                     item.isVideoSong -> "Videos"
@@ -176,6 +176,7 @@ object YouTube {
                             "Albums",
                             "Artists",
                             "Playlists",
+                            "Profiles",
                             YouTubeConstants.DEFAULT_OTHER_RESULTS
                         )
                         sectionOrder.forEach { sectionName ->
@@ -210,7 +211,8 @@ object YouTube {
                     "Albums" -> 3
                     "Artists" -> 4
                     "Playlists" -> 5
-                    else -> 6
+                    "Profiles" -> 6
+                    else -> 7
                 }
             }
         SearchSummaryPage(summaries = mergedSummaries)
@@ -984,6 +986,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             val FILTER_ARTIST = SearchFilter("EgWKAQIgAWoKEAkQChAFEAMQBA%3D%3D")
             val FILTER_FEATURED_PLAYLIST = SearchFilter("EgeKAQQoADgBagwQDhAKEAMQBRAJEAQ%3D")
             val FILTER_COMMUNITY_PLAYLIST = SearchFilter("EgeKAQQoAEABagoQAxAEEAoQCRAF")
+            val FILTER_PROFILE = SearchFilter("EgWKAQJYAWoSEAUQCRADEAQQEBAVEAoQDhAR")
         }
     }
 

@@ -45,6 +45,7 @@ import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
 import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_ARTIST
 import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_COMMUNITY_PLAYLIST
 import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_FEATURED_PLAYLIST
+import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_PROFILE
 import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_SONG
 import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_VIDEO
 import com.maloy.innertube.models.AlbumItem
@@ -320,6 +321,7 @@ fun OnlineSearchResult(
             FILTER_VIDEO to stringResource(R.string.filter_videos),
             FILTER_ALBUM to stringResource(R.string.filter_albums),
             FILTER_ARTIST to stringResource(R.string.filter_artists),
+            FILTER_PROFILE to stringResource(R.string.filter_profiles),
             FILTER_COMMUNITY_PLAYLIST to stringResource(R.string.filter_community_playlists),
             FILTER_FEATURED_PLAYLIST to stringResource(R.string.filter_featured_playlists)
         ),

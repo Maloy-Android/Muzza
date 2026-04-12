@@ -80,6 +80,7 @@
     <string name="filter_videos">Відео</string>
     <string name="filter_albums">Альбоми</string>
     <string name="filter_artists">Виконавці</string>
+    <string name="filter_profiles">Профілі</string>
     <string name="filter_playlists">Плейлисти</string>
     <string name="filter_community_playlists">Плейлисти спільноти</string>
     <string name="filter_featured_playlists">Обрані плейлисти</string>

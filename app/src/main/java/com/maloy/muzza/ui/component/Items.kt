@@ -609,7 +609,7 @@ fun SongGridItem(
             )
         }
         ItemsPlayButton(
-            visible = !isActive && (!song.song.isVideoSong || !song.song.isLocal || song.song.albumId != null),
+            visible = !isActive && (!song.song.isVideoSong || !song.song.isLocal) && song.song.albumId != null,
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(

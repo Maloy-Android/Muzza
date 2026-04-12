@@ -630,7 +630,7 @@ fun SongGridItem(
             )
         }
         ItemsMenuButton(
-            visible = !isActive && (song.song.albumId != null),
+            visible = !isActive,
             onClick = {
                 menuState.show {
                     SongMenu(
@@ -2113,7 +2113,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsMenuButton(
-            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem && (item.album?.id != null)) && !isActive,
+            visible = (item is PlaylistItem || item is AlbumItem || item is SongItem) && !isActive,
             onClick = {
                 menuState.show {
                     when (item) {

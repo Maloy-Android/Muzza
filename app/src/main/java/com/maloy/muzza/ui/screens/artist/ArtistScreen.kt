@@ -74,6 +74,7 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -88,6 +89,7 @@ import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ExpandableText
+import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LinkSegment
 import com.maloy.muzza.ui.component.LocalMenuState
@@ -628,6 +630,26 @@ fun ArtistScreen(
                     }
                 }
             }
+        }
+        artistPage?.sections?.fastForEach { section ->
+            HideOnScrollFAB(
+                visible = (section.items.firstOrNull() as? SongItem)?.album != null,
+                lazyListState = lazyListState,
+                icon = R.drawable.play,
+                onClick = {
+                    artistPage.sections.find { section ->
+                        (section.items.firstOrNull() as? SongItem)?.album != null
+                    }.let { songs ->
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = artistPage.artist.title,
+                                items = songs?.items?.filterIsInstance<SongItem>()
+                                    ?.map { it.toMediaItem() } ?: return@let
+                            )
+                        )
+                    }
+                }
+            )
         }
         if (artistPage != null) {
             Indicator(

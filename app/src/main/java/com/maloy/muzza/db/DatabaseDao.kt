@@ -631,7 +631,7 @@ interface DatabaseDao {
                 name = playlistItem.title,
                 browseId = playlistItem.id,
                 thumbnailUrl = playlistItem.thumbnail,
-                isEditable = playlistItem.isEditable,
+                isEditable = true,
                 remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                 playEndpointParams = playlistItem.playEndpoint?.params,
                 shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,

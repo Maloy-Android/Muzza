@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.rounded.VolumeUp
 import androidx.compose.material.icons.rounded.BluetoothConnected
 import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Sync
+import androidx.compose.material.icons.rounded.Timer
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
@@ -116,7 +117,7 @@ fun PlayerSettings(
         CounterDialog(
             title = stringResource(R.string.crossfade_duration),
             description = null,
-            icon = { Icon(Icons.Rounded.Sync,null) },
+            icon = { Icon(Icons.Rounded.Timer,null) },
             initialValue = crossfadeDuration.toFloat().toInt(),
             upperBound = 15,
             lowerBound = 0,
@@ -166,7 +167,7 @@ fun PlayerSettings(
             onCheckedChange = onCrossfadeEnabledChange
         )
         PreferenceEntry(
-            icon = { Icon(painterResource(R.drawable.timer), null) },
+            icon = { Icon(Icons.Rounded.Timer, null) },
             description = "$crossfadeDuration sec",
             title = { Text(stringResource(R.string.crossfade_duration)) },
             onClick = { showCrossfadeValueChange = true },

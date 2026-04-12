@@ -1358,28 +1358,27 @@ class MusicService : MediaLibraryService(),
 
         crossfadeJob = scope.launch {
             val duration = crossfadeDuration.toLong()
-            val steps = 20
+            val steps = 40
             val stepTime = duration / steps
-            val startVolume = try {
-                fadingPlayer?.volume ?: 1f
-            } catch (_: Exception) {
-                1f
-            }
 
+            val currentVolume = fadingPlayer?.volume ?: 1f
+            player.volume = 0f
             for (i in 0..steps) {
                 if (!isActive) break
+
                 while (!player.isPlaying && isActive) {
-                    delay(100)
+                    delay(50)
                 }
 
                 val progress = i / steps.toFloat()
-                val fadeIn = 1.0f - (1.0f - progress) * (1.0f - progress)
+
                 val fadeOut = (1.0f - progress) * (1.0f - progress)
+                val fadeIn = progress * progress
 
                 try {
-                    player.volume = startVolume * fadeIn
-                    fadingPlayer?.volume = startVolume * fadeOut
-                } catch (_: Exception) {
+                    fadingPlayer?.volume = (currentVolume * fadeOut).coerceIn(0f, 1f)
+                    player.volume = (currentVolume * fadeIn).coerceIn(0f, 1f)
+                } catch (e: Exception) {
                     break
                 }
 
@@ -1388,7 +1387,7 @@ class MusicService : MediaLibraryService(),
 
             try {
                 fadingPlayer?.volume = 0f
-                player.volume = startVolume
+                player.volume = currentVolume
                 cleanupCrossfade()
             } catch (_: Exception) {
             }

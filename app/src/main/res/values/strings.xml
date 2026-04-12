@@ -443,6 +443,11 @@
     <string name="text_color">Text color</string>
     <string name="secondary_text_color">Secondary text color</string>
     <string name="background_color">Background color</string>
+    <string name="crossfade">Crossfade</string>
+    <string name="crossfade_desc">Crossfade between songs</string>
+    <string name="crossfade_duration">Crossfade duration</string>
+    <string name="crossfade_gapless">Disable for gapless albums</string>
+    <string name="crossfade_gapless_desc">Don\'t crossfade if the album is gapless</string>
     <string name="lyrics_settings_title">Lyrics</string>
     <string name="storage">Storage</string>
     <string name="cache">Cache</string>

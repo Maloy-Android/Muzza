@@ -470,6 +470,12 @@
     <string name="lyrics">Текст пісні</string>
     <string name="lyrics_settings_title">Налаштування текстів</string>
 
+    <string name="crossfade">Кроссфейд</string>
+    <string name="crossfade_desc">Плавний перехід між піснями</string>
+    <string name="crossfade_duration">Тривалість кроссфейду</string>
+    <string name="crossfade_gapless">Відключити для альбомів без пропусків</string>
+    <string name="crossfade_gapless_desc">Не використовуйте кросфейд, якщо в альбомі немає пропусків</string>
+
     <string name="storage">Сховище</string>
     <string name="cache">Кеш</string>
     <string name="image_cache">Кеш зображень</string>

@@ -132,6 +132,10 @@ val FirstSetupPassed = booleanPreferencesKey("firstSetupPassed")
 
 val PlaylistEditLockKey = booleanPreferencesKey("playlistEditLock")
 
+val CrossfadeEnabledKey = booleanPreferencesKey("crossfadeEnabled")
+val CrossfadeDurationKey = intPreferencesKey("crossfadeDuration")
+val CrossfadeGaplessKey = booleanPreferencesKey("crossfadeGapless")
+
 enum class LibraryViewType {
     LIST, GRID;
 

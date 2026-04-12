@@ -11,6 +11,7 @@ import androidx.media3.common.Player.COMMAND_SEEK_TO_PREVIOUS_MEDIA_ITEM
 import androidx.media3.common.Player.REPEAT_MODE_OFF
 import androidx.media3.common.Player.STATE_ENDED
 import androidx.media3.common.Timeline
+import androidx.media3.exoplayer.ExoPlayer
 import com.maloy.muzza.MusicWidget.Companion.ACTION_STATE_CHANGED
 import com.maloy.muzza.constants.TranslateLyricsKey
 import com.maloy.muzza.db.MusicDatabase
@@ -33,6 +34,7 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class PlayerConnection(
@@ -42,14 +44,16 @@ class PlayerConnection(
     scope: CoroutineScope,
 ) : Player.Listener {
     val service = binder.service
-    val player = service.player
 
-    val playbackState = MutableStateFlow(player.playbackState)
-    private val playWhenReady = MutableStateFlow(player.playWhenReady)
+    val player: ExoPlayer
+        get() = service.player
+
+    val playbackState = MutableStateFlow(service.player.playbackState)
+    private val playWhenReady = MutableStateFlow(service.player.playWhenReady)
     val isPlaying = combine(playbackState, playWhenReady) { playbackState, playWhenReady ->
         playWhenReady && playbackState != STATE_ENDED
-    }.stateIn(scope, SharingStarted.Lazily, player.playWhenReady && player.playbackState != STATE_ENDED)
-    val mediaMetadata = MutableStateFlow(player.currentMetadata)
+    }.stateIn(scope, SharingStarted.Lazily, service.player.playWhenReady && service.player.playbackState != STATE_ENDED)
+    val mediaMetadata = MutableStateFlow(service.player.currentMetadata)
     val currentSong = mediaMetadata.flatMapLatest {
         database.song(it?.id)
     }
@@ -99,19 +103,34 @@ class PlayerConnection(
 
     var onSkipPrevious: (() -> Unit)? = null
     var onSkipNext: (() -> Unit)? = null
+    private var attachedPlayer: Player? = null
 
     init {
-        player.addListener(this)
+        scope.launch {
+            service.playerFlow.collect { newPlayer ->
+                if (newPlayer != null && newPlayer != attachedPlayer) {
+                    updateAttachedPlayer(newPlayer)
+                }
+            }
+        }
+        if (attachedPlayer == null && service.isPlayerReady.value) {
+            updateAttachedPlayer(service.player)
+        }
+    }
 
-        playbackState.value = player.playbackState
-        playWhenReady.value = player.playWhenReady
-        mediaMetadata.value = player.currentMetadata
+    private fun updateAttachedPlayer(newPlayer: Player) {
+        attachedPlayer?.removeListener(this)
+        attachedPlayer = newPlayer
+        newPlayer.addListener(this)
+        playbackState.value = newPlayer.playbackState
+        playWhenReady.value = newPlayer.playWhenReady
+        mediaMetadata.value = newPlayer.currentMetadata
         queueTitle.value = service.queueTitle
-        queueWindows.value = player.getQueueWindows()
-        currentWindowIndex.value = player.getCurrentQueueIndex()
-        currentMediaItemIndex.value = player.currentMediaItemIndex
-        shuffleModeEnabled.value = player.shuffleModeEnabled
-        repeatMode.value = player.repeatMode
+        queueWindows.value = newPlayer.getQueueWindows()
+        currentWindowIndex.value = newPlayer.getCurrentQueueIndex()
+        currentMediaItemIndex.value = newPlayer.currentMediaItemIndex
+        shuffleModeEnabled.value = newPlayer.shuffleModeEnabled
+        repeatMode.value = newPlayer.repeatMode
     }
 
     fun playQueue(queue: Queue) {
@@ -186,7 +205,7 @@ class PlayerConnection(
     }
 
     fun seekTo(position: Long) {
-      player.seekTo(position)
+        player.seekTo(position)
     }
 
     override fun onPlaybackStateChanged(state: Int) {
@@ -247,12 +266,15 @@ class PlayerConnection(
     }
 
     fun togglePlayPause() {
-       instance?.player?.playWhenReady =
-            !instance?.player?.playWhenReady!!
+        if (player.isPlaying) {
+            player.pause()
+        } else {
+            player.play()
+        }
     }
 
     fun toggleShuffle() {
-        player.shuffleModeEnabled = !(player.shuffleModeEnabled)
+        player.shuffleModeEnabled = !player.shuffleModeEnabled
     }
 
     fun toggleReplayMode() {
@@ -262,16 +284,20 @@ class PlayerConnection(
 
     fun dispose() {
         instance = null
-        player.removeListener(this)
+        attachedPlayer?.removeListener(this)
+        attachedPlayer = null
     }
+
     companion object {
         @Volatile
         var instance: PlayerConnection? = null
             private set
     }
+
     init {
         instance = this
-        player.addListener(object : Player.Listener {
+        val currentPlayer = player
+        currentPlayer.addListener(object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
                 if (events.containsAny(
                         Player.EVENT_PLAYBACK_STATE_CHANGED,

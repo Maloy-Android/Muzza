@@ -36,6 +36,9 @@ import com.maloy.muzza.constants.AudioQualityKey
 import com.maloy.muzza.constants.AutoLoadMoreKey
 import com.maloy.muzza.constants.AutoPlaySongWhenBluetoothDeviceConnectedKey
 import com.maloy.muzza.constants.AutoSkipNextOnErrorKey
+import com.maloy.muzza.constants.CrossfadeDurationKey
+import com.maloy.muzza.constants.CrossfadeEnabledKey
+import com.maloy.muzza.constants.CrossfadeGaplessKey
 import com.maloy.muzza.constants.PersistentQueueKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.SongDurationTimeSkip
@@ -74,8 +77,15 @@ fun PlayerSettings(
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
     val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
+    val (crossfadeEnabled, onCrossfadeEnabledChange) = rememberPreference(CrossfadeEnabledKey, defaultValue = false)
+    val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(CrossfadeDurationKey, defaultValue = 5)
+    val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(CrossfadeGaplessKey, defaultValue = true)
 
     var showMinPlaybackDur by remember {
+        mutableStateOf(false)
+    }
+
+    var showCrossfadeValueChange by remember {
         mutableStateOf(false)
     }
 
@@ -98,6 +108,28 @@ fun PlayerSettings(
                 showMinPlaybackDur = false
             },
             onReset = { onMinPlaybackDurChange(30) },
+        )
+    }
+
+
+    if (showCrossfadeValueChange) {
+        CounterDialog(
+            title = stringResource(R.string.crossfade_duration),
+            description = null,
+            icon = { Icon(Icons.Rounded.Sync,null) },
+            initialValue = crossfadeDuration.toFloat().toInt(),
+            upperBound = 15,
+            lowerBound = 0,
+            resetValue = 5,
+            onDismiss = { showCrossfadeValueChange = false },
+            onConfirm = {
+                showCrossfadeValueChange = false
+                onCrossfadeDurationChange(it)
+            },
+            onCancel = {
+                showCrossfadeValueChange = false
+            },
+            onReset = { onCrossfadeDurationChange(5) },
         )
     }
 
@@ -125,6 +157,28 @@ fun PlayerSettings(
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                 }
             }
+        )
+        SwitchPreference(
+            icon = { Icon(painterResource(R.drawable.linear_scale), null) },
+            title = { Text(stringResource(R.string.crossfade)) },
+            description = stringResource(R.string.crossfade_desc),
+            checked = crossfadeEnabled,
+            onCheckedChange = onCrossfadeEnabledChange
+        )
+        PreferenceEntry(
+            icon = { Icon(painterResource(R.drawable.timer), null) },
+            description = "$crossfadeDuration sec",
+            title = { Text(stringResource(R.string.crossfade_duration)) },
+            onClick = { showCrossfadeValueChange = true },
+            isEnabled = crossfadeEnabled
+        )
+        SwitchPreference(
+            icon = { Icon(painterResource(R.drawable.album), null) },
+            title = { Text(stringResource(R.string.crossfade_gapless)) },
+            description = stringResource(R.string.crossfade_gapless_desc),
+            checked = crossfadeGapless,
+            onCheckedChange = onCrossfadeGaplessChange,
+            isEnabled = crossfadeEnabled
         )
         PreferenceEntry(
             title = { Text(stringResource(R.string.lyrics_settings_title)) },

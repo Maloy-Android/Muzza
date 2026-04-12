@@ -609,7 +609,7 @@ fun SongGridItem(
             )
         }
         ItemsPlayButton(
-            visible = !isActive && (!song.song.isVideoSong || song.song.albumId != null),
+            visible = !isActive && (!song.song.isVideoSong || !song.song.isLocal || song.song.albumId != null),
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(
@@ -620,7 +620,7 @@ fun SongGridItem(
             }
         )
         ItemsVideoPlayButton(
-            visible = !isActive && (song.song.isVideoSong || song.song.albumId == null),
+            visible = !isActive && (song.song.isVideoSong || song.song.isLocal || song.song.albumId == null),
         ) {
             playerConnection.playQueue(
                 ListQueue(

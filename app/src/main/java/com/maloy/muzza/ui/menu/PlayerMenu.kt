@@ -682,7 +682,7 @@ fun PlayerMenu(
                     HorizontalDivider()
                 }
             }
-            if (mediaMetadata.album != null) {
+            if (mediaMetadata.album != null && mediaMetadata.isVideoSong) {
                 ListMenuItem(
                     icon = R.drawable.album,
                     title = R.string.view_album

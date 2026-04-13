@@ -388,7 +388,7 @@ fun BottomSheetPlayer(
                             modifier =
                                 Modifier
                                     .basicMarquee()
-                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal) {
+                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal && mediaMetadata.isVideoSong) {
                                         navController.navigate("album/${mediaMetadata.album!!.id}")
                                         state.collapseSoft()
                                     },

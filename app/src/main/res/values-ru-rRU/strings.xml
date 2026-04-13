@@ -162,6 +162,7 @@
     <string name="add_to_playlist">Добавить в плейлист</string>
     <string name="view_artist">Перейти к исполнителю</string>
     <string name="view_album">Перейти к альбому</string>
+    <string name="view_playlist">Перейти к плейлисту</string>
     <string name="refetch">Обновить</string>
     <string name="share">Поделиться</string>
     <string name="delete">Удалить</string>

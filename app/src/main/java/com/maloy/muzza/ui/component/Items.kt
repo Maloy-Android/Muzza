@@ -1605,7 +1605,7 @@ fun CommunityPlaylistCard(
                     onClick = {
                         if (!isListenTogetherGuest) {
                             item.playlist.playEndpoint?.let {
-                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
+                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id, playListAuthor = item.playlist.author?.name))
                             }
                         }
                     },
@@ -1625,7 +1625,7 @@ fun CommunityPlaylistCard(
                     onClick = {
                         if (!isListenTogetherGuest) {
                             item.playlist.radioEndpoint?.let {
-                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
+                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id, playListAuthor = item.playlist.author?.name))
                             }
                         }
                     },
@@ -2067,7 +2067,7 @@ fun YouTubeGridItem(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = item.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id, playListAuthor = item.author?.name) }
                                     )
                                 )
                             }
@@ -2096,7 +2096,7 @@ fun YouTubeGridItem(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = item.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id, playListAuthor = item.author?.name) }
                                     )
                                 )
                             }

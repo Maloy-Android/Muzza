@@ -82,6 +82,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachIndexed
 import androidx.media3.common.C
 import androidx.media3.common.Player.REPEAT_MODE_ALL
@@ -93,11 +94,13 @@ import androidx.navigation.NavController
 import coil.ImageLoader
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.DarkMode
 import com.maloy.muzza.constants.DarkModeKey
+import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.NowPlayingEnableKey
 import com.maloy.muzza.constants.NowPlayingPaddingKey
 import com.maloy.muzza.constants.PlayerBackgroundStyle
@@ -119,6 +122,7 @@ import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
+import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.ResizableIconButton
@@ -144,6 +148,7 @@ fun BottomSheetPlayer(
     navController: NavController,
     modifier: Modifier = Modifier,
 ) {
+    val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val lyricsEntity by playerConnection.currentLyrics.collectAsState(initial = null)
     val menuState = LocalMenuState.current
@@ -172,6 +177,7 @@ fun BottomSheetPlayer(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val dbPlaylist by database.playlist(playlistId = mediaMetadata?.playlist?.id ?: return).collectAsState(initial = null)
     val queueTitle by playerConnection.queueTitle.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
@@ -254,6 +260,86 @@ fun BottomSheetPlayer(
         DetailsDialog(
             onDismiss = { showDetailsDialog = false }
         )
+    }
+
+    var showGoToAlbumPlaylistDialog by remember { mutableStateOf(false) }
+    if (showGoToAlbumPlaylistDialog) {
+        ListDialog(
+            onDismiss = { showGoToAlbumPlaylistDialog = false }
+        ) {
+            item {
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ListItemHeight)
+                        .padding(horizontal = 24.dp)
+                        .clickable(onClick = {
+                            navController.navigate("album/${mediaMetadata?.album?.id}")
+                            state.collapseSoft()
+                            showGoToAlbumPlaylistDialog = false
+                        }),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.album),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.view_album),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+            item {
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ListItemHeight)
+                        .padding(horizontal = 24.dp)
+                        .clickable(onClick = {
+                            mediaMetadata.let { mediaMetadata ->
+                                if (dbPlaylist?.playlist?.id != null) {
+                                    navController.navigate("local_playlist/${mediaMetadata?.playlist?.id}")
+                                } else {
+                                    navController.navigate("online_playlist/${mediaMetadata?.playlist?.id}?author=${mediaMetadata?.playlist?.author}")
+                                }
+                            }
+                            state.collapseSoft()
+                            showGoToAlbumPlaylistDialog = false
+                        }),
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.playlist_play),
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Text(
+                            text = stringResource(R.string.view_playlist),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis
+                        )
+                    }
+                }
+            }
+        }
     }
 
     LaunchedEffect(playbackState) {
@@ -388,10 +474,29 @@ fun BottomSheetPlayer(
                             modifier =
                                 Modifier
                                     .basicMarquee()
-                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isLocal && mediaMetadata.isVideoSong) {
-                                        navController.navigate("album/${mediaMetadata.album!!.id}")
-                                        state.collapseSoft()
-                                    },
+                                    .clickable {
+                                        val hasAlbum = mediaMetadata.album != null
+                                        val hasPlaylist = mediaMetadata.playlist?.id != null
+                                        when {
+                                            hasAlbum && hasPlaylist -> {
+                                                showGoToAlbumPlaylistDialog = true
+                                            }
+
+                                            hasAlbum && !mediaMetadata.isVideoSong -> {
+                                                navController.navigate("album/${mediaMetadata.album.id}")
+                                                state.collapseSoft()
+                                            }
+
+                                            hasPlaylist -> {
+                                                if (dbPlaylist?.playlist?.id != null) {
+                                                    navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
+                                                } else {
+                                                    navController.navigate("online_playlist/${mediaMetadata.playlist.id}?author=${mediaMetadata.playlist.author}")
+                                                }
+                                                state.collapseSoft()
+                                            }
+                                        }
+                                    }
                         )
                     }
 

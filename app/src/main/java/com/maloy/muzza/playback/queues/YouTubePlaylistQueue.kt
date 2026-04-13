@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 class YouTubePlaylistQueue(
     private var endpoint: WatchEndpoint,
     private val playlistId: String,
+    private val playListAuthor: String?,
     override val preloadItem: MediaMetadata? = null,
 ) : Queue {
     private var continuation: String? = null
@@ -23,7 +24,7 @@ class YouTubePlaylistQueue(
         continuation = nextResult.continuation
         return Queue.Status(
             title = nextResult.title,
-            items = nextResult.items.map { it.toMediaItemWithPlaylist(playlistId = playlistId) },
+            items = nextResult.items.map { it.toMediaItemWithPlaylist(playlistId = playlistId, playListAuthor = playListAuthor) },
             mediaItemIndex = nextResult.currentIndex ?: 0
         )
     }
@@ -36,7 +37,7 @@ class YouTubePlaylistQueue(
         }
         endpoint = nextResult.endpoint
         continuation = nextResult.continuation
-        return nextResult.items.map { it.toMediaItemWithPlaylist(playlistId = playlistId) }
+        return nextResult.items.map { it.toMediaItemWithPlaylist(playlistId = playlistId, playListAuthor = playListAuthor) }
     }
 
     companion object {

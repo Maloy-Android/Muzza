@@ -603,7 +603,8 @@ fun OnlinePlaylistScreen(
                                                         playerConnection.playQueue(
                                                             YouTubePlaylistQueue(
                                                                 radioEndpoint,
-                                                                playlistId = playlist.id
+                                                                playlistId = playlist.id,
+                                                                playListAuthor = playlist.author?.name
                                                             )
                                                         )
                                                     },
@@ -624,7 +625,8 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id
+                                                            playlist.id,
+                                                            playListAuthor = playlist.author?.name
                                                         )
                                                     })
                                                 },
@@ -645,7 +647,8 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id
+                                                            playlist.id,
+                                                            playListAuthor = playlist.author?.name
                                                         )
                                                     })
                                                 },
@@ -701,7 +704,8 @@ fun OnlinePlaylistScreen(
                                                     title = playlist.title,
                                                     items = songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id
+                                                            playlist.id,
+                                                            playListAuthor = playlist.author?.name
                                                         )
                                                     }
                                                 )
@@ -724,7 +728,7 @@ fun OnlinePlaylistScreen(
                                                 ListQueue(
                                                     title = playlist.title,
                                                     items = songs.shuffled()
-                                                        .map { it.toMediaItemWithPlaylist(playlist.id) }
+                                                        .map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name) }
                                                 )
                                             )
                                         },
@@ -846,7 +850,8 @@ fun OnlinePlaylistScreen(
                                                         title = playlist.title,
                                                         items = songs.map {
                                                             it.toMediaItemWithPlaylist(
-                                                                playlist.id
+                                                                playlist.id,
+                                                                playListAuthor = playlist.author?.name
                                                             )
                                                         },
                                                         startIndex = songs.indexOf(song)
@@ -932,16 +937,19 @@ fun OnlinePlaylistScreen(
             lazyListState = lazyListState,
             icon = R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = playlist!!.title,
-                        items = songs.map {
-                            it.toMediaItemWithPlaylist(
-                                playlist!!.id
-                            )
-                        }
+                playlist.let { playlist ->
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist!!.title,
+                            items = songs.map {
+                                it.toMediaItemWithPlaylist(
+                                    playlist.id,
+                                    playListAuthor = playlist.author?.name
+                                )
+                            }
+                        )
                     )
-                )
+                }
             }
         )
         CenterAlignedTopAppBar(

@@ -93,7 +93,7 @@ fun SongItem.toMediaItem() = MediaItem.Builder()
     )
     .build()
 
-fun SongItem.toMediaItemWithPlaylist(playlistId: String) = MediaItem.Builder()
+fun SongItem.toMediaItemWithPlaylist(playlistId: String, playListAuthor: String?) = MediaItem.Builder()
     .setMediaId(id)
     .setUri(id)
     .setCustomCacheKey(id)
@@ -101,7 +101,7 @@ fun SongItem.toMediaItemWithPlaylist(playlistId: String) = MediaItem.Builder()
         toMediaMetadata().copy(
             playlist = MediaMetadata.Playlist(
                 id = playlistId,
-                author = null
+                author = playListAuthor
             )
         )
     )

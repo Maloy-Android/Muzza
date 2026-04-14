@@ -104,9 +104,10 @@ class PlayerConnection(
     var onSkipPrevious: (() -> Unit)? = null
     var onSkipNext: (() -> Unit)? = null
     private var attachedPlayer: Player? = null
+    private var playerCollectionJob: kotlinx.coroutines.Job? = null
 
     init {
-        scope.launch {
+        playerCollectionJob = scope.launch {
             service.playerFlow.collect { newPlayer ->
                 if (newPlayer != null && newPlayer != attachedPlayer) {
                     updateAttachedPlayer(newPlayer)
@@ -131,6 +132,7 @@ class PlayerConnection(
         currentMediaItemIndex.value = newPlayer.currentMediaItemIndex
         shuffleModeEnabled.value = newPlayer.shuffleModeEnabled
         repeatMode.value = newPlayer.repeatMode
+        updateCanSkipPreviousAndNext()
     }
 
     fun playQueue(queue: Queue) {
@@ -284,6 +286,8 @@ class PlayerConnection(
 
     fun dispose() {
         instance = null
+        playerCollectionJob?.cancel()
+        playerCollectionJob = null
         attachedPlayer?.removeListener(this)
         attachedPlayer = null
     }
@@ -297,7 +301,7 @@ class PlayerConnection(
     init {
         instance = this
         val currentPlayer = player
-        currentPlayer.addListener(object : Player.Listener {
+        val broadcastListener = object : Player.Listener {
             override fun onEvents(player: Player, events: Player.Events) {
                 if (events.containsAny(
                         Player.EVENT_PLAYBACK_STATE_CHANGED,
@@ -307,8 +311,17 @@ class PlayerConnection(
                     sendStateChangedBroadcast(context)
                 }
             }
-        })
+        }
+
+        scope.launch {
+            service.playerFlow.collect { newPlayer ->
+                currentPlayer.removeListener(broadcastListener)
+                newPlayer?.addListener(broadcastListener)
+            }
+        }
+        currentPlayer.addListener(broadcastListener)
     }
+
     private fun sendStateChangedBroadcast(context: Context) {
         context.sendBroadcast(Intent(ACTION_STATE_CHANGED).apply {
             setPackage(context.packageName)

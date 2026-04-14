@@ -261,8 +261,11 @@ class MusicService : MediaLibraryService(),
     private val playerInitialized = MutableStateFlow(false)
     val isPlayerReady: kotlinx.coroutines.flow.StateFlow<Boolean> = playerInitialized.asStateFlow()
 
+    private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
+    private var hasAudioFocus = false
+
     private var crossfadeEnabled = false
-    private var crossfadeDuration = 5000f  // Обратите внимание: Float, не Int
+    private var crossfadeDuration = 5000f
     private var crossfadeGapless = true
     private var crossfadeTriggerJob: Job? = null
 
@@ -472,7 +475,7 @@ class MusicService : MediaLibraryService(),
             .distinctUntilChanged()
             .collect(scope) { (enabled, duration, gapless) ->
                 crossfadeEnabled = enabled
-                crossfadeDuration = duration.toFloat() * 1000f // Convert to ms
+                crossfadeDuration = duration.toFloat() * 1000f
                 crossfadeGapless = gapless
             }
 
@@ -574,7 +577,7 @@ class MusicService : MediaLibraryService(),
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
                     .build(),
-                false,
+                true,
             )
             .setSeekBackIncrementMs(5000)
             .setSeekForwardIncrementMs(5000)
@@ -588,8 +591,6 @@ class MusicService : MediaLibraryService(),
                 setOffloadEnabled(if (crossfade) false else offload)
                 skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
             }
-
-            // Cleanup handled manually in onDestroy/release
         }
         _playerFlow.value = player
         return player
@@ -1235,6 +1236,7 @@ class MusicService : MediaLibraryService(),
         bluetoothReceiver?.let {
             unregisterReceiver(it)
         }
+        abandonAudioFocus()
         super.onDestroy()
     }
 
@@ -1279,7 +1281,6 @@ class MusicService : MediaLibraryService(),
     private fun startCrossfade() {
         if (isCrossfading) return
 
-        // Preserve player state before creating the secondary player
         val savedRepeatMode = player.repeatMode
         val targetIndex = if (savedRepeatMode == REPEAT_MODE_ONE) {
             player.currentMediaItemIndex
@@ -1292,24 +1293,23 @@ class MusicService : MediaLibraryService(),
         val secPlayer = secondaryPlayer!!
         secPlayer.addListener(secondaryPlayerListener)
 
+        configureAudioAttributes(secPlayer)
+
         val itemCount = player.mediaItemCount
         val items = mutableListOf<MediaItem>()
-        // Copy entire queue history + future
         for (i in 0 until itemCount) {
             items.add(player.getMediaItemAt(i))
         }
 
         secPlayer.setMediaItems(items)
-        // Seek to target track (next track, or current track for repeat-one)
         secPlayer.seekTo(targetIndex, 0)
         secPlayer.volume = 0f
-
-        // Copy repeat and shuffle state to the new player
         secPlayer.repeatMode = savedRepeatMode
         secPlayer.shuffleModeEnabled = player.shuffleModeEnabled
-
         secPlayer.prepare()
         secPlayer.playWhenReady = true
+
+        requestAudioFocus()
 
         performCrossfadeSwap()
     }
@@ -1324,25 +1324,37 @@ class MusicService : MediaLibraryService(),
         _playerFlow.value = player
         secondaryPlayer = null
 
+        try {
+            (currentPlayer).setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                false
+            )
+        } catch (e: Exception) {
+            Timber.e(e, "Failed to release audio focus from old player")
+        }
+
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
 
-        // Add listener to sync play/pause state
-        player.addListener(
-            object : Player.Listener {
-                override fun onIsPlayingChanged(isPlaying: Boolean) {
-                    if (isCrossfading && fadingPlayer != null) {
-                        if (isPlaying) {
-                            fadingPlayer?.play()
-                        } else {
-                            fadingPlayer?.pause()
-                        }
+        configureAudioAttributes(nextPlayer)
+
+        val syncListener = object : Player.Listener {
+            override fun onIsPlayingChanged(isPlaying: Boolean) {
+                if (isCrossfading && fadingPlayer != null) {
+                    if (isPlaying) {
+                        fadingPlayer?.play()
                     } else {
-                        player.removeListener(this)
+                        fadingPlayer?.pause()
                     }
+                } else {
+                    player.removeListener(this)
                 }
             }
-        )
+        }
+        player.addListener(syncListener)
 
         nextPlayer.removeListener(secondaryPlayerListener)
         nextPlayer.addListener(this)
@@ -1378,7 +1390,7 @@ class MusicService : MediaLibraryService(),
                 try {
                     fadingPlayer?.volume = (currentVolume * fadeOut).coerceIn(0f, 1f)
                     player.volume = (currentVolume * fadeIn).coerceIn(0f, 1f)
-                } catch (e: Exception) {
+                } catch (_: Exception) {
                     break
                 }
 
@@ -1393,6 +1405,72 @@ class MusicService : MediaLibraryService(),
             }
         }
     }
+    private fun configureAudioAttributes(player: ExoPlayer) {
+        player.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .build(),
+            true,
+        )
+    }
+
+    private fun requestAudioFocus(): Boolean {
+        val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+        if (audioFocusListener == null) {
+            audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
+                when (focusChange) {
+                    AudioManager.AUDIOFOCUS_LOSS -> {
+                        hasAudioFocus = false
+                        if (player.isPlaying) {
+                            player.pause()
+                        }
+                    }
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
+                        hasAudioFocus = false
+                        if (player.isPlaying) {
+                            player.pause()
+                        }
+                    }
+                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
+                        hasAudioFocus = false
+                        if (player.isPlaying) {
+                            player.volume *= 0.3f
+                        }
+                    }
+                    AudioManager.AUDIOFOCUS_GAIN -> {
+                        hasAudioFocus = true
+                        if (!player.isPlaying && wasPlayingBeforeFocusLoss) {
+                            player.play()
+                            wasPlayingBeforeFocusLoss = false
+                        }
+                        if (player.volume < 0.9f && !isMuted.value) {
+                            player.volume = playerVolume.value
+                        }
+                    }
+                }
+            }
+        }
+
+        val result = audioManager.requestAudioFocus(
+            audioFocusListener!!,
+            AudioManager.STREAM_MUSIC,
+            AudioManager.AUDIOFOCUS_GAIN
+        )
+
+        hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        return hasAudioFocus
+    }
+
+    private fun abandonAudioFocus() {
+        if (audioFocusListener != null) {
+            val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
+            audioManager.abandonAudioFocus(audioFocusListener!!)
+            hasAudioFocus = false
+        }
+    }
+
+    private var wasPlayingBeforeFocusLoss = false
 
     private fun applyEffectiveVolume() {
         if (!::player.isInitialized || isCrossfading) return
@@ -1406,6 +1484,13 @@ class MusicService : MediaLibraryService(),
         fadingPlayer = null
         isCrossfading = false
         applyEffectiveVolume()
+
+        if (::player.isInitialized) {
+            configureAudioAttributes(player)
+            if (player.isPlaying) {
+                requestAudioFocus()
+            }
+        }
     }
 
     private fun isNextItemGapless(): Boolean {

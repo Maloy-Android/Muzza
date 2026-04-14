@@ -1289,11 +1289,9 @@ class MusicService : MediaLibraryService(),
         }
         if (targetIndex == C.INDEX_UNSET) return
 
-        secondaryPlayer = createExoPlayer()
+        secondaryPlayer = createExoPlayerWithoutAudioFocus()
         val secPlayer = secondaryPlayer!!
         secPlayer.addListener(secondaryPlayerListener)
-
-        configureAudioAttributes(secPlayer)
 
         val itemCount = player.mediaItemCount
         val items = mutableListOf<MediaItem>()
@@ -1308,8 +1306,6 @@ class MusicService : MediaLibraryService(),
         secPlayer.shuffleModeEnabled = player.shuffleModeEnabled
         secPlayer.prepare()
         secPlayer.playWhenReady = true
-
-        requestAudioFocus()
 
         performCrossfadeSwap()
     }
@@ -1339,7 +1335,13 @@ class MusicService : MediaLibraryService(),
         fadingPlayer?.removeListener(this)
         fadingPlayer?.removeListener(sleepTimer)
 
-        configureAudioAttributes(nextPlayer)
+        player.setAudioAttributes(
+            AudioAttributes.Builder()
+                .setUsage(C.USAGE_MEDIA)
+                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                .build(),
+            true
+        )
 
         val syncListener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
@@ -1405,61 +1407,33 @@ class MusicService : MediaLibraryService(),
             }
         }
     }
-    private fun configureAudioAttributes(player: ExoPlayer) {
-        player.setAudioAttributes(
-            AudioAttributes.Builder()
-                .setUsage(C.USAGE_MEDIA)
-                .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
-                .build(),
-            true,
-        )
-    }
 
-    private fun requestAudioFocus(): Boolean {
-        val audioManager = getSystemService(AUDIO_SERVICE) as AudioManager
-        if (audioFocusListener == null) {
-            audioFocusListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
-                when (focusChange) {
-                    AudioManager.AUDIOFOCUS_LOSS -> {
-                        hasAudioFocus = false
-                        if (player.isPlaying) {
-                            player.pause()
-                        }
-                    }
-                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                        hasAudioFocus = false
-                        if (player.isPlaying) {
-                            player.pause()
-                        }
-                    }
-                    AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                        hasAudioFocus = false
-                        if (player.isPlaying) {
-                            player.volume *= 0.3f
-                        }
-                    }
-                    AudioManager.AUDIOFOCUS_GAIN -> {
-                        hasAudioFocus = true
-                        if (!player.isPlaying && wasPlayingBeforeFocusLoss) {
-                            player.play()
-                            wasPlayingBeforeFocusLoss = false
-                        }
-                        if (player.volume < 0.9f && !isMuted.value) {
-                            player.volume = playerVolume.value
-                        }
-                    }
-                }
+    fun createExoPlayerWithoutAudioFocus(): ExoPlayer {
+        val player = ExoPlayer.Builder(this)
+            .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
+            .setRenderersFactory(createRenderersFactory())
+            .setHandleAudioBecomingNoisy(false)  // Отключаем
+            .setWakeMode(C.WAKE_MODE_NETWORK)
+            .setAudioAttributes(
+                AudioAttributes.Builder()
+                    .setUsage(C.USAGE_MEDIA)
+                    .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
+                    .build(),
+                false,
+            )
+            .setSeekBackIncrementMs(5000)
+            .setSeekForwardIncrementMs(5000)
+            .setDeviceVolumeControlEnabled(true)
+            .build()
+
+        player.apply {
+            runBlocking {
+                val offload = dataStore.get(AudioOffload, false)
+                setOffloadEnabled(offload)
+                skipSilenceEnabled = dataStore.get(SkipSilenceKey, false)
             }
         }
-
-        val result = audioManager.requestAudioFocus(
-            audioFocusListener!!,
-            AudioManager.STREAM_MUSIC,
-            AudioManager.AUDIOFOCUS_GAIN
-        )
-
-        hasAudioFocus = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
-        return hasAudioFocus
+        return player
     }
 
     private fun abandonAudioFocus() {
@@ -1469,8 +1443,6 @@ class MusicService : MediaLibraryService(),
             hasAudioFocus = false
         }
     }
-
-    private var wasPlayingBeforeFocusLoss = false
 
     private fun applyEffectiveVolume() {
         if (!::player.isInitialized || isCrossfading) return
@@ -1484,13 +1456,6 @@ class MusicService : MediaLibraryService(),
         fadingPlayer = null
         isCrossfading = false
         applyEffectiveVolume()
-
-        if (::player.isInitialized) {
-            configureAudioAttributes(player)
-            if (player.isPlaying) {
-                requestAudioFocus()
-            }
-        }
     }
 
     private fun isNextItemGapless(): Boolean {

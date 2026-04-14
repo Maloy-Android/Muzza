@@ -395,14 +395,18 @@ fun YouTubePlaylistMenu(
                                         .getOrNull()?.songs.orEmpty()
                                 }
                             }.let { songs ->
-                                playerConnection.addToQueue(
-                                    songs.shuffled()
-                                        .map {
-                                            it.toMediaItemWithPlaylist(
-                                                playlist.id,
-                                                playListAuthor = playlist.author?.name
-                                            )
-                                        })
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = playlist.title,
+                                        items =
+                                            songs.shuffled()
+                                                .map {
+                                                    it.toMediaItemWithPlaylist(
+                                                        playlist.id,
+                                                        playListAuthor = playlist.author?.name
+                                                    )
+                                                })
+                                )
                             }
                         }
                         onDismiss()

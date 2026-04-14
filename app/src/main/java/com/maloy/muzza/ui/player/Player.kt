@@ -494,7 +494,7 @@ fun BottomSheetPlayer(
                                             }
 
                                             hasPlaylist -> {
-                                                if (dbPlaylist.value != null) {
+                                                if (dbPlaylistValue?.playlist?.id != null) {
                                                     navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
                                                 } else {
                                                     navController.navigate("online_playlist/${mediaMetadata.playlist.id}?author=${mediaMetadata.playlist.author}")

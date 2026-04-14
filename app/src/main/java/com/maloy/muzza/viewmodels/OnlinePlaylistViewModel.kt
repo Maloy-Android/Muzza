@@ -40,6 +40,7 @@ class OnlinePlaylistViewModel @Inject constructor(
     private val playlistId = savedStateHandle.get<String>("playlistId")!!
 
     val playlist = MutableStateFlow<PlaylistItem?>(null)
+    val playlistAuthor = MutableStateFlow<String?>(null)
     val authors = savedStateHandle.get<String>("authors")
 
     private val _playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
@@ -111,6 +112,7 @@ class OnlinePlaylistViewModel @Inject constructor(
             YouTube.playlist(playlistId)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
+                    playlistAuthor.value = authors
                     _playlistSongs.value = playlistPage.songs.distinctBy { it.id }
                     continuation = playlistPage.songsContinuation
                     _isLoading.value = false
@@ -135,6 +137,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                 YouTube.playlist(playlistId)
                     .onSuccess { playlistPage ->
                         playlist.value = playlistPage.playlist
+                        playlistAuthor.value = authors
                         _playlistSongs.value = playlistPage.songs.distinctBy { it.id }
                         continuation = playlistPage.songsContinuation
                         if (continuation != null) {

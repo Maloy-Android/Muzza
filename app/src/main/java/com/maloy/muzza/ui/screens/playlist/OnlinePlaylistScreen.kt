@@ -173,7 +173,7 @@ fun OnlinePlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val playlist by viewModel.playlist.collectAsState()
-    val authors = viewModel.authors?: return
+    val authors by viewModel.playlistAuthor.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
 
@@ -428,7 +428,7 @@ fun OnlinePlaylistScreen(
                                                 Spacer(modifier = Modifier.width(8.dp))
                                             }
 
-                                            if (accountName.isNotEmpty()) {
+                                            if (playlist.id == "LM" && accountName.isNotEmpty()) {
                                                 Text(
                                                     text = accountName,
                                                     style = MaterialTheme.typography.titleMedium.copy(
@@ -437,9 +437,9 @@ fun OnlinePlaylistScreen(
                                                     )
                                                 )
                                             }
-                                        } else if (playlist.id != "LM" && authors.isNotEmpty()) {
+                                        } else if (playlist.id != "LM" && authors?.isNotEmpty() == true) {
                                             Text(
-                                                text = authors,
+                                                text = authors!!,
                                                 style = MaterialTheme.typography.titleMedium.copy(
                                                     fontWeight = FontWeight.Normal,
                                                     color = MaterialTheme.colorScheme.onBackground
@@ -464,7 +464,7 @@ fun OnlinePlaylistScreen(
                                                         database.transaction {
                                                             val playlistEntity = PlaylistEntity(
                                                                 name = playlist.title,
-                                                                playlistAuthors = authors,
+                                                                playlistAuthors = authors!!,
                                                                 browseId = playlist.id,
                                                                 thumbnailUrl = playlist.thumbnail,
                                                                 isEditable = true,
@@ -604,7 +604,7 @@ fun OnlinePlaylistScreen(
                                                             YouTubePlaylistQueue(
                                                                 radioEndpoint,
                                                                 playlistId = playlist.id,
-                                                                playListAuthor = playlist.author?.name
+                                                                playListAuthor = authors!!
                                                             )
                                                         )
                                                     },
@@ -626,7 +626,7 @@ fun OnlinePlaylistScreen(
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
                                                             playlist.id,
-                                                            playListAuthor = playlist.author?.name
+                                                            playListAuthor = authors!!
                                                         )
                                                     })
                                                 },
@@ -648,7 +648,7 @@ fun OnlinePlaylistScreen(
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
                                                             playlist.id,
-                                                            playListAuthor = playlist.author?.name
+                                                            playListAuthor = authors!!
                                                         )
                                                     })
                                                 },
@@ -705,7 +705,7 @@ fun OnlinePlaylistScreen(
                                                     items = songs.map {
                                                         it.toMediaItemWithPlaylist(
                                                             playlist.id,
-                                                            playListAuthor = playlist.author?.name
+                                                            playListAuthor = authors!!
                                                         )
                                                     }
                                                 )
@@ -728,7 +728,7 @@ fun OnlinePlaylistScreen(
                                                 ListQueue(
                                                     title = playlist.title,
                                                     items = songs.shuffled()
-                                                        .map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name) }
+                                                        .map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = authors!!) }
                                                 )
                                             )
                                         },
@@ -851,7 +851,7 @@ fun OnlinePlaylistScreen(
                                                         items = songs.map {
                                                             it.toMediaItemWithPlaylist(
                                                                 playlist.id,
-                                                                playListAuthor = playlist.author?.name
+                                                                playListAuthor = authors!!
                                                             )
                                                         },
                                                         startIndex = songs.indexOf(song)
@@ -944,7 +944,7 @@ fun OnlinePlaylistScreen(
                             items = songs.map {
                                 it.toMediaItemWithPlaylist(
                                     playlist.id,
-                                    playListAuthor = playlist.author?.name
+                                    playListAuthor = authors!!
                                 )
                             }
                         )

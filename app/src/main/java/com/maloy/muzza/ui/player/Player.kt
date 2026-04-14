@@ -177,7 +177,13 @@ fun BottomSheetPlayer(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val repeatMode by playerConnection.repeatMode.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
-    val dbPlaylist by database.playlist(playlistId = mediaMetadata?.playlist?.id ?: return).collectAsState(initial = null)
+    val playlistId = mediaMetadata?.playlist?.id
+    val dbPlaylist = if (playlistId != null) {
+        database.playlist(playlistId = playlistId).collectAsState(initial = null)
+    } else {
+        remember { mutableStateOf(null) }
+    }
+    val dbPlaylistValue by dbPlaylist
     val queueTitle by playerConnection.queueTitle.collectAsState()
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
@@ -309,7 +315,7 @@ fun BottomSheetPlayer(
                         .padding(horizontal = 24.dp)
                         .clickable(onClick = {
                             mediaMetadata.let { mediaMetadata ->
-                                if (dbPlaylist?.playlist?.id != null) {
+                                if (dbPlaylistValue?.playlist?.id != null) {
                                     navController.navigate("local_playlist/${mediaMetadata?.playlist?.id}")
                                 } else {
                                     navController.navigate("online_playlist/${mediaMetadata?.playlist?.id}?author=${mediaMetadata?.playlist?.author}")
@@ -488,7 +494,7 @@ fun BottomSheetPlayer(
                                             }
 
                                             hasPlaylist -> {
-                                                if (dbPlaylist?.playlist?.id != null) {
+                                                if (dbPlaylist.value != null) {
                                                     navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
                                                 } else {
                                                     navController.navigate("online_playlist/${mediaMetadata.playlist.id}?author=${mediaMetadata.playlist.author}")

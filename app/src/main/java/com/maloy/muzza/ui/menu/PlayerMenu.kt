@@ -111,7 +111,13 @@ fun PlayerMenu(
     mediaMetadata ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val dbPlaylist by database.playlist(playlistId = mediaMetadata.playlist?.id ?: return).collectAsState(initial = null)
+    val playlistId = mediaMetadata.playlist?.id
+    val dbPlaylist = if (playlistId != null) {
+        database.playlist(playlistId = playlistId).collectAsState(initial = null)
+    } else {
+        remember { mutableStateOf(null) }
+    }
+    val dbPlaylistValue by dbPlaylist
     val playerConnection = LocalPlayerConnection.current ?: return
     val playerVolume = playerConnection.service.playerVolume.collectAsState()
     val activityResultLauncher =
@@ -696,12 +702,12 @@ fun PlayerMenu(
                     HorizontalDivider()
                 }
             }
-            if (mediaMetadata.playlist.id.isNotEmpty()) {
+            if (playlistId?.isNotEmpty() == true) {
                 ListMenuItem(
                     icon = R.drawable.playlist_play,
                     title = R.string.view_playlist
                 ) {
-                    if (dbPlaylist?.playlist?.id != null) {
+                    if (dbPlaylistValue?.playlist?.id != null) {
                         navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
                     } else {
                         navController.navigate("online_playlist/${mediaMetadata.playlist.id}?author=${mediaMetadata.playlist.author}")

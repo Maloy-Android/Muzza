@@ -480,20 +480,18 @@ fun BottomSheetPlayer(
                             modifier =
                                 Modifier
                                     .basicMarquee()
-                                    .clickable {
-                                        val hasAlbum = mediaMetadata.album != null
-                                        val hasPlaylist = mediaMetadata.playlist?.id != null
+                                    .clickable(enabled = mediaMetadata.album != null && !mediaMetadata.isVideoSong || mediaMetadata.playlist?.id != null) {
                                         when {
-                                            hasAlbum && hasPlaylist -> {
+                                            mediaMetadata.album != null && mediaMetadata.playlist?.id != null -> {
                                                 showGoToAlbumPlaylistDialog = true
                                             }
 
-                                            hasAlbum && !mediaMetadata.isVideoSong -> {
+                                            mediaMetadata.album != null && !mediaMetadata.isVideoSong -> {
                                                 navController.navigate("album/${mediaMetadata.album.id}")
                                                 state.collapseSoft()
                                             }
 
-                                            hasPlaylist -> {
+                                            mediaMetadata.playlist?.id != null -> {
                                                 if (dbPlaylistValue?.playlist?.id != null) {
                                                     navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
                                                 } else {

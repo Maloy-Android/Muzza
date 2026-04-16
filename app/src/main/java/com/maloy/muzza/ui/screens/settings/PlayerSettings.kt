@@ -26,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -120,7 +121,7 @@ fun PlayerSettings(
             icon = { Icon(Icons.Rounded.Timer,null) },
             initialValue = crossfadeDuration.toFloat().toInt(),
             upperBound = 15,
-            lowerBound = 0,
+            lowerBound = 1,
             resetValue = 5,
             onDismiss = { showCrossfadeValueChange = false },
             onConfirm = {
@@ -168,7 +169,11 @@ fun PlayerSettings(
         )
         PreferenceEntry(
             icon = { Icon(Icons.Rounded.Timer, null) },
-            description = "$crossfadeDuration sec",
+            description = pluralStringResource(
+                R.plurals.seconds,
+                crossfadeDuration,
+                crossfadeDuration
+            ),
             title = { Text(stringResource(R.string.crossfade_duration)) },
             onClick = { showCrossfadeValueChange = true },
             isEnabled = crossfadeEnabled

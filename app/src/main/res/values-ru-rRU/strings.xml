@@ -445,6 +445,10 @@
     <string name="enable_proxy">Включить прокси</string>
     <string name="proxy_type">Тип прокси</string>
     <string name="proxy_url">URL прокси</string>
+    <string name="config_proxy">Настройте прокси</string>
+    <string name="proxy_username">Имя пользователя прокси</string>
+    <string name="proxy_password">Пароль от прокси</string>
+    <string name="enable_authentication">Включить аутентификацию</string>
     <string name="restart_to_take_effect">Перезапуск приложения</string>
     <string name="app_language">Язык приложения</string>
     <string name="configure_app_language">Выбрать язык приложения</string>

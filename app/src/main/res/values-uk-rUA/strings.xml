@@ -438,6 +438,10 @@
     <string name="enable_proxy">Увімкнути проксі</string>
     <string name="proxy_type">Тип проксі</string>
     <string name="proxy_url">URL проксі</string>
+    <string name="config_proxy">Налаштуйте проксі</string>
+    <string name="proxy_username">Ім\'я користувача проксі</string>
+    <string name="proxy_password">Пароль від проксі</string>
+    <string name="enable_authentication">Увімкнути автентифікацію</string>
     <string name="restart_to_take_effect">Перезапуск програми</string>
     <string name="app_language">Мова додатки</string>
     <string name="configure_app_language">Вибрати мову додатки</string>

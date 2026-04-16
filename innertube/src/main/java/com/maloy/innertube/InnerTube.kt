@@ -46,6 +46,8 @@ class InnerTube {
             httpClient = createClient()
         }
 
+    var proxyAuth: String? = null
+
     var useLoginForBrowse: Boolean = false
 
     private fun createClient() = HttpClient(OkHttp) {
@@ -64,9 +66,16 @@ class InnerTube {
             deflate(0.8F)
         }
 
-        if (proxy != null) {
-            engine {
-                proxy = this@InnerTube.proxy
+        engine {
+            proxy = this@InnerTube.proxy
+            proxyAuth?.let {
+                config {
+                    proxyAuthenticator { _, response ->
+                        response.request.newBuilder()
+                            .header("Proxy-Authorization", proxyAuth!!)
+                            .build()
+                    }
+                }
             }
         }
 

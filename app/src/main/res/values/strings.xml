@@ -317,6 +317,10 @@
     <string name="theme">Themes and colors</string>
     <string name="theme_description">Customize your app theme and colors</string>
     <string name="proxy">Proxy</string>
+    <string name="config_proxy">Configure proxy</string>
+    <string name="proxy_username">Proxy username</string>
+    <string name="proxy_password">Proxy password</string>
+    <string name="enable_authentication">Enable authentication</string>
     <string name="enable_dynamic_theme">Enable dynamic theme</string>
     <string name="dark_theme">Dark theme</string>
     <string name="dark_theme_on">On</string>

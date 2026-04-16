@@ -20,8 +20,10 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LanguageCodeToName
 import com.maloy.muzza.constants.MaxImageCacheSizeKey
 import com.maloy.muzza.constants.ProxyEnabledKey
+import com.maloy.muzza.constants.ProxyPasswordKey
 import com.maloy.muzza.constants.ProxyTypeKey
 import com.maloy.muzza.constants.ProxyUrlKey
+import com.maloy.muzza.constants.ProxyUsernameKey
 import com.maloy.muzza.constants.SYSTEM_DEFAULT
 import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.extensions.toEnum
@@ -35,8 +37,11 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import okhttp3.Credentials
 import timber.log.Timber
 import java.lang.Double.min
+import java.net.Authenticator
+import java.net.PasswordAuthentication
 import java.net.Proxy
 import java.util.Locale
 
@@ -63,6 +68,23 @@ class App : Application(), ImageLoaderFactory {
         }
 
         if (dataStore[ProxyEnabledKey] == true) {
+            if (dataStore[ProxyUsernameKey] != "" || dataStore[ProxyPasswordKey] != "") {
+                if (dataStore[ProxyTypeKey].toEnum(defaultValue = Proxy.Type.HTTP) == Proxy.Type.HTTP) {
+                    YouTube.proxyAuth = Credentials.basic(
+                        dataStore[ProxyUsernameKey] ?: "",
+                        dataStore[ProxyPasswordKey] ?: ""
+                    )
+                } else {
+                    val authenticator = object : Authenticator() {
+                        override fun getPasswordAuthentication() =
+                            PasswordAuthentication(
+                                dataStore[ProxyUsernameKey] ?: "",
+                                (dataStore[ProxyPasswordKey] ?: "").toCharArray()
+                            )
+                    }
+                    Authenticator.setDefault(authenticator)
+                }
+            }
             try {
                 YouTube.proxy = Proxy(
                     dataStore[ProxyTypeKey].toEnum(defaultValue = Proxy.Type.HTTP),

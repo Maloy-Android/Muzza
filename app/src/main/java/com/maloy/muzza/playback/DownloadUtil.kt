@@ -55,9 +55,14 @@ class DownloadUtil @Inject constructor(
                 OkHttpDataSource.Factory(
                     OkHttpClient.Builder()
                         .proxy(YouTube.proxy)
-                        .build()
-                )
-            )
+                        .proxyAuthenticator { _, response ->
+                            response.request.newBuilder()
+                                .header("Proxy-Authorization", YouTube.proxyAuth!!)
+                                .build()
+                        }
+                        .build(),
+                ),
+            ),
     ) { dataSpec ->
         val mediaId = dataSpec.key ?: error("No media id")
         val length = if (dataSpec.length >= 0) dataSpec.length else 1

@@ -55,7 +55,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Lagu yang disukai</string>
     <string name="downloaded_songs">Lagu yang diunduh</string>
-    <string name="playlist_is_empty">The playlist is empty</string>
+    <string name="playlist_is_empty">The playlist \"%s\" is empty</string>
 
     <!-- Button -->
     <string name="retry">Mencoba kembali</string>

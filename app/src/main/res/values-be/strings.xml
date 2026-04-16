@@ -58,7 +58,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Упадабаныя кампазіцыi</string>
     <string name="downloaded_songs">Спампаваныя кампазіцыі</string>
-    <string name="playlist_is_empty">Плай-ліст пусты</string>
+    <string name="playlist_is_empty">Плай-ліст \"%s\" пусты</string>
 
     <!-- Button -->
     <string name="retry">Паўтарыць</string>

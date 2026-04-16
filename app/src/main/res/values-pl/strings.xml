@@ -52,7 +52,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Polubione utwory</string>
     <string name="downloaded_songs">Pobrane utwory</string>
-    <string name="playlist_is_empty">Playlista jest pusta</string>
+    <string name="playlist_is_empty">Playlista \"%s\" jest pusta</string>
     <!-- Button -->
     <string name="retry">Spróbuj ponownie</string>
     <string name="radio">Radio</string>

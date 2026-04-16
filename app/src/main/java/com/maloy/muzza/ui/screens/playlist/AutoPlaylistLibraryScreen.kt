@@ -262,8 +262,8 @@ fun AutoPlaylistLibraryScreen(
             if (filteredSongs.isEmpty() && !isSearching) {
                 item {
                     EmptyPlaceholder(
-                        icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty)
+                        icon = R.drawable.library_music,
+                        text = stringResource(R.string.playlist_is_empty,libraryMusicPlaylist.title)
                     )
                 }
             }

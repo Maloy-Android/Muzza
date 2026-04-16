@@ -58,7 +58,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Oblíbené skladby</string>
     <string name="downloaded_songs">Stažené skladby</string>
-    <string name="playlist_is_empty">Playlist je prázdný</string>
+    <string name="playlist_is_empty">Playlist \"%s\" je prázdný</string>
 
     <!-- Button -->
     <string name="retry">Zkusit znovu</string>

@@ -436,8 +436,8 @@ fun LocalPlaylistScreen(
                 if (playlist.songCount == 0) {
                     item {
                         EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty),
+                            icon = R.drawable.queue_music,
+                            text = stringResource(R.string.playlist_is_empty,playlist.playlist.name),
                             modifier = Modifier.animateItem()
                         )
                     }

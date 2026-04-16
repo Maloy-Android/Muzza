@@ -51,7 +51,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Brani piaciuti</string>
     <string name="downloaded_songs">Brani scaricati</string>
-    <string name="playlist_is_empty">La playlist è vuota</string>
+    <string name="playlist_is_empty">La playlist \"%s\" è vuota</string>
     <!-- Button -->
     <string name="retry">Riprova</string>
     <string name="radio">Radio</string>

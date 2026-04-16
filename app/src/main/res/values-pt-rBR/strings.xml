@@ -71,7 +71,7 @@
 <!--  Playlist  -->
 <string name="liked_songs">Músicas curtidas</string>
 <string name="downloaded_songs">Músicas baixadas</string>
-<string name="playlist_is_empty">Esta playlist está vazia</string>
+<string name="playlist_is_empty">Esta playlist \"%s\" está vazia</string>
 <!--  Button  -->
 <string name="retry">Tentar novamente</string>
 <string name="radio">Rádio</string>

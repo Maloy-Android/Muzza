@@ -56,7 +56,7 @@
     <!-- Playlist -->
     <string name="liked_songs">Liked songs</string>
     <string name="downloaded_songs">Downloaded songs</string>
-    <string name="playlist_is_empty">The playlist is empty</string>
+    <string name="playlist_is_empty">The playlist \"%s\" is empty</string>
 
     <!-- Button -->
     <string name="retry">Försök igen</string>

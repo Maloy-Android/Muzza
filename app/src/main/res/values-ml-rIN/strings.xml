@@ -56,7 +56,7 @@
     <!-- Playlist -->
     <string name="liked_songs">ഇഷ്ടപ്പെട്ട പാട്ടുകൾ</string>
     <string name="downloaded_songs">ഡൗൺലോഡ് ചെയ്‌ത പാട്ടുകൾ</string>
-    <string name="playlist_is_empty">The playlist is empty</string>
+    <string name="playlist_is_empty">The playlist \"%s\" is empty</string>
 
     <!-- Button -->
     <string name="retry">വീണ്ടും ശ്രമിക്കുക</string>

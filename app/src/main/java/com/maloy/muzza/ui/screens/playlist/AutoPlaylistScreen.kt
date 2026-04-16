@@ -129,6 +129,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.EmptyPlaceholderImage
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
@@ -407,9 +408,9 @@ fun AutoPlaylistScreen(
             if (songs != null) {
                 if (songs?.isEmpty() == true && !isSearching) {
                     item {
-                        EmptyPlaceholder(
-                            icon = R.drawable.music_note,
-                            text = stringResource(R.string.playlist_is_empty)
+                        EmptyPlaceholderImage(
+                            icon = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                            text = stringResource(R.string.playlist_is_empty, playlist)
                         )
                     }
                 } else {

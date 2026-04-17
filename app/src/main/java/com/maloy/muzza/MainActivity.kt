@@ -154,6 +154,8 @@ import com.maloy.muzza.ui.screens.Screens
 import com.maloy.muzza.ui.screens.navigationBuilder
 import com.maloy.muzza.ui.screens.search.LocalSearchScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchScreen
+import com.maloy.muzza.ui.screens.settings.checkForUpdates
+import com.maloy.muzza.ui.screens.settings.isNewerVersion
 import com.maloy.muzza.ui.theme.ColorSaver
 import com.maloy.muzza.ui.theme.DefaultThemeColor
 import com.maloy.muzza.ui.theme.MuzzaTheme
@@ -301,6 +303,19 @@ class MainActivity : ComponentActivity() {
         updateLanguage(this, savedLanguage)
 
         setContent {
+
+            var showBadge by remember { mutableStateOf(false) }
+            var latestVersion by remember { mutableStateOf("") }
+            LaunchedEffect(Unit) {
+                val newVersion = checkForUpdates()
+                if (newVersion != null && isNewerVersion(newVersion, BuildConfig.VERSION_NAME)) {
+                    showBadge = true
+                    latestVersion = newVersion
+                } else {
+                    showBadge = false
+                }
+            }
+
             LaunchedEffect(Unit) {
                 if (System.currentTimeMillis() - Updater.lastCheckTime > 1.days.inWholeMilliseconds) {
                     Updater.getLatestVersionName().onSuccess {
@@ -846,7 +861,7 @@ class MainActivity : ComponentActivity() {
                                                     leadingIcon = {
                                                         BadgedBox(
                                                             badge = {
-                                                                if (latestVersionName != BuildConfig.VERSION_NAME) {
+                                                                if (showBadge) {
                                                                     Badge()
                                                                 }
                                                             }

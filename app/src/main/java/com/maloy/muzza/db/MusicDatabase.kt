@@ -82,7 +82,8 @@ class MusicDatabase(
         AutoMigration(from = 16, to = 17, spec = Migration16To17::class),
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19, spec = Migration18To19::class),
-        AutoMigration(from = 19, to = 20, spec = Migration19To20::class)
+        AutoMigration(from = 19, to = 20, spec = Migration19To20::class),
+        AutoMigration(from = 20, to = 21)
     ]
 )
 @TypeConverters(Converters::class)
@@ -97,6 +98,7 @@ abstract class InternalDatabase : RoomDatabase() {
                 delegate = Room.databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_19_20)
+                    .addMigrations(MIGRATION_20_21)
                     .build()
             )
     }
@@ -450,5 +452,11 @@ class Migration19To20: AutoMigrationSpec {
         if (!columnExists) {
             db.execSQL("ALTER TABLE lyrics ADD COLUMN provider TEXT NOT NULL DEFAULT 'Unknown'")
         }
+    }
+}
+
+val MIGRATION_20_21 = object : Migration(20, 21) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE song ADD COLUMN explicit INTEGER NOT NULL DEFAULT 0")
     }
 }

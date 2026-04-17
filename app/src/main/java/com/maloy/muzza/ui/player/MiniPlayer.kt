@@ -408,19 +408,35 @@ fun MiniMediaInfo(
                     modifier = Modifier.basicMarquee(),
                 )
             }
-            AnimatedContent(
-                targetState = mediaMetadata.artists.joinToString { it.name },
-                transitionSpec = { fadeIn() togetherWith fadeOut() },
-                label = "",
-            ) { artists ->
-                Text(
-                    text = artists,
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 12.sp,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.basicMarquee(),
-                )
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (mediaMetadata.explicit) {
+                    Icon(
+                        painter = painterResource(R.drawable.explicit),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .size(20.dp)
+                            .padding(end = 4.dp),
+                        tint = MaterialTheme.colorScheme.secondary
+                    )
+                }
+
+                AnimatedContent(
+                    targetState = mediaMetadata.artists.joinToString { it.name },
+                    transitionSpec = { fadeIn() togetherWith fadeOut() },
+                    label = "",
+                ) { artists ->
+                    Text(
+                        text = artists,
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontSize = 12.sp,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.basicMarquee(),
+                    )
+                }
             }
         }
     }

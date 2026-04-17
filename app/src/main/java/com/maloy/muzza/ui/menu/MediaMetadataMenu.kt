@@ -149,7 +149,17 @@ fun MediaMetadataMenu(
 
     MediaMetadataListItem(
         mediaMetadata = mediaMetadata,
-        badges = {},
+        badges = {
+            if (mediaMetadata.explicit) {
+                Icon(
+                    painter = painterResource(R.drawable.explicit),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .padding(end = 2.dp)
+                )
+            }
+        },
         trailingContent = {
             val song by database.song(mediaMetadata.id).collectAsState(initial = null)
 

@@ -51,7 +51,8 @@ data class MediaMetadata(
         albumName = album?.title,
         isLocal = isLocal,
         localPath = localPath,
-        isVideoSong = isVideoSong
+        isVideoSong = isVideoSong,
+        explicit = explicit
     )
 }
 
@@ -80,7 +81,8 @@ fun Song.toMediaMetadata() = MediaMetadata(
     },
     isLocal = song.isLocal,
     localPath = song.localPath,
-    isVideoSong = song.isVideoSong
+    isVideoSong = song.isVideoSong,
+    explicit = song.explicit
 )
 
 fun SongItem.toMediaMetadata() = MediaMetadata(

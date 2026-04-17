@@ -33,12 +33,15 @@ data class SongEntity(
     val inLibrary: LocalDateTime? = null,
     val dateDownload: LocalDateTime? = null,
     val artistName: String? = null,
-    @ColumnInfo(name = "isLocal", defaultValue = "false") val isLocal: Boolean = false,
+    @ColumnInfo(name = "isLocal", defaultValue = "false")
+    val isLocal: Boolean = false,
     val localPath: String?,
     @ColumnInfo(name = "contentUri") 
     val contentUri: String? = null,
     @ColumnInfo(name = "isVideoSong", defaultValue = "false")
     val isVideoSong: Boolean = false,
+    @ColumnInfo(name = "explicit", defaultValue = "false")
+    val explicit: Boolean = false
 ) {
 
     val isLocalSong: Boolean

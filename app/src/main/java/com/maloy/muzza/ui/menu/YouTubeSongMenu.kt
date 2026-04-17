@@ -71,6 +71,7 @@ import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListItem
+import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import kotlinx.coroutines.Dispatchers
@@ -168,22 +169,18 @@ fun YouTubeSongMenu(
         }
     }
 
-    ListItem(
-        title = song.title,
-        subtitle = joinByBullet(
-            song.artists.joinToString { it.name },
-            song.duration?.let { makeTimeString(it * 1000L) }
-        ),
-        thumbnailContent = {
-            AsyncImage(
-                model = song.thumbnail,
-                contentScale = ContentScale.Crop,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(ListThumbnailSize)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                    .aspectRatio(1f)
-            )
+    YouTubeListItem(
+        item = song,
+        badges = {
+            if (song.explicit) {
+                Icon(
+                    painter = painterResource(R.drawable.explicit),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .padding(end = 2.dp)
+                )
+            }
         },
         trailingContent = {
             IconButton(

@@ -209,7 +209,17 @@ fun SongMenu(
         song = song,
         showLikedIcon = false,
         isSwipeable = false,
-        badges = {},
+        badges = {
+            if (song.song.explicit) {
+                Icon(
+                    painter = painterResource(R.drawable.explicit),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .padding(end = 2.dp)
+                )
+            }
+        },
         trailingContent = {
             IconButton(
                 onClick = {

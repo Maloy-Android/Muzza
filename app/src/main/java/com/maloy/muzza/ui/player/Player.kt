@@ -507,6 +507,15 @@ fun BottomSheetPlayer(
                     Row(
                         modifier = Modifier.offset(y = 25.dp)
                     ) {
+                        if (mediaMetadata.explicit) {
+                            Icon(
+                                painter = painterResource(R.drawable.explicit),
+                                contentDescription = null,
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .padding(end = 1.dp)
+                            )
+                        }
                         mediaMetadata.artists.fastForEachIndexed { index, artist ->
                             AnimatedContent(
                                 targetState = artist.name,

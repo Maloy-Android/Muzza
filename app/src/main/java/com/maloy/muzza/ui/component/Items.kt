@@ -318,6 +318,9 @@ fun SongListItem(
     showDownloadIcon: Boolean = true,
     isSwipeable: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
+        if (song.song.explicit) {
+            Icon.Explicit()
+        }
         if (song.song.isLocal) {
             Icon.LocalSong()
         }
@@ -545,6 +548,9 @@ fun SongGridItem(
     badges: @Composable RowScope.() -> Unit = {
         if (song.song.isLocal) {
             Icon.LocalSong()
+        }
+        if (song.song.explicit) {
+            Icon.Explicit()
         }
         if (showLikedIcon && song.song.liked) {
             Icon.Favorite()
@@ -1225,6 +1231,10 @@ fun MediaMetadataListItem(
         val database = LocalDatabase.current
         val song by database.song(mediaMetadata.id).collectAsState(initial = null)
 
+        if (song?.song?.explicit == true) {
+            Icon.Explicit()
+        }
+
         if (song?.song?.liked == true) {
             Icon.Favorite()
         }
@@ -1750,7 +1760,7 @@ fun YouTubeListItem(
         val album by database.album(item.id).collectAsState(initial = null)
         val playlist by database.playlist(item.id).collectAsState(initial = null)
 
-        if (item.explicit) {
+        if (item.explicit || item is SongItem && song?.song?.explicit == true) {
             Icon.Explicit()
         }
         if (item is SongItem && song?.song?.liked == true ||
@@ -1951,7 +1961,7 @@ fun YouTubeGridItem(
         val album by database.album(item.id).collectAsState(initial = null)
         val playlist by database.playlist(item.id).collectAsState(initial = null)
 
-        if (item.explicit) {
+        if (item.explicit || item is SongItem && song?.song?.explicit == true) {
             Icon.Explicit()
         }
         if (item is SongItem && song?.song?.liked == true ||

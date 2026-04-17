@@ -57,7 +57,6 @@ import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
-import androidx.compose.runtime.Composable
 import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -184,8 +183,6 @@ import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import java.net.URLDecoder
 import javax.inject.Inject
-import org.json.JSONObject
-import java.net.URL
 import java.util.Locale
 import kotlin.time.Duration.Companion.days
 
@@ -802,7 +799,7 @@ class MainActivity : ComponentActivity() {
                                         content = {
                                             BadgedBox(
                                                 badge = {
-                                                    if (latestVersionName != BuildConfig.VERSION_NAME) {
+                                                    if (showBadge) {
                                                         Badge()
                                                     }
                                                 }
@@ -980,10 +977,26 @@ class MainActivity : ComponentActivity() {
                                             )
                                         }
                                     } else if (navBackStackEntry?.destination?.route in topLevelScreens) {
-                                        SettingsIconWithUpdateBadge(
-                                            currentVersion = BuildConfig.VERSION_NAME,
-                                            onSettingsClick = { navController.navigate("settings") }
-                                        )
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier
+                                                .size(48.dp)
+                                                .clip(CircleShape)
+                                                .clickable(onClick = { navController.navigate("settings") })
+                                        ) {
+                                            BadgedBox(
+                                                badge = {
+                                                    if (showBadge) {
+                                                        Badge()
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.settings),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
                                     }
                                 },
                                 modifier =
@@ -1192,63 +1205,3 @@ val LocalSnackbarHostState =
     staticCompositionLocalOf<SnackbarHostState> { error("No SnackbarHostState provided") }
 
 val LocalListenTogetherManager = staticCompositionLocalOf<com.maloy.muzza.listentogether.ListenTogetherManager?> { null }
-
-@Composable
-fun SettingsIconWithUpdateBadge(
-    currentVersion: String,
-    onSettingsClick: () -> Unit
-) {
-    var showUpdateBadge by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        val latestVersion = checkForUpdates()
-        if (latestVersion != null) {
-            showUpdateBadge = isNewerVersion(latestVersion, currentVersion)
-        }
-    }
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(48.dp)
-            .clip(CircleShape)
-            .clickable(onClick = onSettingsClick)
-    ) {
-        BadgedBox(
-            badge = {
-                if (showUpdateBadge) {
-                    Badge()
-                }
-            }
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.settings),
-                contentDescription = "Configuración"
-            )
-        }
-    }
-}
-
-suspend fun checkForUpdates(): String? = withContext(Dispatchers.IO) {
-    try {
-        val url = URL("https://api.github.com/repos/Maloy-Android/Muzza/releases/latest")
-        val connection = url.openConnection()
-        connection.connect()
-        val json = connection.getInputStream().bufferedReader().use { it.readText() }
-        val jsonObject = JSONObject(json)
-        return@withContext jsonObject.getString("tag_name")
-    } catch (e: Exception) {
-        e.printStackTrace()
-        return@withContext null
-    }
-}
-
-fun isNewerVersion(remoteVersion: String, currentVersion: String): Boolean {
-    val remote = remoteVersion.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
-    val current = currentVersion.removePrefix("v").split(".").map { it.toIntOrNull() ?: 0 }
-    for (i in 0 until maxOf(remote.size, current.size)) {
-        val r = remote.getOrNull(i) ?: 0
-        val c = current.getOrNull(i) ?: 0
-        if (r > c) return true
-        if (r < c) return false
-    }
-    return false
-}

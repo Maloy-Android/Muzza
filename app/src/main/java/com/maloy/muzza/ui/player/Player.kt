@@ -818,7 +818,7 @@ fun BottomSheetPlayer(
                         }
                     } else {
                         FilledTonalIconButton(
-                            onClick = { playerConnection.toggleMute() },
+                            onClick = { playerConnection.isMuted },
                             modifier = Modifier.size(72.dp),
                             colors = IconButtonDefaults.filledTonalIconButtonColors(
                                 containerColor = MaterialTheme.colorScheme.primaryContainer,

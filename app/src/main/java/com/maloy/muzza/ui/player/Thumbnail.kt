@@ -159,24 +159,6 @@ fun Thumbnail(
                     if (!offsetX.isRunning) offsetX.snapTo(0f)
                 }
 
-                val onCoverClick = {
-                    when {
-                        playbackState == STATE_ENDED -> {
-                            playerConnection.player.seekTo(0, 0)
-                            playerConnection.player.playWhenReady = true
-                        }
-                        playerStyle == PlayerStyle.OLD && showLyricsOnClick -> {
-                            showLyrics = !showLyrics
-                        }
-                        isGuest -> {
-                            playerConnection.toggleMute()
-                        }
-                        else -> {
-                            playerConnection.player.togglePlayPause()
-                        }
-                    }
-                }
-
                 val renderCover: @Composable (MediaMetadata, Float) -> Unit = { metadata, xOffset ->
                     val coverModifier = Modifier
                         .fillMaxWidth()
@@ -188,7 +170,23 @@ fun Thumbnail(
                             scaleY = thumbnailScale
                         }
                         .clip(RoundedCornerShape(thumbnailCornerRadiusV2 * 2))
-                        .clickable(onClick = onCoverClick)
+                        .clickable(onClick = {
+                            when {
+                                playbackState == STATE_ENDED -> {
+                                    playerConnection.player.seekTo(0, 0)
+                                    playerConnection.player.playWhenReady = true
+                                }
+                                playerStyle == PlayerStyle.OLD && showLyricsOnClick -> {
+                                    showLyrics = !showLyrics
+                                }
+                                isGuest -> {
+                                    playerConnection.isMuted
+                                }
+                                else -> {
+                                    playerConnection.player.togglePlayPause()
+                                }
+                            }
+                        })
 
                     if (metadata.isLocal) {
                         AsyncLocalImage(

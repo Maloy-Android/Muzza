@@ -95,6 +95,9 @@ class PlayerConnection(
     val error = MutableStateFlow<PlaybackException?>(null)
 
     val isMuted = service.isMuted
+    fun setMuted(muted: Boolean) {
+        service.setMuted(muted)
+    }
 
     var shouldBlockPlaybackChanges: (() -> Boolean)? = null
 
@@ -156,10 +159,6 @@ class PlayerConnection(
             return
         }
         service.addToQueue(items)
-    }
-
-    fun toggleMute() {
-        service.toggleMute()
     }
 
     fun toggleLike() {

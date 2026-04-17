@@ -170,6 +170,7 @@ dependencies {
     implementation(projects.lrclib)
     implementation(projects.simpmusic)
     implementation(projects.kizzy)
+    implementation(project(":proto"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
@@ -190,4 +191,14 @@ dependencies {
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)
+
+    implementation(libs.lifecycle.process)
+    implementation(libs.protobuf.javalite)
+
+    configurations.all {
+        resolutionStrategy {
+            force("com.google.protobuf:protobuf-javalite:${libs.versions.protobuf.get()}")
+        }
+        exclude(group = "com.google.protobuf", module = "protobuf-java")
+    }
 }

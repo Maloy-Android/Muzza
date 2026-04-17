@@ -16,6 +16,7 @@ ktor = "3.1.2"
 ksp = "2.1.0-1.0.29"
 kotlinVersion = "2.0.20"
 cardview = "1.0.0"
+protobuf = "4.34.1"
 
 [libraries]
 lazycolumnscrollbar = { group = "com.github.nanihadesuka", name = "LazyColumnScrollbar", version.ref = "lazycolumnscrollbar" }
@@ -96,6 +97,11 @@ mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version 
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
 newpipe-extractor = { module = "com.github.mostafaalagamy:MetrolistExtractor", version.ref = "extractor" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
+
+protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }
+protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf" }
+
+lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

@@ -206,8 +206,9 @@ class MusicService : MediaLibraryService(),
 
     val isMuted = MutableStateFlow(false)
 
-    fun toggleMute() {
-        isMuted.value = !isMuted.value
+    fun setMuted(muted: Boolean) {
+        isMuted.value = muted
+        applyEffectiveVolume()
     }
 
     lateinit var sleepTimer: SleepTimer

@@ -121,6 +121,7 @@ import com.maloy.muzza.constants.DisableScreenshotKey
 import com.maloy.muzza.constants.DynamicThemeKey
 import com.maloy.muzza.constants.FirstSetupPassed
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.ListenTogetherUsernameKey
 import com.maloy.muzza.constants.MiniPlayerHeight
 import com.maloy.muzza.constants.NavigationBarAnimationSpec
 import com.maloy.muzza.constants.NavigationBarHeight
@@ -200,11 +201,13 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var listenTogetherManager: com.maloy.muzza.listentogether.ListenTogetherManager
 
-    private var playerConnection by mutableStateOf<PlayerConnection?>(null)
+    private var playerConnection: PlayerConnection? = null
+    private var playerConnectionSnapshot by mutableStateOf<PlayerConnection?>(null)
     private val serviceConnection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
             if (service is MusicBinder) {
                 playerConnection = PlayerConnection(this@MainActivity, service, database, lifecycleScope)
+                playerConnectionSnapshot = playerConnection
                 listenTogetherManager.setPlayerConnection(playerConnection)
             }
         }
@@ -251,7 +254,7 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        unbindService(serviceConnection)
+        listenTogetherManager.setPlayerConnection(null)
         super.onStop()
     }
 
@@ -265,6 +268,7 @@ class MainActivity : ComponentActivity() {
             stopService(Intent(this, MusicService::class.java))
             unbindService(serviceConnection)
             playerConnection = null
+            playerConnectionSnapshot = null
         }
     }
 
@@ -614,6 +618,15 @@ class MainActivity : ComponentActivity() {
                             val uri =
                                 intent.data ?: intent.extras?.getString(Intent.EXTRA_TEXT)?.toUri()
                                 ?: return@Consumer
+                            val listenCode = uri.getQueryParameter("code")
+                                ?: uri.getQueryParameter("room")
+                                ?: uri.pathSegments.getOrNull(1)
+                            val isListenLink = uri.pathSegments.firstOrNull() == "listen" || uri.host?.equals("listen", ignoreCase = true) == true
+                            if (!listenCode.isNullOrBlank() && isListenLink) {
+                                val username = dataStore.get(ListenTogetherUsernameKey, "").ifBlank { "Guest" }
+                                listenTogetherManager.joinRoom(listenCode, username)
+                                return@Consumer
+                            }
                             when (val path = uri.pathSegments.firstOrNull()) {
                                 "playlist" -> uri.getQueryParameter("list")?.let { playlistId ->
                                     if (playlistId.startsWith("OLAK5uy_")) {

@@ -207,7 +207,7 @@ fun MiniPlayer(
                     }
                 } else {
                     IconButton(
-                        onClick = { playerConnection.toggleMute() },
+                        onClick = { playerConnection.isMuted },
                     ) {
                         Icon(
                             imageVector =
@@ -302,7 +302,7 @@ fun MiniPlayer(
                     }
                 } else {
                     IconButton(
-                        onClick = { playerConnection.toggleMute() },
+                        onClick = { playerConnection.isMuted },
                     ) {
                         Icon(
                             imageVector =

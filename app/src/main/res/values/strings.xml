@@ -587,6 +587,13 @@ DO NOT PANIC IF IT LOOKS STUCK; sometimes retrieval may take some time.</string>
     <string name="listen_together_create_room_desc">Create a room and share the code with your friends</string>
     <string name="listen_together_join_requests">Join requests</string>
     <string name="listen_together_username">Username</string>
+    <string name="listen_together_auto_approval_joins">Auto-approve join requests</string>
+    <string name="listen_together_auto_approval_joins_desc">Automatically approve join requests without reviewing them manually</string>
+    <string name="listen_together_auto_approval_suggestions">Auto-approve song suggestions</string>
+    <string name="listen_together_auto_approval_suggestions_desc">Automatically approve and queue song suggestions from guests</string>
+    <string name="listen_together_sync_volume">Sync host volume</string>
+    <string name="listen_together_sync_volume_desc">Guests will match the host\'s volume level</string>
+    <string name="listen_together_not_configured">Listen Together is not set up. Please configure the server URL in: Listen Together &gt; Settings &gt; Server URL</string>
     <string name="listen_together_connected">Connected</string>
     <string name="listen_together_connecting">Connecting…</string>
     <string name="listen_together_reconnecting">Reconnecting…</string>

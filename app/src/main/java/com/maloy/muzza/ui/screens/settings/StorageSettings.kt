@@ -443,7 +443,7 @@ private fun StorageProgressCard(
                 Spacer(modifier = Modifier.width(16.dp))
                 Column {
                     Text(
-                        text = "${(usedSpace.toFloat() / totalSpace * 100).toInt()}%" + stringResource(R.string.size_used),
+                        text = stringResource(R.string.size_used,"${(usedSpace.toFloat() / totalSpace * 100).toInt()}%"),
                         style = MaterialTheme.typography.titleMedium
                     )
                 }

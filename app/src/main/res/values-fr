@@ -451,7 +451,7 @@
     <string name="clear_image_cache">Vider le cache d'images</string>
     <string name="max_song_cache_size">Taille maximale du cache des chansons</string>
     <string name="clear_song_cache">Vider le cache des chansons</string>
-    <string name="size_used">utilisé</string>
+    <string name="size_used">\%s\ utilisé</string>
     <string name="clear_all_cache_dialog">Êtes-vous sûr de vouloir effacer tout le cache ?</string>
     <string name="clear_all_downloads_dialog">Êtes-vous sûr de vouloir effacer tous les téléchargements ?</string>
     <string name="clear_song_cache_dialog">Êtes-vous sûr de vouloir effacer toutes les chansons en cache ?</string>

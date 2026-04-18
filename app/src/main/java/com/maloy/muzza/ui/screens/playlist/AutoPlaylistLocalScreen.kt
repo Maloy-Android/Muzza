@@ -238,7 +238,7 @@ fun AutoPlaylistLocalScreen(
                 item {
                     EmptyPlaceholder(
                         icon = R.drawable.music_note,
-                        text = stringResource(R.string.playlist_is_empty,R.string.local)
+                        text = stringResource(R.string.playlist_is_empty,localPlaylist.playlist.name)
                     )
                 }
             }

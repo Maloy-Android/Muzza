@@ -233,12 +233,16 @@ fun NavGraphBuilder.navigationBuilder(
         TopPlaylistScreen(navController, scrollBehavior)
     }
     composable(
-        route = "browse/{browseId}?params={params}",
+        route = "browse/{browseId}?params={params}?title={title}",
         arguments = listOf(
             navArgument("browseId") {
                 type = NavType.StringType
             },
             navArgument("params") {
+                type = NavType.StringType
+                nullable = true
+            },
+            navArgument("title") {
                 type = NavType.StringType
                 nullable = true
             }

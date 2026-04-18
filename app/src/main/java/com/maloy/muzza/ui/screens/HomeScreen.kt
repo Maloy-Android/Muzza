@@ -817,10 +817,7 @@ fun HomeScreen(
                             {
                                 when {
                                     endpoint.params != null ->
-                                        navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}")
-
-                                    endpoint.browseId == "FEmusic_moods_and_genres" && endpoint.params != null ->
-                                        navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}")
+                                        navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${it.title}")
 
                                     else -> navController.navigate("mood_and_genres")
                                 }

@@ -20,7 +20,8 @@ class BrowseViewModel @Inject constructor(
     private val browseId: String? = savedStateHandle.get<String>("browseId")
 
     val items = MutableStateFlow<List<YTItem>?>(emptyList())
-    val title = MutableStateFlow<String?>("")
+    val title = MutableStateFlow<String?>(null)
+    val navTitle = savedStateHandle.get<String>("title")
     private val _isRefreshing = MutableStateFlow(false)
     private val params = savedStateHandle.get<String>("params")
     val isRefreshing = _isRefreshing.asStateFlow()
@@ -32,7 +33,7 @@ class BrowseViewModel @Inject constructor(
         viewModelScope.launch {
             browseId?.let {
                 YouTube.browse(browseId, params).onSuccess { result ->
-                    title.value = result.title
+                    title.value = navTitle
                     val allItems = result.items.flatMap { it.items }
                     items.value = allItems
                 }.onFailure {

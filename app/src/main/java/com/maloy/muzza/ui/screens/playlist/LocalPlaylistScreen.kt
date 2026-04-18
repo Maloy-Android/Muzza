@@ -593,6 +593,7 @@ fun LocalPlaylistScreen(
                             song = song.song,
                             isActive = song.song.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
+                            isSwipeable = !inSelectMode,
                             showInLibraryIcon = true,
                             trailingContent = {
                                 if (inSelectMode) {

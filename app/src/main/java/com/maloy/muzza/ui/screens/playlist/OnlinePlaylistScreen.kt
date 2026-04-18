@@ -811,6 +811,7 @@ fun OnlinePlaylistScreen(
                                 item = song,
                                 isActive = mediaMetadata?.id == song.id,
                                 isPlaying = isPlaying,
+                                isSwipeable = !inSelectMode,
                                 trailingContent = {
                                     if (inSelectMode) {
                                         Checkbox(

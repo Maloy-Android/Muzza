@@ -541,6 +541,7 @@ fun AutoPlaylistLibraryScreen(
                             song = songWrapper,
                             isActive = songWrapper.id == mediaMetadata?.id,
                             isPlaying = isPlaying,
+                            isSwipeable = !inSelectMode,
                             showLikedIcon = true,
                             showInLibraryIcon = true,
                             trailingContent = {

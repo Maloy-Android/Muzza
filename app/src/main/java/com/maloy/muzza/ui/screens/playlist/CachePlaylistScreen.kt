@@ -547,6 +547,7 @@ fun CachePlaylistScreen(
                             isPlaying = isPlaying,
                             showLikedIcon = true,
                             showInLibraryIcon = true,
+                            isSwipeable = !inSelectMode,
                             trailingContent = {
                                 if (inSelectMode) {
                                     Checkbox(

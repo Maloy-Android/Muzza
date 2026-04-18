@@ -591,6 +591,7 @@ fun TopPlaylistScreen(
                                 isActive = songWrapper.song.id == mediaMetadata?.id,
                                 showInLibraryIcon = true,
                                 isPlaying = isPlaying,
+                                isSwipeable = !inSelectMode,
                                 trailingContent = {
                                     if (inSelectMode) {
                                         Checkbox(

@@ -173,6 +173,7 @@ fun ArtistSongsScreen(
                     song = song,
                     isActive = song.id == mediaMetadata?.id,
                     isPlaying = isPlaying,
+                    isSwipeable = !inSelectMode,
                     trailingContent = {
                         if (inSelectMode) {
                             Checkbox(

@@ -267,6 +267,13 @@ fun Thumbnail(
             }
         }
 
+        var hasHandledError by remember { mutableStateOf(false) }
+        LaunchedEffect(error) {
+            if (error != null && !hasHandledError) {
+                hasHandledError = true
+                playerConnection.player.prepare()
+            }
+        }
         AnimatedVisibility(
             visible = showSeekEffect,
             enter = fadeIn(),

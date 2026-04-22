@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.maloy.innertube.YouTube.SearchFilter.Companion.FILTER_ALBUM
@@ -336,7 +337,7 @@ fun OnlineSearchResult(
         },
         modifier = Modifier
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Top))
-            .padding(top = AppBarHeight)
+            .padding(top = 60.dp)
             .background(MaterialTheme.colorScheme.surface)
             .fillMaxWidth()
     )

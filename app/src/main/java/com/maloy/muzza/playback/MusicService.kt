@@ -1163,11 +1163,25 @@ class MusicService : MediaLibraryService(),
         eventTime: AnalyticsListener.EventTime,
         playbackStats: PlaybackStats
     ) {
-        val mediaItem =
-            eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        val minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100)
-        if (playbackStats.totalPlayTimeMs.toFloat() / ((mediaItem.metadata?.duration?.times(1000))
-                ?: -1) >= minPlaybackDur
+        val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
+        val minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100).toFloat()
+        val crossfadeEnabled = dataStore.get(CrossfadeEnabledKey, true)
+        val crossFadeDuration = dataStore.get(CrossfadeDurationKey, 5).toFloat() / 15f
+
+        val durationMs = mediaItem.metadata?.duration?.times(1000) ?: -1
+        val playProgress = if (durationMs > 0) {
+            playbackStats.totalPlayTimeMs.toFloat() / durationMs
+        } else {
+            0f
+        }
+
+        val threshold = if (crossfadeEnabled) {
+            minPlaybackDur - crossFadeDuration
+        } else {
+            minPlaybackDur
+        }
+
+        if (playProgress >= threshold
             && !dataStore.get(PauseListenHistoryKey, false)
         ) {
             database.query {

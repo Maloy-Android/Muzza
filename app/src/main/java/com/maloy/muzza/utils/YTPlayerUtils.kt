@@ -5,6 +5,7 @@ import androidx.media3.common.PlaybackException
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YouTubeClient
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
+import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_NO_SDK
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
@@ -36,6 +37,7 @@ object YTPlayerUtils {
         ANDROID_VR_1_43_32,
         ANDROID_CREATOR,
         IPADOS,
+        ANDROID_NO_SDK,
         ANDROID_VR_NO_AUTH,
         MOBILE,
         TVHTML5,

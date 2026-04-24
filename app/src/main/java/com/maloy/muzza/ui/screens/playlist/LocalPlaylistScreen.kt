@@ -4,6 +4,7 @@ package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
@@ -138,7 +139,6 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -909,7 +909,6 @@ fun LocalPlaylistHeader(
     val database = LocalDatabase.current
     val syncUtils = LocalSyncUtils.current
     val scope = rememberCoroutineScope()
-    val menuState = LocalMenuState.current
 
     val playlistAuthors = playlist.playlist.playlistAuthors
 
@@ -1133,18 +1132,7 @@ fun LocalPlaylistHeader(
                 fontSizeRange = FontSizeRange(16.sp, 22.sp),
                 modifier = Modifier
                     .fillMaxWidth(0.8f)
-                    .clickable(
-                        onClick = {
-                            menuState.show {
-                                PlaylistMenu(
-                                    playlist = playlist,
-                                    coroutineScope = scope,
-                                    onDismiss = menuState::dismiss,
-                                    showDeleteButton = false
-                                )
-                            }
-                        }
-                    )
+                    .clickable(onClick = onShowEditDialog)
             )
             Spacer(Modifier.height(8.dp))
 
@@ -1309,18 +1297,6 @@ fun LocalPlaylistHeader(
                         )
                     }
                 }
-                Button(
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(4.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    onClick = onShowEditDialog
-                ) {
-                    Icon(
-                        painter = painterResource(R.drawable.edit),
-                        contentDescription = null
-                    )
-                }
                 if (playlist.playlist.browseId == null) {
                     Button(
                         modifier = Modifier
@@ -1335,6 +1311,35 @@ fun LocalPlaylistHeader(
                     ) {
                         Icon(
                             painter = painterResource(R.drawable.queue_music),
+                            contentDescription = null,
+                        )
+                    }
+                }
+                if (!playlist.playlist.isLocal) {
+                    Button(
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(4.dp)
+                            .clip(RoundedCornerShape(12.dp)),
+                        onClick = {
+                            val intent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "https://music.youtube.com/playlist?list=${playlist.playlist.id}"
+                                )
+                            }
+                            context.startActivity(
+                                Intent.createChooser(
+                                    intent,
+                                    null
+                                )
+                            )
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(R.drawable.share),
                             contentDescription = null,
                         )
                     }

@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.menu
 
+import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -362,34 +363,83 @@ fun PlaylistMenu(
                 )
             }
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        onDismiss()
-                        playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.queue_music),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.add_to_queue),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            if (playlist.playlist.isLocal) {
+                Column(
                     modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            playerConnection.addToQueue(songs.map {
+                                it.toMediaItemWithPlaylist(
+                                    playlist.id
+                                )
+                            })
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.queue_music),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.add_to_queue),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            val intent = Intent().apply {
+                                action = Intent.ACTION_SEND
+                                type = "text/plain"
+                                putExtra(
+                                    Intent.EXTRA_TEXT,
+                                    "https://music.youtube.com/playlist?list=${playlist.playlist.id}"
+                                )
+                            }
+                            context.startActivity(
+                                Intent.createChooser(
+                                    intent,
+                                    null
+                                )
+                            )
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.share),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.share),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
             }
         }
     }
@@ -403,6 +453,22 @@ fun PlaylistMenu(
         )
     ) {
         if (songs.isNotEmpty()) {
+            if (!playlist.playlist.isLocal) {
+                ListMenuItem(
+                    icon = R.drawable.queue_music,
+                    title = R.string.add_to_queue
+                ) {
+                    onDismiss()
+                    playerConnection.addToQueue(songs.map {
+                        it.toMediaItemWithPlaylist(
+                            playlist.id
+                        )
+                    })
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
             ListMenuItem(
                 icon = R.drawable.playlist_play,
                 title = R.string.play_next

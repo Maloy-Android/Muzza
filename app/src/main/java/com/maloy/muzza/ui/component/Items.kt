@@ -36,7 +36,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.SdCard
-import androidx.compose.material.icons.rounded.Videocam
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -322,9 +321,6 @@ fun SongListItem(
         if (song.song.explicit) {
             Icon.Explicit()
         }
-        if (song.song.isVideoSong) {
-            Icon.VideoSong()
-        }
         if (song.song.isLocal) {
             Icon.LocalSong()
         }
@@ -550,9 +546,6 @@ fun SongGridItem(
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
-        if (song.song.isVideoSong) {
-            Icon.VideoSong()
-        }
         if (song.song.isLocal) {
             Icon.LocalSong()
         }
@@ -1248,9 +1241,6 @@ fun MediaMetadataListItem(
         if (song?.song?.inLibrary != null) {
             Icon.Library()
         }
-        if (song?.song?.isVideoSong != null) {
-            Icon.VideoSong()
-        }
         if (song?.song?.isLocal == true) {
             Icon.LocalSong()
         }
@@ -1773,9 +1763,6 @@ fun YouTubeListItem(
         if (item.explicit || item is SongItem && song?.song?.explicit == true) {
             Icon.Explicit()
         }
-        if (item is SongItem && song?.song?.isVideoSong == true) {
-            Icon.VideoSong()
-        }
         if (item is SongItem && song?.song?.liked == true ||
             item is AlbumItem && album?.album?.bookmarkedAt != null ||
             item is PlaylistItem && showLikedIcon && playlist?.playlist?.bookmarkedAt != null
@@ -1973,10 +1960,6 @@ fun YouTubeGridItem(
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
         val playlist by database.playlist(item.id).collectAsState(initial = null)
-
-        if (item is SongItem && song?.song?.isVideoSong == true) {
-            Icon.VideoSong()
-        }
 
         if (item.explicit || item is SongItem && song?.song?.explicit == true) {
             Icon.Explicit()
@@ -2465,17 +2448,6 @@ private object Icon {
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)
-                .padding(end = 2.dp)
-        )
-    }
-
-    @Composable
-    fun VideoSong() {
-        Icon(
-            imageVector = Icons.Rounded.Videocam,
-            contentDescription = null,
-            modifier = Modifier
-                .size(22.dp)
                 .padding(end = 2.dp)
         )
     }

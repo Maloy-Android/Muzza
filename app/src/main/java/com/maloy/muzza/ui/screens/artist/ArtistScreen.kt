@@ -2,8 +2,10 @@ package com.maloy.muzza.ui.screens.artist
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -22,8 +25,13 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -74,7 +82,6 @@ import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
-import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -82,6 +89,7 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
@@ -106,6 +114,7 @@ import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubeArtistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
+import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.fadingEdge
 import com.maloy.muzza.ui.utils.resize
@@ -115,7 +124,7 @@ import com.valentinilk.shimmer.shimmer
 import kotlin.collections.contains
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun ArtistScreen(
     navController: NavController,
@@ -131,6 +140,8 @@ fun ArtistScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    val expandedSections by viewModel.expandedSections.collectAsState()
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
@@ -156,7 +167,7 @@ fun ArtistScreen(
         derivedStateOf {
             val isAtTop = lazyListState.firstVisibleItemIndex == 0
             val offset = lazyListState.firstVisibleItemScrollOffset
-            isAtTop && offset < 5
+            isAtTop && offset < 1
         }
     }
     val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -173,6 +184,17 @@ fun ArtistScreen(
                 onRefresh = viewModel::refresh
             ), contentAlignment = Alignment.TopStart
     ) {
+        val topArtistSongsLazyGridState = rememberLazyGridState()
+        val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
+        val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
+        val topArtistSongsSnapLayoutInfoProvider = remember(topArtistSongsLazyGridState) {
+            SnapLayoutInfoProvider(
+                lazyGridState = topArtistSongsLazyGridState,
+                positionInLayout = { layoutSize, itemSize ->
+                    (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
+                }
+            )
+        }
         LazyColumn(
             state = lazyListState,
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
@@ -459,118 +481,181 @@ fun ArtistScreen(
                         )
                     }
 
-                    items(
-                        items = librarySongs, key = { "local_${it.id}" }) { song ->
-                        SongListItem(
-                            song = song,
-                            showInLibraryIcon = true,
-                            isActive = song.id == mediaMetadata?.id,
-                            isPlaying = isPlaying,
-                            trailingContent = {
-                                IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            SongMenu(
-                                                originalSong = song,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    }) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
-                                    )
-                                }
-                            },
+                    item {
+                        LazyHorizontalGrid(
+                            state = topArtistSongsLazyGridState,
+                            rows = GridCells.Fixed(4),
+                            flingBehavior = rememberSnapFlingBehavior(
+                                topArtistSongsSnapLayoutInfoProvider
+                            ),
+                            contentPadding = WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues(),
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .combinedClickable(onClick = {
-                                    if (song.id == mediaMetadata?.id) {
-                                        playerConnection.player.togglePlayPause()
-                                    } else {
-                                        playerConnection.playQueue(
-                                            YouTubeQueue(
-                                                WatchEndpoint(
-                                                    videoId = song.id
-                                                ), song.toMediaMetadata()
+                                .height(ListItemHeight * 4)
+                                .animateItem()
+                        ) {
+                            items(
+                                items = librarySongs,
+                                key = { "local_${it.id}" }
+                            ) { song ->
+                                SongListItem(
+                                    song = song,
+                                    showInLibraryIcon = true,
+                                    isActive = song.id == mediaMetadata?.id,
+                                    isPlaying = isPlaying,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    SongMenu(
+                                                        originalSong = song,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            }) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
                                             )
-                                        )
-                                    }
-                                }, onLongClick = {
-                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                    menuState.show {
-                                        SongMenu(
-                                            originalSong = song,
-                                            navController = navController,
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
-                                })
-                                .animateItem())
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(onClick = {
+                                            if (song.id == mediaMetadata?.id) {
+                                                playerConnection.player.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        WatchEndpoint(
+                                                            videoId = song.id
+                                                        ), song.toMediaMetadata()
+                                                    )
+                                                )
+                                            }
+                                        }, onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                SongMenu(
+                                                    originalSong = song,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        })
+                                        .animateItem()
+                                )
+                            }
+                        }
                     }
                 }
 
                 artistPage.sections.fastForEach { section ->
-                    if (section.items.isNotEmpty()) {
+                    val browseId = section.moreEndpoint?.browseId
+                    val displayItems = expandedSections[browseId] ?: section.items
+                    val firstItem = displayItems.firstOrNull() as? SongItem
+                    if (displayItems.isNotEmpty()) {
                         item {
                             NavigationTitle(
                                 title = section.title,
                                 onClick = section.moreEndpoint?.let {
                                     { navController.navigate("artist/${viewModel.artistId}/items" + "?browseId=${it.browseId}" + "&params=${it.params}" + "&title=${section.title}") }
+                                },
+                                onPlayAllClickEnable = firstItem != null && !firstItem.isVideoSong,
+                                onPlayAllClick = {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = section.title,
+                                            items = displayItems.distinctBy { it.id }
+                                                .map { (it as SongItem).toMediaItem() }
+                                        )
+                                    )
                                 }
                             )
                         }
                     }
-
-                    if ((section.items.firstOrNull() as? SongItem)?.album != null) {
-                        items(
-                            items = section.items, key = { it.id }) { song ->
-                            YouTubeListItem(
-                                item = song as SongItem,
-                                isActive = mediaMetadata?.id == song.id,
-                                isPlaying = isPlaying,
-                                trailingContent = {
-                                    IconButton(
-                                        onClick = {
-                                            menuState.show {
-                                                YouTubeSongMenu(
-                                                    song = song,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
+                    if (firstItem != null && !firstItem.isVideoSong) {
+                        item {
+                            LazyHorizontalGrid(
+                                state = topArtistSongsLazyGridState,
+                                rows = GridCells.Fixed(4),
+                                flingBehavior = rememberSnapFlingBehavior(
+                                    topArtistSongsSnapLayoutInfoProvider
+                                ),
+                                contentPadding = WindowInsets.systemBars
+                                    .only(WindowInsetsSides.Horizontal)
+                                    .asPaddingValues(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(ListItemHeight * 4)
+                                    .animateItem()
+                            ) {
+                                items(
+                                    items = displayItems.take(20),
+                                    key = { it.id }
+                                ) { song ->
+                                    YouTubeListItem(
+                                        item = song as SongItem,
+                                        isActive = song.id == mediaMetadata?.id,
+                                        isPlaying = isPlaying,
+                                        isSwipeable = false,
+                                        trailingContent = {
+                                            IconButton(
+                                                onClick = {
+                                                    menuState.show {
+                                                        YouTubeSongMenu(
+                                                            song = song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                }
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.more_vert),
+                                                    contentDescription = null
                                                 )
                                             }
-                                        }) {
-                                        Icon(
-                                            painter = painterResource(R.drawable.more_vert),
-                                            contentDescription = null
-                                        )
-                                    }
-                                },
-                                modifier = Modifier
-                                    .combinedClickable(onClick = {
-                                        if (song.id == mediaMetadata?.id) {
-                                            playerConnection.player.togglePlayPause()
-                                        } else {
-                                            playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
-                                        }
-                                    }, onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            YouTubeSongMenu(
-                                                song = song,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    })
-                                    .animateItem())
+                                        },
+                                        modifier = Modifier
+                                            .width(horizontalLazyGridItemWidth)
+                                            .combinedClickable(
+                                                onClick = {
+                                                    if (song.id == mediaMetadata?.id) {
+                                                        playerConnection.player.togglePlayPause()
+                                                    } else {
+                                                        playerConnection.playQueue(
+                                                            YouTubeQueue.radio(
+                                                                song.toMediaMetadata()
+                                                            )
+                                                        )
+                                                    }
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        YouTubeSongMenu(
+                                                            song = song,
+                                                            navController = navController,
+                                                            onDismiss = menuState::dismiss
+                                                        )
+                                                    }
+                                                })
+                                            .animateItem()
+                                    )
+                                }
+                            }
                         }
                     } else {
                         item {
                             LazyRow {
                                 items(
-                                    items = section.items, key = { it.id }) { item ->
+                                    items = section.items,
+                                    key = { it.id }
+                                ) { item ->
                                     YouTubeGridItem(
                                         item = item,
                                         isActive = when (item) {
@@ -632,24 +717,24 @@ fun ArtistScreen(
             }
         }
         artistPage?.sections?.fastForEach { section ->
-            HideOnScrollFAB(
-                visible = (section.items.firstOrNull() as? SongItem)?.album != null,
-                lazyListState = lazyListState,
-                icon = R.drawable.play,
-                onClick = {
-                    artistPage.sections.find { section ->
-                        (section.items.firstOrNull() as? SongItem)?.album != null
-                    }.let { songs ->
+            val browseId = section.moreEndpoint?.browseId
+            val displayItems = expandedSections[browseId] ?: section.items
+            if (displayItems.isNotEmpty()) {
+                HideOnScrollFAB(
+                    visible = (section.items.firstOrNull() as? SongItem)?.album != null,
+                    lazyListState = lazyListState,
+                    icon = R.drawable.play,
+                    onClick = {
                         playerConnection.playQueue(
                             ListQueue(
                                 title = artistPage.artist.title,
-                                items = songs?.items?.filterIsInstance<SongItem>()
-                                    ?.map { it.toMediaItem() } ?: return@let
+                                items = displayItems.distinctBy { it.id }
+                                    .map { (it as SongItem).toMediaItem() }
                             )
                         )
                     }
-                }
-            )
+                )
+            }
         }
         if (artistPage != null) {
             Indicator(

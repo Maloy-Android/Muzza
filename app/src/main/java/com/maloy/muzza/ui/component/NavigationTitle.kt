@@ -38,6 +38,7 @@ fun NavigationTitle(
     thumbnail: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
     onPlayAllClick: (() -> Unit)? = null,
+    onPlayAllClickEnable: Boolean = true
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -74,22 +75,27 @@ fun NavigationTitle(
             )
         }
 
-        onPlayAllClick?.let { playAllClick ->
-            OutlinedButton(
-                onClick = playAllClick,
-                shape = RoundedCornerShape(12.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = MaterialTheme.colorScheme.primary
-                ),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
-                modifier = Modifier
-                    .height(24.dp)
-            ) {
-                Text(
-                    text = stringResource(R.string.play),
-                    style = MaterialTheme.typography.labelSmall
-                )
+        if (onPlayAllClickEnable) {
+            onPlayAllClick?.let { playAllClick ->
+                OutlinedButton(
+                    onClick = playAllClick,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
+                    ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 2.dp),
+                    modifier = Modifier
+                        .height(24.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.play),
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
             }
         }
 

@@ -8,6 +8,9 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.BrowseEndpoint
+import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.pages.ArtistPage
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.db.MusicDatabase
@@ -21,6 +24,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -32,6 +37,10 @@ class ArtistViewModel @Inject constructor(
 ) : ViewModel() {
     val artistId = savedStateHandle.get<String>("artistId")!!
     var artistPage by mutableStateOf<ArtistPage?>(null)
+
+    private val _expandedSections = MutableStateFlow<Map<String, List<SongItem>>>(emptyMap())
+    val expandedSections = _expandedSections.asStateFlow()
+
     val libraryArtist = database.artist(artistId)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
     val librarySongs = database.artistSongsPreview(artistId)
@@ -44,8 +53,38 @@ class ArtistViewModel @Inject constructor(
 
     private suspend fun load() {
         YouTube.artist(artistId)
-            .onSuccess {
-                artistPage = it.filterExplicit(context.dataStore.get(HideExplicitKey, false))
+            .onSuccess { page ->
+                val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+                val filteredPage = page.filterExplicit(hideExplicit)
+                val jobs = filteredPage.sections.mapNotNull { section ->
+                    section.moreEndpoint?.let { endpoint ->
+                        if (section.items.firstOrNull() is SongItem) {
+                            endpoint
+                        } else null
+                    }
+                }
+                if (jobs.isNotEmpty()) {
+                    val expandedResults = mutableMapOf<String, List<SongItem>>()
+                    kotlinx.coroutines.coroutineScope {
+                        jobs.map { endpoint ->
+                            launch(Dispatchers.IO) {
+                                YouTube.artistItems(BrowseEndpoint(endpoint.browseId, endpoint.params))
+                                    .onSuccess { artistItemsPage ->
+                                        val songs = artistItemsPage.items
+                                            .filterIsInstance<SongItem>()
+                                            .filterExplicit(hideExplicit)
+
+                                        synchronized(expandedResults) {
+                                            expandedResults[endpoint.browseId] = songs
+                                        }
+                                    }
+                            }
+                        }.joinAll()
+                    }
+                    _expandedSections.update { it + expandedResults }
+                }
+                artistPage = filteredPage
+
             }.onFailure {
                 reportException(it)
             }

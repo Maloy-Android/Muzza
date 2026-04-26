@@ -746,9 +746,9 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         else
             innerTube.unsubscribeChannel(WEB_REMIX, channelId)
     }
-    suspend fun getChannelId(browseId: String): String {
+    suspend fun getChannelId(browseId: String): String? {
         artist(browseId).onSuccess {
-            return it.artist.channelId!!
+            return it.artist.channelId
         }
         return ""
     }

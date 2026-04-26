@@ -13,6 +13,7 @@ sealed class YTItem {
 data class Artist(
     val name: String,
     val id: String?,
+    val isProfile: Boolean = false
 )
 
 data class Album(

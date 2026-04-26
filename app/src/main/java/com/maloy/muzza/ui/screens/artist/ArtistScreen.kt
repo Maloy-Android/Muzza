@@ -377,7 +377,7 @@ fun ArtistScreen(
                                                             ArtistEntity(
                                                                 id = it.id,
                                                                 name = it.title,
-                                                                channelId = it.channelId,
+                                                                channelId = if (!it.isProfile) it.channelId else null,
                                                                 thumbnailUrl = it.thumbnail,
                                                             ).toggleLike().localToggleLike()
                                                         )

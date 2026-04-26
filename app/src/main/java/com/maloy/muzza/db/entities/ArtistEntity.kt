@@ -22,6 +22,8 @@ data class ArtistEntity(
     val channelId: String? = null,
     val lastUpdateTime: LocalDateTime = LocalDateTime.now(),
     val bookmarkedAt: LocalDateTime? = null,
+    @ColumnInfo(name = "isProfile", defaultValue = "false")
+    val isProfile: Boolean = false
 ) {
 
     val isYouTubeArtist: Boolean
@@ -32,11 +34,14 @@ data class ArtistEntity(
     )
     fun toggleLike() = localToggleLike().also {
         CoroutineScope(Dispatchers.IO).launch {
-            if (channelId == null)
-                YouTube.subscribeChannel(YouTube.getChannelId(id), bookmarkedAt == null)
-            else
-                YouTube.subscribeChannel(channelId, bookmarkedAt == null)
-            this.cancel()
+            if (isProfile) {
+                YouTube.subscribeChannel(id, bookmarkedAt == null)
+            } else {
+                val targetChannelId = channelId ?: YouTube.getChannelId(id)
+                if (targetChannelId != null) {
+                    YouTube.subscribeChannel(targetChannelId, bookmarkedAt == null)
+                }
+            }
         }
     }
 

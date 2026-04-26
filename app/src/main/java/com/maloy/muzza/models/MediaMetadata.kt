@@ -24,12 +24,14 @@ data class MediaMetadata(
     val blurThumbnail: String? = null,
     val isVideoSong: Boolean = false,
     val author: String? = null,
-    val suggestedBy: String? = null
+    val suggestedBy: String? = null,
+    val isProfile: Boolean = false
 ) : Serializable {
     data class Artist(
         val id: String?,
         val name: String,
         val thumbnailUrl: String? = null,
+        val isProfile: Boolean = false,
     ) : Serializable
 
     data class Album(
@@ -64,6 +66,7 @@ fun Song.toMediaMetadata() = MediaMetadata(
             id = it.id,
             name = it.name,
             thumbnailUrl = it.thumbnailUrl,
+            isProfile = it.isProfile
         )
     },
     duration = song.duration,
@@ -91,7 +94,8 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
     artists = artists.map {
         MediaMetadata.Artist(
             id = it.id,
-            name = it.name
+            name = it.name,
+            isProfile = it.isProfile
         )
     },
     duration = duration ?: -1,

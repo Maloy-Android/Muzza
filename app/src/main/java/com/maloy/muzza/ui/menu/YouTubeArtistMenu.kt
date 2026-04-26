@@ -63,7 +63,6 @@ fun YouTubeArtistMenu(
                         val libraryArtist = libraryArtist
                         if (libraryArtist != null) {
                             update(libraryArtist.artist.toggleLike())
-                            update(libraryArtist.artist.localToggleLike())
                         } else {
                             insert(
                                 ArtistEntity(
@@ -71,7 +70,8 @@ fun YouTubeArtistMenu(
                                     name = artist.title,
                                     channelId = artist.channelId,
                                     thumbnailUrl = artist.thumbnail,
-                                    bookmarkedAt = LocalDateTime.now()
+                                    bookmarkedAt = LocalDateTime.now(),
+                                    isProfile = artist.isProfile
                                 ).toggleLike()
                             )
                         }

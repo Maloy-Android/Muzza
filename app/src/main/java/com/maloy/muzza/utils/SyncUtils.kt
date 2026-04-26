@@ -100,7 +100,8 @@ class SyncUtils @Inject constructor(
                                     name = artist.title,
                                     thumbnailUrl = artist.thumbnail,
                                     channelId = artist.channelId,
-                                    bookmarkedAt = LocalDateTime.now()
+                                    bookmarkedAt = LocalDateTime.now(),
+                                    isProfile = artist.isProfile
                                 )
                             )
                         }

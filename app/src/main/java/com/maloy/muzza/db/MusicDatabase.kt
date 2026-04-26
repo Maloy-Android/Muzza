@@ -62,7 +62,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 21,
+    version = 22,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -83,7 +83,8 @@ class MusicDatabase(
         AutoMigration(from = 17, to = 18),
         AutoMigration(from = 18, to = 19, spec = Migration18To19::class),
         AutoMigration(from = 19, to = 20, spec = Migration19To20::class),
-        AutoMigration(from = 20, to = 21)
+        AutoMigration(from = 20, to = 21),
+        AutoMigration(from = 21, to = 22)
     ]
 )
 @TypeConverters(Converters::class)
@@ -99,6 +100,7 @@ abstract class InternalDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_1_2)
                     .addMigrations(MIGRATION_19_20)
                     .addMigrations(MIGRATION_20_21)
+                    .addMigrations(MIGRATION_21_22)
                     .build()
             )
     }
@@ -458,5 +460,11 @@ class Migration19To20: AutoMigrationSpec {
 val MIGRATION_20_21 = object : Migration(20, 21) {
     override fun migrate(database: SupportSQLiteDatabase) {
         database.execSQL("ALTER TABLE song ADD COLUMN explicit INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+val MIGRATION_21_22 = object : Migration(21, 22) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE artist ADD COLUMN isProfile INTEGER NOT NULL DEFAULT 0")
     }
 }

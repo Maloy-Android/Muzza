@@ -1094,7 +1094,7 @@ fun BottomSheetPlayer(
                         )
                         if (!queueTitle.isNullOrEmpty()) {
                             Text(
-                                text = queueTitle.orEmpty(),
+                               text = "\"${queueTitle.orEmpty()}\"",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 overflow = TextOverflow.Ellipsis,

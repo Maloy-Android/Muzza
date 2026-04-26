@@ -149,7 +149,7 @@ fun AlbumScreen(
     val snackbarHostState = remember { SnackbarHostState() }
 
     val songsLength = remember(albumWithSongs) {
-        albumWithSongs?.songs?.fastSumBy { it.song.duration }
+        albumWithSongs?.songs?.fastSumBy { it.song.duration } ?: 0
     }
 
     val downloadUtil = LocalDownloadUtil.current
@@ -209,7 +209,7 @@ fun AlbumScreen(
             icon = { Icon(Icons.Rounded.CloudOff,null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_album_confirm, albumWithSongs?.album?.title!!),
+                    text = stringResource(R.string.remove_download_album_confirm, albumWithSongs?.album?.title ?: return@DefaultDialog),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -372,7 +372,7 @@ fun AlbumScreen(
                             }
 
                             Text(
-                                text = makeTimeString(songsLength!! * 1000L),
+                                text = makeTimeString(songsLength * 1000L),
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Normal
                             )
@@ -741,7 +741,7 @@ fun AlbumScreen(
                 playerConnection.playQueue(
                     ListQueue(
                         title = albumWithSongs?.album?.title,
-                        items = albumWithSongs?.songs!!.map { it.toMediaItem() }
+                        items = albumWithSongs?.songs?.map { it.toMediaItem() } ?: return@HideOnScrollFAB
                     )
                 )
             }
@@ -811,14 +811,14 @@ fun AlbumScreen(
                     )
                 }
             }
-            if (!inSelectMode && albumWithSongs != null && albumWithSongs!!.songs.isNotEmpty()) {
+            if (!inSelectMode && albumWithSongs != null && albumWithSongs?.songs?.isEmpty() != true) {
                 IconButton(
                     onClick = {
                         menuState.show {
                             AlbumMenu(
                                 originalAlbum = Album(
-                                    albumWithSongs!!.album,
-                                    albumWithSongs!!.artists
+                                    albumWithSongs?.album ?: return@show,
+                                    albumWithSongs?.artists ?: return@show
                                 ),
                                 navController = navController,
                                 onDismiss = menuState::dismiss

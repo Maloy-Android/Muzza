@@ -75,6 +75,7 @@ import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.SongProgressBar
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.utils.SuperProperties
 import com.maloy.muzza.utils.imageCache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -111,7 +112,11 @@ fun DiscordSettings(
             return@LaunchedEffect
         }
         launch(Dispatchers.IO) {
-            KizzyRPC.getUserInfo(token).onSuccess {
+            KizzyRPC.getUserInfo(
+                token,
+                SuperProperties.userAgent,
+                SuperProperties.superPropertiesBase64
+            ).onSuccess {
                 discordUsername = it.username
                 discordName = it.name
                 discordUserAvatar = if (it.userAvatar.isNotEmpty()) {

@@ -285,6 +285,29 @@ class MusicService : MediaLibraryService(),
     private val _playerFlow = MutableStateFlow<ExoPlayer?>(null)
     val playerFlow = _playerFlow.asStateFlow()
 
+    private val screenStateReceiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            when (intent.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    if (!player.isPlaying) {
+                        scope.launch(Dispatchers.IO) {
+                            discordRpc?.closeRPC()
+                        }
+                    }
+                }
+                Intent.ACTION_SCREEN_ON -> {
+                    if (player.isPlaying) {
+                        scope.launch {
+                            currentSong.value?.let { song ->
+                                discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     override fun onCreate() {
         super.onCreate()
         registerReceiver(volumeReceiver, IntentFilter().apply {
@@ -564,6 +587,12 @@ class MusicService : MediaLibraryService(),
             })
         }
         initializeLoudnessEnhancer()
+
+        val screenStateFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        registerReceiver(screenStateReceiver, screenStateFilter)
     }
 
     private fun createExoPlayer(): ExoPlayer {
@@ -1229,6 +1258,11 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onDestroy() {
+        try {
+            unregisterReceiver(screenStateReceiver)
+        } catch (e: Exception) {
+            // Ignore
+        }
         volumeReceiver?.let { unregisterReceiver(it) }
         volumeReceiver = null
         if (dataStore.get(PersistentQueueKey, true)) {

@@ -10,8 +10,14 @@ import com.maloy.muzza.db.entities.Song
 class DiscordRPC(
     val context: Context,
     token: String,
-) : KizzyRPC(token) {
-
+) : KizzyRPC(
+    token = token,
+    os = "Android",
+    browser = "Discord Android",
+    device = android.os.Build.DEVICE,
+    userAgent = SuperProperties.userAgent,
+    superPropertiesBase64 = SuperProperties.superPropertiesBase64
+) {
     @SuppressLint("DefaultLocale")
     suspend fun updateSong(song: Song, currentPlaybackTimeMillis: Long, playbackSpeed: Float = 1.0f, useDetails: Boolean = false) = runCatching {
         val currentTime = System.currentTimeMillis()

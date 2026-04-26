@@ -19,6 +19,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.websocket.DefaultClientWebSocketSession
 import io.ktor.client.plugins.websocket.WebSockets
 import io.ktor.client.plugins.websocket.webSocketSession
+import io.ktor.client.request.header
 import io.ktor.websocket.CloseReason
 import io.ktor.websocket.Frame
 import io.ktor.websocket.close
@@ -47,9 +48,12 @@ import kotlin.time.Duration.Companion.seconds
  */
 open class DiscordWebSocket(
     private val token: String,
+    private val os: String = "Android",
+    private val browser: String = "Discord Android",
+    private val device: String = "Generic Android Device",
 ) : CoroutineScope {
     private val logger = Logger.getLogger(DiscordWebSocket::class.java.name)
-    private val gatewayUrl = "wss://gateway.discord.gg/?v=10&encoding=json"
+    private val gatewayUrl = "wss://gateway.discord.gg/?v=9&encoding=json"
     private var websocket: DefaultClientWebSocketSession? = null
     private var sequence = 0
     private var sessionId: String? = null
@@ -81,7 +85,12 @@ open class DiscordWebSocket(
             try {
                 val url = resumeGatewayUrl ?: gatewayUrl
                 logger.info("Connecting to Discord Gateway at $url")
-                websocket = client.webSocketSession(url)
+                websocket = client.webSocketSession(url) {
+                    header("User-Agent", "Discord-Android/314013;RNA")
+                    header("Accept-Language", "en-US")
+                    header("Cache-Control", "no-cache")
+                    header("Pragma", "no-cache")
+                }
                 connected = true
                 logger.info("Successfully connected to Discord Gateway.")
                 currentReconnectDelay = INITIAL_RECONNECT_DELAY
@@ -151,7 +160,7 @@ open class DiscordWebSocket(
             "READY" -> {
                 val ready = json.decodeFromJsonElement<Ready>(this.d!!)
                 sessionId = ready.sessionId
-                resumeGatewayUrl = ready.resumeGatewayUrl + "/?v=10&encoding=json"
+                resumeGatewayUrl = ready.resumeGatewayUrl + "/?v=9&encoding=json"
                 logger.info("Gateway READY: resume_gateway_url updated to $resumeGatewayUrl, session_id updated to $sessionId")
                 connected = true
                 return
@@ -203,7 +212,11 @@ open class DiscordWebSocket(
         logger.info("Gateway: Sending $IDENTIFY")
         send(
             op = IDENTIFY,
-            d = token.toIdentifyPayload()
+            d = token.toIdentifyPayload(
+                os = os,
+                browser = browser,
+                device = device
+            )
         )
     }
 
@@ -246,7 +259,11 @@ open class DiscordWebSocket(
                     d = json.encodeToJsonElement(d),
                 )
             )
-            logger.info("Gateway sending payload: $payload")
+            if (op == IDENTIFY) {
+                logger.info("Gateway sending payload: [REDACTED IDENTIFY PAYLOAD]")
+            } else {
+                logger.info("Gateway sending payload: $payload")
+            }
             websocket?.send(Frame.Text(payload))
         }
     }

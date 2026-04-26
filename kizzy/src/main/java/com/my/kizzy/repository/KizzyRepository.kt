@@ -16,8 +16,11 @@ import com.my.kizzy.remote.ApiService
 import com.my.kizzy.remote.ImageProxyResponse
 import io.ktor.client.call.body
 
-class KizzyRepository {
-    private val api = ApiService()
+class KizzyRepository(
+    userAgent: String,
+    superProperties: String?
+) {
+    private val api = ApiService(userAgent, superProperties)
 
     suspend fun getImages(urls: List<String>): ImageProxyResponse? {
         return api.getImage(urls).getOrNull()?.body()

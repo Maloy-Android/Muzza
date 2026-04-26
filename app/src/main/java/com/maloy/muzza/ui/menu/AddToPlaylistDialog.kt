@@ -19,6 +19,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -33,6 +34,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
@@ -46,13 +48,22 @@ import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.constants.AddToPlaylistSortDescendingKey
+import com.maloy.muzza.constants.AddToPlaylistSortTypeKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.viewmodels.PlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
+import java.text.Collator
 import java.time.LocalDateTime
+import java.util.Locale
 
 @Composable
 fun AddToPlaylistDialog(
@@ -63,13 +74,20 @@ fun AddToPlaylistDialog(
     onGetSong: suspend (Playlist) -> List<String>,
     onDismiss: () -> Unit,
     songs: List<Song>? = null,
+    viewModel: PlaylistsViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
     val coroutineScope = rememberCoroutineScope()
-    var playlists by remember {
-        mutableStateOf(emptyList<Playlist>())
-    }
+    val (sortType, onSortTypeChange) = rememberEnumPreference(
+        AddToPlaylistSortTypeKey,
+        PlaylistSortType.NAME
+    )
+    val (sortDescending, onSortDescendingChange) = rememberPreference(
+        AddToPlaylistSortDescendingKey,
+        false
+    )
+    val playlists by viewModel.allPlaylists.collectAsState()
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
         "SAPISID" in parseCookieString(innerTubeCookie)
@@ -95,12 +113,6 @@ fun AddToPlaylistDialog(
         mutableStateOf(emptyList<String>())
     }
 
-    LaunchedEffect(Unit) {
-        database.editablePlaylistsByCreateDateAsc().collect {
-            playlists = it.asReversed()
-        }
-    }
-
     if (isVisible) {
         ListDialog(
             onDismiss = onDismiss
@@ -120,6 +132,30 @@ fun AddToPlaylistDialog(
                         showAddPlaylistDialog = true
                     }
                 )
+            }
+
+            if (playlists.isNotEmpty()) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp),
+                    ) {
+                        SortHeader(
+                            sortType = sortType,
+                            sortDescending = sortDescending,
+                            onSortTypeChange = onSortTypeChange,
+                            onSortDescendingChange = onSortDescendingChange,
+                            sortTypeText = { sortType ->
+                                when (sortType) {
+                                    PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    PlaylistSortType.NAME -> R.string.sort_by_name
+                                    PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
+                                    PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                                }
+                            },
+                        )
+                    }
+                }
             }
 
             items(playlists) { playlist ->

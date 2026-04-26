@@ -115,6 +115,9 @@ val SongSortTypeKey = stringPreferencesKey("songSortType")
 val SongSortDescendingKey = booleanPreferencesKey("songSortDescending")
 val PlaylistSongSortTypeKey = stringPreferencesKey("playlistSongSortType")
 val PlaylistSongSortDescendingKey = booleanPreferencesKey("playlistSongSortDescending")
+
+val AddToPlaylistSortTypeKey = stringPreferencesKey("addToPlaylistSortType")
+val AddToPlaylistSortDescendingKey = booleanPreferencesKey("playlistSortDescending")
 val ArtistSortTypeKey = stringPreferencesKey("artistSortType")
 val ArtistSortDescendingKey = booleanPreferencesKey("artistSortDescending")
 val AlbumSortTypeKey = stringPreferencesKey("albumSortType")
@@ -173,7 +176,7 @@ enum class AlbumSortType {
 }
 
 enum class PlaylistSortType {
-    CREATE_DATE, NAME, SONG_COUNT
+    CREATE_DATE, NAME, SONG_COUNT, LAST_UPDATED
 }
 
 enum class ArtistFilter {

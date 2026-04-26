@@ -576,6 +576,11 @@ interface DatabaseDao {
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY rowId")
     fun playlistsByCreateDateAsc(): Flow<List<Playlist>>
 
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isEditable AND bookmarkedAt IS NOT NULL ORDER BY name")
+    fun editablePlaylistsByNameAsc(): Flow<List<Playlist>>
+
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY name")
     fun playlistsByNameAsc(): Flow<List<Playlist>>
@@ -589,6 +594,7 @@ interface DatabaseDao {
             PlaylistSortType.CREATE_DATE -> playlistsByCreateDateAsc()
             PlaylistSortType.NAME -> playlistsByNameAsc()
             PlaylistSortType.SONG_COUNT -> playlistsBySongCountAsc()
+            PlaylistSortType.LAST_UPDATED -> editablePlaylistsByNameAsc()
         }.map { it.reversed(descending) }
 
     @Transaction

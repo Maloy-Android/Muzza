@@ -251,7 +251,6 @@
     <string name="pause_search_history">আপনার অনুসন্ধান ইতিহাস স্থগিত</string>
     <string name="clear_search_history">আপনার অনুসন্ধান ইতিহাস সাফ করুন</string>
     <string name="clear_search_history_confirm">আপনি কি আপনার অনুসন্ধান ইতিহাস মুছে ফেলার বিষয়ে নিশ্চিত?</string>
-    <string name="enable_kugou">KuGou দ্বারা প্রদত্ত গানের কথা সক্রিয় করুন</string>
 
     <string name="backup_restore">ব্যাকআপ এবং পুনঃস্থাপন</string>
     <string name="backup">ব্যাকআপ</string>

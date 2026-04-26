@@ -251,7 +251,6 @@
     <string name="pause_search_history">ସନ୍ଧାନ ଇତିହାସକୁ ବିରତି ଦିଅ</string>
     <string name="clear_search_history">ସନ୍ଧାନ ଇତିହାସ ସଫା କରନ୍ତୁ</string>
     <string name="clear_search_history_confirm">ଆପଣ ସମସ୍ତ ସନ୍ଧାନ ଇତିହାସ ସଫା କରିବାକୁ ନିଶ୍ଚିତ କି?</string>
-    <string name="enable_kugou">KuGou ଗୀତ ପ୍ରଦାନକାରୀକୁ ସକ୍ଷମ କରନ୍ତୁ</string>
 
     <string name="backup_restore">ନକଲ ସଂରକ୍ଷଣ ଏବଂ ପୁନରୁଦ୍ଧାର କରନ୍ତୁ</string>
     <string name="backup">ନକଲ ସଂରକ୍ଷଣ</string>

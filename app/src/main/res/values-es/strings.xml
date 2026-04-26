@@ -272,8 +272,6 @@
     <string name="pause_search_history">Pausar historial de búsquedas</string>
     <string name="clear_search_history">Borrar historial de búsquedas</string>
     <string name="clear_search_history_confirm">¿Estás seguro de que quieres limpiar todo el historial de búsquedas?</string>
-    <string name="enable_lrclib">Habilitar el proveedor de letras LrcLib</string>
-    <string name="enable_kugou">Habilitar el proveedor de letras KuGou</string>
     <string name="hide_explicit">Ocultar contenido explícito</string>
     <string name="backup_restore">Copias de seguridad y restauración</string>
     <string name="backup">Hacer copia de seguridad</string>

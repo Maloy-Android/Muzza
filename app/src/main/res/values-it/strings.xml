@@ -237,7 +237,6 @@
     <string name="pause_search_history">Sospendi la cronologia delle ricerche</string>
     <string name="clear_search_history">Pulisci la cronologia delle ricerche</string>
     <string name="clear_search_history_confirm">Sei sicuro di voler cancellare la cronologia delle ricerche?</string>
-    <string name="enable_kugou">Attiva i testi forniti da KuGou</string>
     <string name="backup_restore">Backup e ripristino</string>
     <string name="backup">Backup</string>
     <string name="restore">Ripristina</string>

@@ -224,7 +224,6 @@
     <string name="size_used">\%s\ تم تخزينه</string>
     <string name="pause_listen_history">اوقف تأريخ الاستماع مؤقتًا</string>
     <string name="clear_listen_history">مسح تاريخ الاستماع</string>
-    <string name="enable_lrclib">فعل موفر الكلمات LrcLib</string>
     <string name="backup_restore">النسخ الاحتياطي والاستعادة</string>
     <string name="restore">استعد</string>
     <string name="imported_playlist">قائمة أغاني مستوردة</string>
@@ -293,7 +292,6 @@
     <string name="listen_history">تاريخ الاستماع</string>
     <string name="pause_search_history">اوقف سحل البحث مؤقتًا</string>
     <string name="clear_search_history">مسح سجل البحث</string>
-    <string name="enable_kugou">فعل موفر الكلمات KuGou</string>
     <string name="clear_search_history_confirm">هل أنت متأكد أنك تريد مسح كل سجل البحث؟</string>
     <string name="disable_screenshot">تعطيل قابلية اخذ لقطة للشاشة</string>
     <string name="backup">انسخ احتياطيًا</string>

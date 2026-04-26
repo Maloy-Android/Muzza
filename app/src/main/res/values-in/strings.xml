@@ -242,7 +242,6 @@
     <string name="pause_search_history">Jeda riwayat pencarian</string>
     <string name="clear_search_history">Bersihkan riwayat pencarian</string>
     <string name="clear_search_history_confirm">Apakah anda yakin untuk menghapus semua riwayat penelusuran?</string>
-    <string name="enable_kugou">Aktifkan penyedia lirik KuGou</string>
 
     <string name="backup_restore">Cadangkan dan pulihkan</string>
     <string name="backup">Cadangkan</string>

@@ -1,6 +1,11 @@
 package com.maloy.muzza.ui.screens.settings
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,17 +24,20 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.toLowerCase
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.EnableKugouKey
 import com.maloy.muzza.constants.EnableLrcLibKey
 import com.maloy.muzza.constants.EnableSimpMusicKey
+import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.LyricFontSizeKey
 import com.maloy.muzza.constants.LyricTrimKey
 import com.maloy.muzza.constants.LyricsPosition
@@ -40,6 +48,7 @@ import com.maloy.muzza.constants.PreferredLyricsProviderKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListPreference
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
@@ -84,6 +93,77 @@ fun LyricsSettings(
             onReset = { onLyricFontSizeChange(20) },
         )
     }
+
+    var lyricsEnablerPreferenceDialog by remember {
+        mutableStateOf(false)
+    }
+
+    if (lyricsEnablerPreferenceDialog) {
+        ListDialog(
+            onDismiss = { lyricsEnablerPreferenceDialog = false }
+        ) {
+            item {
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ListItemHeight)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SwitchPreference(
+                            title = { Text("SimpMusic")},
+                            icon = { Icon(painterResource(R.drawable.lyrics),null) },
+                            checked = enableSimpMusic,
+                            onCheckedChange = onEnableSimpMusicChange
+                        )
+                    }
+                }
+            }
+            item {
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ListItemHeight)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SwitchPreference(
+                            title = { Text("KuGou") },
+                            icon = { Icon(painterResource(R.drawable.lyrics), null) },
+                            checked = enableKugou,
+                            onCheckedChange = onEnableKugouChange
+                        )
+                    }
+                }
+            }
+            item {
+                Box(
+                    contentAlignment = Alignment.CenterStart,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(ListItemHeight)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        SwitchPreference(
+                            title = { Text("LrcLib") },
+                            icon = { Icon(painterResource(R.drawable.lyrics), null) },
+                            checked = enableLrcLib,
+                            onCheckedChange = onEnableLrcLibChange
+                        )
+                    }
+                }
+            }
+        }
+    }
     Column(
         Modifier
             .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
@@ -93,23 +173,10 @@ fun LyricsSettings(
             title = stringResource(R.string.main)
         )
 
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_simp_music))},
-            icon = { Icon(painterResource(R.drawable.lyrics),null) },
-            checked = enableSimpMusic,
-            onCheckedChange = onEnableSimpMusicChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_kugou)) },
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.lyrics_providers)) },
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
-            checked = enableKugou,
-            onCheckedChange = onEnableKugouChange
-        )
-        SwitchPreference(
-            title = { Text(stringResource(R.string.enable_lrclib)) },
-            icon = { Icon(painterResource(R.drawable.lyrics), null) },
-            checked = enableLrcLib,
-            onCheckedChange = onEnableLrcLibChange
+            onClick = { lyricsEnablerPreferenceDialog = true }
         )
         SwitchPreference(
             title = { Text(stringResource(R.string.lyrics_multiline_title)) },

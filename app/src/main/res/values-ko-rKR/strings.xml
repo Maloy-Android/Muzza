@@ -242,7 +242,6 @@
     <string name="pause_search_history">검색 기록 일시 중지</string>
     <string name="clear_search_history">검색 기록 지우기</string>
     <string name="clear_search_history_confirm">모든 검색 기록을 지우시겠습니까?</string>
-    <string name="enable_kugou">KuGou 가사 제공자 활성화</string>
 
     <string name="backup_restore">백업 및 복구</string>
     <string name="backup">백업</string>

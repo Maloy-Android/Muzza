@@ -226,8 +226,6 @@
     <string name="pause_search_history">Arama geçmişini duraklat</string>
     <string name="clear_search_history">Arama geçmişini temizle</string>
     <string name="clear_search_history_confirm">Tüm arama geçmişini temizlemekten emin misiniz?</string>
-    <string name="enable_lrclib">LrcLib şarkı sözü sağlayıcısını etkinleştir</string>
-    <string name="enable_kugou">KuGou şarkı sözü sağlayıcısını etkinleştir</string>
     <string name="backup_restore">Yedekleme ve geri yükleme</string>
     <string name="backup">Yedekle</string>
     <string name="restore">Geri yükle</string>

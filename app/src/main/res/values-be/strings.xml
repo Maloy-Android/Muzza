@@ -269,7 +269,6 @@
     <string name="pause_search_history">Прыпыніць гісторыю пошуку</string>
     <string name="clear_search_history">Ачысціць гісторыю пошуку</string>
     <string name="clear_search_history_confirm">Сапраўды ачысціць гісторыю пошуку?</string>
-    <string name="enable_kugou">Шукаць тэксты песен у KuGou</string>
 
     <string name="backup_restore">Рэзервовае капіраванне ды аднеўленне </string>
     <string name="backup">Рэзервовае капіраванне</string>

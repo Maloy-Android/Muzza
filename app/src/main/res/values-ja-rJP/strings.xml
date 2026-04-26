@@ -277,8 +277,6 @@
     <string name="clear_search_history_confirm">すべての検索履歴を消去しますか？</string>
     <string name="disable_screenshot">スクリーンショットを無効にする</string>
     <string name="disable_screenshot_desc">スクリーンショットと最近使用したアプリの表示を無効にします</string>
-    <string name="enable_lrclib">LrcLib での歌詞の取得を有効化</string>
-    <string name="enable_kugou">KuGou での歌詞の取得を有効化</string>
     <string name="hide_explicit">露骨な内容のコンテンツを非表示</string>
 
     <string name="backup_restore">バックアップと復元</string>

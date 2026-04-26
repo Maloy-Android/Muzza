@@ -251,7 +251,6 @@
     <string name="pause_search_history">متوقف‌کردن تاریخچه جستجو</string>
     <string name="clear_search_history">پاک‌کردن تاریخچه جستجو</string>
     <string name="clear_search_history_confirm">آیا برای پاک‌کردن تمام سابقه جستجو مطمئن هستید؟</string>
-    <string name="enable_kugou">فعال‌کردن ارائه‌دهنده‌ی متن‌ترانه‌ی KuGou</string>
 
     <string name="backup_restore">پشتیبان‌گیری و بازگردانی</string>
     <string name="backup">پشتیبان‌گیری</string>

@@ -251,7 +251,6 @@
     <string name="pause_search_history">Keresési előzmények szüneteltetése</string>
     <string name="clear_search_history">Keresési előzmények törlése</string>
     <string name="clear_search_history_confirm">Biztosan törli az összes keresési előzményt?</string>
-    <string name="enable_kugou">A KuGou dalszöveg-szolgáltató engedélyezése</string>
 
     <string name="backup_restore">Bizt. mentés és visszaállítás</string>
     <string name="backup">Biztonsági mentés</string>

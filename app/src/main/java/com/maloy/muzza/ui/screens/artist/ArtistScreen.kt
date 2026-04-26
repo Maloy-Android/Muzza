@@ -564,7 +564,7 @@ fun ArtistScreen(
                                 onClick = section.moreEndpoint?.let {
                                     { navController.navigate("artist/${viewModel.artistId}/items" + "?browseId=${it.browseId}" + "&params=${it.params}" + "&title=${section.title}") }
                                 },
-                                onPlayAllClickEnable = firstItem != null && !firstItem.isVideoSong,
+                                onPlayAllClickEnable = firstItem != null && !firstItem.isVideoSong && section.moreEndpoint?.browseId?.startsWith("MPLAUC") != true,
                                 onPlayAllClick = {
                                     playerConnection.playQueue(
                                         ListQueue(
@@ -577,7 +577,7 @@ fun ArtistScreen(
                             )
                         }
                     }
-                    if (firstItem != null && !firstItem.isVideoSong) {
+                    if (firstItem != null && !firstItem.isVideoSong && section.moreEndpoint?.browseId?.startsWith("MPLAUC") != true) {
                         item {
                             LazyHorizontalGrid(
                                 state = topArtistSongsLazyGridState,

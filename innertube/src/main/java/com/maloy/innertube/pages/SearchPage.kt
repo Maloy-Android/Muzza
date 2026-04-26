@@ -106,9 +106,7 @@ object SearchPage {
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     } ?: return null,
-                    songCountText = renderer.flexColumns.getOrNull(1)
-                        ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
-                        ?.lastOrNull()?.text ?: return null,
+                    songCountText = null,
                     thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                     playEndpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchPlaylistEndpoint ?: return null,

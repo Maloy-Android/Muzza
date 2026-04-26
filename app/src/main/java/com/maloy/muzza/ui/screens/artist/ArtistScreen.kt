@@ -310,13 +310,11 @@ fun ArtistScreen(
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis,
                                     fontSize = 32.sp,
-                                    modifier = Modifier.padding(bottom = 16.dp)
                                 )
                                 if (!description.isNullOrEmpty() || (!subscriberCount.isNullOrEmpty()) || (!monthlyListeners.isNullOrEmpty())) {
                                     Column(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .padding(horizontal = 16.dp)
                                             .padding(bottom = 16.dp)
                                             .animateItem()
                                     ) {

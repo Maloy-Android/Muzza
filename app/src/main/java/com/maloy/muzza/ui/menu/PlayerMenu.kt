@@ -862,13 +862,6 @@ fun TempoPitchDialog(
                                 },
                                 valueRange = 0.25f..2.0f,
                                 steps = 34,
-                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
-                                track = { sliderState ->
-                                    PlayerSliderTrack(
-                                        sliderState = sliderState,
-                                        colors = SliderDefaults.colors()
-                                    )
-                                },
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -892,7 +885,14 @@ fun TempoPitchDialog(
                                 },
                                 valueRange = 0.25f..2.0f,
                                 steps = 34,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
+                                thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                                track = { sliderState ->
+                                    PlayerSliderTrack(
+                                        sliderState = sliderState,
+                                        colors = SliderDefaults.colors()
+                                    )
+                                }
                             )
                         }
                     }

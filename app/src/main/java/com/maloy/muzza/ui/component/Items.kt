@@ -8,6 +8,7 @@ import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkOut
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.rounded.SdCard
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
@@ -55,14 +57,18 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -77,6 +83,7 @@ import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
@@ -108,6 +115,7 @@ import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.data.CommunityPlaylistItem
+import com.maloy.muzza.models.data.DailyDiscoverItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
@@ -1610,6 +1618,140 @@ fun CommunityPlaylistCard(
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.onSecondaryContainer,
                         modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
+@Composable
+fun DailyDiscoverCard(
+    dailyDiscover: DailyDiscoverItem,
+    onClick: () -> Unit,
+    navController: NavController,
+    modifier: Modifier = Modifier,
+) {
+    val menuState = LocalMenuState.current
+    val haptic = LocalHapticFeedback.current
+
+    val song = dailyDiscover.recommendation as? SongItem
+
+    Card(
+        modifier =
+            modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(28.dp))
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        if (song != null) {
+                            menuState.show {
+                                YouTubeSongMenu(
+                                    song = song,
+                                    navController = navController,
+                                    onDismiss = { menuState.dismiss() },
+                                )
+                            }
+                        }
+                    },
+                ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
+        shape = RoundedCornerShape(28.dp),
+    ) {
+        BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
+            AsyncImage(
+                model =
+                    ImageRequest
+                        .Builder(LocalContext.current)
+                        .data(
+                            dailyDiscover.recommendation.thumbnail.replace(
+                                Regex("w\\d+-h\\d+"),
+                                "w544-h544"
+                            )
+                        )
+                        .crossfade(true)
+                        .build(),
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier =
+                    Modifier
+                        .fillMaxSize(),
+            )
+
+            if (maxWidth > 200.dp) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(
+                            brush =
+                                Brush.verticalGradient(
+                                    colors =
+                                        listOf(
+                                            Color.Black.copy(alpha = 0.3f),
+                                            Color.Transparent,
+                                            Color.Black.copy(alpha = 0.6f),
+                                            Color.Black.copy(alpha = 0.9f),
+                                        ),
+                                ),
+                        ),
+                )
+
+                Column(
+                    modifier =
+                        Modifier
+                            .fillMaxSize()
+                            .padding(24.dp),
+                    verticalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column {
+                        Text(
+                            text = dailyDiscover.recommendation.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = Color.White,
+                        )
+                        Text(
+                            text = buildString {
+                                append(
+                                    (dailyDiscover.recommendation as? SongItem)?.artists?.joinToString(
+                                        ", "
+                                    ) { it.name } ?: "")
+                            },
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = Color.White.copy(alpha = 0.7f),
+                        )
+                    }
+
+                    val messages =
+                        listOf(
+                            R.string.daily_discover_sounds_like,
+                            R.string.daily_discover_because_you_listen_to,
+                            R.string.daily_discover_similar_to,
+                            R.string.daily_discover_based_on,
+                            R.string.daily_discover_for_fans_of,
+                        )
+                    val messageRes =
+                        remember(dailyDiscover.seed.id) {
+                            messages[kotlin.math.abs(dailyDiscover.seed.id.hashCode()) % messages.size]
+                        }
+
+                    Text(
+                        text = stringResource(
+                            messageRes,
+                            "${dailyDiscover.seed.title} • ${
+                                dailyDiscover.seed.artists.joinToString(", ") { it.name }
+                            }",
+                        ),
+                        style = MaterialTheme.typography.bodySmall,
+                        fontWeight = FontWeight.Medium,
+                        color = Color.White.copy(alpha = 0.6f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }

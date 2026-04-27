@@ -6,6 +6,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.snapping.rememberSnapFlingBehavior
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -37,6 +38,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.carousel.HorizontalMultiBrowseCarousel
+import androidx.compose.material3.carousel.rememberCarouselState
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -86,7 +89,6 @@ import com.maloy.muzza.constants.ListThumbnailSize
 import com.maloy.muzza.constants.ShowContentFilterKey
 import com.maloy.muzza.constants.ShowRecentActivityKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
-import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
@@ -106,6 +108,7 @@ import com.maloy.muzza.ui.component.AlbumGridItem
 import com.maloy.muzza.ui.component.ArtistGridItem
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.CommunityPlaylistCard
+import com.maloy.muzza.ui.component.DailyDiscoverCard
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
@@ -119,7 +122,6 @@ import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
-import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubeArtistMenu
@@ -145,10 +147,15 @@ fun HomeScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
 
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val quickPicks by viewModel.quickPicks.collectAsState()
+    val dailyDiscover by viewModel.dailyDiscover.collectAsState()
     val communityPlaylists by viewModel.communityPlaylists.collectAsState()
     val forgottenFavorites by viewModel.forgottenFavorites.collectAsState()
     val keepListening by viewModel.keepListening.collectAsState()
@@ -175,7 +182,6 @@ fun HomeScreen(
     val lazylistState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
     val scrollToTop = backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val context = LocalContext.current
 
     var showNoInternetDialog by remember { mutableStateOf(false) }
@@ -703,6 +709,74 @@ fun HomeScreen(
                         ) {
                             items(keepListening) {
                                 localGridItem(it)
+                            }
+                        }
+                    }
+                }
+
+                dailyDiscover?.takeIf { it.isNotEmpty() }?.let { discoverList ->
+                    item(key = "daily_discover_title") {
+                        val title = stringResource(R.string.your_daily_discover)
+                        NavigationTitle(
+                            title = title,
+                            onPlayAllClick = {
+                                val queueItems =
+                                    discoverList.mapNotNull {
+                                        (it.recommendation as? SongItem)?.toMediaMetadata()
+                                    }
+
+                                if (queueItems.isNotEmpty()) {
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = title,
+                                            items = queueItems.map { it.toMediaItem() },
+                                        ),
+                                    )
+                                }
+                            },
+                        )
+                    }
+
+                    item(key = "daily_discover_content") {
+                        Box(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(340.dp)
+                                    .padding(horizontal = 16.dp),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            val carouselState = rememberCarouselState { discoverList.size }
+                            HorizontalMultiBrowseCarousel(
+                                state = carouselState,
+                                preferredItemWidth = 320.dp,
+                                itemSpacing = 16.dp,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(320.dp),
+                            ) { i ->
+                                val item = discoverList[i]
+                                DailyDiscoverCard(
+                                    dailyDiscover = item,
+                                    onClick = {
+                                        if (!isListenTogetherGuest) {
+                                            val song = item.recommendation as? SongItem
+                                            val mediaMetadata = song?.toMediaMetadata()
+                                            if (mediaMetadata != null) {
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        song.endpoint
+                                                            ?: WatchEndpoint(videoId = song.id),
+                                                        mediaMetadata,
+                                                    ),
+                                                )
+                                            }
+                                        }
+                                    },
+                                    navController = navController,
+                                    modifier = Modifier.maskClip(MaterialTheme.shapes.extraLarge),
+                                )
                             }
                         }
                     }

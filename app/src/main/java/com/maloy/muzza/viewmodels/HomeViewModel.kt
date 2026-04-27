@@ -19,6 +19,7 @@ import com.maloy.muzza.db.entities.LocalItem
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.SimilarRecommendation
 import com.maloy.muzza.models.data.CommunityPlaylistItem
+import com.maloy.muzza.models.data.DailyDiscoverItem
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
@@ -45,6 +46,7 @@ class HomeViewModel @Inject constructor(
     val isLoading = MutableStateFlow(false)
 
     val quickPicks = MutableStateFlow<List<Song>?>(null)
+    val dailyDiscover = MutableStateFlow<List<DailyDiscoverItem>?>(null)
     val communityPlaylists = MutableStateFlow<List<CommunityPlaylistItem>?>(null)
     val forgottenFavorites = MutableStateFlow<List<Song>?>(null)
     val keepListening = MutableStateFlow<List<LocalItem>?>(null)
@@ -78,6 +80,49 @@ class HomeViewModel @Inject constructor(
             )
             _isLoadingMore.value = false
         }
+    }
+
+    private suspend fun getDailyDiscover() {
+        val likedSongs = database.likedSongsByCreateDateAsc().first()
+        if (likedSongs.isEmpty()) return
+
+        val seeds = likedSongs.shuffled().distinctBy { it.id }.take(5)
+
+        val items = java.util.Collections.synchronizedList(mutableListOf<DailyDiscoverItem>())
+
+        coroutineScope {
+            seeds.map { seed ->
+                launch(Dispatchers.IO) {
+                    val endpoint = YouTube.next(WatchEndpoint(videoId = seed.id)).getOrNull()?.relatedEndpoint
+                    if (endpoint != null) {
+                        YouTube.related(endpoint).onSuccess { page ->
+                            val recommendations = page.songs
+                                .filter { item ->
+                                    if (item.isVideoSong) return@filter false
+                                    if (item.explicit) return@filter false
+                                    true
+                                }
+                                .shuffled()
+
+                            val recommendation = recommendations.firstOrNull { rec ->
+                                rec.id != seed.id
+                            }
+
+                            if (recommendation != null) {
+                                items.add(
+                                    DailyDiscoverItem(
+                                        seed = seed,
+                                        recommendation = recommendation,
+                                        relatedEndpoint = endpoint
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }.joinAll()
+        }
+        dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
     }
 
     private suspend fun load() {
@@ -178,6 +223,7 @@ class HomeViewModel @Inject constructor(
 
         isLoading.value = false
         viewModelScope.launch(Dispatchers.IO) { getCommunityPlaylists() }
+        viewModelScope.launch(Dispatchers.IO) { getDailyDiscover() }
     }
 
     private suspend fun getCommunityPlaylists() {

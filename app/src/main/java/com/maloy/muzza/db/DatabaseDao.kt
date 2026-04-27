@@ -288,6 +288,9 @@ interface DatabaseDao {
     )
     fun mostPlayedSongs(fromTimeStamp: Long, limit: Int = 6, offset: Int = 0): Flow<List<Song>>
 
+    @Query("SELECT COUNT(*) FROM event WHERE songId = :songId")
+    fun getLifetimePlayCount(songId: String): Flow<Int>
+
     @Transaction
     @Query(
         """

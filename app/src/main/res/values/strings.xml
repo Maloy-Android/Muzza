@@ -61,6 +61,14 @@
     <string name="not_internet">No Internet connection</string>
     <string name="internet_required">It looks like you have no Internet connection. Please check your network.</string>
 
+    <!-- Daily Discover -->
+    <string name="your_daily_discover">Your daily discover</string>
+    <string name="daily_discover_sounds_like">Sounds like %1$s</string>
+    <string name="daily_discover_because_you_listen_to">Because you listen to %1$s</string>
+    <string name="daily_discover_similar_to">Similar to %1$s</string>
+    <string name="daily_discover_based_on">Based on %1$s</string>
+    <string name="daily_discover_for_fans_of">For fans of %1$s</string>
+
     <!-- History -->
     <string name="today">Today</string>
     <string name="yesterday">Yesterday</string>

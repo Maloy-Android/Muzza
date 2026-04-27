@@ -59,6 +59,14 @@
     <string name="not_internet">Нет подключения к интернету</string>
     <string name="internet_required">Похоже, у вас нет подключения к интернету. Пожалуйста, проверьте свою сеть.</string>
 
+    <!-- Daily Discover -->
+    <string name="your_daily_discover">Ваши открытия дня</string>
+    <string name="daily_discover_sounds_like">Звучит как %1$s</string>
+    <string name="daily_discover_because_you_listen_to">Потому что вы слушаете %1$s</string>
+    <string name="daily_discover_similar_to">Похоже на %1$s</string>
+    <string name="daily_discover_based_on">На основе %1$s</string>
+    <string name="daily_discover_for_fans_of">Для фанатов %1$s</string>
+
     <!-- History -->
     <string name="today">Сегодня</string>
     <string name="yesterday">Вчера</string>

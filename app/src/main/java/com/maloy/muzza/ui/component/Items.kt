@@ -2,9 +2,7 @@ package com.maloy.muzza.ui.component
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import android.widget.Toast
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandIn
 import androidx.compose.animation.fadeIn
@@ -24,7 +22,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -43,10 +40,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -125,6 +119,7 @@ import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
+import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
@@ -341,150 +336,15 @@ fun SongListItem(
     trailingContent: @Composable RowScope.() -> Unit = {},
     contentScale: ContentScale = ContentScale.Fit,
 ) {
-    val context = LocalContext.current
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
-    val playerConnection = LocalPlayerConnection.current ?: return
-    val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
-    val colorScheme = MaterialTheme.colorScheme
 
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
 
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
-    if (isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
-        SwipeToDismissBox(
-            state = dismissState,
-            backgroundContent = {
-                val target = dismissState.targetValue
-                var swipeStartTime = 0L
-                LaunchedEffect(target) {
-                    when (target) {
-                        SwipeToDismissBoxValue.StartToEnd -> {
-                            val swipeEndTime = System.currentTimeMillis()
-                            if (swipeEndTime - swipeStartTime > 1000) {
-                                Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
-                                    .show()
-                                playerConnection.playNext(listOf(song.toMediaItem()))
-                            }
-                        }
-
-                        SwipeToDismissBoxValue.EndToStart -> {
-                            val swipeEndTime = System.currentTimeMillis()
-                            if (swipeEndTime - swipeStartTime > 1000) {
-                                Toast.makeText(context, R.string.add_to_queue, Toast.LENGTH_SHORT)
-                                    .show()
-                                playerConnection.addToQueue(listOf(song.toMediaItem()))
-                            }
-                        }
-
-                        else -> {
-                            swipeStartTime = System.currentTimeMillis()
-                        }
-                    }
-                }
-                val color by
-                animateColorAsState(
-                    when (dismissState.targetValue) {
-                        SwipeToDismissBoxValue.Settled -> Color.Transparent
-                        SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
-                        SwipeToDismissBoxValue.EndToStart -> colorScheme.primary
-                    }, label = ""
-                )
-                val icon = when (target) {
-                    SwipeToDismissBoxValue.StartToEnd -> R.drawable.playlist_play
-                    SwipeToDismissBoxValue.EndToStart -> R.drawable.queue_music
-                    else -> null
-                }
-                when (target) {
-                    SwipeToDismissBoxValue.StartToEnd -> Arrangement.Start
-                    SwipeToDismissBoxValue.EndToStart -> Arrangement.End
-                    else -> null
-                }?.let {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Transparent)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .background(color)
-                                .align(
-                                    when (target) {
-                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
-                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                                        else -> Alignment.Center
-                                    }
-                                )
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            icon?.let {
-                                Icon(
-                                    painter = painterResource(it),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .align(Alignment.CenterEnd),
-                                    tint = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        ) {
-            ListItem(
-                title = song.song.title,
-                subtitle = joinByBullet(
-                    song.artists.joinToString { it.name },
-                    makeTimeString(song.song.duration * 1000L)
-                ),
-                badges = badges,
-                thumbnailContent = {
-                    if (song.song.isLocal) {
-                        song.song.let {
-                            AsyncLocalImage(
-                                image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                                contentDescription = null,
-                                contentScale = contentScale,
-                                modifier = Modifier
-                                    .size(ListThumbnailSize)
-                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                            )
-                            PlayingIndicatorBox(
-                                isActive = isActive,
-                                playWhenReady = isPlaying,
-                                color = Color.White,
-                                modifier = Modifier
-                                    .size(ListThumbnailSize)
-                                    .align(alignment = Alignment.CenterVertically)
-                                    .background(
-                                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                    )
-                            )
-                        }
-                    } else {
-                        ItemThumbnail(
-                            thumbnailUrl = song.song.thumbnailUrl,
-                            videoThumbnailSize = false,
-                            albumIndex = albumIndex,
-                            isActive = isActive,
-                            isPlaying = isPlaying,
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
-                            modifier = Modifier.size(ListThumbnailSize)
-                        )
-                    }
-                },
-                trailingContent = trailingContent,
-                modifier = modifier,
-                isActive = isActive,
-                isTwoLineLabel = twoLineLabel
-            )
-        }
-    } else {
+    val content: @Composable () -> Unit = {
         ListItem(
             title = song.song.title,
             subtitle = joinByBullet(
@@ -534,6 +394,16 @@ fun SongListItem(
             isActive = isActive,
             isTwoLineLabel = twoLineLabel
         )
+    }
+    if (isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
+        SwipeToSongBox(
+            mediaItem = song.toMediaItem(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            content()
+        }
+    } else {
+        content()
     }
 }
 
@@ -1781,123 +1651,19 @@ fun YouTubeListItem(
     isPlaying: Boolean = false,
     trailingContent: @Composable RowScope.() -> Unit = {},
 ) {
-    val listenTogetherManager = LocalListenTogetherManager.current
-    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
-    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
-    val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
-    if (item is SongItem && isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
-        val context = LocalContext.current
-        val playerConnection = LocalPlayerConnection.current ?: return
-        val dismissState = rememberSwipeToDismissBoxState(confirmValueChange = { false })
-        val colorScheme = MaterialTheme.colorScheme
-
-        SwipeToDismissBox(
-            state = dismissState,
-            backgroundContent = {
-                val target = dismissState.targetValue
-                var swipeStartTime = 0L
-                LaunchedEffect(target) {
-                    when (target) {
-                        SwipeToDismissBoxValue.StartToEnd -> {
-                            val swipeEndTime = System.currentTimeMillis()
-                            if (swipeEndTime - swipeStartTime > 1000) {
-                                Toast.makeText(context, R.string.play_next, Toast.LENGTH_SHORT)
-                                    .show()
-                                playerConnection.playNext(listOf(item.toMediaItem()))
-                            }
-                        }
-
-                        SwipeToDismissBoxValue.EndToStart -> {
-                            val swipeEndTime = System.currentTimeMillis()
-                            if (swipeEndTime - swipeStartTime > 1000) {
-                                Toast.makeText(context, R.string.add_to_queue, Toast.LENGTH_SHORT)
-                                    .show()
-                                playerConnection.addToQueue(listOf(item.toMediaItem()))
-                            }
-                        }
-
-                        else -> {
-                            swipeStartTime =
-                                System.currentTimeMillis()
-                        }
-                    }
-                }
-                val color by
-                animateColorAsState(
-                    when (dismissState.targetValue) {
-                        SwipeToDismissBoxValue.Settled -> Color.Transparent
-                        SwipeToDismissBoxValue.StartToEnd -> colorScheme.primary
-                        SwipeToDismissBoxValue.EndToStart -> colorScheme.primary
-                    }, label = ""
-                )
-                val icon = when (target) {
-                    SwipeToDismissBoxValue.StartToEnd -> R.drawable.playlist_play
-                    SwipeToDismissBoxValue.EndToStart -> R.drawable.queue_music
-                    else -> null
-                }
-                when (target) {
-                    SwipeToDismissBoxValue.StartToEnd -> Arrangement.Start
-                    SwipeToDismissBoxValue.EndToStart -> Arrangement.End
-                    else -> null
-                }?.let {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(Color.Transparent)
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxHeight()
-                                .background(color)
-                                .align(
-                                    when (target) {
-                                        SwipeToDismissBoxValue.StartToEnd -> Alignment.CenterStart
-                                        SwipeToDismissBoxValue.EndToStart -> Alignment.CenterEnd
-                                        else -> Alignment.Center
-                                    }
-                                )
-                                .padding(horizontal = 8.dp)
-                        ) {
-                            icon?.let {
-                                Icon(
-                                    painter = painterResource(it),
-                                    contentDescription = null,
-                                    modifier = Modifier
-                                        .size(24.dp)
-                                        .align(Alignment.CenterEnd),
-                                    tint = Color.White
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        ) {
-            BaseListItemContent(
-                item = item,
-                modifier = modifier,
-                albumIndex = albumIndex,
-                badges = badges,
-                isActive = isActive,
-                isPlaying = isPlaying,
-                isTwoLineLabel = twoLineLabel,
-                trailingContent = trailingContent
-            )
-        }
-    } else {
-        BaseListItemContent(
-            item = item,
-            modifier = modifier,
-            albumIndex = albumIndex,
-            badges = badges,
-            isActive = isActive,
-            isPlaying = isPlaying,
-            isTwoLineLabel = twoLineLabel,
-            trailingContent = trailingContent
-        )
-    }
+    BaseListItemContent(
+        item = item,
+        isSwipeable = isSwipeable,
+        modifier = modifier,
+        albumIndex = albumIndex,
+        badges = badges,
+        isActive = isActive,
+        isPlaying = isPlaying,
+        isTwoLineLabel = twoLineLabel,
+        trailingContent = trailingContent
+    )
 }
 
 @Composable
@@ -1909,43 +1675,60 @@ private fun BaseListItemContent(
     isActive: Boolean,
     isPlaying: Boolean,
     isTwoLineLabel: Boolean,
-    trailingContent: @Composable RowScope.() -> Unit
+    trailingContent: @Composable RowScope.() -> Unit,
+    isSwipeable: Boolean = true
 ) {
-    ListItem(
-        title = item.title,
-        subtitle = when (item) {
-            is SongItem -> joinByBullet(
-                item.artists.joinToString { it.name },
-                makeTimeString(item.duration?.times(1000L))
-            )
+    val listenTogetherManager = LocalListenTogetherManager.current
+    val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
+    val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
+    val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
+    val content: @Composable () -> Unit = {
+        ListItem(
+            title = item.title,
+            subtitle = when (item) {
+                is SongItem -> joinByBullet(
+                    item.artists.joinToString { it.name },
+                    makeTimeString(item.duration?.times(1000L))
+                )
 
-            is AlbumItem -> joinByBullet(
-                item.artists?.joinToString { it.name },
-                item.year?.toString()
-            )
+                is AlbumItem -> joinByBullet(
+                    item.artists?.joinToString { it.name },
+                    item.year?.toString()
+                )
 
-            is ArtistItem -> joinByBullet(item.subscriptions)
-            is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
-        },
-        badges = badges,
-        thumbnailContent = {
-            ItemThumbnail(
-                thumbnailUrl = item.thumbnail,
-                videoThumbnailSize = false,
-                albumIndex = albumIndex,
-                isActive = isActive,
-                isPlaying = isPlaying,
-                shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
-                    ThumbnailCornerRadius
-                ),
-                modifier = Modifier.size(ListThumbnailSize)
-            )
-        },
-        trailingContent = trailingContent,
-        modifier = modifier,
-        isActive = isActive,
-        isTwoLineLabel = isTwoLineLabel
-    )
+                is ArtistItem -> joinByBullet(item.subscriptions)
+                is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
+            },
+            badges = badges,
+            thumbnailContent = {
+                ItemThumbnail(
+                    thumbnailUrl = item.thumbnail,
+                    videoThumbnailSize = false,
+                    albumIndex = albumIndex,
+                    isActive = isActive,
+                    isPlaying = isPlaying,
+                    shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
+                        ThumbnailCornerRadius
+                    ),
+                    modifier = Modifier.size(ListThumbnailSize)
+                )
+            },
+            trailingContent = trailingContent,
+            modifier = modifier,
+            isActive = isActive,
+            isTwoLineLabel = isTwoLineLabel
+        )
+    }
+    if (item is SongItem && isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
+        SwipeToSongBox(
+            mediaItem = item.copy(thumbnail = item.thumbnail.resize(544,544)).toMediaItem(),
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            content()
+        }
+    } else {
+        content()
+    }
 }
 
 

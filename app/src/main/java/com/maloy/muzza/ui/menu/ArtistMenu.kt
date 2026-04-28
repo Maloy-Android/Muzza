@@ -213,7 +213,7 @@ fun ArtistMenu(
         )
     ) {
         ListMenuItem(
-            icon = R.drawable.music_note, title = R.string.listen_youtube_music
+            icon = R.drawable.youtube_music, title = R.string.listen_youtube_music
         ) {
             val intent = Intent(
                 Intent.ACTION_VIEW, "https://music.youtube.com/channel/${artist.id}".toUri()

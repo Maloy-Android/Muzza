@@ -514,7 +514,7 @@ fun YouTubePlaylistMenu(
             HorizontalDivider()
         }
         ListMenuItem(
-            icon = R.drawable.music_note, title = R.string.listen_youtube_music
+            icon = R.drawable.youtube_music, title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, playlist.shareLink.toUri())
             context.startActivity(intent)
@@ -892,7 +892,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
             HorizontalDivider()
         }
         ListMenuItem(
-            icon = R.drawable.music_note, title = R.string.listen_youtube_music
+            icon = R.drawable.youtube_music, title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, playlist.shareLink.toUri())
             context.startActivity(intent)

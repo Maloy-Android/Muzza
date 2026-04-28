@@ -765,7 +765,9 @@ fun ArtistScreen(
                     context.startActivity(intent)
                 }) {
                 Icon(
-                    painterResource(R.drawable.music_note), contentDescription = null
+                    painterResource(R.drawable.youtube_music),
+                    contentDescription = null,
+                    modifier = Modifier.size(30.dp)
                 )
             }
 

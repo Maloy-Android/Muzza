@@ -457,7 +457,7 @@ fun YouTubeSongMenu(
             }
         }
         ListMenuItem(
-            icon = R.drawable.music_note,
+            icon = R.drawable.youtube_music,
             title = R.string.listen_youtube_music
         ) {
             val intent = Intent(Intent.ACTION_VIEW, song.shareLink.toUri())

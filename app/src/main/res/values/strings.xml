@@ -51,9 +51,8 @@
     <string name="stats">Stats</string>
     <string name="mood_and_genres">Mood and Genres</string>
     <string name="account">Account</string>
-    <string name="quick_picks">Quick picks</string>
+    <string name="speed_dial">Speed dial</string>
     <string name="from_the_community">From the community</string>
-    <string name="quick_picks_empty">Listen to songs to generate your quick picks</string>
     <string name="forgotten_favorites">Forgotten favorites</string>
     <string name="keep_listening">Keep listening</string>
     <string name="similar_to">Similar to</string>

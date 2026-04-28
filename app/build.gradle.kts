@@ -26,8 +26,8 @@ android {
         applicationId = "com.maloy.muzza"
         minSdk = 24
         targetSdk = 36
-        versionCode = 46
-        versionName = "0.7.4"
+        versionCode = 47
+        versionName = "0.7.5"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -157,6 +157,8 @@ dependencies {
 
     implementation(libs.room.runtime)
     implementation(libs.cardview)
+    implementation(libs.animation.core)
+    implementation(libs.material)
     ksp(libs.room.compiler)
     implementation(libs.room.ktx)
 

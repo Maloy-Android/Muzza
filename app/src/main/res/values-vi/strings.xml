@@ -15,8 +15,6 @@
     <string name="stats">Thống kê</string>
     <string name="mood_and_genres">Tâm trạng và thể loại</string>
     <string name="account">Tài Khoản</string>
-    <string name="quick_picks">Lựa chọn nhanh</string>
-    <string name="quick_picks_empty">Hãy nghe các bài hát để tạo danh sách chọn nhanh của bạn</string>
     <string name="new_release_albums">Các album mới phát hành</string>
     <!-- History -->
     <string name="today">Hôm nay</string>

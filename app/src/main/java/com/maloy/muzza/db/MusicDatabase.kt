@@ -9,6 +9,7 @@ import androidx.room.migration.AutoMigrationSpec
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import androidx.sqlite.db.SupportSQLiteOpenHelper
+import com.maloy.muzza.db.daos.SpeedDialDao
 import com.maloy.muzza.db.entities.*
 import com.maloy.muzza.extensions.toSQLiteQuery
 import java.time.Instant
@@ -19,6 +20,9 @@ import java.util.*
 class MusicDatabase(
     private val delegate: InternalDatabase,
 ) : DatabaseDao by delegate.dao {
+    val speedDialDao: SpeedDialDao
+        get() = delegate.speedDialDao
+
     val openHelper: SupportSQLiteOpenHelper
         get() = delegate.openHelper
 
@@ -55,14 +59,15 @@ class MusicDatabase(
         Event::class,
         RelatedSongMap::class,
         SetVideoIdEntity::class,
-        RecentActivityEntity::class
+        RecentActivityEntity::class,
+        SpeedDialItem::class
     ],
     views = [
         SortedSongArtistMap::class,
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 22,
+    version = 23,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -84,12 +89,14 @@ class MusicDatabase(
         AutoMigration(from = 18, to = 19, spec = Migration18To19::class),
         AutoMigration(from = 19, to = 20, spec = Migration19To20::class),
         AutoMigration(from = 20, to = 21),
-        AutoMigration(from = 21, to = 22)
+        AutoMigration(from = 21, to = 22),
+        AutoMigration(from = 22, to = 23, spec = Migration22To23::class)
     ]
 )
 @TypeConverters(Converters::class)
 abstract class InternalDatabase : RoomDatabase() {
     abstract val dao: DatabaseDao
+    abstract val speedDialDao: SpeedDialDao
 
     companion object {
         const val DB_NAME = "song.db"
@@ -468,3 +475,5 @@ val MIGRATION_21_22 = object : Migration(21, 22) {
         database.execSQL("ALTER TABLE artist ADD COLUMN isProfile INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+class Migration22To23 : AutoMigrationSpec

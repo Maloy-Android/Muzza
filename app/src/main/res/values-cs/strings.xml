@@ -19,8 +19,6 @@
     <string name="stats">Statistiky</string>
     <string name="mood_and_genres">Nálada a žánry</string>
     <string name="account">Účet</string>
-    <string name="quick_picks">Rychlý výběr</string>
-    <string name="quick_picks_empty">Pro vytvoření rychlého výběru si nejprve poslechněte pár skladeb</string>
     <string name="new_release_albums">Nově vydaná alba</string>
 
     <!-- History -->

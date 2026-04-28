@@ -16,8 +16,6 @@
     <string name="stats">İstatistikler</string>
     <string name="mood_and_genres">Ruh Hali ve Türler</string>
     <string name="account">Hesap</string>
-    <string name="quick_picks">Hızlı seçimler</string>
-    <string name="quick_picks_empty">Hızlı seçimlerinizi oluşturmak için birkaç şarkı dinleyin</string>
     <string name="new_release_albums">Yeni çıkan albümler</string>
     <!-- History -->
     <string name="today">Bugün</string>

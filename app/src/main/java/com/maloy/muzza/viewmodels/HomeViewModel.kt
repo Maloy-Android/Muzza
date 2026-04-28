@@ -4,7 +4,9 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
@@ -30,11 +32,14 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.random.Random
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
@@ -44,6 +49,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
     val isLoading = MutableStateFlow(false)
+    val isRandomizing = MutableStateFlow(false)
 
     val quickPicks = MutableStateFlow<List<Song>?>(null)
     val dailyDiscover = MutableStateFlow<List<DailyDiscoverItem>?>(null)
@@ -59,6 +65,94 @@ class HomeViewModel @Inject constructor(
     ).stateIn(viewModelScope, SharingStarted.Lazily, null)
     val recentActivity = database.recentActivity()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val speedDialItems: StateFlow<List<YTItem>> =
+        combine(
+            database.speedDialDao.getAll(),
+            keepListening,
+            quickPicks
+        ) { pinned, keepListening, quick ->
+            val pinnedItems = pinned.map { it.toYTItem() }
+            val filled = pinnedItems.toMutableList()
+            val targetSize = 27
+
+            if (filled.size < targetSize) {
+                keepListening?.let { k ->
+                    val needed = targetSize - filled.size
+                    val available = k.filter { item ->
+                        filled.none { p -> p.id == item.id }
+                    }.mapNotNull { item ->
+                        when (item) {
+                            is Song -> SongItem(
+                                id = item.id,
+                                title = item.title,
+                                artists = item.artists.map { artist ->
+                                    com.maloy.innertube.models.Artist(
+                                        name = artist.name,
+                                        id = artist.id
+                                    )
+                                },
+                                album = item.album.let { album ->
+                                    com.maloy.innertube.models.Album(
+                                        name = album?.title ?: "",
+                                        id = album?.id ?: ""
+                                    )
+                                },
+                                thumbnail = item.thumbnailUrl ?: "",
+                                explicit = item.song.explicit
+                            )
+                            is Album -> AlbumItem(
+                                browseId = item.id,
+                                playlistId = item.album.playlistId ?: "",
+                                title = item.title,
+                                artists = item.artists.map { artist ->
+                                    com.maloy.innertube.models.Artist(
+                                        name = artist.name,
+                                        id = artist.id
+                                    )
+                                },
+                                year = item.album.year,
+                                thumbnail = item.thumbnailUrl ?: ""
+                            )
+                            else -> null
+                        }
+                    }
+                    filled.addAll(available.take(needed))
+                }
+            }
+
+            if (filled.size < targetSize) {
+                quick?.let { q ->
+                    val needed = targetSize - filled.size
+                    val available = q.filter { song ->
+                        filled.none { p -> p.id == song.id }
+                    }.map { song ->
+                        SongItem(
+                            id = song.id,
+                            title = song.title,
+                            artists = song.artists.map { artist ->
+                                com.maloy.innertube.models.Artist(
+                                    name = artist.name,
+                                    id = artist.id
+                                )
+                            },
+                            album = song.album.let { album ->
+                                com.maloy.innertube.models.Album(
+                                    name = album?.title ?: "",
+                                    id = album?.id ?: ""
+                                )
+                            },
+                            thumbnail = song.thumbnailUrl ?: "",
+                            explicit = song.song.explicit
+                        )
+                    }
+                    filled.addAll(available.take(needed))
+                }
+            }
+
+            filled.take(targetSize)
+        }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
     private val previousHomePage = MutableStateFlow<HomePage?>(null)
 
     private val allLocalItems = MutableStateFlow<List<LocalItem>>(emptyList())
@@ -79,6 +173,89 @@ class HomeViewModel @Inject constructor(
                 sections = homePage.value?.sections.orEmpty() + nextSections.sections
             )
             _isLoadingMore.value = false
+        }
+    }
+
+    suspend fun getRandomItem(): YTItem? {
+        try {
+            isRandomizing.value = true
+            kotlinx.coroutines.delay(1000)
+
+            val userSongs = mutableListOf<YTItem>()
+            val otherSources = mutableListOf<YTItem>()
+
+            quickPicks.value?.let { songs ->
+                userSongs.addAll(songs.map { song ->
+                    SongItem(
+                        id = song.id,
+                        title = song.title,
+                        artists = song.artists.map { artist ->
+                            com.maloy.innertube.models.Artist(
+                                name = artist.name,
+                                id = artist.id
+                            )
+                        },
+                        album = song.album.let { album ->
+                            com.maloy.innertube.models.Album(
+                                name = album?.title ?: "",
+                                id = album?.id ?: ""
+                            )
+                        },
+                        thumbnail = song.thumbnailUrl ?: "",
+                        explicit = song.song.explicit
+                    )
+                })
+            }
+
+            keepListening.value?.let { items ->
+                items.forEach { item ->
+                    when (item) {
+                        is Song -> userSongs.add(SongItem(
+                            id = item.id,
+                            title = item.title,
+                            artists = item.artists.map { artist ->
+                                com.maloy.innertube.models.Artist(
+                                    name = artist.name,
+                                    id = artist.id
+                                )
+                            },
+                            album = item.album.let { album ->
+                                com.maloy.innertube.models.Album(
+                                    name = album?.title ?: "",
+                                    id = album?.id ?: ""
+                                )
+                            },
+                            thumbnail = item.thumbnailUrl ?: "",
+                            explicit = item.song.explicit
+                        ))
+                        is Album -> otherSources.add(AlbumItem(
+                            browseId = item.id,
+                            playlistId = item.album.playlistId ?: "",
+                            title = item.title,
+                            artists = item.artists.map { artist ->
+                                com.maloy.innertube.models.Artist(
+                                    name = artist.name,
+                                    id = artist.id
+                                )
+                            },
+                            year = item.album.year,
+                            thumbnail = item.thumbnailUrl ?: ""
+                        ))
+                        else -> {}
+                    }
+                }
+            }
+            otherSources.addAll(allYtItems.value)
+
+            val item = if (userSongs.isNotEmpty() && (otherSources.isEmpty() || Random.nextFloat() < 0.8f)) {
+                userSongs.distinctBy { it.id }.shuffled().firstOrNull()
+            } else {
+                otherSources.distinctBy { it.id }.shuffled().firstOrNull()
+            } ?: userSongs.firstOrNull() ?: otherSources.firstOrNull()
+
+            return item
+        } finally {
+            isRandomizing.value = false
         }
     }
 

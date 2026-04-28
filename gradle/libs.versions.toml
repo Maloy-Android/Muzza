@@ -18,6 +18,7 @@ kotlinVersion = "2.0.20"
 cardview = "1.0.0"
 protobuf = "4.34.1"
 animationCore = "1.11.0"
+material = "1.13.0"
 
 [libraries]
 lazycolumnscrollbar = { group = "com.github.nanihadesuka", name = "LazyColumnScrollbar", version.ref = "lazycolumnscrollbar" }
@@ -104,6 +105,7 @@ protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", ve
 
 lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.ref = "lifecycle" }
 animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }

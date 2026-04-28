@@ -16,8 +16,6 @@
     <string name="stats">통계</string>
     <string name="mood_and_genres">분위기 및 장르</string>
     <string name="account">계정</string>
-    <string name="quick_picks">빠른 선곡</string>
-    <string name="quick_picks_empty">빠른 선곡을 생성하기 위해 몇 곡을 들어보세요</string>
     <string name="new_release_albums">최신 앨범</string>
 
     <!-- History -->

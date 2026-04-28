@@ -17,8 +17,6 @@
     <string name="stats">Statistiques</string>
     <string name="mood_and_genres">Humeurs et genres</string>
     <string name="account">Compte</string>
-    <string name="quick_picks">Sélections rapides</string>
-    <string name="quick_picks_empty">Écoutez quelques musiques pour générer vos sélections rapides</string>
     <string name="new_release_albums">Nouveautés</string>
     <!-- History -->
     <string name="today">Aujourd\’hui</string>

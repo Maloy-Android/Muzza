@@ -17,8 +17,6 @@
     <string name="stats">Στατιστικά</string>
     <string name="mood_and_genres">Διάθεση και Είδη</string>
     <string name="account">Λογαριασμός</string>
-    <string name="quick_picks">Γρήγορες επιλογές</string>
-    <string name="quick_picks_empty">Ακούστε σε τραγούδια για να δημιουργήσετε τις γρήγορες επιλογές σας</string>
     <string name="forgotten_favorites">Ξεχασμένα αγαπημένα</string>
     <string name="keep_listening">Συνέχεια ακρόασης</string>
     <string name="similar_to">Παρόμοια με</string>

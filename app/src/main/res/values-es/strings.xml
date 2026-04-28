@@ -17,8 +17,6 @@
     <string name="stats">Estadísticas</string>
     <string name="mood_and_genres">Ánimo y géneros</string>
     <string name="account">Cuenta</string>
-    <string name="quick_picks">Selecciones rápidas</string>
-    <string name="quick_picks_empty">Escucha algunas canciones para generar tus selecciones rápidas</string>
     <string name="forgotten_favorites">Favoritos olvidados</string>
     <string name="keep_listening">Seguir escuchando</string>
     <string name="similar_to">Similar a</string>

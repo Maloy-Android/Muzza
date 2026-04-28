@@ -16,8 +16,6 @@
     <string name="stats">統計</string>
     <string name="mood_and_genres">ムードとジャンル</string>
     <string name="account">アカウント</string>
-    <string name="quick_picks">おすすめ</string>
-    <string name="quick_picks_empty">何曲か再生するとおすすめを生成します</string>
     <string name="new_release_albums">新作アルバム</string>
     <string name="forgotten_favorites">忘れられているお気に入り</string>
     <string name="keep_listening">視聴を維持</string>

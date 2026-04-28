@@ -18,10 +18,8 @@
     <string name="history">История</string>
     <string name="mood_and_genres">Настроения и жанрове</string>
     <string name="stats">Статистика</string>
-    <string name="quick_picks">Бърз избор</string>
     <string name="keep_listening">Продължавайте да слушате</string>
     <string name="account">Акаунт</string>
-    <string name="quick_picks_empty">Слушайте песни, за да генерирате своя бърз избор</string>
     <string name="forgotten_favorites">Забравени любими</string>
     <string name="most_played_songs">Най-пускани песни</string>
 </resources>

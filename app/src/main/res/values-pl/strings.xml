@@ -18,8 +18,6 @@
     <string name="stats">Statystyki</string>
     <string name="mood_and_genres">Nastroje i gatunki</string>
     <string name="account">Konto</string>
-    <string name="quick_picks">Szybki wybór</string>
-    <string name="quick_picks_empty">Słuchaj utworów, aby wygenerować szybkie wybory</string>
     <string name="new_release_albums">Nowo wydane albumy</string>
     <!-- History -->
     <string name="today">Dzisiaj</string>

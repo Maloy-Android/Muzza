@@ -5,7 +5,6 @@
     <string name="history">تاريخ</string>
     <string name="stats">إحصائيات</string>
     <string name="account">حساب</string>
-    <string name="quick_picks">مختارات سريعة</string>
     <string name="forgotten_favorites">مفضلات منسية</string>
     <string name="similar_to">تشبه</string>
     <string name="new_release_albums">ألبومات أصدرت حديثًا</string>
@@ -33,7 +32,6 @@
     <string name="songs">أغاني</string>
     <string name="playlists">قوائم الأغاني</string>
     <string name="mood_and_genres">حالة وأنواع</string>
-    <string name="quick_picks_empty">استمع إلى الأغاني لتوليد مختاراتك السريعة</string>
     <string name="search">ابحث</string>
     <string name="keep_listening">تابع الاستماع</string>
     <string name="this_week">الأسبوع الحالي</string>

@@ -10,6 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -30,11 +32,11 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
@@ -61,7 +63,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -113,8 +114,10 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.NoInternetBottomSheet
+import com.maloy.muzza.ui.component.RandomizeGridItem
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
+import com.maloy.muzza.ui.component.SpeedDialGridItem
 import com.maloy.muzza.ui.component.YouTubeCardItem
 import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
@@ -131,6 +134,7 @@ import com.maloy.muzza.ui.utils.SnapLayoutInfoProvider
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.HomeViewModel
+import kotlinx.coroutines.launch
 import java.util.Calendar
 import kotlin.math.min
 import kotlin.random.Random
@@ -155,6 +159,7 @@ fun HomeScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val quickPicks by viewModel.quickPicks.collectAsState()
+    val speedDialItems by viewModel.speedDialItems.collectAsState()
     val dailyDiscover by viewModel.dailyDiscover.collectAsState()
     val communityPlaylists by viewModel.communityPlaylists.collectAsState()
     val forgottenFavorites by viewModel.forgottenFavorites.collectAsState()
@@ -172,12 +177,14 @@ fun HomeScreen(
 
     val isLoading by viewModel.isLoading.collectAsState()
     val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val isRandomizing by viewModel.isRandomizing.collectAsState()
     val selectedChip by viewModel.selectedChip.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
 
     val quickPicksLazyGridState = rememberLazyGridState()
     val forgottenFavoritesLazyGridState = rememberLazyGridState()
 
+    var randomizeJob by remember { mutableStateOf<kotlinx.coroutines.Job?>(null) }
     val scope = rememberCoroutineScope()
     val lazylistState = rememberLazyListState()
     val backStackEntry by navController.currentBackStackEntryAsState()
@@ -380,14 +387,6 @@ fun HomeScreen(
     ) {
         val horizontalLazyGridItemWidthFactor = if (maxWidth * 0.475f >= 320.dp) 0.475f else 0.9f
         val horizontalLazyGridItemWidth = maxWidth * horizontalLazyGridItemWidthFactor
-        val quickPicksSnapLayoutInfoProvider = remember(quickPicksLazyGridState) {
-            SnapLayoutInfoProvider(
-                lazyGridState = quickPicksLazyGridState,
-                positionInLayout = { layoutSize, itemSize ->
-                    (layoutSize * horizontalLazyGridItemWidthFactor / 2f - itemSize / 2f)
-                }
-            )
-        }
         val forgottenFavoritesSnapLayoutInfoProvider = remember(forgottenFavoritesLazyGridState) {
             SnapLayoutInfoProvider(
                 lazyGridState = forgottenFavoritesLazyGridState,
@@ -524,95 +523,206 @@ fun HomeScreen(
             }
 
             if (selectedChip == null) {
-                quickPicks?.takeIf { it.isNotEmpty() }?.let { quickPicks ->
-                    item {
+                speedDialItems.takeIf { it.isNotEmpty() }?.let { items ->
+                    item(key = "speed_dial_title") {
                         NavigationTitle(
-                            title = stringResource(R.string.quick_picks),
+                            title = stringResource(R.string.speed_dial),
                             modifier = Modifier.animateItem(),
-                            onPlayAllClick = {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = context.getString(R.string.quick_picks),
-                                        items = quickPicks.distinctBy { it.id }
-                                            .map { it.toMediaItem() }
-                                    )
-                                )
-                            }
                         )
                     }
 
-                    item {
-                        LazyHorizontalGrid(
-                            state = quickPicksLazyGridState,
-                            rows = GridCells.Fixed(4),
-                            flingBehavior = rememberSnapFlingBehavior(
-                                quickPicksSnapLayoutInfoProvider
-                            ),
-                            contentPadding = WindowInsets.systemBars
-                                .only(WindowInsetsSides.Horizontal)
-                                .asPaddingValues(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ListItemHeight * 4)
-                                .animateItem()
-                        ) {
-                            items(
-                                items = quickPicks,
-                                key = { it.id }
-                            ) { originalSong ->
-                                val song by database.song(originalSong.id)
-                                    .collectAsState(initial = originalSong)
+                    item(key = "speed_dial_list") {
+                        val targetItemSize = 160.dp
+                        val availableWidth = maxWidth - 32.dp
+                        val columns = (availableWidth / targetItemSize).toInt().coerceAtLeast(3)
+                        val rows =
+                            if (columns >= 6) {
+                                1
+                            } else if (columns >= 4) {
+                                2
+                            } else {
+                                3
+                            }
+                        val itemsPerPage = columns * rows
+                        val itemWidth = availableWidth / columns
 
-                                SongListItem(
-                                    song = song!!,
-                                    showInLibraryIcon = true,
-                                    isActive = song!!.id == mediaMetadata?.id,
-                                    isPlaying = isPlaying,
-                                    isSwipeable = false,
-                                    trailingContent = {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song!!,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }
-                                        ) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null
-                                            )
-                                        }
-                                    },
-                                    modifier = Modifier
-                                        .width(horizontalLazyGridItemWidth)
-                                        .combinedClickable(
-                                            onClick = {
-                                                if (song!!.id == mediaMetadata?.id) {
-                                                    playerConnection.player.togglePlayPause()
-                                                } else {
-                                                    playerConnection.playQueue(
-                                                        YouTubeQueue.radio(
-                                                            song!!.toMediaMetadata()
+                        val pagerState =
+                            rememberPagerState(pageCount = { (items.size + itemsPerPage - 1) / itemsPerPage })
+
+                        Column(
+                            modifier =
+                                Modifier
+                                    .fillMaxWidth()
+                                    .animateItem(),
+                        ) {
+                            HorizontalPager(
+                                state = pagerState,
+                                contentPadding = PaddingValues(horizontal = 16.dp),
+                                pageSpacing = 16.dp,
+                                modifier =
+                                    Modifier
+                                        .fillMaxWidth()
+                                        .height(itemWidth * rows),
+                            ) { page ->
+                                val pageStartIndex = page * itemsPerPage
+                                val pageItems = items.drop(pageStartIndex).take(itemsPerPage)
+
+                                Column(modifier = Modifier.fillMaxSize()) {
+                                    for (row in 0 until rows) {
+                                        Row(modifier = Modifier.fillMaxWidth()) {
+                                            for (col in 0 until columns) {
+                                                val itemIndex = row * columns + col
+
+                                                val isRandomizeSlot =
+                                                    (page == 0 && itemIndex == itemsPerPage - 1)
+
+                                                if (isRandomizeSlot) {
+                                                    Box(
+                                                        modifier =
+                                                            Modifier
+                                                                .width(itemWidth)
+                                                                .height(itemWidth)
+                                                                .padding(4.dp),
+                                                    ) {
+                                                        RandomizeGridItem(
+                                                            isLoading = isRandomizing,
+                                                            onClick = {
+                                                                if (isRandomizing) {
+                                                                    randomizeJob?.cancel()
+                                                                } else if (!isListenTogetherGuest) {
+                                                                    randomizeJob =
+                                                                        scope.launch {
+                                                                            val randomItem =
+                                                                                viewModel.getRandomItem()
+                                                                            if (randomItem != null) {
+                                                                                when (randomItem) {
+                                                                                    is SongItem -> {
+                                                                                        playerConnection.playQueue(
+                                                                                            YouTubeQueue(
+                                                                                                randomItem.endpoint
+                                                                                                    ?: WatchEndpoint(
+                                                                                                        videoId = randomItem.id,
+                                                                                                    ),
+                                                                                                randomItem.toMediaMetadata(),
+                                                                                            ),
+                                                                                        )
+                                                                                    }
+
+                                                                                    is AlbumItem -> {
+                                                                                        navController.navigate(
+                                                                                            "album/${randomItem.id}",
+                                                                                        )
+                                                                                    }
+
+                                                                                    is ArtistItem -> {
+                                                                                        navController.navigate(
+                                                                                            "artist/${randomItem.id}",
+                                                                                        )
+                                                                                    }
+
+                                                                                    else -> {}
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                }
+                                                            }
                                                         )
-                                                    )
-                                                }
-                                            },
-                                            onLongClick = {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song!!,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
+                                                    }
+                                                } else if (itemIndex < pageItems.size) {
+                                                    val item = pageItems[itemIndex]
+                                                    Box(
+                                                        modifier =
+                                                            Modifier
+                                                                .width(itemWidth)
+                                                                .height(itemWidth)
+                                                                .padding(4.dp),
+                                                    ) {
+                                                        SpeedDialGridItem(
+                                                            item = item,
+                                                            isActive =
+                                                                item.id in listOf(
+                                                                    mediaMetadata?.album?.id,
+                                                                    mediaMetadata?.id
+                                                                ),
+                                                            isPlaying = isPlaying,
+                                                            modifier =
+                                                                Modifier
+                                                                    .fillMaxSize()
+                                                                    .combinedClickable(
+                                                                        onClick = {
+                                                                            when (item) {
+                                                                                is SongItem -> {
+                                                                                    if (!isListenTogetherGuest) {
+                                                                                        playerConnection.playQueue(
+                                                                                            YouTubeQueue(
+                                                                                                item.endpoint
+                                                                                                    ?: WatchEndpoint(
+                                                                                                        videoId = item.id,
+                                                                                                    ),
+                                                                                                item.toMediaMetadata(),
+                                                                                            ),
+                                                                                        )
+                                                                                    }
+                                                                                }
+
+                                                                                is AlbumItem -> {
+                                                                                    navController.navigate(
+                                                                                        "album/${item.id}"
+                                                                                    )
+                                                                                }
+
+                                                                                is ArtistItem -> {
+                                                                                    navController.navigate(
+                                                                                        "artist/${item.id}"
+                                                                                    )
+                                                                                }
+
+                                                                                else -> {}
+                                                                            }
+                                                                        },
+                                                                        onLongClick = {
+                                                                            haptic.performHapticFeedback(
+                                                                                HapticFeedbackType.LongPress,
+                                                                            )
+                                                                            menuState.show {
+                                                                                when (item) {
+                                                                                    is SongItem -> {
+                                                                                        YouTubeSongMenu(
+                                                                                            song = item,
+                                                                                            navController = navController,
+                                                                                            onDismiss = menuState::dismiss,
+                                                                                        )
+                                                                                    }
+
+                                                                                    is AlbumItem -> {
+                                                                                        YouTubeAlbumMenu(
+                                                                                            albumItem = item,
+                                                                                            navController = navController,
+                                                                                            onDismiss = menuState::dismiss,
+                                                                                        )
+                                                                                    }
+
+                                                                                    is ArtistItem -> {
+                                                                                        YouTubeArtistMenu(
+                                                                                            artist = item,
+                                                                                            onDismiss = menuState::dismiss,
+                                                                                        )
+                                                                                    }
+
+                                                                                    else -> {}
+                                                                                }
+                                                                            }
+                                                                        }
+                                                                    )
+                                                        )
+                                                    }
+                                                } else {
+                                                    Spacer(modifier = Modifier.width(itemWidth))
                                                 }
                                             }
-                                        )
-                                )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }

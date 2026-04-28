@@ -332,6 +332,7 @@ fun Lyrics(
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             fontWeight = FontWeight.Medium,
+                            textAlign = TextAlign.Center,
                             modifier =
                                 Modifier
                                     .fillMaxWidth()

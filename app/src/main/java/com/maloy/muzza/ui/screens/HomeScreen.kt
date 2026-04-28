@@ -999,11 +999,9 @@ fun HomeScreen(
                         },
                         onClick = it.endpoint?.let { endpoint ->
                             {
-                                when {
-                                    endpoint.params != null ->
-                                        navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${it.title}")
-
-                                    else -> navController.navigate("mood_and_genres")
+                                when  {
+                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate("artist/${endpoint.browseId}")
+                                    else -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${it.title}")
                                 }
                             }
                         },

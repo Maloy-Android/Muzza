@@ -511,9 +511,9 @@ fun BottomSheetPlayer(
                             Icon(
                                 painter = painterResource(R.drawable.explicit),
                                 contentDescription = null,
+                                tint = onBackgroundColor,
                                 modifier = Modifier
                                     .size(20.dp)
-                                    .background(onBackgroundColor)
                                     .padding(end = 1.dp)
                             )
                         }

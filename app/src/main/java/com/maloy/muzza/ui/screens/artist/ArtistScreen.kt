@@ -467,87 +467,62 @@ fun ArtistScreen(
                             title = stringResource(R.string.from_your_library),
                             onClick = {
                                 navController.navigate("artist/${viewModel.artistId}/songs")
-                            },
-                            onPlayAllClick = {
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = context.getString(R.string.from_your_library),
-                                        items = librarySongs.map { it.toMediaItem() }
-                                    )
-                                )
                             }
                         )
                     }
 
-                    item {
-                        LazyHorizontalGrid(
-                            state = topArtistSongsLazyGridState,
-                            rows = GridCells.Fixed(4),
-                            flingBehavior = rememberSnapFlingBehavior(
-                                topArtistSongsSnapLayoutInfoProvider
-                            ),
-                            contentPadding = WindowInsets.systemBars
-                                .only(WindowInsetsSides.Horizontal)
-                                .asPaddingValues(),
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ListItemHeight * 4)
-                                .animateItem()
-                        ) {
-                            items(
-                                items = librarySongs,
-                                key = { "local_${it.id}" }
-                            ) { song ->
-                                SongListItem(
-                                    song = song,
-                                    showInLibraryIcon = true,
-                                    isActive = song.id == mediaMetadata?.id,
-                                    isPlaying = isPlaying,
-                                    trailingContent = {
-                                        IconButton(
-                                            onClick = {
-                                                menuState.show {
-                                                    SongMenu(
-                                                        originalSong = song,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss
-                                                    )
-                                                }
-                                            }) {
-                                            Icon(
-                                                painter = painterResource(R.drawable.more_vert),
-                                                contentDescription = null
+                    items(
+                        items = librarySongs,
+                        key = { "local_${it.id}" }
+                    ) { song ->
+                        SongListItem(
+                            song = song,
+                            showInLibraryIcon = true,
+                            isActive = song.id == mediaMetadata?.id,
+                            isPlaying = isPlaying,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = song,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
                                             )
                                         }
-                                    },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .combinedClickable(onClick = {
-                                            if (song.id == mediaMetadata?.id) {
-                                                playerConnection.player.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue(
-                                                        WatchEndpoint(
-                                                            videoId = song.id
-                                                        ), song.toMediaMetadata()
-                                                    )
-                                                )
-                                            }
-                                        }, onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                SongMenu(
-                                                    originalSong = song,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
-                                        })
-                                        .animateItem()
-                                )
-                            }
-                        }
+                                    }) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .combinedClickable(onClick = {
+                                    if (song.id == mediaMetadata?.id) {
+                                        playerConnection.player.togglePlayPause()
+                                    } else {
+                                        playerConnection.playQueue(
+                                            YouTubeQueue(
+                                                WatchEndpoint(
+                                                    videoId = song.id
+                                                ), song.toMediaMetadata()
+                                            )
+                                        )
+                                    }
+                                }, onLongClick = {
+                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    menuState.show {
+                                        SongMenu(
+                                            originalSong = song,
+                                            navController = navController,
+                                            onDismiss = menuState::dismiss
+                                        )
+                                    }
+                                })
+                                .animateItem()
+                        )
                     }
                 }
 

@@ -353,55 +353,59 @@ fun SongListItem(
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
 
     val content: @Composable () -> Unit = {
-        ListItem(
-            title = song.song.title,
-            subtitle = joinByBullet(
-                song.artists.joinToString { it.name },
-                makeTimeString(song.song.duration * 1000L)
-            ),
-            badges = badges,
-            thumbnailContent = {
-                if (song.song.isLocal) {
-                    song.song.let {
-                        AsyncLocalImage(
-                            image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                            contentDescription = null,
-                            contentScale = contentScale,
+        Box(
+            modifier = Modifier.background(Color.Transparent)
+        ) {
+            ListItem(
+                title = song.song.title,
+                subtitle = joinByBullet(
+                    song.artists.joinToString { it.name },
+                    makeTimeString(song.song.duration * 1000L)
+                ),
+                badges = badges,
+                thumbnailContent = {
+                    if (song.song.isLocal) {
+                        song.song.let {
+                            AsyncLocalImage(
+                                image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                                contentDescription = null,
+                                contentScale = contentScale,
+                                modifier = Modifier
+                                    .size(ListThumbnailSize)
+                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                            )
+                            PlayingIndicatorBox(
+                                isActive = isActive,
+                                playWhenReady = isPlaying,
+                                color = Color.White,
+                                modifier = Modifier
+                                    .size(ListThumbnailSize)
+                                    .background(
+                                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
+                                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                    )
+                            )
+                        }
+                    } else {
+                        ItemThumbnail(
+                            thumbnailUrl = song.song.thumbnailUrl,
+                            videoThumbnailSize = false,
+                            albumIndex = albumIndex,
+                            isActive = isActive,
+                            isPlaying = isPlaying,
+                            shape = RoundedCornerShape(ThumbnailCornerRadius),
                             modifier = Modifier
                                 .size(ListThumbnailSize)
                                 .clip(RoundedCornerShape(ThumbnailCornerRadius))
                         )
-                        PlayingIndicatorBox(
-                            isActive = isActive,
-                            playWhenReady = isPlaying,
-                            color = Color.White,
-                            modifier = Modifier
-                                .size(ListThumbnailSize)
-                                .background(
-                                    color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                    shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                )
-                        )
                     }
-                } else {
-                    ItemThumbnail(
-                        thumbnailUrl = song.song.thumbnailUrl,
-                        videoThumbnailSize = false,
-                        albumIndex = albumIndex,
-                        isActive = isActive,
-                        isPlaying = isPlaying,
-                        shape = RoundedCornerShape(ThumbnailCornerRadius),
-                        modifier = Modifier
-                            .size(ListThumbnailSize)
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                    )
-                }
-            },
-            trailingContent = trailingContent,
-            modifier = modifier,
-            isActive = isActive,
-            isTwoLineLabel = twoLineLabel
-        )
+                },
+                trailingContent = trailingContent,
+                modifier = modifier,
+                isActive = isActive,
+                isTwoLineLabel = twoLineLabel
+            )
+        }
     }
     if (isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
         SwipeToSongBox(
@@ -1825,41 +1829,45 @@ private fun BaseListItemContent(
     val isListenTogetherGuest = listenTogetherRoleState?.value == RoomRole.GUEST
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
     val content: @Composable () -> Unit = {
-        ListItem(
-            title = item.title,
-            subtitle = when (item) {
-                is SongItem -> joinByBullet(
-                    item.artists.joinToString { it.name },
-                    makeTimeString(item.duration?.times(1000L))
-                )
+        Box(
+            modifier = Modifier.background(Color.Transparent)
+        ) {
+            ListItem(
+                title = item.title,
+                subtitle = when (item) {
+                    is SongItem -> joinByBullet(
+                        item.artists.joinToString { it.name },
+                        makeTimeString(item.duration?.times(1000L))
+                    )
 
-                is AlbumItem -> joinByBullet(
-                    item.artists?.joinToString { it.name },
-                    item.year?.toString()
-                )
+                    is AlbumItem -> joinByBullet(
+                        item.artists?.joinToString { it.name },
+                        item.year?.toString()
+                    )
 
-                is ArtistItem -> joinByBullet(item.subscriptions)
-                is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
-            },
-            badges = badges,
-            thumbnailContent = {
-                ItemThumbnail(
-                    thumbnailUrl = item.thumbnail,
-                    videoThumbnailSize = false,
-                    albumIndex = albumIndex,
-                    isActive = isActive,
-                    isPlaying = isPlaying,
-                    shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
-                        ThumbnailCornerRadius
-                    ),
-                    modifier = Modifier.size(ListThumbnailSize)
-                )
-            },
-            trailingContent = trailingContent,
-            modifier = modifier,
-            isActive = isActive,
-            isTwoLineLabel = isTwoLineLabel
-        )
+                    is ArtistItem -> joinByBullet(item.subscriptions)
+                    is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
+                },
+                badges = badges,
+                thumbnailContent = {
+                    ItemThumbnail(
+                        thumbnailUrl = item.thumbnail,
+                        videoThumbnailSize = false,
+                        albumIndex = albumIndex,
+                        isActive = isActive,
+                        isPlaying = isPlaying,
+                        shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(
+                            ThumbnailCornerRadius
+                        ),
+                        modifier = Modifier.size(ListThumbnailSize)
+                    )
+                },
+                trailingContent = trailingContent,
+                modifier = modifier,
+                isActive = isActive,
+                isTwoLineLabel = isTwoLineLabel
+            )
+        }
     }
     if (item is SongItem && isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
         SwipeToSongBox(

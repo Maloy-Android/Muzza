@@ -868,6 +868,7 @@ fun DetailsDialog(
                     .verticalScroll(rememberScrollState())
             ) {
                 listOf(
+                    stringResource(R.string.album_title) to mediaMetadata?.album?.title,
                     stringResource(R.string.song_title) to mediaMetadata?.title,
                     stringResource(R.string.song_artists) to mediaMetadata?.artists?.joinToString { it.name },
                     stringResource(R.string.media_id) to mediaMetadata?.id,

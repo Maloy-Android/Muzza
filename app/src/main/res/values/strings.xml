@@ -210,6 +210,7 @@
     <string name="delete_lyric_confirm">Do you really want to delete the stored lyrics for \"%s\"?</string>
 
     <string name="edit_song">Edit song</string>
+    <string name="album_title">Album</string>
     <string name="song_title">Song title</string>
     <string name="song_artists">Song artists</string>
     <string name="error_song_title_empty">Song title cannot be empty.</string>

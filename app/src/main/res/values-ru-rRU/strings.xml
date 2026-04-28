@@ -212,6 +212,7 @@
     <string name="delete_lyric_confirm">Вы действительно хотите удалить сохраненные тексты песен для \"%s\"?</string>
 
     <string name="edit_song">Редактировать композицию</string>
+    <string name="album_title">Альбом</string>
     <string name="song_title">Название композиции</string>
     <string name="song_artists">Исполнители композиции</string>
     <string name="error_song_title_empty">Укажите название композиции</string>

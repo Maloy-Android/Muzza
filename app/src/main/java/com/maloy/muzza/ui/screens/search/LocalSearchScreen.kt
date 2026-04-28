@@ -33,10 +33,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -63,6 +66,9 @@ import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.PlaylistListItem
 import com.maloy.muzza.ui.component.SongListItem
+import com.maloy.muzza.ui.menu.AlbumMenu
+import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LocalFilter
@@ -79,6 +85,8 @@ fun LocalSearchScreen(
     viewModel: LocalSearchViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
     val keyboardController = LocalSoftwareKeyboardController.current
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -203,7 +211,8 @@ fun LocalSearchScreen(
                                                 .getOrDefault(LocalFilter.SONG, emptyList())
                                                 .filterIsInstance<Song>()
                                                 .map { it.toMediaItem() }
-                                            playerConnection.playQueue(ListQueue(
+                                            playerConnection.playQueue(
+                                                ListQueue(
                                                 title = "${context.getString(R.string.queue_searched_songs)}: $query",
                                                 items = songs,
                                                 startIndex = songs.indexOfFirst { it.mediaId == item.id }
@@ -212,6 +221,7 @@ fun LocalSearchScreen(
                                     },
                                     onLongClick = {
                                         menuState.show {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             SongMenu(
                                                 originalSong = item,
                                                 navController = navController,
@@ -231,32 +241,140 @@ fun LocalSearchScreen(
                             album = item,
                             isActive = item.id == mediaMetadata?.album?.id,
                             isPlaying = isPlaying,
-                            modifier = Modifier
-                                .clickable {
-                                    onDismiss()
-                                    navController.navigate("album/${item.id}")
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = item,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
                                 }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        onDismiss()
+                                        navController.navigate("album/${item.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = item,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
                                 .animateItem()
                         )
 
                         is Artist -> ArtistListItem(
                             artist = item,
-                            modifier = Modifier
-                                .clickable {
-                                    onDismiss()
-                                    navController.navigate("artist/${item.id}")
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            ArtistMenu(
+                                                originalArtist = item,
+                                                coroutineScope = scope,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
                                 }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        onDismiss()
+                                        navController.navigate("artist/${item.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            ArtistMenu(
+                                                originalArtist = item,
+                                                coroutineScope = scope,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
                                 .animateItem()
                         )
 
                         is Playlist -> PlaylistListItem(
                             playlist = item,
                             thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
-                            modifier = Modifier
-                                .clickable {
-                                    onDismiss()
-                                    navController.navigate("local_playlist/${item.id}")
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            PlaylistMenu(
+                                                playlist = item,
+                                                coroutineScope = scope,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
                                 }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        onDismiss()
+                                        navController.navigate("local_playlist/${item.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            PlaylistMenu(
+                                                playlist = item,
+                                                coroutineScope = scope,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
                                 .animateItem()
                         )
                     }

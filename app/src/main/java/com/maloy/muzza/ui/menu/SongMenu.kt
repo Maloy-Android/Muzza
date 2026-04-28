@@ -552,7 +552,7 @@ fun SongMenu(
             }
             ListMenuItem(
                 icon = if (song.artists.size == 1) R.drawable.artist else R.drawable.artists,
-                title = R.string.view_artist
+                title = if (song.artists.size == 1) R.string.view_artist else R.string.view_artists
             ) {
                 if (song.artists.size == 1) {
                     navController.navigate("artist/${song.artists[0].id}")

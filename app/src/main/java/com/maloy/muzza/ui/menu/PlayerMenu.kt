@@ -675,7 +675,7 @@ fun PlayerMenu(
             if (artists.isNotEmpty()) {
                 ListMenuItem(
                     icon = if (artists.size == 1) R.drawable.artist else R.drawable.artists,
-                    title = R.string.view_artist
+                    title = if (artists.size == 1) R.string.view_artist else R.string.view_artists
                 ) {
                     if (artists.size == 1) {
                         navController.navigate("artist/${artists[0].id}")

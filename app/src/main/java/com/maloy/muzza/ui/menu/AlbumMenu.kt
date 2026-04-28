@@ -476,7 +476,7 @@ fun AlbumMenu(
         }
         ListMenuItem(
             icon = if (album.artists.size == 1) R.drawable.artist else R.drawable.artists,
-            title = R.string.view_artist
+            title = if (album.artists.size == 1) R.string.view_artist else R.string.view_artists
         ) {
             if (album.artists.size == 1) {
                 navController.navigate("artist/${album.artists[0].id}")

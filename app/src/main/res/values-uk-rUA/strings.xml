@@ -165,6 +165,7 @@
     <string name="import_playlist">Імпортувати плейлист</string>
     <string name="add_to_playlist">Додати в плейлист</string>
     <string name="view_artist">Перейти до виконавця</string>
+    <string name="view_artists">Перейти до виконавців</string>
     <string name="view_album">Перейти до альбому</string>
     <string name="view_playlist">Перейти до плейлисту</string>
     <string name="refetch">Оновити</string>

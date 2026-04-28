@@ -513,6 +513,7 @@ fun BottomSheetPlayer(
                                 contentDescription = null,
                                 modifier = Modifier
                                     .size(20.dp)
+                                    .background(onBackgroundColor)
                                     .padding(end = 1.dp)
                             )
                         }

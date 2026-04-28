@@ -171,6 +171,7 @@ fun YouTubeSongMenu(
 
     YouTubeListItem(
         item = song,
+        isSwipeable = false,
         badges = {
             if (song.explicit) {
                 Icon(

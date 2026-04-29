@@ -165,9 +165,12 @@ fun ArtistScreen(
 
     val transparentAppBar by remember {
         derivedStateOf {
-            val isAtTop = lazyListState.firstVisibleItemIndex == 0
-            val offset = lazyListState.firstVisibleItemScrollOffset
-            isAtTop && offset < 1
+            !lazyListState.canScrollBackward
+        }
+    }
+    val showArtistTitle by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
         }
     }
     val systemBarsTopPadding = WindowInsets.systemBars.asPaddingValues().calculateTopPadding()
@@ -721,7 +724,7 @@ fun ArtistScreen(
     }
 
     CenterAlignedTopAppBar(
-        title = { if (!transparentAppBar) Text(artistPage?.artist?.title.orEmpty()) },
+        title = { if (showArtistTitle) Text(artistPage?.artist?.title.orEmpty()) },
         navigationIcon = {
             IconButton(
                 onClick = navController::navigateUp, onLongClick = navController::backToMain

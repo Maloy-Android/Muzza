@@ -85,9 +85,11 @@ class SyncUtils @Inject constructor(
     suspend fun syncArtistsSubscriptions() {
         YouTube.library("FEmusic_library_corpus_artists").completed().onSuccess { page ->
             val artists = page.items.filterIsInstance<ArtistItem>()
-
             database.artistsBookmarkedByNameAsc().first()
-                .filterNot { it.artist.bookmarkedAt != null && it.id in artists.map(ArtistItem::id) }
+                .filterNot { it.artist.bookmarkedAt != null }
+                .filter {
+                    !it.artist.isProfile && it.id !in artists.map(ArtistItem::id)
+                }
                 .forEach { database.update(it.artist.localToggleLike()) }
             artists.forEach { artist ->
                 val dbArtist = database.artist(artist.id).firstOrNull()
@@ -105,7 +107,7 @@ class SyncUtils @Inject constructor(
                                 )
                             )
                         }
-                        else -> if (dbArtist.artist.bookmarkedAt == null)
+                        else -> if (dbArtist.artist.bookmarkedAt == null && !artist.isProfile)
                             update(dbArtist.artist.localToggleLike())
                     }
                 }

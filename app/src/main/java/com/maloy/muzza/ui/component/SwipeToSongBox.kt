@@ -116,7 +116,7 @@ fun SwipeToSongBox(
             modifier = Modifier
                 .offset { IntOffset(offset.floatValue.roundToInt(), 0) }
                 .fillMaxWidth()
-                .background(Color.Transparent),
+                .background(if (offset.floatValue != 0f) MaterialTheme.colorScheme.surface else Color.Transparent),
             content = content
         )
     }

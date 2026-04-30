@@ -553,6 +553,7 @@ fun ArtistListItem(
     thumbnailContent = {
         AsyncImage(
             model = artist.artist.thumbnailUrl,
+            contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
                 .size(ListThumbnailSize)

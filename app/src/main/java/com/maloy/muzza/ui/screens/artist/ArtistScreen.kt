@@ -61,6 +61,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalHapticFeedback
@@ -282,7 +283,7 @@ fun ArtistScreen(
                                     IntOffset(x = 0, y = headerOffset)
                                 }) {
                             AsyncImage(
-                                model = artistPage.artist.thumbnail.resize(1200, 1200),
+                                model = artistPage.artist.thumbnail,
                                 contentDescription = null,
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -290,6 +291,7 @@ fun ArtistScreen(
                                     .fadingEdge(
                                         bottom = 200.dp,
                                     ),
+                                contentScale = ContentScale.Crop
                             )
                         }
                         Column(

@@ -37,6 +37,7 @@ fun NavigationTitle(
     label: String? = null,
     thumbnail: (@Composable () -> Unit)? = null,
     onClick: (() -> Unit)? = null,
+    enabledOnclick : Boolean = true,
     onPlayAllClick: (() -> Unit)? = null,
     onPlayAllClickEnable: Boolean = true
 ) {
@@ -46,7 +47,7 @@ fun NavigationTitle(
         modifier = modifier
             .fillMaxWidth()
             .windowInsetsPadding(WindowInsets.systemBars.only(WindowInsetsSides.Horizontal))
-            .clickable(enabled = onClick != null) {
+            .clickable(enabled = onClick != null && enabledOnclick) {
                 onClick?.invoke()
             }
             .padding(horizontal = 12.dp, vertical = 16.dp)
@@ -99,7 +100,7 @@ fun NavigationTitle(
             }
         }
 
-        if (onClick != null) {
+        if (onClick != null && enabledOnclick) {
             Icon(
                 painter = painterResource(R.drawable.arrow_forward),
                 contentDescription = null,

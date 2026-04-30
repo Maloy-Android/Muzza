@@ -992,38 +992,39 @@ fun HomeScreen(
             homePage?.sections?.forEach { section ->
                 val hasOnlyVideos = section.items.all { it is SongItem && it.isVideoSong }
 
-                if (!hasOnlyVideos) {
-                    item {
-                        NavigationTitle(
-                            title = section.title,
-                            label = section.label,
-                            thumbnail = section.thumbnail?.let { thumbnailUrl ->
-                                {
-                                    val shape = if (section.endpoint?.isArtistEndpoint == true) CircleShape
+                item {
+                    NavigationTitle(
+                        title = section.title,
+                        label = section.label,
+                        enabledOnclick = !hasOnlyVideos,
+                        thumbnail = section.thumbnail?.let { thumbnailUrl ->
+                            {
+                                val shape =
+                                    if (section.endpoint?.isArtistEndpoint == true) CircleShape
                                     else RoundedCornerShape(ThumbnailCornerRadius)
-                                    AsyncImage(
-                                        model = thumbnailUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .size(ListThumbnailSize)
-                                            .clip(shape)
-                                            .aspectRatio(1f)
-                                    )
+                                AsyncImage(
+                                    model = thumbnailUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(ListThumbnailSize)
+                                        .clip(shape)
+                                        .aspectRatio(1f)
+                                )
+                            }
+                        },
+                        onClick = section.endpoint?.let { endpoint ->
+                            {
+                                when {
+                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) ->
+                                        navController.navigate("artist/${endpoint.browseId}")
+
+                                    else -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
                                 }
-                            },
-                            onClick = section.endpoint?.let { endpoint ->
-                                {
-                                    when {
-                                        endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) ->
-                                            navController.navigate("artist/${endpoint.browseId}")
-                                        else -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
-                                    }
-                                }
-                            },
-                            modifier = Modifier.animateItem()
-                        )
-                    }
+                            }
+                        },
+                        modifier = Modifier.animateItem()
+                    )
                 }
 
                 item {

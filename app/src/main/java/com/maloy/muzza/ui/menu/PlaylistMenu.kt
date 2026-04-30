@@ -270,7 +270,7 @@ fun PlaylistMenu(
         showLikedIcon = false,
         thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
         trailingContent = {
-            if (!playlist.playlist.isEditable) {
+            if (!playlist.playlist.isLocal) {
                 IconButton(
                     onClick = {
                         database.query {

@@ -160,22 +160,22 @@ object YouTube {
                     } else {
                         val grouped = items.groupBy { item ->
                             when (item) {
-                                is AlbumItem -> "Albums"
-                                is ArtistItem -> if (item.isProfile) "Profiles" else "Artists"
-                                is PlaylistItem -> "Playlists"
+                                is AlbumItem -> YouTubeConstants.RESULT_ALBUMS
+                                is ArtistItem -> if (item.isProfile) YouTubeConstants.RESULT_PROFILES else YouTubeConstants.RESULT_ARTISTS
+                                is PlaylistItem -> YouTubeConstants.RESULT_PLAYLISTS
                                 is SongItem -> when {
-                                    item.isVideoSong -> "Videos"
-                                    else -> "Songs"
+                                    item.isVideoSong -> YouTubeConstants.RESULT_VIDEOS
+                                    else -> YouTubeConstants.RESULT_SONGS
                                 }
                             }
                         }
                         val sectionOrder = listOf(
-                            "Songs",
-                            "Videos",
-                            "Albums",
-                            "Artists",
-                            "Playlists",
-                            "Profiles",
+                            YouTubeConstants.RESULT_SONGS,
+                            YouTubeConstants.RESULT_VIDEOS,
+                            YouTubeConstants.RESULT_ALBUMS,
+                            YouTubeConstants.RESULT_ARTISTS,
+                            YouTubeConstants.RESULT_PLAYLISTS,
+                            YouTubeConstants.RESULT_PROFILES,
                             YouTubeConstants.DEFAULT_OTHER_RESULTS
                         )
                         sectionOrder.forEach { sectionName ->
@@ -205,12 +205,12 @@ object YouTube {
             .sortedBy { summary ->
                 when (summary.title) {
                     YouTubeConstants.DEFAULT_TOP_RESULT -> 0
-                    "Songs" -> 1
-                    "Videos" -> 2
-                    "Albums" -> 3
-                    "Artists" -> 4
-                    "Playlists" -> 5
-                    "Profiles" -> 6
+                    YouTubeConstants.RESULT_SONGS -> 1
+                    YouTubeConstants.RESULT_VIDEOS -> 2
+                    YouTubeConstants.RESULT_ALBUMS -> 3
+                    YouTubeConstants.RESULT_ARTISTS -> 4
+                    YouTubeConstants.RESULT_PLAYLISTS -> 5
+                    YouTubeConstants.RESULT_PROFILES -> 6
                     else -> 7
                 }
             }

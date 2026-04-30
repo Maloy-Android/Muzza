@@ -529,6 +529,8 @@ fun YouTubePlaylistMenuInPlaylistScreen(
     songs: List<SongItem> = emptyList(),
     coroutineScope: CoroutineScope,
     onDismiss: () -> Unit,
+    playlistAuthors: String? = null,
+    playlistSongCount: String? = null,
 ) {
     val context = LocalContext.current
     val database = LocalDatabase.current
@@ -561,7 +563,11 @@ fun YouTubePlaylistMenuInPlaylistScreen(
         onDismiss = { showChoosePlaylistDialog = false },
     )
     YouTubeListItem(
-        item = playlist, showLikedIcon = false, trailingContent = {
+        item = playlist,
+        playlistAuthors = playlistAuthors,
+        playlistSongCount = playlistSongCount,
+        showLikedIcon = false,
+        trailingContent = {
             if (playlist.id != "LM") {
                 IconButton(
                     onClick = {

@@ -1091,7 +1091,9 @@ fun OnlinePlaylistScreen(
                                     playlist = playlist!!,
                                     songs = songs,
                                     coroutineScope = coroutineScope,
-                                    onDismiss = menuState::dismiss
+                                    onDismiss = menuState::dismiss,
+                                    playlistAuthors = authors,
+                                    playlistSongCount = playlist!!.songCountText
                                 )
                             }
                         }

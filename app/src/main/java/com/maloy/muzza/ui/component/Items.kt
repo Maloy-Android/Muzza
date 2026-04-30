@@ -1770,6 +1770,8 @@ fun YouTubeListItem(
     modifier: Modifier = Modifier,
     isSwipeable: Boolean = true,
     albumIndex: Int? = null,
+    playlistAuthors: String? = null,
+    playlistSongCount: String? = null,
     showLikedIcon: Boolean = true,
     badges: @Composable RowScope.() -> Unit = {
         val database = LocalDatabase.current
@@ -1803,6 +1805,8 @@ fun YouTubeListItem(
     BaseListItemContent(
         item = item,
         isSwipeable = isSwipeable,
+        playlistAuthors = playlistAuthors,
+        playlistSongCount = playlistSongCount,
         modifier = modifier,
         albumIndex = albumIndex,
         badges = badges,
@@ -1823,7 +1827,9 @@ private fun BaseListItemContent(
     isPlaying: Boolean,
     isTwoLineLabel: Boolean,
     trailingContent: @Composable RowScope.() -> Unit,
-    isSwipeable: Boolean = true
+    isSwipeable: Boolean = true,
+    playlistAuthors: String? = null,
+    playlistSongCount: String? = null
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
@@ -1847,7 +1853,7 @@ private fun BaseListItemContent(
                     )
 
                     is ArtistItem -> joinByBullet(item.subscriptions)
-                    is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText)
+                    is PlaylistItem -> joinByBullet(item.author?.name, item.songCountText, playlistAuthors, playlistSongCount)
                 },
                 badges = badges,
                 thumbnailContent = {

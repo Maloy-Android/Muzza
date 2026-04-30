@@ -106,6 +106,7 @@ import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.setOffloadEnabled
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.lyrics.LyricsHelper
+import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.PersistQueue
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.data.AudioSettings
@@ -131,6 +132,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.debounce
@@ -191,7 +193,7 @@ class MusicService : MediaLibraryService(),
 
     private var consecutivePlaybackErr = 0
 
-    val currentMediaMetadata = MutableStateFlow<com.maloy.muzza.models.MediaMetadata?>(null)
+    val currentMediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
         database.song(mediaMetadata?.id)
     }.stateIn(scope, SharingStarted.Lazily, null)
@@ -259,7 +261,7 @@ class MusicService : MediaLibraryService(),
 
 
     private val playerInitialized = MutableStateFlow(false)
-    val isPlayerReady: kotlinx.coroutines.flow.StateFlow<Boolean> = playerInitialized.asStateFlow()
+    val isPlayerReady: StateFlow<Boolean> = playerInitialized.asStateFlow()
 
     private var audioFocusListener: AudioManager.OnAudioFocusChangeListener? = null
     private var hasAudioFocus = false
@@ -268,6 +270,8 @@ class MusicService : MediaLibraryService(),
     private var crossfadeDuration = 5000f
     private var crossfadeGapless = true
     private var crossfadeTriggerJob: Job? = null
+
+    private val recordedSongs = mutableSetOf<String>()
 
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
@@ -901,6 +905,9 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
+        if (recordedSongs.size > 200) {
+            recordedSongs.clear()
+        }
     }
 
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
@@ -1186,49 +1193,67 @@ class MusicService : MediaLibraryService(),
         playbackStats: PlaybackStats
     ) {
         val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        val minPlaybackDur = (dataStore.get(minPlaybackDurKey, 30) / 100).toFloat()
-        val crossfadeEnabled = dataStore.get(CrossfadeEnabledKey, true)
-        val crossFadeDuration = dataStore.get(CrossfadeDurationKey, 5).toFloat() / 15f
-
+        val mediaId = mediaItem.mediaId
         val durationMs = mediaItem.metadata?.duration?.times(1000) ?: -1
-        val playProgress = if (durationMs > 0) {
-            playbackStats.totalPlayTimeMs.toFloat() / durationMs
+
+        if (durationMs <= 0) return
+
+        val minPlaybackPercent = dataStore.get(minPlaybackDurKey, 30) / 100f
+        val crossfadeEnabled = dataStore.get(CrossfadeEnabledKey, true)
+        val crossfadeDurationSec = dataStore.get(CrossfadeDurationKey, 5).toFloat()
+
+        val totalPlayTimeMs = playbackStats.totalPlayTimeMs
+
+        var shouldRecord: Boolean
+
+        val isLastTrack = !player.hasNextMediaItem()
+
+        if (crossfadeEnabled) {
+            val durationSec = durationMs / 1000f
+            val isHundredPercent = minPlaybackPercent >= 0.99f
+
+            if (isHundredPercent) {
+                if (isLastTrack) {
+                    val remainingSec = durationSec - (totalPlayTimeMs / 1000f)
+                    shouldRecord = remainingSec <= 0.5f
+                } else {
+                    val remainingSec = durationSec - (totalPlayTimeMs / 1000f)
+                    shouldRecord = remainingSec <= (crossfadeDurationSec / 2)
+                }
+            } else {
+                val effectiveDurationSec = (durationSec - crossfadeDurationSec).coerceAtLeast(0.1f)
+                val effectivePlayedPercent = totalPlayTimeMs / (effectiveDurationSec * 1000f)
+                shouldRecord = effectivePlayedPercent >= minPlaybackPercent
+            }
         } else {
-            0f
+            val playedPercent = totalPlayTimeMs.toFloat() / durationMs
+            shouldRecord = playedPercent >= minPlaybackPercent
         }
 
-        val threshold = if (crossfadeEnabled) {
-            minPlaybackDur - crossFadeDuration
-        } else {
-            minPlaybackDur
-        }
+        if (shouldRecord && !recordedSongs.contains(mediaId) && !dataStore.get(PauseListenHistoryKey, false)) {
+            recordedSongs.add(mediaId)
 
-        if (playProgress >= threshold
-            && !dataStore.get(PauseListenHistoryKey, false)
-        ) {
-            database.query {
-                incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
-                try {
-                    insert(
-                        Event(
-                            songId = mediaItem.mediaId,
-                            timestamp = LocalDateTime.now(),
-                            playTime = playbackStats.totalPlayTimeMs
+            scope.launch(Dispatchers.IO) {
+                database.query {
+                    incrementTotalPlayTime(mediaId, totalPlayTimeMs)
+                    try {
+                        insert(
+                            Event(
+                                songId = mediaId,
+                                timestamp = LocalDateTime.now(),
+                                playTime = totalPlayTimeMs
+                            )
                         )
-                    )
-                } catch (_: SQLException) {
+                    } catch (_: SQLException) {
+                    }
                 }
                 if (dataStore.get(AddingPlayedSongsToYTMHistoryKey, true)) {
-                    CoroutineScope(Dispatchers.IO).launch {
-                        val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
-                            ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
-                                .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                        playbackUrl?.let {
-                            YouTube.registerPlayback(null, playbackUrl)
-                                .onFailure {
-                                    reportException(it)
-                                }
-                        }
+                    val playbackUrl = database.format(mediaId).first()?.playbackUrl
+                        ?: YTPlayerUtils.playerResponseForMetadata(mediaId, null)
+                            .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                    playbackUrl?.let {
+                        YouTube.registerPlayback(null, playbackUrl)
+                            .onFailure { reportException(it) }
                     }
                 }
             }

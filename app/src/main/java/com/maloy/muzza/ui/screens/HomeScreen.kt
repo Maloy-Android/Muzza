@@ -989,45 +989,45 @@ fun HomeScreen(
                 }
             }
 
-            homePage?.sections?.forEach {
-                item {
-                    NavigationTitle(
-                        title = it.title,
-                        label = it.label,
-                        thumbnail = it.thumbnail?.let { thumbnailUrl ->
-                            {
-                                val shape =
-                                    if (it.endpoint?.isArtistEndpoint == true) CircleShape else RoundedCornerShape(
-                                        ThumbnailCornerRadius
-                                    )
-                                AsyncImage(
-                                    model = thumbnailUrl,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(ListThumbnailSize)
-                                        .clip(shape)
-                                        .aspectRatio(1f)
-                                )
-                            }
-                        },
-                        onClick = it.endpoint?.let { endpoint ->
-                            {
-                                when {
-                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate(
-                                        "artist/${endpoint.browseId}"
-                                    )
+            homePage?.sections?.forEach { section ->
+                val hasOnlyVideos = section.items.all { it is SongItem && it.isVideoSong }
 
-                                    else -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${it.title}")
+                if (!hasOnlyVideos) {
+                    item {
+                        NavigationTitle(
+                            title = section.title,
+                            label = section.label,
+                            thumbnail = section.thumbnail?.let { thumbnailUrl ->
+                                {
+                                    val shape = if (section.endpoint?.isArtistEndpoint == true) CircleShape
+                                    else RoundedCornerShape(ThumbnailCornerRadius)
+                                    AsyncImage(
+                                        model = thumbnailUrl,
+                                        contentDescription = null,
+                                        contentScale = ContentScale.Crop,
+                                        modifier = Modifier
+                                            .size(ListThumbnailSize)
+                                            .clip(shape)
+                                            .aspectRatio(1f)
+                                    )
                                 }
-                            }
-                        },
-                        modifier = Modifier.animateItem()
-                    )
+                            },
+                            onClick = section.endpoint?.let { endpoint ->
+                                {
+                                    when {
+                                        endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) ->
+                                            navController.navigate("artist/${endpoint.browseId}")
+                                        else -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.animateItem()
+                        )
+                    }
                 }
 
                 item {
-                    when (it.sectionType) {
+                    when (section.sectionType) {
                         HomePage.SectionType.LIST -> {
                             LazyRow(
                                 contentPadding = WindowInsets.systemBars
@@ -1035,7 +1035,7 @@ fun HomeScreen(
                                     .asPaddingValues(),
                                 modifier = Modifier.animateItem()
                             ) {
-                                items(it.items) { item ->
+                                items(section.items) { item ->
                                     ytGridItem(item)
                                 }
                             }
@@ -1048,7 +1048,7 @@ fun HomeScreen(
                                     .asPaddingValues(),
                                 modifier = Modifier.animateItem()
                             ) {
-                                items(it.items) { item ->
+                                items(section.items) { item ->
                                     ytGridItem(item)
                                 }
                             }

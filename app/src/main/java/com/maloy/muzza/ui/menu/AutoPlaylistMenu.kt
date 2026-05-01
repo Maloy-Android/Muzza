@@ -64,7 +64,7 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItemWithPlaylist
+import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoPlaylistListItem
@@ -258,7 +258,7 @@ fun AutoPlaylistMenu(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.playlist.name,
-                                items = songs.map { it.toMediaItemWithPlaylist(playlist.id) })
+                                items = songs.map { it.toMediaItem() })
                         )
                     }
                     .padding(12.dp),
@@ -292,7 +292,7 @@ fun AutoPlaylistMenu(
                             ListQueue(
                                 title = playlist.playlist.name,
                                 items = songs.shuffled()
-                                    .map { it.toMediaItemWithPlaylist(playlist.id) })
+                                    .map { it.toMediaItem() })
                         )
                     }
                     .padding(12.dp),
@@ -323,7 +323,7 @@ fun AutoPlaylistMenu(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         onDismiss()
-                        playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
+                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -358,7 +358,7 @@ fun AutoPlaylistMenu(
                 title = R.string.play_next
             ) {
                 onDismiss()
-                playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
+                playerConnection.playNext(songs.map { it.toMediaItem() })
             }
             item {
                 HorizontalDivider()

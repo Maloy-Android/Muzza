@@ -271,7 +271,7 @@ class MusicService : MediaLibraryService(),
     private var crossfadeGapless = true
     private var crossfadeTriggerJob: Job? = null
 
-    private val recordedSongs = mutableSetOf<String>()
+    private var recordedSongs: String? = null
 
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
@@ -905,9 +905,7 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
-        if (recordedSongs.size > 200) {
-            recordedSongs.clear()
-        }
+        recordedSongs = null
     }
 
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
@@ -1230,9 +1228,8 @@ class MusicService : MediaLibraryService(),
             shouldRecord = playedPercent >= minPlaybackPercent
         }
 
-        if (shouldRecord && !recordedSongs.contains(mediaId) && !dataStore.get(PauseListenHistoryKey, false)) {
-            recordedSongs.add(mediaId)
-
+        if (shouldRecord && recordedSongs != mediaId && !dataStore.get(PauseListenHistoryKey, false)) {
+            recordedSongs = mediaId
             scope.launch(Dispatchers.IO) {
                 database.query {
                     incrementTotalPlayTime(mediaId, totalPlayTimeMs)

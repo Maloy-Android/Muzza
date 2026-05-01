@@ -64,7 +64,6 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
-import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.utils.rememberEnumPreference
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -143,12 +142,6 @@ fun BrowseScreen(
                                         onClick = {
                                             menuState.show {
                                                 when (item) {
-                                                    is SongItem -> YouTubeSongMenu(
-                                                        song = item,
-                                                        navController = navController,
-                                                        onDismiss = menuState::dismiss,
-                                                    )
-
                                                     is AlbumItem -> YouTubeAlbumMenu(
                                                         albumItem = item,
                                                         navController = navController,
@@ -166,6 +159,8 @@ fun BrowseScreen(
                                                         artist = item,
                                                         onDismiss = menuState::dismiss,
                                                     )
+
+                                                    else -> {}
                                                 }
                                             }
                                         }) {
@@ -189,13 +184,6 @@ fun BrowseScreen(
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show {
                                                 when (item) {
-                                                    is SongItem ->
-                                                        YouTubeSongMenu(
-                                                            song = item,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss
-                                                        )
-
                                                     is AlbumItem ->
                                                         YouTubeAlbumMenu(
                                                             albumItem = item,
@@ -218,6 +206,8 @@ fun BrowseScreen(
                                                             onDismiss = menuState::dismiss
                                                         )
                                                     }
+
+                                                    else -> {}
                                                 }
                                             }
                                         }
@@ -282,12 +272,6 @@ fun BrowseScreen(
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                             menuState.show {
                                                 when (item) {
-                                                    is SongItem ->
-                                                        YouTubeSongMenu(
-                                                            song = item,
-                                                            navController = navController,
-                                                            onDismiss = menuState::dismiss
-                                                        )
                                                     is AlbumItem ->
                                                         YouTubeAlbumMenu(
                                                             albumItem = item,
@@ -310,6 +294,8 @@ fun BrowseScreen(
                                                             onDismiss = menuState::dismiss
                                                         )
                                                     }
+
+                                                    else -> {}
                                                 }
                                             }
                                         }

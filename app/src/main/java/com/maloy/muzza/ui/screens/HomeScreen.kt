@@ -991,12 +991,18 @@ fun HomeScreen(
 
             homePage?.sections?.forEach { section ->
                 val hasOnlyVideos = section.items.all { it is SongItem && it.isVideoSong }
-
+                val isNewReleaseAlbums = section.items.all { it is AlbumItem }
+                val isYouTubePlaylists = section.items.all { it is PlaylistItem && it.id.startsWith("RDCLAK5") }
+                val isMixesForYou = section.items.all { it is PlaylistItem && it.id.startsWith("RDTMAK5") }
+                val isCharts = section.items.first().let { firstItem ->
+                    firstItem is PlaylistItem && listOf("OLAK5", "PL4").any { firstItem.id.startsWith(it) }
+                }
+                val isLibraryMaybe = section.endpoint?.browseId?.startsWith("FEmusic_library")
                 item {
                     NavigationTitle(
                         title = section.title,
                         label = section.label,
-                        enabledOnclick = !hasOnlyVideos,
+                        enabledOnclick = !hasOnlyVideos && !isYouTubePlaylists,
                         thumbnail = section.thumbnail?.let { thumbnailUrl ->
                             {
                                 val shape =
@@ -1016,10 +1022,11 @@ fun HomeScreen(
                         onClick = section.endpoint?.let { endpoint ->
                             {
                                 when {
-                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) ->
-                                        navController.navigate("artist/${endpoint.browseId}")
-
-                                    else -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate("artist/${endpoint.browseId}")
+                                    endpoint.params != null && (isNewReleaseAlbums) -> navController.navigate("new_release")
+                                    endpoint.params != null && (isLibraryMaybe == true) -> navController.navigate("library")
+                                    endpoint.params != null && (isMixesForYou || isCharts) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    else ->  navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
                                 }
                             }
                         },

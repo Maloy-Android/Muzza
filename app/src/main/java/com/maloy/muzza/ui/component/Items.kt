@@ -552,7 +552,7 @@ fun ArtistListItem(
     badges = badges,
     thumbnailContent = {
         AsyncImage(
-            model = artist.artist.thumbnailUrl,
+            model = artist.artist.thumbnailUrl?.resize(544, 544),
             contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
@@ -581,7 +581,7 @@ fun ArtistGridItem(
     badges = badges,
     thumbnailContent = {
         AsyncImage(
-            model = artist.artist.thumbnailUrl,
+            model = artist.artist.thumbnailUrl?.resize(544, 544),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier

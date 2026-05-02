@@ -860,7 +860,7 @@ interface DatabaseDao {
         update(
             artist.copy(
                 name = artistPage.artist.title,
-                thumbnailUrl = artistPage.artist.thumbnail,
+                thumbnailUrl = artistPage.artist.thumbnail.resize(544, 544),
                 lastUpdateTime = LocalDateTime.now()
             )
         )

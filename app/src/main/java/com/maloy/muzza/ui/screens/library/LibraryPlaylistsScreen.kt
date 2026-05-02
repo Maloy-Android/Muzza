@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.library
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,6 +20,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material.icons.rounded.Add
@@ -29,6 +31,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
@@ -45,12 +49,17 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewModelScope
@@ -90,6 +99,7 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.LibraryPlaylistsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -168,6 +178,40 @@ fun LibraryPlaylistsScreen(
         }
     }
 
+    var isSearching by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
+        onResult = { recognizedText ->
+            searchQuery = TextFieldValue(recognizedText)
+        }
+    )
+    val focusRequester = remember { FocusRequester() }
+    val searchQueryStr = searchQuery.text.trim()
+    val filteredPlaylists = if (searchQueryStr.isEmpty()) {
+        playlists
+    } else {
+        playlists?.filter { playlists ->
+            playlists.title.contains(searchQueryStr, ignoreCase = true) ||
+                    playlists.playlist.playlistAuthors
+                        ?.contains(searchQueryStr, ignoreCase = true) == true
+        }
+    }
+
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            focusRequester.requestFocus()
+        }
+    }
+
+    val onExitSearchingMode = {
+        isSearching = false
+        searchQuery = TextFieldValue("")
+    }
+
+    if (isSearching) {
+        BackHandler(onBack = onExitSearchingMode)
+    }
+
     var showAddPlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -238,7 +282,7 @@ fun LibraryPlaylistsScreen(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(start = 16.dp)
         ) {
-            if (playlists?.isEmpty() != true) {
+            if (filteredPlaylists?.isEmpty() != true) {
                 SortHeader(
                     sortType = sortType,
                     sortDescending = sortDescending,
@@ -257,8 +301,8 @@ fun LibraryPlaylistsScreen(
 
             Spacer(Modifier.weight(1f))
 
-            if (playlists?.isEmpty() != true) {
-                playlists?.let { playlists ->
+            if (filteredPlaylists?.isEmpty() != true) {
+                filteredPlaylists?.let { playlists ->
                     Text(
                         text = pluralStringResource(
                             R.plurals.n_playlist,
@@ -300,7 +344,7 @@ fun LibraryPlaylistsScreen(
             ),
         contentAlignment = Alignment.TopStart
     ) {
-        playlists?.let { playlists ->
+        filteredPlaylists?.let { playlists ->
             when (viewType) {
                 LibraryViewType.LIST -> {
                     if (playlists.isEmpty()) {
@@ -309,11 +353,20 @@ fun LibraryPlaylistsScreen(
                             columns = GridCells.Fixed(1),
                             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                         ) {
-                            item {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.queue_music,
-                                    text = stringResource(R.string.library_playlist_empty)
-                                )
+                            if (isSearching) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found)
+                                    )
+                                }
+                            } else {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.queue_music,
+                                        text = stringResource(R.string.library_playlist_empty)
+                                    )
+                                }
                             }
                         }
                     } else {
@@ -398,11 +451,20 @@ fun LibraryPlaylistsScreen(
                             columns = GridCells.Fixed(1),
                             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                         ) {
-                            item {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.queue_music,
-                                    text = stringResource(R.string.library_playlist_empty)
-                                )
+                            if (isSearching) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found)
+                                    )
+                                }
+                            } else {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.queue_music,
+                                        text = stringResource(R.string.library_playlist_empty)
+                                    )
+                                }
                             }
                         }
                     } else {
@@ -481,19 +543,94 @@ fun LibraryPlaylistsScreen(
             )
         }
         CenterAlignedTopAppBar(
-            title = { Text(stringResource(R.string.playlists)) },
+            title = {
+                if (isSearching) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (searchQuery.text.isEmpty() && isVoiceInputAvailable) {
+                                IconButton(
+                                    onClick = startVoiceInput
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.mic),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            if (searchQuery.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+                    )
+                } else Text(stringResource(R.string.playlists))
+            },
             navigationIcon = {
                 com.maloy.muzza.ui.component.IconButton(
-                    onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain
+                    onClick = {
+                        if (isSearching) {
+                            isSearching = false
+                            searchQuery = TextFieldValue()
+                        } else {
+                            navController.navigateUp()
+                        }
+                    },
+                    onLongClick = {
+                        if (!isSearching) {
+                            navController.backToMain()
+                        }
+                    }
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painter = painterResource(
+                            R.drawable.arrow_back
+                        ),
                         contentDescription = null
                     )
                 }
             },
-            scrollBehavior = scrollBehavior
+            actions = {
+                filteredPlaylists?.let { playlists ->
+                    if (playlists.isNotEmpty() && !isSearching) {
+                        IconButton(
+                            onClick = { isSearching = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+            },
+            scrollBehavior = if (!isSearching) scrollBehavior else null
         )
     }
 }

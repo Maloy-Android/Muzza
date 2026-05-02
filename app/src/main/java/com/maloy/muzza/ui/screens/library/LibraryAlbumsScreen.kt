@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.library
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -18,12 +19,15 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
 import androidx.compose.material3.pulltorefresh.pullToRefresh
@@ -33,17 +37,24 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -80,6 +91,7 @@ import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.LibraryAlbumsViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -168,12 +180,46 @@ fun LibraryAlbumsScreen(
         }
     }
 
+    var isSearching by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
+        onResult = { recognizedText ->
+            searchQuery = TextFieldValue(recognizedText)
+        }
+    )
+    val focusRequester = remember { FocusRequester() }
+    val searchQueryStr = searchQuery.text.trim()
+    val filteredAlbums = if (searchQueryStr.isEmpty()) {
+        albums
+    } else {
+        albums?.filter { albums ->
+            albums.title.contains(searchQueryStr, ignoreCase = true) || albums.artists.joinToString(
+                ""
+            ).contains(searchQueryStr, ignoreCase = true)
+        }
+    }
+
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            focusRequester.requestFocus()
+        }
+    }
+
+    val onExitSearchingMode = {
+        isSearching = false
+        searchQuery = TextFieldValue("")
+    }
+
+    if (isSearching) {
+        BackHandler(onBack = onExitSearchingMode)
+    }
+
     val headerContent = @Composable {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.padding(horizontal = 16.dp)
         ) {
-            if (albums?.isEmpty() != true) {
+            if (filteredAlbums?.isEmpty() != true) {
                 SortHeader(
                     sortType = sortType,
                     sortDescending = sortDescending,
@@ -194,7 +240,7 @@ fun LibraryAlbumsScreen(
 
                 Spacer(Modifier.weight(1f))
 
-                albums?.let { albums ->
+                filteredAlbums?.let { albums ->
                     Text(
                         text = pluralStringResource(R.plurals.n_album, albums.size, albums.size),
                         style = MaterialTheme.typography.titleSmall,
@@ -251,14 +297,24 @@ fun LibraryAlbumsScreen(
                         headerContent()
                     }
 
-                    albums?.let { albums ->
+                    filteredAlbums?.let { albums ->
                         if (albums.isEmpty()) {
-                            item {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.album,
-                                    text = stringResource(R.string.library_album_empty),
-                                    modifier = Modifier.animateItem()
-                                )
+                            if (isSearching) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found),
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
+                            } else {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.album,
+                                        text = stringResource(R.string.library_album_empty),
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
                             }
                         }
 
@@ -344,14 +400,22 @@ fun LibraryAlbumsScreen(
                         headerContent()
                     }
 
-                    albums?.let { albums ->
+                    filteredAlbums?.let { albums ->
                         if (albums.isEmpty()) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                EmptyPlaceholder(
-                                    icon = R.drawable.album,
-                                    text = stringResource(R.string.library_album_empty),
-                                    modifier = Modifier.animateItem()
-                                )
+                                if (isSearching) {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found),
+                                        modifier = Modifier.animateItem()
+                                    )
+                                } else {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.album,
+                                        text = stringResource(R.string.library_album_empty),
+                                        modifier = Modifier.animateItem()
+                                    )
+                                }
                             }
                         }
 
@@ -369,21 +433,18 @@ fun LibraryAlbumsScreen(
                                 navController = navController,
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = {
-                                            navController.navigate("album/${album.id}")
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                AlbumMenu(
-                                                    originalAlbum = album,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss
-                                                )
-                                            }
+                                    .combinedClickable(onClick = {
+                                        navController.navigate("album/${album.id}")
+                                    }, onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = album,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
                                         }
-                                    )
+                                    })
                                     .animateItem()
                             )
                         }
@@ -396,19 +457,93 @@ fun LibraryAlbumsScreen(
             }
         }
         CenterAlignedTopAppBar(
-            title = { Text(stringResource(R.string.albums)) },
+            title = {
+                if (isSearching) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (searchQuery.text.isEmpty() && isVoiceInputAvailable) {
+                                IconButton(
+                                    onClick = startVoiceInput
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.mic),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            if (searchQuery.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+                    )
+                } else Text(stringResource(R.string.albums)) },
             navigationIcon = {
                 com.maloy.muzza.ui.component.IconButton(
-                    onClick = navController::navigateUp,
-                    onLongClick = navController::backToMain
+                    onClick = {
+                        if (isSearching) {
+                            isSearching = false
+                            searchQuery = TextFieldValue()
+                        } else {
+                            navController.navigateUp()
+                        }
+                    },
+                    onLongClick = {
+                        if (!isSearching) {
+                            navController.backToMain()
+                        }
+                    }
                 ) {
                     Icon(
-                        painterResource(R.drawable.arrow_back),
+                        painter = painterResource(
+                            R.drawable.arrow_back
+                        ),
                         contentDescription = null
                     )
                 }
             },
-            scrollBehavior = scrollBehavior
+            actions = {
+                filteredAlbums?.let { albums ->
+                    if (albums.isNotEmpty() && !isSearching) {
+                        IconButton(
+                            onClick = { isSearching = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+            },
+            scrollBehavior = if (!isSearching) scrollBehavior else null
         )
         if (albums != null && ytmSync && isLoggedIn && isInternetAvailable(context)) {
             Indicator(

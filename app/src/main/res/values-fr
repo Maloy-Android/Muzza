@@ -404,8 +404,6 @@
     <string name="audio_quality_auto">Automatique</string>
     <string name="audio_quality_high">Haute</string>
     <string name="audio_quality_low">Basse</string>
-    <string name="minimum_playback_duration">Durée minimale de lecture</string>
-    <string name="minimum_playback_duration_info">La quantité minimale d'un titre qui doit être lu avant qu'il soit considéré comme « lu »</string>
     <string name="queue">File d'attente</string>
     <string name="persistent_queue">File d'attente persistante</string>
     <string name="persistent_queue_desc">Restaurez votre dernière file d'attente au démarrage de l'application</string>

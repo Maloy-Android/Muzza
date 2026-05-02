@@ -88,7 +88,6 @@ import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
-import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
 import com.maloy.muzza.db.entities.FormatEntity
@@ -270,8 +269,6 @@ class MusicService : MediaLibraryService(),
     private var crossfadeDuration = 5000f
     private var crossfadeGapless = true
     private var crossfadeTriggerJob: Job? = null
-
-    private var recordedSongs: String? = null
 
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
@@ -905,7 +902,6 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
-        recordedSongs = null
     }
 
     override fun onPlaybackStateChanged(@Player.State playbackState: Int) {
@@ -1190,68 +1186,35 @@ class MusicService : MediaLibraryService(),
         eventTime: AnalyticsListener.EventTime,
         playbackStats: PlaybackStats
     ) {
-        val mediaItem = eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        val mediaId = mediaItem.mediaId
-        val durationMs = mediaItem.metadata?.duration?.times(1000) ?: -1
-
-        if (durationMs <= 0) return
-
-        val minPlaybackPercent = dataStore.get(minPlaybackDurKey, 30) / 100f
-        val crossfadeEnabled = dataStore.get(CrossfadeEnabledKey, true)
-        val crossfadeDurationSec = dataStore.get(CrossfadeDurationKey, 5).toFloat()
-
-        val totalPlayTimeMs = playbackStats.totalPlayTimeMs
-
-        var shouldRecord: Boolean
-
-        val isLastTrack = !player.hasNextMediaItem()
-
-        if (crossfadeEnabled) {
-            val durationSec = durationMs / 1000f
-            val isHundredPercent = minPlaybackPercent >= 0.99f
-
-            if (isHundredPercent) {
-                if (isLastTrack) {
-                    val remainingSec = durationSec - (totalPlayTimeMs / 1000f)
-                    shouldRecord = remainingSec <= 0.5f
-                } else {
-                    val remainingSec = durationSec - (totalPlayTimeMs / 1000f)
-                    shouldRecord = remainingSec <= (crossfadeDurationSec / 2)
-                }
-            } else {
-                val effectiveDurationSec = (durationSec - crossfadeDurationSec).coerceAtLeast(0.1f)
-                val effectivePlayedPercent = totalPlayTimeMs / (effectiveDurationSec * 1000f)
-                shouldRecord = effectivePlayedPercent >= minPlaybackPercent
-            }
-        } else {
-            val playedPercent = totalPlayTimeMs.toFloat() / durationMs
-            shouldRecord = playedPercent >= minPlaybackPercent
-        }
-
-        if (shouldRecord && recordedSongs != mediaId && !dataStore.get(PauseListenHistoryKey, false)) {
-            recordedSongs = mediaId
-            scope.launch(Dispatchers.IO) {
-                database.query {
-                    incrementTotalPlayTime(mediaId, totalPlayTimeMs)
-                    try {
-                        insert(
-                            Event(
-                                songId = mediaId,
-                                timestamp = LocalDateTime.now(),
-                                playTime = totalPlayTimeMs
-                            )
+        val mediaItem =
+            eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
+        if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(
+                PauseListenHistoryKey,
+                false
+            )
+        ) {
+            database.query {
+                incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
+                try {
+                    insert(
+                        Event(
+                            songId = mediaItem.mediaId,
+                            timestamp = LocalDateTime.now(),
+                            playTime = playbackStats.totalPlayTimeMs
                         )
-                    } catch (_: SQLException) {
-                    }
+                    )
+                } catch (_: SQLException) {
                 }
-                if (dataStore.get(AddingPlayedSongsToYTMHistoryKey, true)) {
-                    val playbackUrl = database.format(mediaId).first()?.playbackUrl
-                        ?: YTPlayerUtils.playerResponseForMetadata(mediaId, null)
-                            .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                    playbackUrl?.let {
-                        YouTube.registerPlayback(null, playbackUrl)
-                            .onFailure { reportException(it) }
-                    }
+            }
+        }
+        if (playbackStats.totalPlayTimeMs >= 30000 && dataStore.get(AddingPlayedSongsToYTMHistoryKey, true)) {
+            scope.launch(Dispatchers.IO) {
+                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
+                    ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
+                        .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
+                playbackUrl?.let {
+                    YouTube.registerPlayback(null, playbackUrl)
+                        .onFailure { reportException(it) }
                 }
             }
         }

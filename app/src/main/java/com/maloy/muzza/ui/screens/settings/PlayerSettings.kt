@@ -47,7 +47,6 @@ import com.maloy.muzza.constants.SongDurationTimeSkip
 import com.maloy.muzza.constants.SongDurationTimeSkipKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
-import com.maloy.muzza.constants.minPlaybackDurKey
 import com.maloy.muzza.ui.component.CounterDialog
 import com.maloy.muzza.ui.component.EnumListPreference
 import com.maloy.muzza.ui.component.IconButton
@@ -77,42 +76,14 @@ fun PlayerSettings(
     val (autoSkipNextOnError, onAutoSkipNextOnErrorChange) = rememberPreference(AutoSkipNextOnErrorKey, defaultValue = false)
     val (stopMusicOnTaskClear, onStopMusicOnTaskClearChange) = rememberPreference(StopMusicOnTaskClearKey, defaultValue = false)
     val (autoLoadMore, onAutoLoadMoreChange) = rememberPreference(AutoLoadMoreKey, defaultValue = true)
-    val (minPlaybackDur, onMinPlaybackDurChange) = rememberPreference(minPlaybackDurKey, defaultValue = 30)
     val (audioOffload, onAudioOffloadChange) = rememberPreference(key = AudioOffload, defaultValue = false)
     val (crossfadeEnabled, onCrossfadeEnabledChange) = rememberPreference(CrossfadeEnabledKey, defaultValue = false)
     val (crossfadeDuration, onCrossfadeDurationChange) = rememberPreference(CrossfadeDurationKey, defaultValue = 5)
     val (crossfadeGapless, onCrossfadeGaplessChange) = rememberPreference(CrossfadeGaplessKey, defaultValue = true)
 
-    var showMinPlaybackDur by remember {
-        mutableStateOf(false)
-    }
-
     var showCrossfadeValueChange by remember {
         mutableStateOf(false)
     }
-
-    if (showMinPlaybackDur) {
-        CounterDialog(
-            title = stringResource(R.string.minimum_playback_duration),
-            description = stringResource(R.string.minimum_playback_duration_info),
-            icon = { Icon(Icons.Rounded.Sync,null) },
-            initialValue = minPlaybackDur,
-            upperBound = 100,
-            lowerBound = 0,
-            resetValue = 30,
-            unitDisplay = "%",
-            onDismiss = { showMinPlaybackDur = false },
-            onConfirm = {
-                showMinPlaybackDur = false
-                onMinPlaybackDurChange(it)
-            },
-            onCancel = {
-                showMinPlaybackDur = false
-            },
-            onReset = { onMinPlaybackDurChange(30) },
-        )
-    }
-
 
     if (showCrossfadeValueChange) {
         CounterDialog(
@@ -190,13 +161,6 @@ fun PlayerSettings(
             title = { Text(stringResource(R.string.lyrics_settings_title)) },
             icon = { Icon(painterResource(R.drawable.lyrics), null) },
             onClick = { navController.navigate("settings/player/lyrics") }
-        )
-
-        PreferenceEntry(
-            title = { Text(stringResource(R.string.minimum_playback_duration)) },
-            description = "$minPlaybackDur %",
-            icon = { Icon(Icons.Rounded.Sync, null) },
-            onClick = { showMinPlaybackDur = true }
         )
 
         SwitchPreference(

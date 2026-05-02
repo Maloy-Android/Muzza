@@ -472,8 +472,6 @@
     <string name="audio_quality_max">Максимальное</string>
     <string name="audio_quality_high">Высокое</string>
     <string name="audio_quality_low">Низкое</string>
-    <string name="minimum_playback_duration">Минимальная длительность воспроизведения</string>
-    <string name="minimum_playback_duration_info">Минимальное количество времени, которое песня должна воспроизводиться, прежде чем она будет считаться "воспроизведенной"</string>
     <string name="queue">Очередь</string>
     <string name="persistent_queue">Постоянная очередь</string>
     <string name="persistent_queue_desc">Восстанавливать последнюю очередь при запуске приложения</string>

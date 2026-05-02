@@ -427,8 +427,6 @@
     <string name="audio_quality_auto">Auto</string>
     <string name="audio_quality_high">High</string>
     <string name="audio_quality_low">Low</string>
-    <string name="minimum_playback_duration">Minimum playback duration</string>
-    <string name="minimum_playback_duration_info">The minimum amount of a song that must be played before it is considered \"played\"</string>
     <string name="queue">Queue</string>
     <string name="persistent_queue">Persistent queue</string>
     <string name="persistent_queue_desc">Restore your last queue when the app starts</string>

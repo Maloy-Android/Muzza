@@ -390,7 +390,7 @@ fun LibraryArtistsScreen(
                     filteredArtists?.let { artists ->
                         if (artists.isEmpty()) {
                             item(span = { GridItemSpan(maxLineSpan) }) {
-                                if (!isSearching) {
+                                if (isSearching) {
                                     EmptyPlaceholder(
                                         icon = R.drawable.search,
                                         text = stringResource(R.string.no_results_found),

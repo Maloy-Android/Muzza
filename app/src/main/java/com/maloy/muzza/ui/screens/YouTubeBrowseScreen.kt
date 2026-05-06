@@ -152,7 +152,7 @@ fun YouTubeBrowseScreen(
                 if (it.items.isNotEmpty()) {
                     it.title?.let { title ->
                         item {
-                            if (it.items.all { item -> item is SongItem }) {
+                            if (it.items.all { item -> item is SongItem && !item.isVideoSong }) {
                                 NavigationTitle(title, onPlayAllClick = {
                                     playerConnection.playQueue(
                                         ListQueue(
@@ -168,7 +168,7 @@ fun YouTubeBrowseScreen(
                             }
                         }
                     }
-                    if (it.items.all { item -> item is SongItem }) {
+                    if (it.items.all { item -> item is SongItem && !item.isVideoSong }) {
                         item {
                             LazyHorizontalGrid(
                                 state = lazyGridState,
@@ -254,9 +254,14 @@ fun YouTubeBrowseScreen(
                                         item = item,
                                         isActive =
                                         when (item) {
+                                            is SongItem -> mediaMetadata?.id == item.id
                                             is AlbumItem -> mediaMetadata?.album?.id == item.id
                                             is PlaylistItem -> mediaMetadata?.playlist?.id == item.id
                                             else -> false
+                                        },
+                                        videoThumbnailSize = when (item) {
+                                            is SongItem -> item.isVideoSong
+                                            else -> true
                                         },
                                         isPlaying = isPlaying,
                                         navController = navController,
@@ -265,10 +270,14 @@ fun YouTubeBrowseScreen(
                                             .combinedClickable(
                                                 onClick = {
                                                     when (item) {
+                                                        is SongItem -> {
+                                                            if (item.id == mediaMetadata?.id) {
+                                                                playerConnection.player.togglePlayPause()
+                                                            }
+                                                        }
                                                         is AlbumItem -> navController.navigate("album/${item.id}")
                                                         is ArtistItem -> navController.navigate("artist/${item.id}")
                                                         is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
-                                                        else -> item
                                                     }
                                                 },
                                                 onLongClick = {

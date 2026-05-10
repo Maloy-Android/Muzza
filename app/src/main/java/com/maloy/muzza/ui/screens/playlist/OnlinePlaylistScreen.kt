@@ -142,6 +142,7 @@ import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
@@ -361,7 +362,7 @@ fun OnlinePlaylistScreen(
                                 modifier = Modifier.padding(12.dp)
                             ) {
                                 AsyncImage(
-                                    model = playlist.thumbnail,
+                                    model = playlist.thumbnail.resize(1080,1080),
                                     contentScale = ContentScale.Crop,
                                     contentDescription = null,
                                     modifier = Modifier

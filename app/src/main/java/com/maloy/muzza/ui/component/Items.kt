@@ -83,7 +83,6 @@ import androidx.media3.exoplayer.offline.Download.STATE_DOWNLOADING
 import androidx.media3.exoplayer.offline.Download.STATE_QUEUED
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
@@ -388,7 +387,7 @@ fun SongListItem(
                         }
                     } else {
                         ItemThumbnail(
-                            thumbnailUrl = song.song.thumbnailUrl,
+                            thumbnailUrl = song.song.thumbnailUrl?.resize(200, 200),
                             videoThumbnailSize = false,
                             albumIndex = albumIndex,
                             isActive = isActive,
@@ -487,7 +486,7 @@ fun SongGridItem(
         } else {
             ItemThumbnail(
                 videoThumbnailSize = videoThumbnailSize,
-                thumbnailUrl = song.song.thumbnailUrl,
+                thumbnailUrl = song.song.thumbnailUrl?.resize(144, 144),
                 isActive = isActive,
                 isPlaying = isPlaying,
                 shape = RoundedCornerShape(ThumbnailCornerRadius),
@@ -552,7 +551,7 @@ fun ArtistListItem(
     badges = badges,
     thumbnailContent = {
         AsyncImage(
-            model = artist.artist.thumbnailUrl?.resize(544, 544),
+            model = artist.artist.thumbnailUrl?.resize(144, 144),
             contentScale = ContentScale.Crop,
             contentDescription = null,
             modifier = Modifier
@@ -583,7 +582,6 @@ fun ArtistGridItem(
         AsyncImage(
             model = artist.artist.thumbnailUrl?.resize(544, 544),
             contentDescription = null,
-            contentScale = ContentScale.Crop,
             modifier = Modifier
                 .fillMaxSize()
                 .clip(CircleShape)
@@ -1328,7 +1326,7 @@ fun CommunityPlaylistCard(
                                 model = item.songs
                                     .getOrNull(0)
                                     ?.thumbnail
-                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                    ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -1339,7 +1337,7 @@ fun CommunityPlaylistCard(
                                 model = item.songs
                                     .getOrNull(1)
                                     ?.thumbnail
-                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                    ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -1352,7 +1350,7 @@ fun CommunityPlaylistCard(
                                 model = item.songs
                                     .getOrNull(2)
                                     ?.thumbnail
-                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                    ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -1363,7 +1361,7 @@ fun CommunityPlaylistCard(
                                 model = item.songs
                                     .getOrNull(3)
                                     ?.thumbnail
-                                    ?.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                    ?.resize(200, 200),
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
@@ -1450,7 +1448,7 @@ fun CommunityPlaylistCard(
                                 .clip(RoundedCornerShape(12.dp))
                         ) {
                             AsyncImage(
-                                model = song.thumbnail.replace(Regex("w\\d+-h\\d+"), "w120-h120"),
+                                model = song.thumbnail.resize(200,200),
                                 contentDescription = null,
                                 modifier = Modifier.fillMaxSize(),
                                 contentScale = ContentScale.Crop,
@@ -1671,17 +1669,7 @@ fun DailyDiscoverCard(
     ) {
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
             AsyncImage(
-                model =
-                    ImageRequest
-                        .Builder(LocalContext.current)
-                        .data(
-                            dailyDiscover.recommendation.thumbnail.replace(
-                                Regex("w\\d+-h\\d+"),
-                                "w544-h544"
-                            )
-                        )
-                        .crossfade(true)
-                        .build(),
+                model = dailyDiscover.recommendation.thumbnail.resize(1080, 1080),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier =
@@ -1878,7 +1866,7 @@ private fun BaseListItemContent(
     }
     if (item is SongItem && isSwipeable && swipeSongToDismiss && !isListenTogetherGuest) {
         SwipeToSongBox(
-            mediaItem = item.copy(thumbnail = item.thumbnail.resize(544,544)).toMediaItem(),
+            mediaItem = item.copy(thumbnail = item.thumbnail.resize(1080,1080)).toMediaItem(),
             modifier = Modifier.fillMaxWidth()
         ) {
             content()
@@ -2172,7 +2160,7 @@ fun PlaylistThumbnail(
 
         1 -> if (thumbnails[0].startsWith("/storage")) {
             AsyncImage(
-                model = thumbnails[0],
+                model = thumbnails[0].resize((size.value * 3).toInt()),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -2181,7 +2169,7 @@ fun PlaylistThumbnail(
             )
         } else {
             AsyncImage(
-                model = thumbnails[0],
+                model = thumbnails[0].resize((size.value * 3).toInt()),
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -2217,7 +2205,7 @@ fun PlaylistThumbnail(
                         )
                     } else {
                         AsyncImage(
-                            model = thumbnails.getOrNull(index),
+                            model = thumbnails.getOrNull(index)?.resize((size.value * 1.5).toInt()),
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

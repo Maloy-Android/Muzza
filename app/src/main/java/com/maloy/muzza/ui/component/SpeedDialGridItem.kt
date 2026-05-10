@@ -28,6 +28,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.ui.utils.resize
 
 @Composable
 fun SpeedDialGridItem(
@@ -42,7 +43,7 @@ fun SpeedDialGridItem(
             .clip(RoundedCornerShape(ThumbnailCornerRadius))
     ) {
         ItemThumbnail(
-            thumbnailUrl = item.thumbnail,
+            thumbnailUrl = item.thumbnail.resize(1080, 1080),
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),

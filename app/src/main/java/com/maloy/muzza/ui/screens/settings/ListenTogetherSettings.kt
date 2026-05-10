@@ -62,9 +62,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.Player.STATE_READY
 import androidx.navigation.NavController
-import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -83,6 +83,7 @@ import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.viewmodels.ListenTogetherViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
@@ -92,9 +93,9 @@ import kotlinx.coroutines.isActive
 fun ListenTogetherSettings(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
+    viewModel: ListenTogetherViewModel = hiltViewModel()
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
-    val listenTogetherManager = LocalListenTogetherManager.current
     val song by playerConnection.currentSong.collectAsState(null)
     val context = LocalContext.current
     val playbackState by playerConnection.playbackState.collectAsState()
@@ -109,16 +110,11 @@ fun ListenTogetherSettings(
         label = ""
     )
 
-    if (listenTogetherManager == null) {
-        NotConfiguredContent()
-        return
-    }
-
-    val connectionState by listenTogetherManager.connectionState.collectAsState()
-    val roomState by listenTogetherManager.roomState.collectAsState()
-    val pendingJoinRequests by listenTogetherManager.pendingJoinRequests.collectAsState()
-    val role = roomState?.let { if (it.hostId == listenTogetherManager.userId.value) RoomRole.HOST else RoomRole.GUEST } ?: RoomRole.GUEST
-    val bufferingUsers = emptySet<String>()
+    val connectionState by viewModel.connectionState.collectAsState()
+    val roomState by viewModel.roomState.collectAsState()
+    val pendingJoinRequests by viewModel.pendingJoinRequests.collectAsState()
+    val role = roomState?.let { if (it.hostId == viewModel.userId.value) RoomRole.HOST else RoomRole.GUEST } ?: RoomRole.GUEST
+    val bufferingUsers by viewModel.bufferingUsers.collectAsState()
 
     var savedUsername by rememberPreference(ListenTogetherUsernameKey, "")
     var roomCodeInput by rememberSaveable { mutableStateOf("") }
@@ -132,8 +128,8 @@ fun ListenTogetherSettings(
 
     var showCreateRoomDialog by rememberSaveable { mutableStateOf(false) }
     var showJoinRoomDialog by rememberSaveable { mutableStateOf(false) }
-
     var showUserNameEditDialog by rememberSaveable { mutableStateOf(false) }
+    var showServerLinkEditDialog by rememberSaveable { mutableStateOf(false) }
 
     if (showUserNameEditDialog) {
         TextFieldDialog(
@@ -152,8 +148,6 @@ fun ListenTogetherSettings(
         )
     }
 
-    var showServerLinkEditDialog by rememberSaveable { mutableStateOf(false) }
-
     if (showServerLinkEditDialog) {
         TextFieldDialog(
             title = { Text(stringResource(R.string.listen_together_server_url)) },
@@ -165,11 +159,14 @@ fun ListenTogetherSettings(
         )
     }
 
-    LaunchedEffect(listenTogetherManager) {
-        listenTogetherManager.events.collectLatest { event ->
+    LaunchedEffect(viewModel) {
+        viewModel.events.collectLatest { event ->
             when (event) {
                 is ListenTogetherEvent.RoomCreated -> {
                     Toast.makeText(context, "Room created: ${event.roomCode}", Toast.LENGTH_SHORT).show()
+                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                    val clip = android.content.ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
+                    clipboard.setPrimaryClip(clip)
                 }
                 is ListenTogetherEvent.JoinApproved -> {
                     Toast.makeText(context, "Joined room: ${event.roomCode}", Toast.LENGTH_SHORT).show()
@@ -197,20 +194,6 @@ fun ListenTogetherSettings(
     LaunchedEffect(savedUsername) {
         if (usernameInput.isBlank() && savedUsername.isNotBlank()) {
             usernameInput = savedUsername
-        }
-    }
-
-    LaunchedEffect(listenTogetherManager) {
-        listenTogetherManager.events.collect { event ->
-            when (event) {
-                is ListenTogetherEvent.RoomCreated -> {
-                    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
-                    val clip = android.content.ClipData.newPlainText("ListenTogetherRoom", event.roomCode)
-                    clipboard.setPrimaryClip(clip)
-                }
-
-                else -> {}
-            }
         }
     }
 
@@ -247,9 +230,7 @@ fun ListenTogetherSettings(
                         val finalUsername = createUsername.trim()
                         if (finalUsername.isNotBlank()) {
                             username = finalUsername
-                            // Устанавливаем serverUrl в менеджере
-                            listenTogetherManager.connect()
-                            listenTogetherManager.createRoom(finalUsername)
+                            viewModel.createRoom(finalUsername)
                             showCreateRoomDialog = false
                         } else {
                             Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
@@ -299,9 +280,9 @@ fun ListenTogetherSettings(
                         val finalUsername = joinUsername.trim()
                         if (finalUsername.isNotBlank() && roomCodeInput.length == 8) {
                             username = finalUsername
-                            listenTogetherManager.connect()
-                            listenTogetherManager.joinRoom(roomCodeInput, finalUsername)
+                            viewModel.joinRoom(roomCodeInput, finalUsername)
                             showJoinRoomDialog = false
+                            roomCodeInput = ""
                         } else {
                             Toast.makeText(context, R.string.error_username_empty, Toast.LENGTH_SHORT).show()
                         }
@@ -425,7 +406,7 @@ fun ListenTogetherSettings(
                     ) {
                         if (connectionState == ConnectionState.DISCONNECTED || connectionState == ConnectionState.ERROR) {
                             FilledTonalButton(
-                                onClick = { listenTogetherManager.connect() },
+                                onClick = { viewModel.connect() },
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
@@ -439,7 +420,7 @@ fun ListenTogetherSettings(
                         } else {
                             OutlinedButton(
                                 onClick = {
-                                    listenTogetherManager.disconnect()
+                                    viewModel.disconnect()
                                     Toast.makeText(context, R.string.listen_together_disconnected, Toast.LENGTH_SHORT).show()
                                 },
                                 border = BorderStroke(
@@ -459,7 +440,7 @@ fun ListenTogetherSettings(
 
                             FilledTonalButton(
                                 onClick = {
-                                    listenTogetherManager.forceReconnect()
+                                    viewModel.forceReconnect()
                                     refetchIconDegree -= 360
                                     Toast.makeText(context, R.string.listen_together_reconnecting, Toast.LENGTH_SHORT).show()
                                 },
@@ -594,7 +575,7 @@ fun ListenTogetherSettings(
                                             if (!user.isHost && role == RoomRole.HOST) {
                                                 IconButton(
                                                     onClick = {
-                                                        listenTogetherManager.kickUser(user.userId, "Kicked by host")
+                                                        viewModel.kickUser(user.userId, "Kicked by host")
                                                     },
                                                     modifier = Modifier.size(24.dp)
                                                 ) {
@@ -614,7 +595,7 @@ fun ListenTogetherSettings(
                         }
 
                         OutlinedButton(
-                            onClick = { listenTogetherManager.leaveRoom() },
+                            onClick = { viewModel.leaveRoom() },
                             modifier = Modifier.fillMaxWidth(),
                             border = BorderStroke(
                                 width = 1.dp,
@@ -674,9 +655,8 @@ fun ListenTogetherSettings(
                                     }
                                     Spacer(modifier = Modifier.width(8.dp))
                                     IconButton(
-                                        onClick = { listenTogetherManager.approveJoin(request.userId) },
-                                        modifier = Modifier
-                                            .size(30.dp)
+                                        onClick = { viewModel.approveJoin(request.userId) },
+                                        modifier = Modifier.size(30.dp)
                                     ) {
                                         Icon(
                                             painter = painterResource(R.drawable.check),
@@ -685,7 +665,7 @@ fun ListenTogetherSettings(
                                         )
                                     }
                                     IconButton(
-                                        onClick = { listenTogetherManager.rejectJoin(request.userId, "Rejected by host") },
+                                        onClick = { viewModel.rejectJoin(request.userId, "Rejected by host") },
                                         modifier = Modifier.size(30.dp)
                                     ) {
                                         Icon(

@@ -1,12 +1,18 @@
 package com.maloy.muzza.playback
 
+import android.app.ForegroundServiceStartNotAllowedException
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.PendingIntent
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.ComponentName
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo
 import android.database.SQLException
 import android.media.AudioManager
 import android.media.audiofx.AudioEffect
@@ -14,6 +20,10 @@ import android.media.audiofx.LoudnessEnhancer
 import android.net.ConnectivityManager
 import android.net.Uri
 import android.os.Binder
+import android.os.Build
+import androidx.annotation.RequiresApi
+import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.FileProvider
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
@@ -87,6 +97,7 @@ import com.maloy.muzza.constants.PlayerVolumeKey
 import com.maloy.muzza.constants.RepeatModeKey
 import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
+import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
@@ -128,6 +139,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -309,6 +321,7 @@ class MusicService : MediaLibraryService(),
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate() {
         super.onCreate()
         registerReceiver(volumeReceiver, IntentFilter().apply {
@@ -594,6 +607,9 @@ class MusicService : MediaLibraryService(),
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         registerReceiver(screenStateReceiver, screenStateFilter)
+        if (!ensureStartedAsForegroundOrStop()) {
+            return
+        }
     }
 
     private fun createExoPlayer(): ExoPlayer {
@@ -1243,6 +1259,14 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onDestroy() {
+        if (!::player.isInitialized) {
+            try {
+                scope.cancel()
+            } catch (_: Exception) {
+            }
+            super.onDestroy()
+            return
+        }
         try {
             unregisterReceiver(screenStateReceiver)
         } catch (e: Exception) {
@@ -1275,7 +1299,14 @@ class MusicService : MediaLibraryService(),
 
     override fun onTaskRemoved(rootIntent: Intent?) {
         super.onTaskRemoved(rootIntent)
-        stopSelf()
+        if (dataStore.get(StopMusicOnTaskClearKey, false)) {
+            player.stop()
+            stopSelf()
+            return
+        }
+        if (!player.isPlaying) {
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_DETACH)
+        }
     }
 
     override fun onPositionDiscontinuity(
@@ -1479,6 +1510,54 @@ class MusicService : MediaLibraryService(),
         if (!::player.isInitialized || isCrossfading) return
         player.volume = if (isMuted.value) 0f else playerVolume.value
     }
+
+    @RequiresApi(Build.VERSION_CODES.S)
+    private fun ensureStartedAsForegroundOrStop(): Boolean =
+        try {
+            val nm = getSystemService(NotificationManager::class.java)
+            nm?.createNotificationChannel(
+                NotificationChannel(
+                    CHANNEL_ID,
+                    getString(R.string.music_player),
+                    NotificationManager.IMPORTANCE_LOW,
+                ),
+            )
+            val pending =
+                PendingIntent.getActivity(
+                    this,
+                    0,
+                    Intent(this, MainActivity::class.java),
+                    PendingIntent.FLAG_IMMUTABLE,
+                )
+            val notification: Notification =
+                NotificationCompat
+                    .Builder(this, CHANNEL_ID)
+                    .setContentTitle(getString(R.string.music_player))
+                    .setContentText("")
+                    .setSmallIcon(R.drawable.small_icon)
+                    .setContentIntent(pending)
+                    .setOngoing(true)
+                    .build()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                startForeground(
+                    NOTIFICATION_ID,
+                    notification,
+                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+                )
+            } else {
+                startForeground(NOTIFICATION_ID, notification)
+            }
+            true
+        } catch (e: ForegroundServiceStartNotAllowedException) {
+            Timber.tag(TAG).w(e, "Foreground service start not allowed; stopping service to avoid ANR")
+            stopSelf()
+            false
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to enter foreground; stopping service to avoid ANR")
+            reportException(e)
+            stopSelf()
+            false
+        }
 
     private fun cleanupCrossfade() {
         fadingPlayer?.stop()

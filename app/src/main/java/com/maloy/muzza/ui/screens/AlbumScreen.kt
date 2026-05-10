@@ -122,6 +122,7 @@ import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.viewmodels.AlbumViewModel
@@ -260,7 +261,7 @@ fun AlbumScreen(
                         modifier = Modifier.padding(12.dp)
                     ) {
                         AsyncImage(
-                            model = albumWithSongs.album.thumbnailUrl,
+                            model = albumWithSongs.album.thumbnailUrl?.resize(1080, 1080),
                             contentDescription = null,
                             modifier = Modifier
                                 .size(AlbumThumbnailSize)

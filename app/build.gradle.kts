@@ -172,7 +172,6 @@ dependencies {
     implementation(projects.lrclib)
     implementation(projects.simpmusic)
     implementation(projects.kizzy)
-    implementation(project(":proto"))
 
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)

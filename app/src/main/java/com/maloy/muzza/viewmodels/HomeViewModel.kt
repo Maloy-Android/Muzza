@@ -80,6 +80,7 @@ class HomeViewModel @Inject constructor(
                 keepListening?.let { k ->
                     val needed = targetSize - filled.size
                     val available = k.filter { item ->
+                        if (item is Song && item.song.isLocal) return@filter false
                         filled.none { p -> p.id == item.id }
                     }.mapNotNull { item ->
                         when (item) {
@@ -125,6 +126,7 @@ class HomeViewModel @Inject constructor(
                 quick?.let { q ->
                     val needed = targetSize - filled.size
                     val available = q.filter { song ->
+                        if (song.song.isLocal) return@filter false
                         filled.none { p -> p.id == song.id }
                     }.map { song ->
                         SongItem(
@@ -185,7 +187,7 @@ class HomeViewModel @Inject constructor(
             val otherSources = mutableListOf<YTItem>()
 
             quickPicks.value?.let { songs ->
-                userSongs.addAll(songs.map { song ->
+                userSongs.addAll(songs.filter { !it.song.isLocal }.map { song ->
                     SongItem(
                         id = song.id,
                         title = song.title,
@@ -210,24 +212,28 @@ class HomeViewModel @Inject constructor(
             keepListening.value?.let { items ->
                 items.forEach { item ->
                     when (item) {
-                        is Song -> userSongs.add(SongItem(
-                            id = item.id,
-                            title = item.title,
-                            artists = item.artists.map { artist ->
-                                com.maloy.innertube.models.Artist(
-                                    name = artist.name,
-                                    id = artist.id
-                                )
-                            },
-                            album = item.album.let { album ->
-                                com.maloy.innertube.models.Album(
-                                    name = album?.title ?: "",
-                                    id = album?.id ?: ""
-                                )
-                            },
-                            thumbnail = item.thumbnailUrl ?: "",
-                            explicit = item.song.explicit
-                        ))
+                        is Song -> {
+                            if (!item.song.isLocal) {
+                                userSongs.add(SongItem(
+                                    id = item.id,
+                                    title = item.title,
+                                    artists = item.artists.map { artist ->
+                                        com.maloy.innertube.models.Artist(
+                                            name = artist.name,
+                                            id = artist.id
+                                        )
+                                    },
+                                    album = item.album.let { album ->
+                                        com.maloy.innertube.models.Album(
+                                            name = album?.title ?: "",
+                                            id = album?.id ?: ""
+                                        )
+                                    },
+                                    thumbnail = item.thumbnailUrl ?: "",
+                                    explicit = item.song.explicit
+                                ))
+                            }
+                        }
                         is Album -> otherSources.add(AlbumItem(
                             browseId = item.id,
                             playlistId = item.album.playlistId ?: "",

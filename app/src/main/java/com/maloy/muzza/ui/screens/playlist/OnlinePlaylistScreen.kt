@@ -390,7 +390,7 @@ fun OnlinePlaylistScreen(
                                             .combinedClickable(
                                                 onClick = {
                                                     menuState.show {
-                                                        YouTubePlaylistMenu(
+                                                        YouTubePlaylistMenuInPlaylistScreen(
                                                             navController = navController,
                                                             playlist = playlist,
                                                             songs = songs,

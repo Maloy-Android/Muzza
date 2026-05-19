@@ -1276,44 +1276,21 @@ fun LocalPlaylistHeader(
                         }
                     }
                 }
-                if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            refetchIconDegree -= 360
-                            scope.launch(Dispatchers.IO) {
-                                syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
-                                snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                            }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.sync),
-                            contentDescription = null,
-                            modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    onClick = {
+                        playerConnection.addToQueue(
+                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
                         )
                     }
-                }
-                if (playlist.playlist.browseId == null) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            playerConnection.addToQueue(
-                                items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
-                            )
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.queue_music),
-                            contentDescription = null,
-                        )
-                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.queue_music),
+                        contentDescription = null,
+                    )
                 }
                 if (!playlist.playlist.isLocal) {
                     Button(

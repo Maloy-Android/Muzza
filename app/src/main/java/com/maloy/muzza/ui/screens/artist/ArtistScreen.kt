@@ -467,7 +467,7 @@ fun ArtistScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-                if (!isLoggedIn && librarySongs.isNotEmpty()) {
+                if ((!isLoggedIn && librarySongs.isNotEmpty()) || artistPage.artist.isProfile) {
                     item {
                         NavigationTitle(
                             title = stringResource(R.string.from_your_library),

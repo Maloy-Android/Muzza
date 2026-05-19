@@ -660,15 +660,19 @@ fun HomeScreen(
                                                                         when (item) {
                                                                             is SongItem -> {
                                                                                 if (!isListenTogetherGuest) {
-                                                                                    playerConnection.playQueue(
-                                                                                        YouTubeQueue(
-                                                                                            item.endpoint
-                                                                                                ?: WatchEndpoint(
-                                                                                                    videoId = item.id,
-                                                                                                ),
-                                                                                            item.toMediaMetadata(),
-                                                                                        ),
-                                                                                    )
+                                                                                    if (mediaMetadata?.id == item.id) {
+                                                                                        playerConnection.togglePlayPause()
+                                                                                    } else {
+                                                                                        playerConnection.playQueue(
+                                                                                            YouTubeQueue(
+                                                                                                item.endpoint
+                                                                                                    ?: WatchEndpoint(
+                                                                                                        videoId = item.id,
+                                                                                                    ),
+                                                                                                item.toMediaMetadata(),
+                                                                                            ),
+                                                                                        )
+                                                                                    }
                                                                                 }
                                                                             }
 

@@ -481,17 +481,6 @@ constructor(
     /**
      * Migrate old server URL to new one if needed
      */
-
-    private fun normalizeServerUrl(url: String): String {
-        val trimmed = url.trim()
-        if (trimmed.isEmpty()) return DEFAULT_SERVER_URL
-        return if (trimmed.contains("metroserver.meowery.eu", ignoreCase = true)) {
-            DEFAULT_SERVER_URL
-        } else {
-            trimmed
-        }
-    }
-
     private fun migrateServerUrl() {
         try {
             val configuredUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
@@ -587,7 +576,20 @@ constructor(
             .pingInterval(60, TimeUnit.SECONDS) // Match server ping interval
             .build()
 
-    private fun getServerUrl(): String = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+    private fun normalizeServerUrl(url: String): String {
+        val trimmed = url.trim()
+        if (trimmed.isEmpty()) return DEFAULT_SERVER_URL
+        return if (trimmed.contains("metroserver.meowery.eu", ignoreCase = true)) {
+            DEFAULT_SERVER_URL
+        } else {
+            trimmed
+        }
+    }
+
+    private fun getServerUrl(): String {
+        val configuredUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+        return normalizeServerUrl(configuredUrl)
+    }
 
     /**
      * Calculate exponential backoff delay with jitter

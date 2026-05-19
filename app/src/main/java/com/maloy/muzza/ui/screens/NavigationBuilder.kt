@@ -175,12 +175,9 @@ fun NavGraphBuilder.navigationBuilder(
         ArtistItemsScreen(navController, scrollBehavior)
     }
     composable(
-        route = "online_playlist/{playlistId}?author={authors}",
+        route = "online_playlist/{playlistId}",
         arguments = listOf(
             navArgument("playlistId") {
-                type = NavType.StringType
-            },
-            navArgument("authors") {
                 type = NavType.StringType
             }
         )

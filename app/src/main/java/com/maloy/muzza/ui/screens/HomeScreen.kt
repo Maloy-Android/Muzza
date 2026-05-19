@@ -338,7 +338,7 @@ fun HomeScreen(
 
                             is AlbumItem -> navController.navigate("album/${item.id}")
                             is ArtistItem -> navController.navigate("artist/${item.id}")
-                            is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
+                            is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                         }
                     },
                     onLongClick = {
@@ -519,7 +519,7 @@ fun HomeScreen(
                                 },
                                 onClick = {
                                     when (item.type) {
-                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}?author=${item.playlistAuthor}")
+                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}")
                                         ALBUM -> navController.navigate("album/${item.id}")
                                         ARTIST -> navController.navigate("artist/${item.id}")
                                     }
@@ -953,7 +953,7 @@ fun HomeScreen(
                                 isPlaying = isPlaying,
                                 navController = navController,
                                 onCardClick = {
-                                    navController.navigate("online_playlist/${item.playlist.id}?author=${item.playlist.author?.name}")
+                                    navController.navigate("online_playlist/${item.playlist.id}")
                                 },
                                 onCardLongClick = {
                                     menuState.show {

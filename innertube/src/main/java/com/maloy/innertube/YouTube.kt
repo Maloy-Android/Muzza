@@ -35,6 +35,7 @@ import com.maloy.innertube.models.response.GetTranscriptResponse
 import com.maloy.innertube.models.response.NextResponse
 import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.innertube.models.response.SearchResponse
+import com.maloy.innertube.models.splitBySeparator
 import com.maloy.innertube.pages.AlbumPage
 import com.maloy.innertube.pages.ArtistItemsContinuationPage
 import com.maloy.innertube.pages.ArtistItemsPage
@@ -65,6 +66,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
+import org.schabi.newpipe.extractor.timeago.patterns.it
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -443,24 +445,73 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
 
         val editable = base?.musicEditablePlaylistDetailHeaderRenderer != null
 
+        val description: String? =
+            header?.description?.musicDescriptionShelfRenderer?.description?.runs?.joinToString("") { it.text }
+                ?: base?.musicEditablePlaylistDetailHeaderRenderer
+                    ?.header?.musicDetailHeaderRenderer
+                    ?.description?.runs?.joinToString("") { it.text }
+                ?: response.header?.musicDetailHeaderRenderer
+                    ?.description?.runs?.joinToString("") { it.text }
+
+        val author: Artist? = run {
+            val fromStrapline = header?.straplineTextOne?.runs
+                ?.firstOrNull()
+                ?.let { Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId) }
+            if (fromStrapline != null) return@run fromStrapline
+
+            val detailSubtitle = base?.musicEditablePlaylistDetailHeaderRenderer
+                ?.header?.musicDetailHeaderRenderer?.subtitle?.runs
+                ?: response.header?.musicDetailHeaderRenderer?.subtitle?.runs
+            if (detailSubtitle != null) {
+                val segments = detailSubtitle.splitBySeparator()
+                val run = segments.getOrNull(1)?.firstOrNull()
+                    ?: segments.firstOrNull()?.firstOrNull()
+                val fromDetail = run?.let {
+                    Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId)
+                }
+                if (fromDetail != null) return@run fromDetail
+            }
+
+            val fromHeaderSubtitle = header?.subtitle?.runs
+                ?.firstOrNull { it.navigationEndpoint != null }
+                ?.let { Artist(name = it.text, id = it.navigationEndpoint?.browseEndpoint?.browseId) }
+            if (fromHeaderSubtitle != null) return@run fromHeaderSubtitle
+
+            val facepile = header?.facepile?.avatarStackViewModel
+            if (facepile != null) {
+                val name = facepile.text?.content
+                val browseId = facepile.rendererContext?.commandContext?.onTap?.innertubeCommand?.browseEndpoint?.browseId
+                if (name != null) return@run Artist(name = name, id = browseId)
+            }
+
+            null
+        }
+
+        val authorAvatarUrl: String? = header?.facepile
+            ?.avatarStackViewModel?.avatars?.firstOrNull()
+            ?.avatarViewModel?.image?.sources?.firstOrNull()
+            ?.url
+
         PlaylistPage(
             playlist = PlaylistItem(
                 id = playlistId,
                 title = header?.title?.runs?.firstOrNull()?.text!!,
-                author = header.straplineTextOne?.runs?.firstOrNull()?.let {
-                    Artist(
-                        name = it.text,
-                        id = it.navigationEndpoint?.browseEndpoint?.browseId
-                    )
-                },
-                songCountText = header.secondSubtitle?.runs?.firstOrNull()?.text,
+                author = author,
+                songCountText = header.secondSubtitle?.runs?.findLast {
+                    it.text.any { c -> c.isDigit() } &&
+                            !it.text.contains("view", ignoreCase = true) &&
+                            !it.text.contains("hour", ignoreCase = true) &&
+                            !it.text.contains("minute", ignoreCase = true)
+                }?.text,
                 thumbnail = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url!!,
                 playEndpoint = null,
                 shuffleEndpoint = header.buttons?.lastOrNull()?.menuRenderer?.items?.firstOrNull()?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,
                 radioEndpoint = header.buttons.getOrNull(2)?.menuRenderer?.items?.find {
                     it.menuNavigationItemRenderer?.icon?.iconType == "MIX"
                 }?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint,
-                isEditable = editable
+                isEditable = editable,
+                description = description,
+                authorAvatarUrl = authorAvatarUrl,
             ),
             songs = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents?.sectionListRenderer
                 ?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.contents?.getItems()?.mapNotNull {

@@ -1496,7 +1496,7 @@ fun CommunityPlaylistCard(
                     onClick = {
                         if (!isListenTogetherGuest) {
                             item.playlist.playEndpoint?.let {
-                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id, playListAuthor = item.playlist.author?.name))
+                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
                             }
                         }
                     },
@@ -1516,7 +1516,7 @@ fun CommunityPlaylistCard(
                     onClick = {
                         if (!isListenTogetherGuest) {
                             item.playlist.radioEndpoint?.let {
-                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id, playListAuthor = item.playlist.author?.name))
+                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
                             }
                         }
                     },
@@ -2005,7 +2005,7 @@ fun YouTubeGridItem(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = item.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(item.id, playListAuthor = item.author?.name) }
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
                                     )
                                 )
                             }
@@ -2034,7 +2034,7 @@ fun YouTubeGridItem(
                                 playerConnection.playQueue(
                                     ListQueue(
                                         title = item.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(item.id, playListAuthor = item.author?.name) }
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
                                     )
                                 )
                             }

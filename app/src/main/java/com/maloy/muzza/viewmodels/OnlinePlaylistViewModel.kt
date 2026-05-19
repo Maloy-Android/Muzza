@@ -22,13 +22,16 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -40,10 +43,11 @@ class OnlinePlaylistViewModel @Inject constructor(
     private val playlistId = savedStateHandle.get<String>("playlistId")!!
 
     val playlist = MutableStateFlow<PlaylistItem?>(null)
-    val playlistAuthor = MutableStateFlow<String?>(null)
-    val authors = savedStateHandle.get<String>("authors")
 
     private val _playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
+
+    private val _onlinePlaylist = MutableStateFlow<PlaylistItem?>(null)
+    val onlinePlaylist: StateFlow<PlaylistItem?> = _onlinePlaylist
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val playlistSongs = context.dataStore.data
@@ -112,12 +116,20 @@ class OnlinePlaylistViewModel @Inject constructor(
             YouTube.playlist(playlistId)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
-                    playlistAuthor.value = authors
                     _playlistSongs.value = playlistPage.songs.distinctBy { it.id }
                     continuation = playlistPage.songsContinuation
                     _isLoading.value = false
                     if (continuation != null) {
                         startProactiveBackgroundLoading()
+                    }
+                    val localPlaylist = playlist.first { it != null }
+                    val browseId = localPlaylist?.id
+                    if (browseId != null) {
+                        val page = withContext(Dispatchers.IO) {
+                            YouTube.playlist(browseId).getOrNull()
+                        }
+                        val online = page?.playlist
+                        _onlinePlaylist.value = online
                     }
                 }.onFailure { throwable ->
                     _error.value = throwable.message ?: "Failed to load playlist"
@@ -137,11 +149,19 @@ class OnlinePlaylistViewModel @Inject constructor(
                 YouTube.playlist(playlistId)
                     .onSuccess { playlistPage ->
                         playlist.value = playlistPage.playlist
-                        playlistAuthor.value = authors
                         _playlistSongs.value = playlistPage.songs.distinctBy { it.id }
                         continuation = playlistPage.songsContinuation
                         if (continuation != null) {
                             startProactiveBackgroundLoading()
+                        }
+                        val localPlaylist = playlist.first { it != null }
+                        val browseId = localPlaylist?.id
+                        if (browseId != null) {
+                            val page = withContext(Dispatchers.IO) {
+                                YouTube.playlist(browseId).getOrNull()
+                            }
+                            val online = page?.playlist
+                            _onlinePlaylist.value = online
                         }
                     }.onFailure { throwable ->
                         _error.value = throwable.message ?: "Failed to refresh playlist"

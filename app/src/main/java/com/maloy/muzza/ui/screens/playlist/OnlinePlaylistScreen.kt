@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,11 +82,15 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastSumBy
@@ -125,6 +130,7 @@ import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
@@ -174,9 +180,13 @@ fun OnlinePlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val playlist by viewModel.playlist.collectAsState()
-    val authors by viewModel.playlistAuthor.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
+
+    val onlinePlaylist by viewModel.onlinePlaylist.collectAsState()
+    val onlineAuthor = onlinePlaylist?.author
+    val onlineAuthorAvatar = onlinePlaylist?.authorAvatarUrl
+    val description = onlinePlaylist?.description
 
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
@@ -409,51 +419,67 @@ fun OnlinePlaylistScreen(
                                         horizontalArrangement = Arrangement.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        if (playlist.id == "LM") {
-                                            if (accountImageUrl.isNotEmpty()) {
-                                                Box(
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            if (!onlineAuthorAvatar.isNullOrEmpty()) {
+                                                AsyncImage(
+                                                    model = onlineAuthorAvatar,
+                                                    contentDescription = null,
+                                                    contentScale = ContentScale.Crop,
                                                     modifier = Modifier
-                                                        .size(32.dp)
+                                                        .fillMaxSize()
                                                         .clip(RoundedCornerShape(16.dp))
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                ) {
-                                                    AsyncImage(
-                                                        model = accountImageUrl,
-                                                        contentDescription = null,
-                                                        contentScale = ContentScale.Crop,
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .clip(RoundedCornerShape(16.dp))
-                                                    )
-                                                }
-                                                Spacer(modifier = Modifier.width(8.dp))
+                                                        .clickable(enabled = true) {
+                                                            navController.navigate("artist/${onlineAuthor?.id}")
+                                                        }
+                                                )
                                             }
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
 
-                                            if (playlist.id == "LM" && accountName.isNotEmpty()) {
-                                                Text(
-                                                    text = accountName,
+                                        Text(
+                                            buildAnnotatedString {
+                                                withStyle(
                                                     style = MaterialTheme.typography.titleMedium.copy(
                                                         fontWeight = FontWeight.Normal,
                                                         color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                )
+                                                    ).toSpanStyle()
+                                                ) {
+                                                    onlineAuthor.let { author ->
+                                                        val link = author?.let {
+                                                            LinkAnnotation.Clickable(it.name) {
+                                                                navController.navigate("artist/${author.id}")
+                                                            }
+                                                        }
+                                                        link?.let {
+                                                            withLink(it) {
+                                                                append(onlineAuthor?.name)
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
-                                        } else if (playlist.id != "LM" && authors?.isNotEmpty() == true) {
-                                            Text(
-                                                text = authors!!,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.Normal,
-                                                    color = MaterialTheme.colorScheme.onBackground
-                                                )
-                                            )
-                                        }
+                                        )
                                     }
 
                                     Text(
-                                        text = makeTimeString(songsLength * 1000L),
+                                        text = playlist.songCountText!!,
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Normal
                                     )
+
+                                    if (!description.isNullOrBlank()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        ExpandableText(
+                                            text = description,
+                                            modifier = Modifier.padding(horizontal = 32.dp),
+                                            collapsedMaxLines = 3,
+                                        )
+                                    }
 
                                     Spacer(Modifier.height(12.dp))
 
@@ -465,7 +491,7 @@ fun OnlinePlaylistScreen(
                                                         database.transaction {
                                                             val playlistEntity = PlaylistEntity(
                                                                 name = playlist.title,
-                                                                playlistAuthors = authors!!,
+                                                                playlistAuthors = onlinePlaylist?.author?.name,
                                                                 browseId = playlist.id,
                                                                 thumbnailUrl = playlist.thumbnail,
                                                                 isEditable = true,
@@ -604,8 +630,7 @@ fun OnlinePlaylistScreen(
                                                         playerConnection.playQueue(
                                                             YouTubePlaylistQueue(
                                                                 radioEndpoint,
-                                                                playlistId = playlist.id,
-                                                                playListAuthor = authors!!
+                                                                playlistId = playlist.id
                                                             )
                                                         )
                                                     },
@@ -626,8 +651,7 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id,
-                                                            playListAuthor = authors!!
+                                                            playlist.id
                                                         )
                                                     })
                                                 },
@@ -648,8 +672,7 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id,
-                                                            playListAuthor = authors!!
+                                                            playlist.id
                                                         )
                                                     })
                                                 },
@@ -705,8 +728,7 @@ fun OnlinePlaylistScreen(
                                                     title = playlist.title,
                                                     items = songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id,
-                                                            playListAuthor = authors!!
+                                                            playlist.id
                                                         )
                                                     }
                                                 )
@@ -729,7 +751,7 @@ fun OnlinePlaylistScreen(
                                                 ListQueue(
                                                     title = playlist.title,
                                                     items = songs.shuffled()
-                                                        .map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = authors!!) }
+                                                        .map { it.toMediaItemWithPlaylist(playlist.id) }
                                                 )
                                             )
                                         },
@@ -852,8 +874,7 @@ fun OnlinePlaylistScreen(
                                                         title = playlist.title,
                                                         items = songs.map {
                                                             it.toMediaItemWithPlaylist(
-                                                                playlist.id,
-                                                                playListAuthor = authors!!
+                                                                playlist.id
                                                             )
                                                         },
                                                         startIndex = songs.indexOf(song)
@@ -945,8 +966,7 @@ fun OnlinePlaylistScreen(
                             title = playlist!!.title,
                             items = songs.map {
                                 it.toMediaItemWithPlaylist(
-                                    playlist.id,
-                                    playListAuthor = authors!!
+                                    playlist.id
                                 )
                             }
                         )
@@ -1093,7 +1113,7 @@ fun OnlinePlaylistScreen(
                                     songs = songs,
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss,
-                                    playlistAuthors = authors,
+                                    playlistAuthors = onlinePlaylist?.author?.name,
                                     playlistSongCount = playlist!!.songCountText
                                 )
                             }

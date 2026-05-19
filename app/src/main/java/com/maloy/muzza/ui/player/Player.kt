@@ -318,7 +318,7 @@ fun BottomSheetPlayer(
                                 if (dbPlaylistValue?.playlist?.id != null) {
                                     navController.navigate("local_playlist/${mediaMetadata?.playlist?.id}")
                                 } else {
-                                    navController.navigate("online_playlist/${mediaMetadata?.playlist?.id}?author=${mediaMetadata?.playlist?.author}")
+                                    navController.navigate("online_playlist/${mediaMetadata?.playlist?.id}")
                                 }
                             }
                             state.collapseSoft()
@@ -495,7 +495,7 @@ fun BottomSheetPlayer(
                                                 if (dbPlaylistValue?.playlist?.id != null) {
                                                     navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
                                                 } else {
-                                                    navController.navigate("online_playlist/${mediaMetadata.playlist.id}?author=${mediaMetadata.playlist.author}")
+                                                    navController.navigate("online_playlist/${mediaMetadata.playlist.id}")
                                                 }
                                                 state.collapseSoft()
                                             }

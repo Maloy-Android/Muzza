@@ -212,7 +212,7 @@ fun OnlineSearchScreen(
                                 }
 
                                 is PlaylistItem -> {
-                                    navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
+                                    navController.navigate("online_playlist/${item.id}")
                                     onDismiss()
                                 }
                             }

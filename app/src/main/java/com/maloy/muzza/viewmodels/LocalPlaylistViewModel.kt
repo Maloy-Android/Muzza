@@ -4,6 +4,8 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
 import com.maloy.muzza.constants.PlaylistSongSortTypeKey
@@ -14,8 +16,10 @@ import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -23,6 +27,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,6 +44,8 @@ class LocalPlaylistViewModel @Inject constructor(
     val error = _error.asStateFlow()
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
+    private val _onlinePlaylist = MutableStateFlow<PlaylistItem?>(null)
+    val onlinePlaylist: StateFlow<PlaylistItem?> = _onlinePlaylist
     val playlistSongs = combine(
         database.playlistSongs(playlistId),
         context.dataStore.data
@@ -86,6 +93,15 @@ class LocalPlaylistViewModel @Inject constructor(
                         update(song.map.copy(position = index))
                     }
                 }
+            }
+            val localPlaylist = playlist.first { it != null }
+            val browseId = localPlaylist?.playlist?.browseId
+            if (browseId != null) {
+                val page = withContext(Dispatchers.IO) {
+                    YouTube.playlist(browseId).getOrNull()
+                }
+                val online = page?.playlist
+                _onlinePlaylist.value = online
             }
         }
     }

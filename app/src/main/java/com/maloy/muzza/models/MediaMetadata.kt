@@ -41,7 +41,6 @@ data class MediaMetadata(
 
     data class Playlist(
         val id: String,
-        val author: String?,
     ) : Serializable
 
     fun toSongEntity() = SongEntity(
@@ -120,7 +119,6 @@ fun Playlist.toMediaMetadata() = MediaMetadata(
     duration = 0,
     thumbnailUrl = playlist.thumbnailUrl,
     playlist = MediaMetadata.Playlist(
-        id = playlist.id,
-        author = playlist.playlistAuthors
+        id = playlist.id
     )
 )

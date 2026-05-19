@@ -98,12 +98,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
@@ -119,6 +123,8 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.YouTube.artist
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
@@ -146,6 +152,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
@@ -187,6 +194,8 @@ fun LocalPlaylistScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+
+    val onlinePlaylist by viewModel.onlinePlaylist.collectAsState()
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
@@ -447,6 +456,8 @@ fun LocalPlaylistScreen(
                             LocalPlaylistHeader(
                                 playlist = playlist,
                                 songs = songs,
+                                onlinePlaylist = onlinePlaylist,
+                                navController = navController,
                                 onShowEditDialog = { showEditDialog = true },
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 snackbarHostState = snackbarHostState,
@@ -899,6 +910,8 @@ fun LocalPlaylistScreen(
 fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
+    onlinePlaylist: PlaylistItem?,
+    navController: NavController,
     onShowEditDialog: () -> Unit,
     onShowRemoveDownloadDialog: () -> Unit,
     snackbarHostState: SnackbarHostState,
@@ -907,10 +920,10 @@ fun LocalPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val syncUtils = LocalSyncUtils.current
-    val scope = rememberCoroutineScope()
 
-    val playlistAuthors = playlist.playlist.playlistAuthors
+    val onlineAuthor = onlinePlaylist?.author
+    val onlineAuthorAvatar = onlinePlaylist?.authorAvatarUrl
+    val description = onlinePlaylist?.description
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
     val rotationAnimation by animateFloatAsState(
@@ -937,7 +950,7 @@ fun LocalPlaylistHeader(
     val accountName by rememberPreference(AccountNameKey, "")
 
     val playlistUserTitle = isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal
-    val playlistAuthorTitle = playlistAuthors?.isEmpty() != true && !playlist.playlist.isLocal
+    val playlistUserAvatar = isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal
 
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -1141,38 +1154,65 @@ fun LocalPlaylistHeader(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    if (playlistUserAvatar || !onlineAuthorAvatar.isNullOrEmpty()) {
                         AsyncImage(
-                            model = accountImageUrl,
+                            model = if (playlistUserAvatar) accountImageUrl else onlineAuthorAvatar,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .fillMaxSize()
                                 .clip(RoundedCornerShape(16.dp))
+                                .clickable(enabled = !playlistUserAvatar) {
+                                    navController.navigate("artist/${onlineAuthor?.id}")
+                                }
                         )
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
+                Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
-                    text = if (playlistUserTitle) {
-                        accountName
-                    } else if (playlistAuthorTitle) {
-                        playlistAuthors ?: stringResource(R.string.unknow_playlist_author)
-                    } else {
-                        stringResource(R.string.playlist_author)
-                    },
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground
+                if (onlineAuthor?.name == null && !playlist.playlist.isLocal) {
+                    Text(
+                        text = if (playlistUserTitle) {
+                            accountName
+                        } else {
+                            stringResource(R.string.playlist_author)
+                        },
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     )
-                )
+                } else {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ).toSpanStyle()
+                            ) {
+                                onlineAuthor.let { author ->
+                                    val link = author?.id?.let {
+                                        LinkAnnotation.Clickable(it) {
+                                            navController.navigate("artist/${author.id}")
+                                        }
+                                    }
+                                    link?.let {
+                                        withLink(it) {
+                                            append(onlineAuthor?.name)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
             }
 
             Text(
@@ -1180,6 +1220,16 @@ fun LocalPlaylistHeader(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Normal
             )
+
+            if (!description.isNullOrBlank()) {
+                Spacer(modifier = Modifier.height(4.dp))
+                ExpandableText(
+                    text = description,
+                    modifier = Modifier.padding(horizontal = 32.dp),
+                    collapsedMaxLines = 3,
+                )
+            }
+
             Spacer(Modifier.height(12.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,

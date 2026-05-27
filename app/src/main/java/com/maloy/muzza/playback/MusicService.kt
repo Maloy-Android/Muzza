@@ -270,6 +270,8 @@ class MusicService : MediaLibraryService(),
     private var crossfadeGapless = true
     private var crossfadeTriggerJob: Job? = null
 
+    private var playbackStatsListener: PlaybackStatsListener? = null
+
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             secondaryPlayer?.stop()
@@ -363,7 +365,8 @@ class MusicService : MediaLibraryService(),
         player.addListener(this@MusicService)
         sleepTimer = SleepTimer(scope, player)
         player.addListener(sleepTimer)
-        player.addAnalyticsListener(PlaybackStatsListener(false, this@MusicService))
+        playbackStatsListener = PlaybackStatsListener(false, this@MusicService)
+        player.addAnalyticsListener(playbackStatsListener!!)
         mediaLibrarySessionCallback.apply {
             toggleLike = ::toggleLike
             toggleStartRadio = ::toggleStartRadio
@@ -1352,7 +1355,7 @@ class MusicService : MediaLibraryService(),
         secondaryPlayer = null
 
         try {
-            (currentPlayer).setAudioAttributes(
+            currentPlayer.setAudioAttributes(
                 AudioAttributes.Builder()
                     .setUsage(C.USAGE_MEDIA)
                     .setContentType(C.AUDIO_CONTENT_TYPE_MUSIC)
@@ -1390,6 +1393,15 @@ class MusicService : MediaLibraryService(),
         player.addListener(syncListener)
 
         nextPlayer.removeListener(secondaryPlayerListener)
+
+        playbackStatsListener?.let { oldListener ->
+            currentPlayer.removeAnalyticsListener(oldListener)
+        }
+
+        val newPlaybackStatsListener = PlaybackStatsListener(false, this@MusicService)
+        playbackStatsListener = newPlaybackStatsListener
+        nextPlayer.addAnalyticsListener(newPlaybackStatsListener)
+
         nextPlayer.addListener(this)
         nextPlayer.addListener(sleepTimer)
 

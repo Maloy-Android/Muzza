@@ -108,8 +108,6 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AccountImageUrlKey
-import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ListItemHeight
@@ -143,7 +141,6 @@ import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.PlaylistAlbumItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
-import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
@@ -196,9 +193,6 @@ fun OnlinePlaylistScreen(
     val syncUtils = LocalSyncUtils.current
 
     val isLoading by viewModel.isLoading.collectAsState()
-
-    val accountName by rememberPreference(AccountNameKey, "")
-    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
@@ -467,7 +461,7 @@ fun OnlinePlaylistScreen(
                                     }
 
                                     Text(
-                                        text = playlist.songCountText!!,
+                                        text = makeTimeString(songsLength * 1000L),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Normal
                                     )

@@ -1032,7 +1032,7 @@ fun HomeScreen(
                     NavigationTitle(
                         title = section.title,
                         label = section.label,
-                        enabledOnclick = !hasOnlyVideos && !isYouTubePlaylists,
+                        enabledOnclick = !hasOnlyVideos,
                         thumbnail = section.thumbnail?.let { thumbnailUrl ->
                             {
                                 val shape =
@@ -1056,6 +1056,7 @@ fun HomeScreen(
                                     endpoint.params != null && (isNewReleaseAlbums == true) -> navController.navigate("new_release")
                                     endpoint.params != null && (isLibrary == true) -> navController.navigate("library")
                                     endpoint.params != null && (isMixesForYou == true || isCharts == true) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    endpoint.params != null && (isYouTubePlaylists) -> navController.navigate("mood_and_genres")
                                     else ->  navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
                                 }
                             }

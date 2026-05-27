@@ -533,9 +533,18 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         ).body<BrowseResponse>()
 
         val mainContents: List<MusicShelfRenderer.Content> = response.continuationContents?.sectionListContinuation?.contents
-            ?.mapNotNull { content: SectionListRenderer.Content -> content.musicPlaylistShelfRenderer?.contents }
+            ?.mapNotNull { content: SectionListRenderer.Content ->
+                content.musicPlaylistShelfRenderer?.contents
+                    ?: content.musicShelfRenderer?.contents
+            }
             ?.flatten()
             ?: emptyList()
+
+        val musicShelfContinuationContents: List<MusicShelfRenderer.Content> =
+            response.continuationContents?.musicShelfContinuation?.contents ?: emptyList()
+
+        val shelfContents: List<MusicShelfRenderer.Content> =
+            response.continuationContents?.musicPlaylistShelfContinuation?.contents ?: emptyList()
 
         val appendedContents: List<MusicShelfRenderer.Content> = response.onResponseReceivedActions
             ?.firstOrNull()
@@ -543,7 +552,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             ?.continuationItems
             .orEmpty()
 
-        val allContents = mainContents + appendedContents
+        val allContents = mainContents + shelfContents + musicShelfContinuationContents + appendedContents
 
         val songs = allContents
             .mapNotNull { content: MusicShelfRenderer.Content -> content.musicResponsiveListItemRenderer }

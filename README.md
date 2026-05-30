@@ -25,6 +25,7 @@ A Material 3 YouTube Music client for Android
 - Background playback
 - Search songs, videos, albums, artists, profiles and playlists from YouTube Music
 - Login support
+- Login witch token support
 - Cache and download songs for offline playback
 - Synchronized lyrics
 - Lyrics translator

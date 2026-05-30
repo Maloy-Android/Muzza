@@ -16,12 +16,14 @@ A Material 3 YouTube Music client for Android
 
 ## Features
 
+- Crossfade
+- ListenTogether
 - Play songs from YT/YT Music without ads
 - YouTube-Music synchronization
-- Importing from Spotify
+- Importing songs, playlists from Spotify
 - More functionals
 - Background playback
-- Search songs, videos, albums, and playlists from YouTube Music
+- Search songs, videos, albums, artists, profiles and playlists from YouTube Music
 - Login support
 - Cache and download songs for offline playback
 - Synchronized lyrics

@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.screens.settings
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -23,17 +22,15 @@ import androidx.compose.material.icons.rounded.MusicOff
 import androidx.compose.material.icons.rounded.Translate
 import androidx.compose.material3.Card
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -46,7 +43,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -61,17 +57,22 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.MaxImageCacheSizeKey
 import com.maloy.muzza.constants.MaxSongCacheSizeKey
+import com.maloy.muzza.constants.SliderStyle
+import com.maloy.muzza.constants.SliderStyleKey
 import com.maloy.muzza.extensions.tryOrNull
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.ui.utils.formatFileSize
 import com.maloy.muzza.utils.TranslationHelper
+import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import me.saket.squiggles.SquigglySlider
 
 @SuppressLint("PrivateResource")
 @OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
@@ -122,21 +123,10 @@ fun StorageSettings(
         delay(500)
     }
 
-    var showClearAllDownloadsDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showClearSongCacheDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showClearImagesCacheDialog by remember {
-        mutableStateOf(false)
-    }
-
-    var showClearTranslationModels by remember {
-        mutableStateOf(false)
-    }
+    var showClearAllDownloadsDialog by remember { mutableStateOf(false) }
+    var showClearSongCacheDialog by remember { mutableStateOf(false) }
+    var showClearImagesCacheDialog by remember { mutableStateOf(false) }
+    var showClearTranslationModels by remember { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -167,7 +157,6 @@ fun StorageSettings(
                 StorageCategoryHeader(
                     title = stringResource(R.string.downloaded_songs),
                     icon = Icons.Outlined.CloudDownload,
-                    color = MaterialTheme.colorScheme.surfaceContainer
                 )
                 Card(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -193,39 +182,15 @@ fun StorageSettings(
                 StorageCategoryHeader(
                     title = stringResource(R.string.song_cache),
                     icon = Icons.Rounded.MusicNote,
-                    color = MaterialTheme.colorScheme.surfaceContainer
                 )
-                if (maxSongCacheSize == -1) {
-                    Card(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = formatFileSize(playerCacheSize),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            FilledTonalButton(
-                                onClick = { showClearSongCacheDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium
-                            ) {
-                                Text(text = stringResource(R.string.clear_song_cache))
-                            }
-                        }
-                    }
-                } else {
-                    AnimatedVisibility(visible = maxSongCacheSize != 0) {
-                        StorageProgressCard(
-                            usedSpace = playerCacheSize,
-                            totalSpace = maxSongCacheSize * 1024 * 1024L,
-                            onClear = { showClearSongCacheDialog = true }
-                        )
-                    }
-                }
-                CacheSizeSelector(
+                CacheCard(
+                    usedSpace = if (maxSongCacheSize != 0) playerCacheSize else 0,
+                    totalSpace = maxSongCacheSize * 1024 * 1024L,
                     selectedValue = maxSongCacheSize,
-                    onValueChange = onMaxSongCacheSizeChange
+                    onValueChange = onMaxSongCacheSizeChange,
+                    showProgress = maxSongCacheSize != -1 && maxSongCacheSize != 0,
+                    onClear = { showClearSongCacheDialog = true },
+                    clearButtonText = stringResource(R.string.clear_song_cache)
                 )
             }
 
@@ -233,39 +198,15 @@ fun StorageSettings(
                 StorageCategoryHeader(
                     title = stringResource(R.string.image_cache),
                     icon = Icons.Rounded.Image,
-                    color = MaterialTheme.colorScheme.surfaceContainer
                 )
-                if (maxImageCacheSize == -1) {
-                    Card(
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    ) {
-                        Column(modifier = Modifier.padding(16.dp)) {
-                            Text(
-                                text = formatFileSize(imageCacheSize),
-                                style = MaterialTheme.typography.titleMedium
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            FilledTonalButton(
-                                onClick = { showClearImagesCacheDialog = true },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = MaterialTheme.shapes.medium
-                            ) {
-                                Text(text = stringResource(R.string.clear_image_cache))
-                            }
-                        }
-                    }
-                } else {
-                    AnimatedVisibility(visible = maxImageCacheSize != 0) {
-                        StorageProgressCard(
-                            usedSpace = imageCacheSize,
-                            totalSpace = maxImageCacheSize * 1024 * 1024L,
-                            onClear = { showClearImagesCacheDialog = true }
-                        )
-                    }
-                }
-                CacheSizeSelector(
+                CacheCard(
+                    usedSpace = if (maxImageCacheSize != 0) imageCacheSize else 0,
+                    totalSpace = maxImageCacheSize * 1024 * 1024L,
                     selectedValue = maxImageCacheSize,
-                    onValueChange = onMaxImageCacheSizeChange
+                    onValueChange = onMaxImageCacheSizeChange,
+                    showProgress = maxImageCacheSize != -1 && maxImageCacheSize != 0,
+                    onClear = { showClearImagesCacheDialog = true },
+                    clearButtonText = stringResource(R.string.clear_image_cache)
                 )
             }
 
@@ -274,7 +215,6 @@ fun StorageSettings(
                     StorageCategoryHeader(
                         title = stringResource(R.string.translation_models),
                         icon = Icons.Rounded.Translate,
-                        color = MaterialTheme.colorScheme.surfaceContainer
                     )
                     ModelManagementCard(
                         onClear = { showClearTranslationModels = true }
@@ -424,88 +364,166 @@ fun StorageSettings(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun StorageProgressCard(
+private fun CacheCard(
     usedSpace: Long,
     totalSpace: Long,
-    onClear: () -> Unit
+    selectedValue: Int,
+    onValueChange: (Int) -> Unit,
+    showProgress: Boolean,
+    onClear: () -> Unit,
+    clearButtonText: String
 ) {
+    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
+    var sliderPosition by remember { mutableStateOf<Float?>(null) }
+
+    val minValue = 1024f
+    val maxValue = 8192f
+    val currentValue = sliderPosition ?: when (selectedValue) {
+        0 -> 0f
+        -1 -> maxValue
+        else -> selectedValue.toFloat().coerceIn(minValue, maxValue)
+    }
+
     Card(
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Row(verticalAlignment = CenterVertically) {
-                CircularProgressIndicator(
-                    progress = { calculateProgress(usedSpace, totalSpace) },
-                    modifier = Modifier.size(40.dp),
-                    color = MaterialTheme.colorScheme.primary,
+            if (showProgress) {
+                Row(verticalAlignment = CenterVertically) {
+                    CircularProgressIndicator(
+                        progress = { calculateProgress(usedSpace, totalSpace) },
+                        modifier = Modifier.size(40.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.size_used, "${(usedSpace.toFloat() / totalSpace * 100).toInt()}%"),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            } else if (selectedValue == -1) {
+                Text(
+                    text = formatFileSize(usedSpace),
+                    style = MaterialTheme.typography.titleMedium
                 )
-                Spacer(modifier = Modifier.width(16.dp))
-                Column {
-                    Text(
-                        text = stringResource(R.string.size_used,"${(usedSpace.toFloat() / totalSpace * 100).toInt()}%"),
-                        style = MaterialTheme.typography.titleMedium
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = when {
+                        currentValue == 0f -> stringResource(R.string.off)
+                        currentValue >= maxValue -> stringResource(R.string.unlimited)
+                        else -> formatFileSize((currentValue.toInt() * 1024 * 1024L))
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            when (sliderStyle) {
+                SliderStyle.DEFAULT -> {
+                    Slider(
+                        value = if (currentValue == 0f) 0f else currentValue,
+                        valueRange = 0f..maxValue,
+                        onValueChange = { newValue ->
+                            sliderPosition = if (newValue == 0f) 0f else newValue.coerceAtLeast(minValue)
+                        },
+                        onValueChangeFinished = {
+                            val finalValue = sliderPosition ?: currentValue
+                            val newValue = when {
+                                finalValue >= maxValue -> -1
+                                finalValue == 0f -> 0
+                                else -> {
+                                    val stepped = ((finalValue / 1024).toInt() * 1024).coerceIn(minValue.toInt(), maxValue.toInt())
+                                    stepped
+                                }
+                            }
+                            onValueChange(newValue)
+                            sliderPosition = null
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                SliderStyle.SQUIGGLY -> {
+                    SquigglySlider(
+                        value = if (currentValue == 0f) 0f else currentValue,
+                        valueRange = 0f..maxValue,
+                        onValueChange = { newValue ->
+                            sliderPosition = if (newValue == 0f) 0f else newValue.coerceAtLeast(minValue)
+                        },
+                        onValueChangeFinished = {
+                            val finalValue = sliderPosition ?: currentValue
+                            val newValue = when {
+                                finalValue >= maxValue -> -1
+                                finalValue == 0f -> 0
+                                else -> {
+                                    val stepped = ((finalValue / 1024).toInt() * 1024).coerceIn(minValue.toInt(), maxValue.toInt())
+                                    stepped
+                                }
+                            }
+                            onValueChange(newValue)
+                            sliderPosition = null
+                        },
+                        squigglesSpec = SquigglySlider.SquigglesSpec(
+                            amplitude = 2.dp,
+                            strokeWidth = 4.dp,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                SliderStyle.COMPOSE -> {
+                    Slider(
+                        value = if (currentValue == 0f) 0f else currentValue,
+                        valueRange = 0f..maxValue,
+                        onValueChange = { newValue ->
+                            sliderPosition = if (newValue == 0f) 0f else newValue.coerceAtLeast(minValue)
+                        },
+                        onValueChangeFinished = {
+                            val finalValue = sliderPosition ?: currentValue
+                            val newValue = when {
+                                finalValue >= maxValue -> -1
+                                finalValue == 0f -> 0
+                                else -> {
+                                    val stepped = ((finalValue / 1024).toInt() * 1024).coerceIn(minValue.toInt(), maxValue.toInt())
+                                    stepped
+                                }
+                            }
+                            onValueChange(newValue)
+                            sliderPosition = null
+                        },
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(8.dp))
+
+            Spacer(modifier = Modifier.height(12.dp))
+
             FilledTonalButton(
                 onClick = onClear,
                 modifier = Modifier.fillMaxWidth(),
                 shape = MaterialTheme.shapes.medium
             ) {
-                Text(text = stringResource(R.string.clear_all_downloads))
-            }
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun CacheSizeSelector(
-    selectedValue: Int,
-    onValueChange: (Int) -> Unit
-) {
-    var expanded by remember { mutableStateOf(false) }
-    ExposedDropdownMenuBox(
-        expanded = expanded,
-        onExpandedChange = { expanded = !expanded }
-    ) {
-        TextField(
-            modifier = Modifier
-                .fillMaxWidth()
-                .menuAnchor()
-                .padding(horizontal = 16.dp),
-            readOnly = true,
-            value = when (selectedValue) {
-                0 -> stringResource(R.string.off)
-                -1 -> stringResource(R.string.unlimited)
-                else -> formatFileSize(selectedValue * 1024 * 1024L)
-            },
-            onValueChange = {},
-            label = { Text(stringResource(R.string.max_cache_size)) },
-            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-        )
-        ExposedDropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false }
-        ) {
-            listOf(0, 128, 256, 512, 1024, 2048, 4096, 8192, -1).forEach { size ->
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            when (size) {
-                                0 -> stringResource(R.string.off)
-                                -1 -> stringResource(R.string.unlimited)
-                                else -> formatFileSize(size * 1024 * 1024L)
-                            }
-                        )
-                    },
-                    onClick = {
-                        onValueChange(size)
-                        expanded = false
-                    }
-                )
+                Text(text = clearButtonText)
             }
         }
     }
@@ -515,7 +533,6 @@ private fun CacheSizeSelector(
 private fun StorageCategoryHeader(
     title: String,
     icon: ImageVector,
-    color: Color
 ) {
     Row(
         modifier = Modifier

@@ -66,7 +66,6 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
-import org.schabi.newpipe.extractor.timeago.patterns.it
 import java.net.Proxy
 import kotlin.random.Random
 
@@ -497,12 +496,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                 id = playlistId,
                 title = header?.title?.runs?.firstOrNull()?.text!!,
                 author = author,
-                songCountText = header.secondSubtitle?.runs?.findLast {
-                    it.text.any { c -> c.isDigit() } &&
-                            !it.text.contains("view", ignoreCase = true) &&
-                            !it.text.contains("hour", ignoreCase = true) &&
-                            !it.text.contains("minute", ignoreCase = true)
-                }?.text,
+                songCountText = null,
                 thumbnail = header.thumbnail?.musicThumbnailRenderer?.thumbnail?.thumbnails?.lastOrNull()?.url!!,
                 playEndpoint = null,
                 shuffleEndpoint = header.buttons?.lastOrNull()?.menuRenderer?.items?.firstOrNull()?.menuNavigationItemRenderer?.navigationEndpoint?.watchPlaylistEndpoint!!,

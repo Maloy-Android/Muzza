@@ -1108,7 +1108,7 @@ fun OnlinePlaylistScreen(
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss,
                                     playlistAuthors = onlinePlaylist?.author?.name,
-                                    playlistSongCount = playlist!!.songCountText
+                                    playlistSongCount = makeTimeString(songsLength * 1000L)
                                 )
                             }
                         }

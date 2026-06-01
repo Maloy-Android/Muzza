@@ -655,7 +655,9 @@ fun ArtistScreen(
                                                     is AlbumItem -> navController.navigate("album/${item.id}")
                                                     is ArtistItem -> navController.navigate("artist/${item.id}")
                                                     is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
-                                                    is SongItem -> false
+                                                    is SongItem -> if (mediaMetadata?.id == item.id){
+                                                        playerConnection.togglePlayPause()
+                                                    }
                                                 }
                                             }, onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)

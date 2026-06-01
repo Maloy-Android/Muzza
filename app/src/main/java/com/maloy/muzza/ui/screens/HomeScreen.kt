@@ -237,6 +237,8 @@ fun HomeScreen(
                             it.song.albumId.let { albumId ->
                                 if (albumId?.isNotEmpty() == true && !it.song.isVideoSong) {
                                     navController.navigate("album/${albumId}")
+                                } else if (mediaMetadata?.id == it.id) {
+                                    playerConnection.togglePlayPause()
                                 }
                             }
                         },
@@ -332,6 +334,10 @@ fun HomeScreen(
                                 item.album?.id.let { albumId ->
                                     if (albumId?.isNotEmpty() == true && !item.isVideoSong) {
                                         navController.navigate("album/${albumId}")
+                                    } else {
+                                        if (mediaMetadata?.id == item.id) {
+                                            playerConnection.togglePlayPause()
+                                        }
                                     }
                                 }
                             }

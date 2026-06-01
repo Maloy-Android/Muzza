@@ -286,7 +286,7 @@ fun ArtistItemsScreen(
             }
             itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().let { songs ->
                 HideOnScrollFAB(
-                    visible = songs.isNotEmpty(),
+                    visible = songs.isNotEmpty() && !inSelectMode,
                     lazyListState = lazyListState,
                     icon = R.drawable.play,
                     onClick = {

@@ -299,6 +299,7 @@ fun ArtistSongsScreen(
         )
 
         HideOnScrollFAB(
+            visible = !inSelectMode,
             lazyListState = lazyListState,
             icon = R.drawable.shuffle,
             onClick = {

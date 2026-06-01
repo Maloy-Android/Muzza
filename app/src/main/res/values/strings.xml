@@ -77,6 +77,7 @@
     <string name="remote_history">Remote</string>
     <string name="history_queue_title_local">Local history</string>
     <string name="history_queue_title_online">Remote history</string>
+    <string name="multiselect_queue_title">Selected music</string>
 
     <!-- Stats -->
     <string name="most_played_songs">Most played songs</string>

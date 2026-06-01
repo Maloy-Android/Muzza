@@ -45,6 +45,7 @@
     <string name="remote_history">Онлайн</string>
     <string name="history_queue_title_local">Локальная история</string>
     <string name="history_queue_title_online">Онлайн история</string>
+    <string name="multiselect_queue_title">Вибрана музика</string>
     <string name="stats">Статистика</string>
     <string name="stats_empty">Ваша статистика будет находится здесь</string>
     <string name="mood_and_genres">Настроение и жанры</string>

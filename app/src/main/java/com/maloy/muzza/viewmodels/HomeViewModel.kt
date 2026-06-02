@@ -308,7 +308,7 @@ class HomeViewModel @Inject constructor(
         dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
     }
 
-    private suspend fun load() {
+    suspend fun load() {
         isLoading.value = true
 
         val hideExplicit = context.dataStore.get(HideExplicitKey, false)

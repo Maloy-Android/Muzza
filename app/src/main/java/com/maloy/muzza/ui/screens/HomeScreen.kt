@@ -196,6 +196,12 @@ fun HomeScreen(
 
     var showNoInternetDialog by remember { mutableStateOf(false) }
 
+    if (isInternetAvailable(context)) {
+        LaunchedEffect(Unit) {
+            viewModel.load()
+        }
+    }
+
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
             lazylistState.animateScrollToItem(0)

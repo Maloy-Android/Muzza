@@ -69,6 +69,7 @@
     <string name="remote_history">Онлайн</string>
     <string name="history_queue_title_local">Локальна історія</string>
     <string name="history_queue_title_online">Онлайн історія</string>
+    <string name="multiselect_queue_title">Вибрана музика</string>
 
     <!-- Stats -->
     <string name="most_played_songs">Найпопулярніші пісні</string>

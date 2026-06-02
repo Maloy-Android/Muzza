@@ -266,7 +266,6 @@ class InnerTube {
         client: YouTubeClient = YouTubeClient.WEB_REMIX,
     ) = httpClient.get(url) {
         ytClient(client, true)
-        parameter("ver", "2")
         parameter("c", client.clientName)
         parameter("cpn", cpn)
 

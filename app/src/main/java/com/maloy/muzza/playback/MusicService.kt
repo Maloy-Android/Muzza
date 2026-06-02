@@ -4,6 +4,7 @@ import android.app.PendingIntent
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
 import android.content.ComponentName
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
@@ -158,6 +159,7 @@ import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.UnknownHostException
 import java.time.LocalDateTime
+import java.util.Collections
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.seconds
 
@@ -279,6 +281,21 @@ class MusicService : MediaLibraryService(),
             secondaryPlayer = null
         }
     }
+
+    private val sessionKey
+        get() = YouTube.dataSyncId.takeIf { !it.isNullOrBlank() }
+            ?: YouTube.visitorData.takeIf { !it.isNullOrBlank() }
+            ?: ""
+
+    private fun cacheKey(mediaId: String) = "${sessionKey}:$mediaId"
+
+    private val playbackUrlCache = Collections.synchronizedMap(
+        object : LinkedHashMap<String, String>(0, 0.75f, true) {
+            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean {
+                return size > 500
+            }
+        }
+    )
 
     inner class MusicBinder : Binder() {
         val service: MusicService
@@ -1140,8 +1157,11 @@ class MusicService : MediaLibraryService(),
                     PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
                 )
             }
-            val format = playbackData.format
-
+            val nonNullPlayback =
+                requireNotNull(playbackData) {
+                    getString(R.string.error_unknown)
+                }
+            val format = nonNullPlayback.format
             database.query {
                 upsert(
                     FormatEntity(
@@ -1152,7 +1172,8 @@ class MusicService : MediaLibraryService(),
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
                         contentLength = format.contentLength!!,
-                        loudnessDb = playbackData.audioConfig?.loudnessDb,
+                        loudnessDb = nonNullPlayback.audioConfig?.loudnessDb,
+                        perceptualLoudnessDb = nonNullPlayback.audioConfig?.perceptualLoudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                     )
                 )
@@ -1162,7 +1183,10 @@ class MusicService : MediaLibraryService(),
 
             songUrlCache[mediaId] =
                 streamUrl to System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
-            dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+            nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.let {
+                playbackUrlCache[cacheKey(mediaId)] = it
+            }
+            return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
         }
     }
 
@@ -1210,15 +1234,27 @@ class MusicService : MediaLibraryService(),
                 }
             }
         }
-        if (playbackStats.totalPlayTimeMs >= 30000 && dataStore.get(AddingPlayedSongsToYTMHistoryKey, true)) {
+        if (playbackStats.totalPlayTimeMs >= 30000 && dataStore.get(
+                AddingPlayedSongsToYTMHistoryKey, true
+            )
+        ) {
             scope.launch(Dispatchers.IO) {
-                val playbackUrl = database.format(mediaItem.mediaId).first()?.playbackUrl
-                    ?: YTPlayerUtils.playerResponseForMetadata(mediaItem.mediaId, null)
-                        .getOrNull()?.playbackTracking?.videostatsPlaybackUrl?.baseUrl
-                playbackUrl?.let {
-                    YouTube.registerPlayback(null, playbackUrl)
-                        .onFailure { reportException(it) }
+                val playbackUrl =
+                    playbackUrlCache[cacheKey(mediaItem.mediaId)]
+                        ?: YTPlayerUtils
+                            .playerResponseForMetadata(mediaItem.mediaId, null)
+                            .getOrNull()
+                            ?.playbackTracking
+                            ?.videostatsPlaybackUrl
+                            ?.baseUrl
+                if (playbackUrl == null) {
+                    Timber.tag(TAG)
+                        .w("No playback tracking URL available for $mediaItem.mediaId, skipping YouTube history registration")
+                    return@launch
                 }
+                YouTube.registerPlayback(null, playbackUrl).onFailure {
+                        reportException(it)
+                    }
             }
         }
     }

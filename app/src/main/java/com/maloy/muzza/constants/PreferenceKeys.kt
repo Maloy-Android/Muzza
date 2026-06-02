@@ -282,6 +282,10 @@ val AccountChannelHandleKey = stringPreferencesKey("accountChannelHandle")
 val AccountImageUrlKey = stringPreferencesKey("accountImageUrl")
 val likedMusicThumbnailKey = stringPreferencesKey("likedMusicThumbnail")
 val likedMusicTitleKey = stringPreferencesKey("likedMusicTitle")
+val likedMusicAuthorIdKey = stringPreferencesKey("likedMusicAuthorId")
+val likedMusicAuthorNameKey = stringPreferencesKey("likedMusicAuthorName")
+val likedMusicAuthorAvatarImageKey = stringPreferencesKey("likedMusicAuthorAvatarImage")
+val likedMusicDescriptionKey = stringPreferencesKey("likedMusicDescription")
 
 val LanguageCodeToName = mapOf(
     "af" to "Afrikaans",

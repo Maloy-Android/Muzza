@@ -30,7 +30,11 @@ class SyncUtils @Inject constructor(
         return YouTube.playlist("LM").completed().map { fragment ->
             LikedMusicPlaylistFragments(
                 likedMusicThumbnail = fragment.playlist.thumbnail,
-                likedMusicTitle = fragment.playlist.title
+                likedMusicTitle = fragment.playlist.title,
+                likedMusicAuthorId = fragment.playlist.author?.id,
+                likedMusicAuthorName = fragment.playlist.author?.name,
+                likedMusicAuthorAvatarImage = fragment.playlist.authorAvatarUrl,
+                likedMusicDescription = fragment.playlist.description
             )
         }.getOrNull()
     }

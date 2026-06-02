@@ -28,6 +28,10 @@ import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
 import com.maloy.muzza.constants.SongSortType
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
+import com.maloy.muzza.constants.likedMusicDescriptionKey
 import com.maloy.muzza.constants.likedMusicThumbnailKey
 import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.MusicDatabase
@@ -274,6 +278,22 @@ class LibraryMixViewModel @Inject constructor(
         .map { it[likedMusicTitleKey] ?: "" }
         .stateIn(viewModelScope, SharingStarted.Lazily, "")
 
+    private val savedLikedMusicAuthorId = context.dataStore.data
+        .map { it[likedMusicAuthorIdKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicAuthorName = context.dataStore.data
+        .map { it[likedMusicAuthorNameKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicAuthorAvatarImage = context.dataStore.data
+        .map { it[likedMusicAuthorAvatarImageKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicDescription = context.dataStore.data
+        .map { it[likedMusicDescriptionKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
     init {
         viewModelScope.launch {
             while (true) {
@@ -312,13 +332,17 @@ class LibraryMixViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             val currentThumbnail = savedLikedMusicThumbnail.first()
             val currentTitle = savedLikedMusicTitle.first()
+            val currentAuthorId = savedLikedMusicAuthorId.first()
+            val currentAuthorName = savedLikedMusicAuthorName.first()
+            val currentAuthorAvatarImage = savedLikedMusicAuthorAvatarImage.first()
+            val currentDescription = savedLikedMusicDescription.first()
 
-            if (currentThumbnail.isEmpty() || currentTitle.isEmpty()) {
+            if (currentThumbnail.isEmpty() || currentTitle.isEmpty() || currentAuthorId.isEmpty() || currentAuthorName.isEmpty() || currentAuthorAvatarImage.isEmpty() || currentDescription.isEmpty()) {
                 try {
                     val fragments = syncUtils.getLikedMusicPlaylistFragments()
                     fragments?.let {
                         _playlistInfo.value = it
-                        saveLikedMusicInfo(it.likedMusicThumbnail, it.likedMusicTitle)
+                        saveLikedMusicInfo(it.likedMusicThumbnail, it.likedMusicTitle, it.likedMusicAuthorId, it.likedMusicAuthorName, it.likedMusicAuthorAvatarImage, it.likedMusicDescription)
                     }
                 } catch (e: Exception) {
                     e.printStackTrace()
@@ -326,16 +350,24 @@ class LibraryMixViewModel @Inject constructor(
             } else {
                 _playlistInfo.value = LikedMusicPlaylistFragments(
                     likedMusicThumbnail = currentThumbnail,
-                    likedMusicTitle = currentTitle
+                    likedMusicTitle = currentTitle,
+                    likedMusicAuthorId = currentAuthorId,
+                    likedMusicAuthorName = currentAuthorName,
+                    likedMusicAuthorAvatarImage = currentAuthorAvatarImage,
+                    likedMusicDescription = currentDescription
                 )
             }
         }
     }
 
-    private suspend fun saveLikedMusicInfo(thumbnail: String?, title: String?) {
+    private suspend fun saveLikedMusicInfo(thumbnail: String?, title: String?, authorId: String?, authorName: String?, authorAvatar: String?, description: String?) {
         context.dataStore.edit { preferences ->
             thumbnail?.let { preferences[likedMusicThumbnailKey] = it }
             title?.let { preferences[likedMusicTitleKey] = it }
+            authorId?.let { preferences[likedMusicAuthorIdKey] = it }
+            authorName?.let { preferences[likedMusicAuthorNameKey] = it }
+            authorAvatar?.let { preferences[likedMusicAuthorAvatarImageKey] = it }
+            description?.let { preferences[likedMusicDescriptionKey] = it }
         }
     }
     val syncAllLibrary = {

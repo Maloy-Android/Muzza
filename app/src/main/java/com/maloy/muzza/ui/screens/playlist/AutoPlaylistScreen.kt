@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -83,11 +84,15 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachReversed
@@ -116,6 +121,10 @@ import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
+import com.maloy.muzza.constants.likedMusicDescriptionKey
 import com.maloy.muzza.constants.likedMusicThumbnailKey
 import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
@@ -130,6 +139,7 @@ import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.EmptyPlaceholderImage
+import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
@@ -178,7 +188,7 @@ fun AutoPlaylistScreen(
 
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
-    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
+    val (startVoiceInput, isVoiceInputAvailable) = rememberVoiceInput(
         onResult = { recognizedText ->
             searchQuery = TextFieldValue(recognizedText)
         }
@@ -200,7 +210,11 @@ fun AutoPlaylistScreen(
 
     val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
     val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
-    val isLikedMusicPlaylist =  viewModel.playlist == "liked"
+    val accountImageUrl by rememberPreference(likedMusicAuthorAvatarImageKey, "")
+    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
+    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
+    val description by rememberPreference(likedMusicDescriptionKey, "")
+    val isLikedMusicPlaylist = viewModel.playlist == "liked"
     val playlist = if (isLikedMusicPlaylist) {
         if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else stringResource(R.string.liked)
     } else {
@@ -222,7 +236,7 @@ fun AutoPlaylistScreen(
     val likedMusicPlaylist = Playlist(
         playlist = PlaylistEntity(
             id = "likedMusic",
-            name =  if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
+            name = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
                 stringResource(R.string.liked)
             }
         ),
@@ -238,8 +252,6 @@ fun AutoPlaylistScreen(
         songThumbnails = emptyList()
     )
 
-    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
-    val accountName by rememberPreference(AccountNameKey, "")
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
         SongSortType.CREATE_DATE
@@ -420,23 +432,27 @@ fun AutoPlaylistScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.padding(12.dp)
                             ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(AlbumThumbnailSize)
-                                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                        .align(alignment = Alignment.CenterHorizontally)
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceContainer,
-                                            shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                        )
-                                ) {
-                                    if (isLoggedIn && likedMusicThumbnail.isNotEmpty() && isLikedMusicPlaylist) {
-                                        AsyncImage(
-                                            model = likedMusicThumbnail,
-                                            contentDescription = null,
-                                            modifier = Modifier
-                                        )
-                                    } else {
+                                if (isLoggedIn && likedMusicThumbnail.isNotEmpty() && isLikedMusicPlaylist) {
+                                    AsyncImage(
+                                        model = likedMusicThumbnail,
+                                        contentDescription = null,
+                                        modifier = Modifier
+                                            .size(AlbumThumbnailSize)
+                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                            .align(alignment = Alignment.CenterHorizontally)
+                                            .aspectRatio(1f)
+                                    )
+                                } else {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(AlbumThumbnailSize)
+                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                                            .align(alignment = Alignment.CenterHorizontally)
+                                            .background(
+                                                MaterialTheme.colorScheme.surfaceContainer,
+                                                shape = RoundedCornerShape(ThumbnailCornerRadius)
+                                            )
+                                    ) {
                                         Icon(
                                             imageVector = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
                                             contentDescription = null,
@@ -487,7 +503,7 @@ fun AutoPlaylistScreen(
                                         horizontalArrangement = Arrangement.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        if (isLikedMusicPlaylist&& isLoggedIn && accountImageUrl.isNotEmpty()) {
+                                        if (isLikedMusicPlaylist && isLoggedIn && accountImageUrl.isNotEmpty()) {
                                             Box(
                                                 modifier = Modifier
                                                     .size(32.dp)
@@ -501,20 +517,48 @@ fun AutoPlaylistScreen(
                                                     modifier = Modifier
                                                         .fillMaxSize()
                                                         .clip(RoundedCornerShape(16.dp))
+                                                        .clickable(enabled = true) {
+                                                            navController.navigate("artist/${accountId}")
+                                                        }
                                                 )
                                             }
-                                            Spacer(modifier = Modifier.width(8.dp))
                                         }
+                                        Spacer(modifier = Modifier.width(8.dp))
 
                                         if (isLikedMusicPlaylist && isLoggedIn && accountName.isNotEmpty()) {
                                             Text(
-                                                text = accountName,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.Normal,
-                                                    color = MaterialTheme.colorScheme.onBackground
-                                                )
+                                                buildAnnotatedString {
+                                                    withStyle(
+                                                        style = MaterialTheme.typography.titleMedium.copy(
+                                                            fontWeight = FontWeight.Normal,
+                                                            color = MaterialTheme.colorScheme.onBackground
+                                                        ).toSpanStyle()
+                                                    ) {
+                                                        accountId.let { author ->
+                                                            val link = author.let {
+                                                                LinkAnnotation.Clickable(
+                                                                    accountName
+                                                                ) {
+                                                                    navController.navigate("artist/${author}")
+                                                                }
+                                                            }
+                                                            withLink(link) {
+                                                                append(accountName)
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             )
                                         }
+                                    }
+
+                                    if (isLikedMusicPlaylist && isLoggedIn && description.isNotBlank()) {
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        ExpandableText(
+                                            text = description,
+                                            modifier = Modifier.padding(horizontal = 32.dp),
+                                            collapsedMaxLines = 3,
+                                        )
                                     }
                                     Text(
                                         text = makeTimeString(likeLength * 1000L),

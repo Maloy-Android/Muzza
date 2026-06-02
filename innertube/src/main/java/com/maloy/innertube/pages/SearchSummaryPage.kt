@@ -139,6 +139,8 @@ data class SearchSummaryPage(
                     SongItem(
                         id = renderer.playlistItemData?.videoId
                             ?: renderer.navigationEndpoint?.watchEndpoint?.videoId
+                            ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId
+                            ?: renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.navigationEndpoint?.watchEndpoint?.videoId
                             ?: return null,
                         title = renderer.flexColumns.firstOrNull()
                             ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs

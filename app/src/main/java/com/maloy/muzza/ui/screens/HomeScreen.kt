@@ -171,6 +171,10 @@ fun HomeScreen(
     val explorePage by viewModel.explorePage.collectAsState()
     val recentActivity by viewModel.recentActivity.collectAsState()
 
+    val allHomeItems = quickPicks?.let {
+        it + speedDialItems + dailyDiscover + communityPlaylists + forgottenFavorites + keepListening + similarRecommendations + recentActivity
+    }
+
     val (showRecentActivity) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
@@ -196,7 +200,7 @@ fun HomeScreen(
 
     var showNoInternetDialog by remember { mutableStateOf(false) }
 
-    if (isInternetAvailable(context)) {
+    if (isInternetAvailable(context) && (allHomeItems.isNullOrEmpty())) {
         LaunchedEffect(Unit) {
             viewModel.load()
         }

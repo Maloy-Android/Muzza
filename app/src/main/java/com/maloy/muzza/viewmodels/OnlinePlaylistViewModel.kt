@@ -46,9 +46,6 @@ class OnlinePlaylistViewModel @Inject constructor(
 
     private val _playlistSongs = MutableStateFlow<List<SongItem>>(emptyList())
 
-    private val _onlinePlaylist = MutableStateFlow<PlaylistItem?>(null)
-    val onlinePlaylist: StateFlow<PlaylistItem?> = _onlinePlaylist
-
     @OptIn(ExperimentalCoroutinesApi::class)
     val playlistSongs = context.dataStore.data
         .map { preferences ->
@@ -122,15 +119,6 @@ class OnlinePlaylistViewModel @Inject constructor(
                     if (continuation != null) {
                         startProactiveBackgroundLoading()
                     }
-                    val localPlaylist = playlist.first { it != null }
-                    val browseId = localPlaylist?.id
-                    if (browseId != null) {
-                        val page = withContext(Dispatchers.IO) {
-                            YouTube.playlist(browseId).getOrNull()
-                        }
-                        val online = page?.playlist
-                        _onlinePlaylist.value = online
-                    }
                 }.onFailure { throwable ->
                     _error.value = throwable.message ?: "Failed to load playlist"
                     _isLoading.value = false
@@ -153,15 +141,6 @@ class OnlinePlaylistViewModel @Inject constructor(
                         continuation = playlistPage.songsContinuation
                         if (continuation != null) {
                             startProactiveBackgroundLoading()
-                        }
-                        val localPlaylist = playlist.first { it != null }
-                        val browseId = localPlaylist?.id
-                        if (browseId != null) {
-                            val page = withContext(Dispatchers.IO) {
-                                YouTube.playlist(browseId).getOrNull()
-                            }
-                            val online = page?.playlist
-                            _onlinePlaylist.value = online
                         }
                     }.onFailure { throwable ->
                         _error.value = throwable.message ?: "Failed to refresh playlist"

@@ -86,6 +86,7 @@ import kotlin.collections.contains
 @Composable
 fun AutoPlaylistMenu(
     playlist: Playlist,
+    playlistAuthor: String? = null,
     navController: NavController,
     coroutineScope: CoroutineScope,
     songs: List<Song>?,
@@ -368,6 +369,18 @@ fun AutoPlaylistMenu(
                 title = R.string.add_to_playlist
             ) {
                 showChoosePlaylistDialog = true
+            }
+            if (playlistAuthor != null) {
+                item {
+                    HorizontalDivider()
+                }
+                ListMenuItem(
+                    icon = R.drawable.artist,
+                    title = R.string.view_playlist_creator
+                ) {
+                    navController.navigate("artist/${playlistAuthor}")
+                    onDismiss()
+                }
             }
         }
         if (!showSyncLocalSongsButton && songs.isNotEmpty()) {

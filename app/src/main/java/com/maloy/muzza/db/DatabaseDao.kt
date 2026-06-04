@@ -644,11 +644,15 @@ interface DatabaseDao {
                 name = playlistItem.title,
                 browseId = playlistItem.id,
                 thumbnailUrl = playlistItem.thumbnail,
+                playlistAuthorsId = playlistItem.author?.id,
+                playlistAuthorName = playlistItem.author?.name,
+                playlistAuthorAvatarUrl = playlistItem.authorAvatarUrl,
                 isEditable = true,
                 remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                 playEndpointParams = playlistItem.playEndpoint?.params,
                 shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
-                radioEndpointParams = playlistItem.radioEndpoint?.params
+                radioEndpointParams = playlistItem.radioEndpoint?.params,
+                description = playlistItem.description
             )
         )
     }

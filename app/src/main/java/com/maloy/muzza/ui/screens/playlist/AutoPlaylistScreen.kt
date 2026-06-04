@@ -110,8 +110,6 @@ import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AccountImageUrlKey
-import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
 import com.maloy.muzza.constants.InnerTubeCookieKey
@@ -483,6 +481,7 @@ fun AutoPlaylistScreen(
                                                     menuState.show {
                                                         AutoPlaylistMenu(
                                                             playlist = if (isLikedMusicPlaylist) likedMusicPlaylist else downloadPlaylist,
+                                                            playlistAuthor = if (isLikedMusicPlaylist) accountId else null,
                                                             navController = navController,
                                                             thumbnail = if (isLikedMusicPlaylist) likedMusicThumbnail else null,
                                                             iconThumbnail = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,

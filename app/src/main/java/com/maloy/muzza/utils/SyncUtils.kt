@@ -5,6 +5,7 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.LikedMusicPlaylistFragments
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.PlaylistsFragments
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
 import com.maloy.muzza.db.MusicDatabase
@@ -38,6 +39,27 @@ class SyncUtils @Inject constructor(
             )
         }.getOrNull()
     }
+
+    suspend fun getPlaylistFragments(playlistId: String): Result<PlaylistsFragments> {
+        return YouTube.playlist(playlistId).completed().map { fragment ->
+            PlaylistsFragments(
+                id = fragment.playlist.id,
+                name = fragment.playlist.title,
+                playlistAuthorsId = fragment.playlist.author?.id,
+                playlistAuthorName = fragment.playlist.author?.name,
+                playlistAuthorAvatarUrl = fragment.playlist.authorAvatarUrl,
+                thumbnailUrl = fragment.playlist.thumbnail,
+                isEditable = true,
+                bookmarkedAt = LocalDateTime.now(),
+                remoteSongCount = fragment.playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
+                playEndpointParams = fragment.playlist.playEndpoint?.params,
+                shuffleEndpointParams = fragment.playlist.shuffleEndpoint?.params,
+                radioEndpointParams = fragment.playlist.radioEndpoint?.params,
+                description = fragment.playlist.description
+            )
+        }
+    }
+
     suspend fun syncLikedSongs() {
         YouTube.playlist("LM").completed().onSuccess { page ->
             val songs = page.songs.reversed()
@@ -130,35 +152,73 @@ class SyncUtils @Inject constructor(
                 .filterNot { it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
-            playlistList.onEach { playlist ->
-                var playlistEntity = dbPlaylists
-                    .find { playlist.id == it.playlist.browseId }?.playlist
+            playlistList.forEach { playlistItem ->
+                val fragments = getPlaylistFragments(playlistItem.id).getOrNull()
+                var playlistEntity = dbPlaylists.find { playlistItem.id == it.playlist.browseId }?.playlist
 
                 if (playlistEntity == null) {
-                    val existingById = database.getPlaylistByBrowseId(playlist.id)
-                    if (existingById == null) {
-                        playlistEntity = PlaylistEntity(
-                            name = playlist.title,
-                            playlistAuthors = playlist.author?.name,
-                            browseId = playlist.id,
-                            thumbnailUrl = playlist.thumbnail,
-                            isEditable = true,
-                            bookmarkedAt = LocalDateTime.now(),
-                            remoteSongCount = playlist.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
-                            playEndpointParams = playlist.playEndpoint?.params,
-                            shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                            radioEndpointParams = playlist.radioEndpoint?.params
-                        )
-
-                        database.insert(playlistEntity)
+                    val existingById = database.getPlaylistByBrowseId(playlistItem.id)
+                    playlistEntity = if (existingById == null) {
+                        val newPlaylist = if (fragments != null) {
+                            PlaylistEntity(
+                                name = fragments.name ?: playlistItem.title,
+                                playlistAuthorsId = fragments.playlistAuthorsId ?: playlistItem.author?.id,
+                                playlistAuthorName = fragments.playlistAuthorName ?: playlistItem.author?.name,
+                                playlistAuthorAvatarUrl = fragments.playlistAuthorAvatarUrl ?: playlistItem.authorAvatarUrl,
+                                browseId = playlistItem.id,
+                                thumbnailUrl = fragments.thumbnailUrl ?: playlistItem.thumbnail,
+                                isEditable = true,
+                                bookmarkedAt = LocalDateTime.now(),
+                                remoteSongCount = fragments.remoteSongCount ?: playlistItem.songCountText?.let {
+                                    Regex("""\d+""").find(it)?.value?.toIntOrNull()
+                                },
+                                playEndpointParams = fragments.playEndpointParams ?: playlistItem.playEndpoint?.params,
+                                shuffleEndpointParams = fragments.shuffleEndpointParams ?: playlistItem.shuffleEndpoint?.params,
+                                radioEndpointParams = fragments.radioEndpointParams ?: playlistItem.radioEndpoint?.params,
+                                description = fragments.description ?: playlistItem.description,
+                            )
+                        } else {
+                            PlaylistEntity(
+                                name = playlistItem.title,
+                                playlistAuthorsId = playlistItem.author?.id,
+                                playlistAuthorName = playlistItem.author?.name,
+                                playlistAuthorAvatarUrl = playlistItem.authorAvatarUrl,
+                                browseId = playlistItem.id,
+                                thumbnailUrl = playlistItem.thumbnail,
+                                isEditable = true,
+                                bookmarkedAt = LocalDateTime.now(),
+                                remoteSongCount = playlistItem.songCountText?.let {
+                                    Regex("""\d+""").find(it)?.value?.toIntOrNull()
+                                },
+                                playEndpointParams = playlistItem.playEndpoint?.params,
+                                shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
+                                radioEndpointParams = playlistItem.radioEndpoint?.params,
+                                description = playlistItem.description,
+                            )
+                        }
+                        database.insert(newPlaylist)
+                        newPlaylist
                     } else {
-                        playlistEntity = existingById
-                        database.update(existingById, playlist)
+                        existingById
                     }
-                } else {
-                    database.update(playlistEntity, playlist)
+                } else if (fragments != null) {
+                    val updatedPlaylist = playlistEntity.copy(
+                        name = fragments.name ?: playlistEntity.name,
+                        playlistAuthorsId = fragments.playlistAuthorsId ?: playlistEntity.playlistAuthorsId,
+                        playlistAuthorName = fragments.playlistAuthorName ?: playlistEntity.playlistAuthorName,
+                        playlistAuthorAvatarUrl = fragments.playlistAuthorAvatarUrl ?: playlistEntity.playlistAuthorAvatarUrl,
+                        thumbnailUrl = fragments.thumbnailUrl ?: playlistEntity.thumbnailUrl,
+                        remoteSongCount = fragments.remoteSongCount ?: playlistEntity.remoteSongCount,
+                        playEndpointParams = fragments.playEndpointParams ?: playlistEntity.playEndpointParams,
+                        shuffleEndpointParams = fragments.shuffleEndpointParams ?: playlistEntity.shuffleEndpointParams,
+                        radioEndpointParams = fragments.radioEndpointParams ?: playlistEntity.radioEndpointParams,
+                        description = fragments.description ?: playlistEntity.description,
+                    )
+                    database.update(updatedPlaylist)
+                    playlistEntity = updatedPlaylist
                 }
-                syncPlaylist(playlist.id, playlistEntity.id)
+
+                syncPlaylist(playlistItem.id, playlistEntity.id)
             }
         }
     }

@@ -19,7 +19,9 @@ data class PlaylistEntity(
     @PrimaryKey val id: String = generatePlaylistId(),
     val name: String,
     val browseId: String? = null,
-    val playlistAuthors: String?= null,
+    val playlistAuthorsId: String? = null,
+    val playlistAuthorName: String? = null,
+    val playlistAuthorAvatarUrl: String? = null,
     val createdAt: LocalDateTime? = LocalDateTime.now(),
     val lastUpdateTime: LocalDateTime? = LocalDateTime.now(),
     @ColumnInfo(name = "isEditable", defaultValue = true.toString())
@@ -30,6 +32,7 @@ data class PlaylistEntity(
     val thumbnailUrl: String? = null,
     val shuffleEndpointParams: String? = null,
     val radioEndpointParams: String? = null,
+    val description: String? = null,
     @ColumnInfo(name = "isLocal", defaultValue = false.toString())
     val isLocal: Boolean = false,
 ) {

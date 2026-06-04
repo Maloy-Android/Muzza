@@ -53,6 +53,7 @@ import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.Download
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.utils.completed
@@ -81,6 +82,7 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun PlaylistMenu(
+    navController: NavController,
     playlist: Playlist,
     coroutineScope: CoroutineScope,
     onDismiss: () -> Unit,
@@ -342,7 +344,8 @@ fun PlaylistMenu(
                         playerConnection.playQueue(
                             ListQueue(
                                 title = playlist.playlist.name,
-                                items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id) }
+                                items = songs.shuffled()
+                                    .map { it.toMediaItemWithPlaylist(playlist.id) }
                             ))
                     }
                     .padding(12.dp),
@@ -477,6 +480,20 @@ fun PlaylistMenu(
                 playerConnection.playNext(
                     items = songs.map { it.toMediaItemWithPlaylist(playlistId = playlist.id) }
                 )
+            }
+            playlist.playlist.playlistAuthorsId.let { authorId ->
+                if (!authorId.isNullOrEmpty()) {
+                    item {
+                        HorizontalDivider()
+                    }
+                    ListMenuItem(
+                        icon = R.drawable.artist,
+                        title = R.string.view_playlist_creator
+                    ) {
+                        navController.navigate("artist/${playlist.playlist.playlistAuthorsId}")
+                        onDismiss()
+                    }
+                }
             }
             item {
                 HorizontalDivider()

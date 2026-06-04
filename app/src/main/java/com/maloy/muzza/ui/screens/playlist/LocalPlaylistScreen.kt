@@ -123,14 +123,11 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.YouTube.artist
-import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AccountNameKey
@@ -142,6 +139,7 @@ import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
 import com.maloy.muzza.constants.PlaylistSongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.move
@@ -194,8 +192,6 @@ fun LocalPlaylistScreen(
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
-
-    val onlinePlaylist by viewModel.onlinePlaylist.collectAsState()
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
@@ -456,7 +452,6 @@ fun LocalPlaylistScreen(
                             LocalPlaylistHeader(
                                 playlist = playlist,
                                 songs = songs,
-                                onlinePlaylist = onlinePlaylist,
                                 navController = navController,
                                 onShowEditDialog = { showEditDialog = true },
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
@@ -878,7 +873,8 @@ fun LocalPlaylistScreen(
                                     playlist = playlist!!,
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss,
-                                    showDeleteButton = false
+                                    showDeleteButton = false,
+                                    navController = navController
                                 )
                             }
                         }
@@ -910,7 +906,6 @@ fun LocalPlaylistScreen(
 fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
-    onlinePlaylist: PlaylistItem?,
     navController: NavController,
     onShowEditDialog: () -> Unit,
     onShowRemoveDownloadDialog: () -> Unit,
@@ -920,10 +915,6 @@ fun LocalPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-
-    val onlineAuthor = onlinePlaylist?.author
-    val onlineAuthorAvatar = onlinePlaylist?.authorAvatarUrl
-    val description = onlinePlaylist?.description
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
     val rotationAnimation by animateFloatAsState(
@@ -1160,23 +1151,27 @@ fun LocalPlaylistHeader(
                         .clip(RoundedCornerShape(16.dp))
                         .background(MaterialTheme.colorScheme.surfaceVariant)
                 ) {
-                    if (playlistUserAvatar || !onlineAuthorAvatar.isNullOrEmpty()) {
-                        AsyncImage(
-                            model = if (playlistUserAvatar) accountImageUrl else onlineAuthorAvatar,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(16.dp))
-                                .clickable(enabled = !playlistUserAvatar) {
-                                    navController.navigate("artist/${onlineAuthor?.id}")
-                                }
-                        )
+                    playlist.playlist.playlistAuthorAvatarUrl.let { imageUrl ->
+                        playlist.playlist.playlistAuthorsId.let { authorId ->
+                            if ((playlistUserAvatar || imageUrl.isNullOrEmpty())) {
+                                AsyncImage(
+                                    model = if (playlistUserAvatar) accountImageUrl else imageUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable(enabled = !playlistUserAvatar && !authorId.isNullOrEmpty()) {
+                                            navController.navigate("artist/${authorId}")
+                                        }
+                                )
+                            }
+                        }
                     }
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
-                if (onlineAuthor?.name == null && !playlist.playlist.isLocal) {
+                if (playlist.playlist.isLocal && playlist.playlist.playlistAuthorName.isNullOrEmpty()) {
                     Text(
                         text = if (playlistUserTitle) {
                             accountName
@@ -1197,15 +1192,17 @@ fun LocalPlaylistHeader(
                                     color = MaterialTheme.colorScheme.onBackground
                                 ).toSpanStyle()
                             ) {
-                                onlineAuthor.let { author ->
-                                    val link = author?.id?.let {
-                                        LinkAnnotation.Clickable(it) {
-                                            navController.navigate("artist/${author.id}")
+                                playlist.playlist.playlistAuthorsId.let { authorId ->
+                                    playlist.playlist.playlistAuthorName!!.let { authorName ->
+                                        val link = authorId.let {
+                                            LinkAnnotation.Clickable(authorName) {
+                                                if (!authorId.isNullOrEmpty()) {
+                                                    navController.navigate("artist/${authorId}")
+                                                }
+                                            }
                                         }
-                                    }
-                                    link?.let {
-                                        withLink(it) {
-                                            append(onlineAuthor?.name)
+                                        withLink(link) {
+                                            append(authorName)
                                         }
                                     }
                                 }
@@ -1221,13 +1218,15 @@ fun LocalPlaylistHeader(
                 fontWeight = FontWeight.Normal
             )
 
-            if (!description.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                ExpandableText(
-                    text = description,
-                    modifier = Modifier.padding(horizontal = 32.dp),
-                    collapsedMaxLines = 3,
-                )
+            playlist.playlist.description.let { description ->
+                if (!description.isNullOrBlank() && !playlist.playlist.isLocal) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    ExpandableText(
+                        text = description,
+                        modifier = Modifier.padding(horizontal = 32.dp),
+                        collapsedMaxLines = 3,
+                    )
+                }
             }
 
             Spacer(Modifier.height(12.dp))

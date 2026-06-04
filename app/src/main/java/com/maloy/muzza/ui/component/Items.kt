@@ -892,7 +892,7 @@ fun PlaylistListItem(
         title = playlist.playlist.name,
         badges = badges,
         subtitle = joinByBullet(
-            playlist.playlist.playlistAuthors,
+            playlist.playlist.playlistAuthorName,
             pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount)
         ),
         thumbnailContent = {
@@ -956,6 +956,7 @@ fun PlaylistListItem(
 
 @Composable
 fun PlaylistGridItem(
+    navController: NavController,
     playlist: Playlist,
     thumbnail: ImageVector,
     modifier: Modifier = Modifier,
@@ -1027,7 +1028,7 @@ fun PlaylistGridItem(
     GridItem(
         title = playlist.playlist.name,
         subtitle = joinByBullet(
-            playlist.playlist.playlistAuthors,
+            playlist.playlist.playlistAuthorName,
             pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount)
         ),
         badges = badges,
@@ -1093,7 +1094,8 @@ fun PlaylistGridItem(
                         PlaylistMenu(
                             playlist = playlist,
                             coroutineScope = coroutineScope,
-                            onDismiss = menuState::dismiss
+                            onDismiss = menuState::dismiss,
+                            navController = navController
                         )
                     }
                 }

@@ -352,7 +352,8 @@ fun LocalSearchScreen(
                                                 onDismiss = {
                                                     onDismiss()
                                                     menuState.dismiss()
-                                                }
+                                                },
+                                                navController = navController
                                             )
                                         }
                                     }
@@ -378,7 +379,8 @@ fun LocalSearchScreen(
                                                 onDismiss = {
                                                     onDismiss()
                                                     menuState.dismiss()
-                                                }
+                                                },
+                                                navController = navController
                                             )
                                         }
                                     }

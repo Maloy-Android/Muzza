@@ -180,11 +180,6 @@ fun OnlinePlaylistScreen(
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
 
-    val onlinePlaylist by viewModel.onlinePlaylist.collectAsState()
-    val onlineAuthor = onlinePlaylist?.author
-    val onlineAuthorAvatar = onlinePlaylist?.authorAvatarUrl
-    val description = onlinePlaylist?.description
-
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
@@ -419,18 +414,22 @@ fun OnlinePlaylistScreen(
                                                 .clip(RoundedCornerShape(16.dp))
                                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                                         ) {
-                                            if (!onlineAuthorAvatar.isNullOrEmpty()) {
-                                                AsyncImage(
-                                                    model = onlineAuthorAvatar,
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .clip(RoundedCornerShape(16.dp))
-                                                        .clickable(enabled = true) {
-                                                            navController.navigate("artist/${onlineAuthor?.id}")
-                                                        }
-                                                )
+                                            playlist.authorAvatarUrl.let { imageUrl ->
+                                                playlist.author?.id.let { authorId ->
+                                                    if (!imageUrl.isNullOrEmpty()) {
+                                                        AsyncImage(
+                                                            model = imageUrl,
+                                                            contentDescription = null,
+                                                            contentScale = ContentScale.Crop,
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .clip(RoundedCornerShape(16.dp))
+                                                                .clickable(enabled = !authorId.isNullOrEmpty()) {
+                                                                    navController.navigate("artist/${authorId}")
+                                                                }
+                                                        )
+                                                    }
+                                                }
                                             }
                                         }
                                         Spacer(modifier = Modifier.width(8.dp))
@@ -443,15 +442,17 @@ fun OnlinePlaylistScreen(
                                                         color = MaterialTheme.colorScheme.onBackground
                                                     ).toSpanStyle()
                                                 ) {
-                                                    onlineAuthor.let { author ->
+                                                    playlist.author.let { author ->
                                                         val link = author?.let {
                                                             LinkAnnotation.Clickable(it.name) {
-                                                                navController.navigate("artist/${author.id}")
+                                                                if (!author.id.isNullOrEmpty()) {
+                                                                    navController.navigate("artist/${author.id}")
+                                                                }
                                                             }
                                                         }
-                                                        link?.let {
-                                                            withLink(it) {
-                                                                append(onlineAuthor?.name)
+                                                        link?.let { link ->
+                                                            withLink(link) {
+                                                                append(author.name)
                                                             }
                                                         }
                                                     }
@@ -466,13 +467,15 @@ fun OnlinePlaylistScreen(
                                         fontWeight = FontWeight.Normal
                                     )
 
-                                    if (!description.isNullOrBlank()) {
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        ExpandableText(
-                                            text = description,
-                                            modifier = Modifier.padding(horizontal = 32.dp),
-                                            collapsedMaxLines = 3,
-                                        )
+                                    playlist.description.let { description ->
+                                        if (!description.isNullOrBlank()) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            ExpandableText(
+                                                text = description,
+                                                modifier = Modifier.padding(horizontal = 32.dp),
+                                                collapsedMaxLines = 3,
+                                            )
+                                        }
                                     }
 
                                     Spacer(Modifier.height(12.dp))
@@ -485,7 +488,9 @@ fun OnlinePlaylistScreen(
                                                         database.transaction {
                                                             val playlistEntity = PlaylistEntity(
                                                                 name = playlist.title,
-                                                                playlistAuthors = onlinePlaylist?.author?.name,
+                                                                playlistAuthorsId = playlist.author?.id,
+                                                                playlistAuthorName = playlist.author?.name,
+                                                                playlistAuthorAvatarUrl = playlist.authorAvatarUrl,
                                                                 browseId = playlist.id,
                                                                 thumbnailUrl = playlist.thumbnail,
                                                                 isEditable = true,
@@ -496,7 +501,8 @@ fun OnlinePlaylistScreen(
                                                                 },
                                                                 playEndpointParams = playlist.playEndpoint?.params,
                                                                 shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                                                radioEndpointParams = playlist.radioEndpoint?.params
+                                                                radioEndpointParams = playlist.radioEndpoint?.params,
+                                                                description = playlist.description
                                                             ).toggleLike()
                                                             insert(playlistEntity)
                                                             songs.map(SongItem::toMediaMetadata)
@@ -1107,7 +1113,7 @@ fun OnlinePlaylistScreen(
                                     songs = songs,
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss,
-                                    playlistAuthors = onlinePlaylist?.author?.name,
+                                    playlistAuthors = playlist!!.author?.name,
                                     playlistSongCount = makeTimeString(songsLength * 1000L)
                                 )
                             }

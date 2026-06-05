@@ -199,7 +199,7 @@ object YTPlayerUtils {
     ): Result<PlayerResponse> {
         Timber.tag(logTag).d("Fetching metadata player response for videoId: $videoId using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
         val signatureTimestamp = getSignatureTimestampOrNull(videoId)
-        return YouTube.player(videoId, playlistId, WEB_REMIX, signatureTimestamp)
+        return YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp)
             .onSuccess { Timber.tag(logTag).d("Successfully fetched metadata player response") }
             .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata player response") }
     }

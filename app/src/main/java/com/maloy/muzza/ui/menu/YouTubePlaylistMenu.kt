@@ -513,7 +513,7 @@ fun YouTubePlaylistMenu(
         }
         ListMenuItem(
             icon = R.drawable.artist,
-            title =  R.string.view_artist
+            title =  R.string.view_playlist_creator
         ) {
             coroutineScope.launch {
                 withContext(Dispatchers.IO) {

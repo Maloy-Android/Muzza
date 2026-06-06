@@ -332,7 +332,10 @@ constructor(
                     _connectionState.value == ConnectionState.CONNECTING ||
                     _connectionState.value == ConnectionState.RECONNECTING
 
-        return !ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED) &&
+        return !ProcessLifecycleOwner
+            .get()
+            .lifecycle.currentState
+            .isAtLeast(androidx.lifecycle.Lifecycle.State.STARTED) &&
                 _roomState.value == null &&
                 pendingAction == null &&
                 connectedOrConnecting
@@ -480,14 +483,13 @@ constructor(
      */
     private fun migrateServerUrl() {
         try {
-            val oldServerUrl = "wss://metroserver.meowery.eu/ws"
-            val currentUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
-
-            if (currentUrl == oldServerUrl) {
-                log(LogLevel.INFO, "Migrating server URL", "Old: $oldServerUrl -> New: $DEFAULT_SERVER_URL")
+            val configuredUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+            val normalizedUrl = normalizeServerUrl(configuredUrl)
+            if (normalizedUrl != configuredUrl) {
+                log(LogLevel.INFO, "Migrating server URL", "Old: $configuredUrl -> New: $normalizedUrl")
                 scope.launch {
                     context.dataStore.edit { preferences ->
-                        preferences[ListenTogetherServerUrlKey] = DEFAULT_SERVER_URL
+                        preferences[ListenTogetherServerUrlKey] = normalizedUrl
                     }
                 }
             }
@@ -574,7 +576,20 @@ constructor(
             .pingInterval(60, TimeUnit.SECONDS) // Match server ping interval
             .build()
 
-    private fun getServerUrl(): String = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+    private fun normalizeServerUrl(url: String): String {
+        val trimmed = url.trim()
+        if (trimmed.isEmpty()) return DEFAULT_SERVER_URL
+        return if (trimmed.contains("metroserver.meowery.eu", ignoreCase = true)) {
+            DEFAULT_SERVER_URL
+        } else {
+            trimmed
+        }
+    }
+
+    private fun getServerUrl(): String {
+        val configuredUrl = context.dataStore.get(ListenTogetherServerUrlKey, DEFAULT_SERVER_URL)
+        return normalizeServerUrl(configuredUrl)
+    }
 
     /**
      * Calculate exponential backoff delay with jitter

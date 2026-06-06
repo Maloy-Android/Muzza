@@ -257,6 +257,9 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
+        if (isFinishing) {
+            listenTogetherManager.disconnect()
+        }
         super.onDestroy()
         if (dataStore.get(
                 StopMusicOnTaskClearKey,

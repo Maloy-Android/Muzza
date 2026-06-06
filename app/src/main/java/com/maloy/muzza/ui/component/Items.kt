@@ -2176,6 +2176,25 @@ fun PlaylistThumbnail(
                 listOf(
                     Alignment.TopStart, Alignment.TopEnd, Alignment.BottomStart, Alignment.BottomEnd
                 ).fastForEachIndexed { index, alignment ->
+                    if (thumbnails.getOrNull(index)?.startsWith("/storage") == true) {
+                        AsyncLocalImage(
+                            image = { imageCache.getLocalThumbnail(thumbnails[index], true) },
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .align(alignment)
+                                .size(size / 2)
+                        )
+                    } else {
+                        AsyncImage(
+                            model = thumbnails.getOrNull(index)?.resize((size.value * 1.5).toInt()),
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .align(alignment)
+                                .size(size / 2)
+                        )
+                    }
                     AsyncImage(
                         model = thumbnails.getOrNull(index)?.resize((size.value * 1.5).toInt()),
                         contentDescription = null,

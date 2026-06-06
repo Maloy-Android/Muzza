@@ -131,7 +131,6 @@ import com.maloy.muzza.ui.component.rememberBottomSheetState
 import com.maloy.muzza.ui.menu.LyricsMenu
 import com.maloy.muzza.ui.menu.PlayerMenu
 import com.maloy.muzza.ui.theme.extractGradientColors
-import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -443,12 +442,7 @@ fun BottomSheetPlayer(
                                     )
                                 } else {
                                     AsyncLocalImage(
-                                        image = {
-                                            imageCache.getLocalThumbnail(
-                                                mediaMetadata.localPath,
-                                                false
-                                            )
-                                        },
+                                        image = mediaMetadata.thumbnailUrl,
                                         contentDescription = null,
                                         contentScale = ContentScale.Crop,
                                         modifier = Modifier
@@ -908,16 +902,14 @@ fun BottomSheetPlayer(
         }
         if (playerBackground == PlayerBackgroundStyle.BLUR) {
             if (mediaMetadata?.isLocal == true) {
-                mediaMetadata.let {
-                    AsyncLocalImage(
-                        image = { imageCache.getLocalThumbnail(it?.localPath) },
-                        contentDescription = null,
-                        contentScale = ContentScale.FillBounds,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(100.dp)
-                    )
-                }
+                AsyncLocalImage(
+                    image = mediaMetadata?.thumbnailUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(100.dp)
+                )
             } else {
                 AsyncImage(
                     model = mediaMetadata?.thumbnailUrl,
@@ -949,19 +941,17 @@ fun BottomSheetPlayer(
                 ), label = ""
             )
             if (mediaMetadata?.isLocal == true) {
-                mediaMetadata?.let {
-                    AsyncLocalImage(
-                        image = { imageCache.getLocalThumbnail(it.localPath) },
-                        contentDescription = null,
-                        contentScale = ContentScale.FillBounds,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .blur(100.dp)
-                            .alpha(0.8f)
-                            .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
-                            .rotate(rotation)
-                    )
-                }
+                AsyncLocalImage(
+                    image = mediaMetadata?.thumbnailUrl,
+                    contentDescription = null,
+                    contentScale = ContentScale.FillBounds,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .blur(100.dp)
+                        .alpha(0.8f)
+                        .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
+                        .rotate(rotation)
+                )
             } else {
                 val infiniteTransition = rememberInfiniteTransition(label = "")
                 val rotation by infiniteTransition.animateFloat(

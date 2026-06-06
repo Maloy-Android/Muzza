@@ -26,7 +26,6 @@ import androidx.compose.ui.unit.*
 import coil.compose.AsyncImage
 import com.maloy.muzza.R
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.utils.imageCache
 
 @Composable
 fun rememberAdjustedFontSize(
@@ -160,7 +159,7 @@ fun LyricsImageCard(
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
                 ) {
-                    if (mediaMetadata.thumbnailUrl != null || !mediaMetadata.isLocal) {
+                    if (!mediaMetadata.isLocal) {
                         AsyncImage(
                             model = mediaMetadata.thumbnailUrl,
                             contentDescription = null,
@@ -176,7 +175,7 @@ fun LyricsImageCard(
                         )
                     } else {
                         AsyncLocalImage(
-                            image = { imageCache.getLocalThumbnail(mediaMetadata.localPath, false) },
+                            image = mediaMetadata.thumbnailUrl,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

@@ -127,7 +127,6 @@ import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.utils.resize
-import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberPreference
@@ -366,7 +365,7 @@ fun SongListItem(
                     if (song.song.isLocal) {
                         song.song.let {
                             AsyncLocalImage(
-                                image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                                image = song.song.thumbnailUrl,
                                 contentDescription = null,
                                 contentScale = contentScale,
                                 modifier = Modifier
@@ -464,7 +463,7 @@ fun SongGridItem(
         if (song.song.isLocal) {
             song.song.let {
                 AsyncLocalImage(
-                    image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                    image = song.song.thumbnailUrl,
                     contentDescription = null,
                     contentScale = contentScale,
                     modifier = Modifier
@@ -1148,7 +1147,7 @@ fun MediaMetadataListItem(
             if (mediaMetadata.isLocal) {
                 mediaMetadata.let {
                     AsyncLocalImage(
-                        image = { imageCache.getLocalThumbnail(it.localPath, false) },
+                        image = mediaMetadata.thumbnailUrl,
                         contentDescription = null,
                         contentScale = contentScale,
                         modifier = Modifier
@@ -1253,8 +1252,7 @@ fun YouTubeCardItem(
                 modifier = Modifier
                     .padding(8.dp)
                     .background(
-                        color = Color.Transparent,
-                        shape = RoundedCornerShape(ThumbnailCornerRadius)
+                        color = Color.Transparent, shape = RoundedCornerShape(ThumbnailCornerRadius)
                     )
                     .size(20.dp)
             ) {
@@ -1303,8 +1301,7 @@ fun CommunityPlaylistCard(
             .width(320.dp)
             .height(420.dp)
             .combinedClickable(
-                onClick = onCardClick,
-                onLongClick = onCardLongClick
+                onClick = onCardClick, onLongClick = onCardLongClick
             ),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         shape = RoundedCornerShape(28.dp),
@@ -1420,27 +1417,24 @@ fun CommunityPlaylistCard(
                             .fillMaxWidth()
                             .padding(vertical = 4.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .combinedClickable(
-                                onClick = {
-                                    if (!isListenTogetherGuest) {
-                                        playerConnection?.playQueue(
-                                            YouTubeQueue(
-                                                song.endpoint ?: WatchEndpoint(videoId = song.id),
-                                                song.toMediaMetadata(),
-                                            )
+                            .combinedClickable(onClick = {
+                                if (!isListenTogetherGuest) {
+                                    playerConnection?.playQueue(
+                                        YouTubeQueue(
+                                            song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                            song.toMediaMetadata(),
                                         )
-                                    }
-                                },
-                                onLongClick = {
-                                    menuState.show {
-                                        YouTubeSongMenu(
-                                            song = song,
-                                            navController = navController,
-                                            onDismiss = menuState::dismiss
-                                        )
-                                    }
+                                    )
                                 }
-                            ),
+                            }, onLongClick = {
+                                menuState.show {
+                                    YouTubeSongMenu(
+                                        song = song,
+                                        navController = navController,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }),
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(12.dp),
                     ) {
@@ -1684,16 +1678,14 @@ fun DailyDiscoverCard(
                     modifier = Modifier
                         .fillMaxSize()
                         .background(
-                            brush =
-                                Brush.verticalGradient(
-                                    colors =
-                                        listOf(
-                                            Color.Black.copy(alpha = 0.3f),
-                                            Color.Transparent,
-                                            Color.Black.copy(alpha = 0.6f),
-                                            Color.Black.copy(alpha = 0.9f),
-                                        ),
+                            brush = Brush.verticalGradient(
+                                colors = listOf(
+                                    Color.Black.copy(alpha = 0.3f),
+                                    Color.Transparent,
+                                    Color.Black.copy(alpha = 0.6f),
+                                    Color.Black.copy(alpha = 0.9f),
                                 ),
+                            ),
                         ),
                 )
 
@@ -2159,26 +2151,14 @@ fun PlaylistThumbnail(
 ) {
     when (thumbnails.size) {
         0 -> placeHolder()
-
-        1 -> if (thumbnails[0].startsWith("/storage")) {
-            AsyncImage(
-                model = thumbnails[0].resize((size.value * 3).toInt()),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(size)
-                    .clip(shape)
-            )
-        } else {
-            AsyncImage(
-                model = thumbnails[0].resize((size.value * 3).toInt()),
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                modifier = Modifier
-                    .size(size)
-                    .clip(shape)
-            )
-        }
+        1 -> AsyncImage(
+            model = thumbnails[0].resize((size.value * 3).toInt()),
+            contentDescription = null,
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(size)
+                .clip(shape)
+        )
 
         else -> Box(
             modifier = Modifier
@@ -2191,30 +2171,16 @@ fun PlaylistThumbnail(
                     .clip(shape)
             ) {
                 listOf(
-                    Alignment.TopStart,
-                    Alignment.TopEnd,
-                    Alignment.BottomStart,
-                    Alignment.BottomEnd
+                    Alignment.TopStart, Alignment.TopEnd, Alignment.BottomStart, Alignment.BottomEnd
                 ).fastForEachIndexed { index, alignment ->
-                    if (thumbnails.getOrNull(index)?.startsWith("/storage") == true) {
-                        AsyncLocalImage(
-                            image = { imageCache.getLocalThumbnail(thumbnails[index], true) },
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .align(alignment)
-                                .size(size / 2)
-                        )
-                    } else {
-                        AsyncImage(
-                            model = thumbnails.getOrNull(index)?.resize((size.value * 1.5).toInt()),
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .align(alignment)
-                                .size(size / 2)
-                        )
-                    }
+                    AsyncImage(
+                        model = thumbnails.getOrNull(index)?.resize((size.value * 1.5).toInt()),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .align(alignment)
+                            .size(size / 2)
+                    )
                 }
             }
         }
@@ -2300,8 +2266,7 @@ fun BoxScope.ItemsMenuButton(
                 .size(36.dp)
                 .clip(CircleShape)
                 .background(
-                    color = Color.Black.copy(alpha = 0.4f),
-                    shape = CircleShape
+                    color = Color.Black.copy(alpha = 0.4f), shape = CircleShape
                 )
                 .clickable(onClick = onClick)
         ) {

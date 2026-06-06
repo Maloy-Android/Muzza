@@ -964,7 +964,7 @@ fun HomeScreen(
                         items(playlists) { item ->
                             CommunityPlaylistCard(
                                 item = item,
-                                currentPlaylistId = mediaMetadata?.id,
+                                isActive = item.playlist.id == mediaMetadata?.id,
                                 currentSongId = mediaMetadata?.id,
                                 isPlaying = isPlaying,
                                 navController = navController,

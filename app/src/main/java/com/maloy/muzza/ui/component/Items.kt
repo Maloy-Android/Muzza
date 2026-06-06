@@ -1272,7 +1272,7 @@ fun CommunityPlaylistCard(
     item: CommunityPlaylistItem,
     navController: NavController,
     isPlaying: Boolean = false,
-    currentPlaylistId: String? = null,
+    isActive: Boolean = false,
     currentSongId: String? = null,
     onCardClick: () -> Unit = {},
     onCardLongClick: () -> Unit = {}
@@ -1294,7 +1294,6 @@ fun CommunityPlaylistCard(
 
     val dbPlaylist by database.playlistByBrowseId(item.playlist.id).collectAsState(initial = null)
     val isBookmarked = dbPlaylist?.playlist?.bookmarkedAt != null
-    val isPlaylistActive = currentPlaylistId == item.playlist.id
 
     Card(
         modifier = Modifier
@@ -1371,7 +1370,7 @@ fun CommunityPlaylistCard(
                     }
 
                     PlayingIndicatorBox(
-                        isActive = isPlaylistActive,
+                        isActive = isActive,
                         playWhenReady = isPlaying,
                         color = Color.White,
                         modifier = Modifier

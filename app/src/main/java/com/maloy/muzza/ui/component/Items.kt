@@ -1418,12 +1418,16 @@ fun CommunityPlaylistCard(
                             .clip(RoundedCornerShape(12.dp))
                             .combinedClickable(onClick = {
                                 if (!isListenTogetherGuest) {
-                                    playerConnection?.playQueue(
-                                        YouTubeQueue(
-                                            song.endpoint ?: WatchEndpoint(videoId = song.id),
-                                            song.toMediaMetadata(),
+                                    if (isSongActive) {
+                                        playerConnection?.togglePlayPause()
+                                    } else {
+                                        playerConnection?.playQueue(
+                                            YouTubeQueue(
+                                                song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                song.toMediaMetadata(),
+                                            )
                                         )
-                                    )
+                                    }
                                 }
                             }, onLongClick = {
                                 menuState.show {

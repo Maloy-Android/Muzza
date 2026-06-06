@@ -9,8 +9,6 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,7 +71,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +87,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -139,7 +135,6 @@ import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
 import com.maloy.muzza.constants.PlaylistSongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
-import com.maloy.muzza.constants.likedMusicAuthorNameKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistSong
 import com.maloy.muzza.extensions.move
@@ -915,13 +910,6 @@ fun LocalPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-
-    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
-    val rotationAnimation by animateFloatAsState(
-        targetValue = refetchIconDegree,
-        animationSpec = tween(durationMillis = 800),
-        label = ""
-    )
 
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }

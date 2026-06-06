@@ -1,17 +1,14 @@
 package com.maloy.muzza.viewmodels
 
 import android.content.Context
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.exoplayer.offline.Download
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.extensions.reversed
 import com.maloy.muzza.extensions.toEnum
-import com.maloy.muzza.playback.DownloadUtil
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,14 +28,11 @@ import javax.inject.Inject
 
 @OptIn(ExperimentalCoroutinesApi::class)
 @HiltViewModel
-class AutoPlaylistViewModel  @Inject constructor(
+class AutoPlaylistLikedViewModel  @Inject constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
-    downloadUtil: DownloadUtil,
-    savedStateHandle: SavedStateHandle,
     private val syncUtils: SyncUtils,
 ) : ViewModel() {
-    val playlist = savedStateHandle.get<String>("playlist")!!
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
     private val _isRefreshing = MutableStateFlow(false)
@@ -52,34 +46,19 @@ class AutoPlaylistViewModel  @Inject constructor(
             }
             .distinctUntilChanged()
             .flatMapLatest { (sortType, descending) ->
-                when (playlist) {
-                    "liked" -> database.likedSongs(sortType, descending)
-                    "downloaded" -> downloadUtil.downloads.flatMapLatest { downloads ->
-                        database.allSongs()
-                            .flowOn(Dispatchers.IO)
-                            .map { songs ->
-                                songs.filter {
-                                    downloads[it.id]?.state == Download.STATE_COMPLETED
-                                }
+                database.likedSongsByCreateDateAsc()
+                    .flowOn(Dispatchers.IO)
+                    .map { songs ->
+                        when (sortType) {
+                            SongSortType.CREATE_DATE -> songs.sortedBy { it.song.liked }
+                            SongSortType.NAME -> songs.sortedBy { it.song.title }
+                            SongSortType.ARTIST -> songs.sortedBy { song ->
+                                song.artists.joinToString(separator = "") { it.name }
                             }
-                            .map { songs ->
-                                when (sortType) {
-                                    SongSortType.CREATE_DATE -> songs.sortedBy {
-                                        downloads[it.id]?.updateTimeMs ?: 0L
-                                    }
 
-                                    SongSortType.NAME -> songs.sortedBy { it.song.title }
-                                    SongSortType.ARTIST -> songs.sortedBy { song ->
-                                        song.artists.joinToString(separator = "") { it.name }
-                                    }
-
-                                    SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                                }.reversed(descending)
-                            }
+                            SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
+                        }.reversed(descending)
                     }
-
-                    else -> MutableStateFlow(emptyList())
-                }
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun syncLikedSongs() {

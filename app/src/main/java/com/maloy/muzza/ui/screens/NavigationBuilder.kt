@@ -20,7 +20,9 @@ import com.maloy.muzza.ui.screens.library.LibraryAlbumsScreen
 import com.maloy.muzza.ui.screens.library.LibraryArtistsScreen
 import com.maloy.muzza.ui.screens.library.LibraryMixScreen
 import com.maloy.muzza.ui.screens.library.LibraryPlaylistsScreen
+import com.maloy.muzza.ui.screens.playlist.AutoPlaylistDownloadedScreen
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLibraryScreen
+import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLikedScreen
 import com.maloy.muzza.ui.screens.playlist.LocalPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.OnlinePlaylistScreen
 import com.maloy.muzza.ui.screens.search.OnlineSearchResult
@@ -35,7 +37,6 @@ import com.maloy.muzza.ui.screens.settings.PrivacySettings
 import com.maloy.muzza.ui.screens.settings.SettingsScreen
 import com.maloy.muzza.ui.screens.settings.StorageSettings
 import com.maloy.muzza.ui.screens.playlist.AutoPlaylistLocalScreen
-import com.maloy.muzza.ui.screens.playlist.AutoPlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.CachePlaylistScreen
 import com.maloy.muzza.ui.screens.playlist.TopPlaylistScreen
 import com.maloy.muzza.ui.screens.settings.AccountSettings
@@ -210,14 +211,14 @@ fun NavGraphBuilder.navigationBuilder(
         YouTubeBrowseScreen(navController, scrollBehavior)
     }
     composable(
-        route = "auto_playlist/{playlist}",
-        arguments = listOf(
-            navArgument("playlist") {
-                type = NavType.StringType
-            }
-        )
+        route = "auto_playlist/liked_songs"
     ) {
-        AutoPlaylistScreen(navController, scrollBehavior)
+        AutoPlaylistLikedScreen(navController, scrollBehavior)
+    }
+    composable(
+        route = "auto_playlist/downloaded_songs",
+    ) {
+        AutoPlaylistDownloadedScreen(navController, scrollBehavior)
     }
     composable(
         route = "top_playlist/{top}",

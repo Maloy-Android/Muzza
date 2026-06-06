@@ -343,7 +343,7 @@ fun LibraryMixScreen(
                         .padding(horizontal = 16.dp)
                         .combinedClickable(
                             onClick = {
-                                navController.navigate("auto_playlist/liked")
+                                navController.navigate("auto_playlist/liked_songs")
                             },
                             onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -679,7 +679,7 @@ fun LibraryMixScreen(
                                         .combinedClickable(
                                             onClick = {
                                                 when (playlist.id) {
-                                                    "downloaded" -> navController.navigate("auto_playlist/downloaded")
+                                                    "downloaded" -> navController.navigate("auto_playlist/downloaded_songs")
                                                     "top" -> navController.navigate("top_playlist/$topSize")
                                                     "cached" -> navController.navigate("CachedPlaylist")
                                                     "local" -> navController.navigate("AutoPlaylistLocal")

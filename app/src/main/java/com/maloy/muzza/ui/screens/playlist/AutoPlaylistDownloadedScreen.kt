@@ -2,8 +2,6 @@ package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -17,14 +15,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -34,7 +30,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudDownload
 import androidx.compose.material.icons.rounded.CloudOff
-import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Checkbox
@@ -52,15 +47,11 @@ import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
-import androidx.compose.material3.pulltorefresh.pullToRefresh
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -76,23 +67,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.LinkAnnotation
-import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.text.withLink
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastForEachReversed
@@ -104,27 +89,17 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import coil.compose.AsyncImage
-import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.CONTENT_TYPE_SONG
-import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
 import com.maloy.muzza.constants.ThumbnailCornerRadius
-import com.maloy.muzza.constants.YtmSyncKey
-import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
-import com.maloy.muzza.constants.likedMusicAuthorIdKey
-import com.maloy.muzza.constants.likedMusicAuthorNameKey
-import com.maloy.muzza.constants.likedMusicDescriptionKey
-import com.maloy.muzza.constants.likedMusicThumbnailKey
-import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
@@ -137,7 +112,6 @@ import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.EmptyPlaceholderImage
-import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
@@ -148,25 +122,21 @@ import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.rememberVoiceInput
-import com.maloy.muzza.viewmodels.AutoPlaylistViewModel
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import com.maloy.muzza.viewmodels.AutoPlaylistDownloadedViewModel
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
 @SuppressLint("UnusedBoxWithConstraintsScope", "SuspiciousIndentation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
-fun AutoPlaylistScreen(
+fun AutoPlaylistDownloadedScreen(
     navController: NavController,
     scrollBehavior: TopAppBarScrollBehavior,
-    viewModel: AutoPlaylistViewModel = hiltViewModel(),
+    viewModel: AutoPlaylistDownloadedViewModel = hiltViewModel(),
 ) {
     val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
@@ -176,14 +146,6 @@ fun AutoPlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val scope = rememberCoroutineScope()
 
-    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
-
-    val rotationAnimation by animateFloatAsState(
-        targetValue = refetchIconDegree,
-        animationSpec = tween(durationMillis = 800),
-        label = ""
-    )
-
     var isSearching by rememberSaveable { mutableStateOf(false) }
     var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
     val (startVoiceInput, isVoiceInputAvailable) = rememberVoiceInput(
@@ -192,13 +154,6 @@ fun AutoPlaylistScreen(
         }
     )
     val focusRequester = remember { FocusRequester() }
-    val (ytmSync) = rememberPreference(YtmSyncKey, true)
-
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
-        }
 
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -206,41 +161,13 @@ fun AutoPlaylistScreen(
         }
     }
 
-    val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
-    val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
-    val accountImageUrl by rememberPreference(likedMusicAuthorAvatarImageKey, "")
-    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
-    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
-    val description by rememberPreference(likedMusicDescriptionKey, "")
-    val isLikedMusicPlaylist = viewModel.playlist == "liked"
-    val playlist = if (isLikedMusicPlaylist) {
-        if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else stringResource(R.string.liked)
-    } else {
-        stringResource(R.string.offline)
-    }
-    val songs by viewModel.likedSongs.collectAsState(null)
+    val songs by viewModel.downloadedSongs.collectAsState(null)
     val mutableSongs = remember {
         mutableStateListOf<Song>()
     }
     val likeLength = remember(songs) {
         songs?.fastSumBy { it.song.duration } ?: 0
     }
-    val playlistId = viewModel.playlist
-    val playlistType = when (playlistId) {
-        "liked" -> PlaylistType.LIKE
-        "downloaded" -> PlaylistType.DOWNLOAD
-        else -> PlaylistType.OTHER
-    }
-    val likedMusicPlaylist = Playlist(
-        playlist = PlaylistEntity(
-            id = "likedMusic",
-            name = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
-                stringResource(R.string.liked)
-            }
-        ),
-        songCount = songs?.size ?: 0,
-        songThumbnails = emptyList()
-    )
     val downloadPlaylist = Playlist(
         playlist = PlaylistEntity(
             id = "downloaded",
@@ -297,14 +224,6 @@ fun AutoPlaylistScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
-        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
-            withContext(Dispatchers.IO) {
-                if (playlistType == PlaylistType.LIKE) viewModel.syncLikedSongs()
-            }
-        }
-    }
-
     LaunchedEffect(songs) {
         mutableSongs.apply {
             clear()
@@ -334,7 +253,7 @@ fun AutoPlaylistScreen(
             icon = { Icon(Icons.Rounded.CloudOff, null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist),
+                    text = stringResource(R.string.remove_download_playlist_confirm, stringResource(R.string.offline)),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -379,8 +298,6 @@ fun AutoPlaylistScreen(
             state.firstVisibleItemIndex > 0
         }
     }
-    val isRefreshing by viewModel.isRefreshing.collectAsState()
-    val pullRefreshState = rememberPullToRefreshState()
     val reorderableState = rememberReorderableLazyListState(
         onMove = { from, to ->
             mutableSongs.move(from.index - 2, to.index - 2)
@@ -394,13 +311,7 @@ fun AutoPlaylistScreen(
         ).asPaddingValues()
     )
     BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxSize()
-            .pullToRefresh(
-                state = pullRefreshState,
-                isRefreshing = isRefreshing,
-                onRefresh = viewModel::refresh
-            ),
+        modifier = Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(
@@ -419,8 +330,8 @@ fun AutoPlaylistScreen(
                 if (songs?.isEmpty() == true && !isSearching) {
                     item {
                         EmptyPlaceholderImage(
-                            icon = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
-                            text = stringResource(R.string.playlist_is_empty, playlist)
+                            icon = Icons.Rounded.CloudDownload,
+                            text = stringResource(R.string.playlist_is_empty, stringResource(R.string.offline))
                         )
                     }
                 } else {
@@ -430,17 +341,6 @@ fun AutoPlaylistScreen(
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 modifier = Modifier.padding(12.dp)
                             ) {
-                                if (isLoggedIn && likedMusicThumbnail.isNotEmpty() && isLikedMusicPlaylist) {
-                                    AsyncImage(
-                                        model = likedMusicThumbnail,
-                                        contentDescription = null,
-                                        modifier = Modifier
-                                            .size(AlbumThumbnailSize)
-                                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                                            .align(alignment = Alignment.CenterHorizontally)
-                                            .aspectRatio(1f)
-                                    )
-                                } else {
                                     Box(
                                         modifier = Modifier
                                             .size(AlbumThumbnailSize)
@@ -452,7 +352,7 @@ fun AutoPlaylistScreen(
                                             )
                                     ) {
                                         Icon(
-                                            imageVector = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                            imageVector = Icons.Rounded.CloudDownload,
                                             contentDescription = null,
                                             tint = LocalContentColor.current.copy(alpha = 0.8f),
                                             modifier = Modifier
@@ -461,14 +361,13 @@ fun AutoPlaylistScreen(
                                                 .align(Alignment.Center)
                                         )
                                     }
-                                }
                                 Spacer(Modifier.height(12.dp))
                                 Column(
                                     verticalArrangement = Arrangement.Center,
                                     horizontalAlignment = Alignment.CenterHorizontally
                                 ) {
                                     AutoResizeText(
-                                        text = playlist,
+                                        text = stringResource(R.string.offline),
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center,
                                         maxLines = 2,
@@ -480,15 +379,15 @@ fun AutoPlaylistScreen(
                                                 onClick = {
                                                     menuState.show {
                                                         AutoPlaylistMenu(
-                                                            playlist = if (isLikedMusicPlaylist) likedMusicPlaylist else downloadPlaylist,
-                                                            playlistAuthor = if (isLikedMusicPlaylist) accountId else null,
+                                                            playlist = downloadPlaylist,
+                                                            playlistAuthor = null,
                                                             navController = navController,
-                                                            thumbnail = if (isLikedMusicPlaylist) likedMusicThumbnail else null,
-                                                            iconThumbnail = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                                            thumbnail = null,
+                                                            iconThumbnail = Icons.Rounded.CloudDownload,
                                                             songs = songs,
                                                             coroutineScope = scope,
                                                             onDismiss = menuState::dismiss,
-                                                            showSyncLikedSongsButton = isLikedMusicPlaylist,
+                                                            showSyncLikedSongsButton = false,
                                                             syncUtils = null
                                                         )
                                                     }
@@ -497,68 +396,6 @@ fun AutoPlaylistScreen(
                                     )
                                     Spacer(Modifier.height(8.dp))
 
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.Center,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        if (isLikedMusicPlaylist && isLoggedIn && accountImageUrl.isNotEmpty()) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(32.dp)
-                                                    .clip(RoundedCornerShape(16.dp))
-                                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                                            ) {
-                                                AsyncImage(
-                                                    model = accountImageUrl,
-                                                    contentDescription = null,
-                                                    contentScale = ContentScale.Crop,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .clip(RoundedCornerShape(16.dp))
-                                                        .clickable(enabled = true) {
-                                                            navController.navigate("artist/${accountId}")
-                                                        }
-                                                )
-                                            }
-                                        }
-                                        Spacer(modifier = Modifier.width(8.dp))
-
-                                        if (isLikedMusicPlaylist && isLoggedIn && accountName.isNotEmpty()) {
-                                            Text(
-                                                buildAnnotatedString {
-                                                    withStyle(
-                                                        style = MaterialTheme.typography.titleMedium.copy(
-                                                            fontWeight = FontWeight.Normal,
-                                                            color = MaterialTheme.colorScheme.onBackground
-                                                        ).toSpanStyle()
-                                                    ) {
-                                                        accountId.let { author ->
-                                                            val link = author.let {
-                                                                LinkAnnotation.Clickable(
-                                                                    accountName
-                                                                ) {
-                                                                    navController.navigate("artist/${author}")
-                                                                }
-                                                            }
-                                                            withLink(link) {
-                                                                append(accountName)
-                                                            }
-                                                        }
-                                                    }
-                                                }
-                                            )
-                                        }
-                                    }
-
-                                    if (isLikedMusicPlaylist && isLoggedIn && description.isNotBlank()) {
-                                        Spacer(modifier = Modifier.height(4.dp))
-                                        ExpandableText(
-                                            text = description,
-                                            modifier = Modifier.padding(horizontal = 32.dp),
-                                            collapsedMaxLines = 3,
-                                        )
-                                    }
                                     Text(
                                         text = makeTimeString(likeLength * 1000L),
                                         style = MaterialTheme.typography.titleMedium,
@@ -640,31 +477,6 @@ fun AutoPlaylistScreen(
                                                 }
                                             }
                                         }
-                                        if (isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE) {
-                                            Button(
-                                                onClick = {
-                                                    refetchIconDegree -= 360
-                                                    scope.launch(Dispatchers.IO) {
-                                                        viewModel.syncLikedSongs()
-                                                        snackbarHostState.showSnackbar(
-                                                            context.getString(
-                                                                R.string.playlist_synced
-                                                            )
-                                                        )
-                                                    }
-                                                },
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(4.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.sync),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
-                                                )
-                                            }
-                                        }
                                         Button(
                                             onClick = {
                                                 songs?.let { songs ->
@@ -691,7 +503,7 @@ fun AutoPlaylistScreen(
                                             songs?.let { songs ->
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = context.getString(R.string.liked),
+                                                        title = context.getString(R.string.offline),
                                                         items = songs.map { it.toMediaItem() }
                                                     )
                                                 )
@@ -713,7 +525,7 @@ fun AutoPlaylistScreen(
                                             songs?.let { songs ->
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = playlist,
+                                                        title = context.getString(R.string.offline),
                                                         items = songs.shuffled()
                                                             .map { it.toMediaItem() }
                                                     )
@@ -837,7 +649,7 @@ fun AutoPlaylistScreen(
                                             songs?.let { songs ->
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = playlist,
+                                                        title = context.getString(R.string.offline),
                                                         items = songs.map { it.toMediaItem() },
                                                         startIndex = songs.indexOfFirst { it.song.id == songWrapper.id })
                                                 )
@@ -857,15 +669,6 @@ fun AutoPlaylistScreen(
                 }
             }
         }
-        if (filteredSongs?.isEmpty() != true && isLoggedIn && ytmSync && isInternetAvailable(context) && playlistType == PlaylistType.LIKE && !isSearching) {
-            Indicator(
-                isRefreshing = isRefreshing,
-                state = pullRefreshState,
-                modifier = Modifier
-                    .align(Alignment.TopCenter)
-                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
-            )
-        }
         LazyColumnScrollbar(
             visible = lazyChecker,
             state = state
@@ -877,7 +680,7 @@ fun AutoPlaylistScreen(
             onClick = {
                 playerConnection.playQueue(
                     ListQueue(
-                        title = playlist,
+                        title = context.getString(R.string.offline),
                         items = songs!!.map { it.toMediaItem() }
                     )
                 )
@@ -980,7 +783,7 @@ fun AutoPlaylistScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(playlist)
+                        Text(stringResource(R.string.offline))
                     }
                 },
                 navigationIcon = {
@@ -1022,14 +825,14 @@ fun AutoPlaylistScreen(
                                 onClick = {
                                     menuState.show {
                                         AutoPlaylistMenu(
-                                            playlist = if (isLikedMusicPlaylist) likedMusicPlaylist else downloadPlaylist,
+                                            playlist = downloadPlaylist,
                                             navController = navController,
-                                            thumbnail = if (isLikedMusicPlaylist) likedMusicThumbnail else null,
-                                            iconThumbnail = if (isLikedMusicPlaylist) Icons.Rounded.Favorite else Icons.Rounded.CloudDownload,
+                                            thumbnail = null,
+                                            iconThumbnail = Icons.Rounded.CloudDownload,
                                             songs = songs,
                                             coroutineScope = scope,
                                             onDismiss = menuState::dismiss,
-                                            showSyncLikedSongsButton = isLikedMusicPlaylist,
+                                            showSyncLikedSongsButton = false,
                                             syncUtils = null
                                         )
                                     }
@@ -1058,8 +861,3 @@ fun AutoPlaylistScreen(
         }
     }
 }
-
-enum class PlaylistType {
-    LIKE, DOWNLOAD, OTHER
-}
-

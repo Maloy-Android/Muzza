@@ -123,7 +123,7 @@ interface DatabaseDao {
     fun localSongsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal ORDER BY inLibrary")
+    @Query("SELECT * FROM song WHERE isLocal ORDER BY rowId")
     fun localSongsByCreateDateAsc(): Flow<List<Song>>
 
     @Transaction

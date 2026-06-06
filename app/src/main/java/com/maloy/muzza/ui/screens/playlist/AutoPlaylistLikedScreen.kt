@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
@@ -104,6 +105,8 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.completed
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -132,6 +135,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -462,6 +466,7 @@ fun AutoPlaylistLikedScreen(
                                                         AutoPlaylistMenu(
                                                             playlist = likedMusicPlaylist,
                                                             playlistAuthor = accountId,
+                                                            showRadioButton = isLoggedIn && isInternetAvailable(context),
                                                             navController = navController,
                                                             thumbnail = likedMusicThumbnail,
                                                             iconThumbnail = Icons.Rounded.Favorite,
@@ -549,6 +554,38 @@ fun AutoPlaylistLikedScreen(
                                         horizontalArrangement = Arrangement.SpaceEvenly,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
+                                        if (isLoggedIn && isInternetAvailable(context)) {
+                                            Button(
+                                                onClick = {
+                                                    scope.launch {
+                                                        withContext(Dispatchers.IO) {
+                                                            YouTube.playlist("LM").completed()
+                                                                .getOrNull()?.playlist
+                                                        }.let { playlist ->
+                                                            if (playlist != null) {
+                                                                playerConnection.playQueue(
+                                                                    YouTubePlaylistQueue(
+                                                                        playlistId = playlist.id,
+                                                                        endpoint = playlist.radioEndpoint ?: return@let,
+                                                                    )
+                                                                )
+                                                            } else {
+                                                                Toast.makeText(context, R.string.unknow_playlist_radio_error,Toast.LENGTH_LONG).show()
+                                                            }
+                                                        }
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .weight(1f)
+                                                    .padding(4.dp)
+                                                    .clip(RoundedCornerShape(12.dp))
+                                            ) {
+                                                Icon(
+                                                    painter = painterResource(R.drawable.radio),
+                                                    contentDescription = null
+                                                )
+                                            }
+                                        }
                                         when (downloadState) {
                                             Download.STATE_COMPLETED -> {
                                                 Button(
@@ -618,31 +655,6 @@ fun AutoPlaylistLikedScreen(
                                                         contentDescription = null
                                                     )
                                                 }
-                                            }
-                                        }
-                                        if (isLoggedIn && ytmSync && isInternetAvailable(context)) {
-                                            Button(
-                                                onClick = {
-                                                    refetchIconDegree -= 360
-                                                    scope.launch(Dispatchers.IO) {
-                                                        viewModel.syncLikedSongs()
-                                                        snackbarHostState.showSnackbar(
-                                                            context.getString(
-                                                                R.string.playlist_synced
-                                                            )
-                                                        )
-                                                    }
-                                                },
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(4.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.sync),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
-                                                )
                                             }
                                         }
                                         Button(
@@ -1003,6 +1015,8 @@ fun AutoPlaylistLikedScreen(
                                     menuState.show {
                                         AutoPlaylistMenu(
                                             playlist = likedMusicPlaylist,
+                                            playlistAuthor = accountId,
+                                            showRadioButton = isLoggedIn && isInternetAvailable(context),
                                             navController = navController,
                                             thumbnail = likedMusicThumbnail,
                                             iconThumbnail = Icons.Rounded.Favorite,

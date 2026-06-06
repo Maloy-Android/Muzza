@@ -155,6 +155,7 @@
     <string name="remove_custom_playlist_thumbnail">Удалить индивидуальное изображение плейлиста</string>
     <string name="remove_custom_playlist_thumbnail_confirm">Вы действительно хотите удалить индивидуальное изображение плейлиста для плейлиста \"%s\"?</string>
     <string name="start_radio">Запустить радио</string>
+    <string name="unknow_playlist_radio_error">Ошибка получения радио для плейлиста</string>
     <string name="play">Воспоизвести</string>
     <string name="play_next">Воспроизвести следующим</string>
     <string name="add_to_queue">Добавить в очередь</string>

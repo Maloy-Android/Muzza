@@ -351,6 +351,7 @@ fun LibraryMixScreen(
                                     AutoPlaylistMenu(
                                         playlist = likedMusicPlaylist,
                                         playlistAuthor = accountId,
+                                        showRadioButton = isLoggedIn && isInternetAvailable(context),
                                         navController = navController,
                                         thumbnail = likedMusicThumbnail,
                                         iconThumbnail = Icons.Rounded.Favorite,

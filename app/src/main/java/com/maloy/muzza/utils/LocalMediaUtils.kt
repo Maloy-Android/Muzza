@@ -3,8 +3,10 @@
 package com.maloy.muzza.utils
 
 import android.content.ContentResolver
+import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
+import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.provider.MediaStore
 import androidx.core.content.FileProvider
@@ -28,10 +30,10 @@ import androidx.core.net.toUri
 const val sdcardRoot = "/storage/emulated/0/"
 var directoryUID = 0
 var cachedDirectoryTree: DirectoryTree? = null
-var imageCache: LmImageCacheMgr = LmImageCacheMgr()
 
 val projection = arrayOf(
     MediaStore.Audio.Media._ID,
+    MediaStore.Audio.Media.ALBUM_ID,
     MediaStore.Audio.Media.DISPLAY_NAME,
     MediaStore.Audio.Media.TITLE,
     MediaStore.Audio.Media.DURATION,
@@ -148,13 +150,14 @@ fun scanLocal(
 
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
+                val album = cursor.getLong(cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID))
                 val title = cursor.getString(titleColumn)
                 val duration = cursor.getInt(durationColumn)
                 val artist = cursor.getString(artistColumn) ?: "Unknown Artist"
                 val data = cursor.getString(dataColumn) ?: ""
 
                 scannerJobs.add(async(Dispatchers.IO) {
-                    extractSongMetadata(id, title, artist, duration, data)
+                    extractSongMetadata(id,album, title, artist, duration, data)
                 })
             }
         }
@@ -178,6 +181,7 @@ fun scanLocal(
 
 private fun extractSongMetadata(
     mediaStoreId: Long,
+    albumId: Long,
     title: String,
     artist: String,
     duration: Int,
@@ -185,6 +189,14 @@ private fun extractSongMetadata(
 ): Song? {
     return try {
         val fileId = "LOCAL_$mediaStoreId"
+        val thumbnailUrl = try {
+            val hasArt = MediaMetadataRetriever().apply { setDataSource(filePath) }.embeddedPicture != null
+            if (albumId > 0 && hasArt) {
+                ContentUris.withAppendedId(MediaStore.Audio.Albums.EXTERNAL_CONTENT_URI, albumId).toString()
+            } else null
+        } catch (_: Exception) {
+            null
+        }
         val contentUri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
             .buildUpon()
             .appendPath(mediaStoreId.toString())
@@ -196,6 +208,7 @@ private fun extractSongMetadata(
         val songEntity = SongEntity(
             id = fileId,
             title = title,
+            thumbnailUrl = thumbnailUrl,
             duration = (duration / 1000),
             artistName = artist,
             albumId = null,

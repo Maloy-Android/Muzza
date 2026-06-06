@@ -286,7 +286,7 @@ fun ArtistItemsScreen(
             }
             itemsPage?.items?.filterIsInstance<SongItem>().orEmpty().let { songs ->
                 HideOnScrollFAB(
-                    visible = songs.isNotEmpty(),
+                    visible = songs.isNotEmpty() && !inSelectMode,
                     lazyListState = lazyListState,
                     icon = R.drawable.play,
                     onClick = {
@@ -375,7 +375,7 @@ fun ArtistItemsScreen(
 
                                                 is AlbumItem -> navController.navigate("album/${item.id}")
                                                 is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
+                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                                             }
                                         },
                                         onLongClick = {
@@ -467,7 +467,7 @@ fun ArtistItemsScreen(
 
                                                 is AlbumItem -> navController.navigate("album/${item.id}")
                                                 is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
+                                                is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                                             }
                                         },
                                         onLongClick = {

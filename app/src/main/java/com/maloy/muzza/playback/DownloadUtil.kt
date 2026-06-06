@@ -95,9 +95,10 @@ class DownloadUtil @Inject constructor(
                     codecs = format.mimeType.split("codecs=")[1].removeSurrounding("\""),
                     bitrate = format.bitrate,
                     sampleRate = format.audioSampleRate,
+                    contentLength = format.contentLength!!,
                     loudnessDb = playbackData.audioConfig?.loudnessDb,
                     playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl,
-                    contentLength = format.contentLength!!,
+                    perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
                 ),
             )
         }

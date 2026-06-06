@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -105,7 +106,9 @@ fun YouTubePlaylistMenu(
                             database.transaction {
                                 val playlistEntity = PlaylistEntity(
                                     name = playlist.title,
-                                    playlistAuthors = playlist.author?.name,
+                                    playlistAuthorsId = playlist.author?.id,
+                                    playlistAuthorName = playlist.author?.name,
+                                    playlistAuthorAvatarUrl = playlist.authorAvatarUrl,
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
                                     isEditable = true,
@@ -116,7 +119,8 @@ fun YouTubePlaylistMenu(
                                     },
                                     playEndpointParams = playlist.playEndpoint?.params,
                                     shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                    radioEndpointParams = playlist.radioEndpoint?.params
+                                    radioEndpointParams = playlist.radioEndpoint?.params,
+                                    description = playlist.description
                                 ).toggleLike()
                                 insert(playlistEntity)
                                 coroutineScope.launch(Dispatchers.IO) {
@@ -169,8 +173,7 @@ fun YouTubePlaylistMenu(
                             playerConnection.playQueue(
                                 YouTubePlaylistQueue(
                                     radioEndpoint,
-                                    playlistId = playlist.id,
-                                    playListAuthor = playlist.author?.name
+                                    playlistId = playlist.id
                                 )
                             )
                         }
@@ -215,8 +218,7 @@ fun YouTubePlaylistMenu(
                                         title = playlist.title,
                                         items = songs.map {
                                             it.toMediaItemWithPlaylist(
-                                                playlist.id,
-                                                playListAuthor = playlist.author?.name
+                                                playlist.id
                                             )
                                         }
                                     )
@@ -265,8 +267,7 @@ fun YouTubePlaylistMenu(
                                         title = playlist.title,
                                         items = songs.map {
                                             it.toMediaItemWithPlaylist(
-                                                playlist.id,
-                                                playListAuthor = playlist.author?.name
+                                                playlist.id
                                             )
                                         }
                                     )
@@ -315,8 +316,7 @@ fun YouTubePlaylistMenu(
                                         items = songs.shuffled()
                                             .map {
                                                 it.toMediaItemWithPlaylist(
-                                                    playlist.id,
-                                                    playListAuthor = playlist.author?.name
+                                                    playlist.id
                                                 )
                                             }
                                     )
@@ -402,8 +402,7 @@ fun YouTubePlaylistMenu(
                                             songs.shuffled()
                                                 .map {
                                                     it.toMediaItemWithPlaylist(
-                                                        playlist.id,
-                                                        playListAuthor = playlist.author?.name
+                                                        playlist.id
                                                     )
                                                 })
                                 )
@@ -455,8 +454,7 @@ fun YouTubePlaylistMenu(
                                 title = playlist.title,
                                 items = songs.shuffled().map {
                                     it.toMediaItemWithPlaylist(
-                                        playlist.id,
-                                        playListAuthor = playlist.author?.name
+                                        playlist.id
                                     )
                                 }
                             )
@@ -479,7 +477,7 @@ fun YouTubePlaylistMenu(
                             .getOrNull()?.songs.orEmpty()
                     }
                 }.let { songs ->
-                    playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name) })
+                    playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
                 }
             }
             onDismiss()
@@ -497,7 +495,7 @@ fun YouTubePlaylistMenu(
                             .getOrNull()?.songs.orEmpty()
                     }
                 }.let { songs ->
-                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name)  })
+                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
                 }
             }
             onDismiss()
@@ -509,6 +507,28 @@ fun YouTubePlaylistMenu(
             icon = R.drawable.playlist_add, title = R.string.add_to_playlist
         ) {
             showChoosePlaylistDialog = true
+        }
+        item {
+            HorizontalDivider()
+        }
+        ListMenuItem(
+            icon = R.drawable.artist,
+            title =  R.string.view_playlist_creator
+        ) {
+            coroutineScope.launch {
+                withContext(Dispatchers.IO) {
+                    YouTube.playlist(playlist.id).completed()
+                        .getOrNull()?.playlist?.author?.id.orEmpty()
+                }.let { authorId ->
+                    if (authorId.isNotEmpty()) {
+                        navController.navigate("artist/${authorId}")
+                        onDismiss()
+                    } else {
+                        Toast.makeText(context, R.string.unknown_playlist_creator_error,Toast.LENGTH_LONG).show()
+                        onDismiss()
+                    }
+                }
+            }
         }
         item {
             HorizontalDivider()
@@ -575,7 +595,9 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                             database.transaction {
                                 val playlistEntity = PlaylistEntity(
                                     name = playlist.title,
-                                    playlistAuthors = playlist.author?.name,
+                                    playlistAuthorsId = playlist.author?.id,
+                                    playlistAuthorName = playlist.author?.name,
+                                    playlistAuthorAvatarUrl = playlist.authorAvatarUrl,
                                     browseId = playlist.id,
                                     thumbnailUrl = playlist.thumbnail,
                                     isEditable = true,
@@ -586,7 +608,8 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                     },
                                     playEndpointParams = playlist.playEndpoint?.params,
                                     shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                    radioEndpointParams = playlist.radioEndpoint?.params
+                                    radioEndpointParams = playlist.radioEndpoint?.params,
+                                    description = playlist.description
                                 ).toggleLike()
                                 insert(playlistEntity)
                                 songs.map { it.toMediaMetadata() }.onEach(::insert)
@@ -667,8 +690,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                 title = playlist.title,
                                 items = songs.map {
                                     it.toMediaItemWithPlaylist(
-                                        playlist.id,
-                                        playListAuthor = playlist.author?.name
+                                        playlist.id
                                     )
                                 }
                             )
@@ -708,8 +730,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                 title = playlist.title,
                                 items = songs.map {
                                     it.toMediaItemWithPlaylist(
-                                        playlist.id,
-                                        playListAuthor = playlist.author?.name
+                                        playlist.id
                                     )
                                 }
                             )
@@ -748,8 +769,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                 title = playlist.title,
                                 items = songs.shuffled().map {
                                     it.toMediaItemWithPlaylist(
-                                        playlist.id,
-                                        playListAuthor = playlist.author?.name
+                                        playlist.id
                                     )
                                 }
                             )
@@ -825,8 +845,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                                 title = playlist.title,
                                 items = songs.shuffled().map {
                                     it.toMediaItemWithPlaylist(
-                                        playlist.id,
-                                        playListAuthor = playlist.author?.name
+                                        playlist.id
                                     )
                                 })
                         )
@@ -864,7 +883,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
             ListMenuItem(
                 icon = R.drawable.shuffle, title = R.string.shuffle
             ) {
-                playerConnection.playQueue(ListQueue(title = playlist.title, items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name) }))
+                playerConnection.playQueue(ListQueue(title = playlist.title, items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.id) }))
                 onDismiss()
             }
             item {
@@ -874,7 +893,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
         ListMenuItem(
             icon = R.drawable.playlist_play, title = R.string.play_next
         ) {
-            playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name) })
+            playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
             onDismiss()
         }
         item {
@@ -883,7 +902,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
         ListMenuItem(
             icon = R.drawable.queue_music, title = R.string.add_to_queue
         ) {
-            playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = playlist.author?.name) })
+            playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
             onDismiss()
         }
         item {

@@ -171,6 +171,10 @@ fun HomeScreen(
     val explorePage by viewModel.explorePage.collectAsState()
     val recentActivity by viewModel.recentActivity.collectAsState()
 
+    val allHomeItems = quickPicks?.let {
+        it + speedDialItems + dailyDiscover + communityPlaylists + forgottenFavorites + keepListening + similarRecommendations + recentActivity
+    }
+
     val (showRecentActivity) = rememberPreference(ShowRecentActivityKey, defaultValue = true)
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
@@ -195,6 +199,12 @@ fun HomeScreen(
     val context = LocalContext.current
 
     var showNoInternetDialog by remember { mutableStateOf(false) }
+
+    if (isInternetAvailable(context) && (allHomeItems.isNullOrEmpty())) {
+        LaunchedEffect(Unit) {
+            viewModel.load()
+        }
+    }
 
     LaunchedEffect(scrollToTop?.value) {
         if (scrollToTop?.value == true) {
@@ -237,6 +247,8 @@ fun HomeScreen(
                             it.song.albumId.let { albumId ->
                                 if (albumId?.isNotEmpty() == true && !it.song.isVideoSong) {
                                     navController.navigate("album/${albumId}")
+                                } else if (mediaMetadata?.id == it.id) {
+                                    playerConnection.togglePlayPause()
                                 }
                             }
                         },
@@ -332,13 +344,17 @@ fun HomeScreen(
                                 item.album?.id.let { albumId ->
                                     if (albumId?.isNotEmpty() == true && !item.isVideoSong) {
                                         navController.navigate("album/${albumId}")
+                                    } else {
+                                        if (mediaMetadata?.id == item.id) {
+                                            playerConnection.togglePlayPause()
+                                        }
                                     }
                                 }
                             }
 
                             is AlbumItem -> navController.navigate("album/${item.id}")
                             is ArtistItem -> navController.navigate("artist/${item.id}")
-                            is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
+                            is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                         }
                     },
                     onLongClick = {
@@ -519,7 +535,7 @@ fun HomeScreen(
                                 },
                                 onClick = {
                                     when (item.type) {
-                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}?author=${item.playlistAuthor}")
+                                        PLAYLIST -> navController.navigate("online_playlist/${item.id}")
                                         ALBUM -> navController.navigate("album/${item.id}")
                                         ARTIST -> navController.navigate("artist/${item.id}")
                                     }
@@ -646,6 +662,10 @@ fun HomeScreen(
                                                 ) {
                                                     SpeedDialGridItem(
                                                         item = item,
+                                                        videoThumbnailSize = when (item) {
+                                                            is SongItem -> item.isVideoSong
+                                                            else -> false
+                                                        },
                                                         isActive =
                                                             item.id in listOf(
                                                                 mediaMetadata?.album?.id,
@@ -660,15 +680,19 @@ fun HomeScreen(
                                                                         when (item) {
                                                                             is SongItem -> {
                                                                                 if (!isListenTogetherGuest) {
-                                                                                    playerConnection.playQueue(
-                                                                                        YouTubeQueue(
-                                                                                            item.endpoint
-                                                                                                ?: WatchEndpoint(
-                                                                                                    videoId = item.id,
-                                                                                                ),
-                                                                                            item.toMediaMetadata(),
-                                                                                        ),
-                                                                                    )
+                                                                                    if (mediaMetadata?.id == item.id) {
+                                                                                        playerConnection.togglePlayPause()
+                                                                                    } else {
+                                                                                        playerConnection.playQueue(
+                                                                                            YouTubeQueue(
+                                                                                                item.endpoint
+                                                                                                    ?: WatchEndpoint(
+                                                                                                        videoId = item.id,
+                                                                                                    ),
+                                                                                                item.toMediaMetadata(),
+                                                                                            ),
+                                                                                        )
+                                                                                    }
                                                                                 }
                                                                             }
 
@@ -944,12 +968,12 @@ fun HomeScreen(
                         items(playlists) { item ->
                             CommunityPlaylistCard(
                                 item = item,
-                                currentPlaylistId = mediaMetadata?.id,
+                                isActive = item.playlist.id == mediaMetadata?.id,
                                 currentSongId = mediaMetadata?.id,
                                 isPlaying = isPlaying,
                                 navController = navController,
                                 onCardClick = {
-                                    navController.navigate("online_playlist/${item.playlist.id}?author=${item.playlist.author?.name}")
+                                    navController.navigate("online_playlist/${item.playlist.id}")
                                 },
                                 onCardLongClick = {
                                     menuState.show {
@@ -1019,18 +1043,16 @@ fun HomeScreen(
 
             homePage?.sections?.forEach { section ->
                 val hasOnlyVideos = section.items.all { it is SongItem && it.isVideoSong }
-                val isNewReleaseAlbums = section.items.all { it is AlbumItem }
-                val isYouTubePlaylists = section.items.all { it is PlaylistItem && it.id.startsWith("RDCLAK5") }
-                val isMixesForYou = section.items.all { it is PlaylistItem && it.id.startsWith("RDTMAK5") }
-                val isCharts = section.items.first().let { firstItem ->
-                    firstItem is PlaylistItem && listOf("OLAK5", "PL4").any { firstItem.id.startsWith(it) }
-                }
-                val isLibraryMaybe = section.endpoint?.browseId?.startsWith("FEmusic_library")
+                val isMoodsAndGenres = section.endpoint?.browseId?.startsWith("FEmusic_moods_and_genres")
+                val isNewReleaseAlbums = section.endpoint?.browseId?.startsWith("FEmusic_new_releases")
+                val isMixesForYou = section.endpoint?.browseId?.startsWith("FEmusic_mixed_for_you")
+                val isCharts = section.endpoint?.browseId?.startsWith("FEmusic_charts")
+                val isLibrary = section.endpoint?.browseId?.startsWith("FEmusic_library")
                 item {
                     NavigationTitle(
                         title = section.title,
                         label = section.label,
-                        enabledOnclick = !hasOnlyVideos && !isYouTubePlaylists,
+                        enabledOnclick = !hasOnlyVideos,
                         thumbnail = section.thumbnail?.let { thumbnailUrl ->
                             {
                                 val shape =
@@ -1051,9 +1073,10 @@ fun HomeScreen(
                             {
                                 when {
                                     endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate("artist/${endpoint.browseId}")
-                                    endpoint.params != null && (isNewReleaseAlbums) -> navController.navigate("new_release")
-                                    endpoint.params != null && (isLibraryMaybe == true) -> navController.navigate("library")
-                                    endpoint.params != null && (isMixesForYou || isCharts) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    endpoint.params != null && (isNewReleaseAlbums == true) -> navController.navigate("new_release")
+                                    endpoint.params != null && (isLibrary == true) -> navController.navigate("library")
+                                    endpoint.params != null && (isMixesForYou == true || isCharts == true) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    endpoint.params != null && (isMoodsAndGenres == true) -> navController.navigate("mood_and_genres")
                                     else ->  navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
                                 }
                             }

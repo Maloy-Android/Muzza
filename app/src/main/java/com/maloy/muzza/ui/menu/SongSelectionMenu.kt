@@ -148,6 +148,7 @@ fun SongSelectionMenu(
             playerConnection.playQueue(
                 ListQueue(
                     items = selection.map { it.toMediaItem() },
+                    title = context.getString(R.string.multiselect_queue_title)
                 ),
             )
             onExitSelectionMode()
@@ -163,6 +164,7 @@ fun SongSelectionMenu(
             playerConnection.playQueue(
                 ListQueue(
                     items = selection.shuffled().map { it.toMediaItem() },
+                    title = context.getString(R.string.multiselect_queue_title)
                 ),
             )
             onExitSelectionMode()

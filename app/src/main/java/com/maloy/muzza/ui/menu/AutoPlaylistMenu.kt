@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -55,6 +56,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.completed
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
@@ -67,6 +69,7 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.ui.component.AutoPlaylistListItem
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
@@ -81,11 +84,14 @@ import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.collections.contains
 
 @Composable
 fun AutoPlaylistMenu(
     playlist: Playlist,
+    playlistAuthor: String? = null,
+    showRadioButton: Boolean = false,
     navController: NavController,
     coroutineScope: CoroutineScope,
     songs: List<Song>?,
@@ -245,72 +251,157 @@ fun AutoPlaylistMenu(
                 .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        onDismiss()
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.playlist.name,
-                                items = songs.map { it.toMediaItem() })
-                        )
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.play),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.play),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            if (showRadioButton) {
+                Column(
                     modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            coroutineScope.launch {
+                                withContext(Dispatchers.IO) {
+                                    YouTube.playlist("LM").completed()
+                                        .getOrNull()?.playlist
+                                }.let { playlist ->
+                                    if (playlist != null) {
+                                        playerConnection.playQueue(
+                                            YouTubePlaylistQueue(
+                                                playlistId = playlist.id,
+                                                endpoint = playlist.radioEndpoint ?: return@let,
+                                            )
+                                        )
+                                    } else {
+                                        Toast.makeText(context, R.string.unknow_playlist_radio_error, Toast.LENGTH_LONG)
+                                            .show()
+                                    }
+                                }
+                            }
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.radio),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.start_radio),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = playlist.playlist.name,
+                                    items = songs.map { it.toMediaItem() })
+                            )
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.play),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
             }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        onDismiss()
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.playlist.name,
-                                items = songs.shuffled()
-                                    .map { it.toMediaItem() })
-                        )
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.shuffle),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.shuffle),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+            if (showRadioButton) {
+                Column(
                     modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = playlist.playlist.name,
+                                    items = songs.map { it.toMediaItem() })
+                            )
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.play),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.play),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = playlist.playlist.name,
+                                    items = songs.shuffled()
+                                        .map { it.toMediaItem() })
+                            )
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.shuffle),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.shuffle),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
             }
 
             Column(
@@ -353,6 +444,22 @@ fun AutoPlaylistMenu(
         )
     ) {
         if (songs.isNotEmpty()) {
+            if (showRadioButton) {
+                ListMenuItem(
+                    icon = R.drawable.shuffle,
+                    title = R.string.shuffle
+                ) {
+                    onDismiss()
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist.playlist.name,
+                            items = songs.shuffled().map { it.toMediaItem() })
+                    )
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
             ListMenuItem(
                 icon = R.drawable.playlist_play,
                 title = R.string.play_next
@@ -368,6 +475,18 @@ fun AutoPlaylistMenu(
                 title = R.string.add_to_playlist
             ) {
                 showChoosePlaylistDialog = true
+            }
+            if (playlistAuthor != null) {
+                item {
+                    HorizontalDivider()
+                }
+                ListMenuItem(
+                    icon = R.drawable.artist,
+                    title = R.string.view_playlist_creator
+                ) {
+                    navController.navigate("artist/${playlistAuthor}")
+                    onDismiss()
+                }
             }
         }
         if (!showSyncLocalSongsButton && songs.isNotEmpty()) {

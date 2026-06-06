@@ -81,8 +81,8 @@ fun SwipeToSongBox(
             val (iconRes, bg, tint, align) = if (offset.floatValue > 0)
                 Quadruple(
                     R.drawable.playlist_play,
-                    MaterialTheme.colorScheme.secondary,
-                    MaterialTheme.colorScheme.onSecondary,
+                    MaterialTheme.colorScheme.primary,
+                    MaterialTheme.colorScheme.onPrimary,
                     Alignment.CenterStart
                 ) else
                 Quadruple(

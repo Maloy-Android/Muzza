@@ -66,7 +66,6 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
-import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -342,17 +341,15 @@ fun MiniMediaInfo(
     ) {
         Box(modifier = Modifier.padding(6.dp)) {
             if (mediaMetadata.isLocal) {
-                mediaMetadata.let {
-                    AsyncLocalImage(
-                        image = { imageCache.getLocalThumbnail(it.localPath, false) },
-                        contentDescription = null,
-                        contentScale = contentScale,
-                        modifier = Modifier
-                            .size(48.dp)
-                            .aspectRatio(1f)
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                    )
-                }
+                AsyncLocalImage(
+                    image = mediaMetadata.thumbnailUrl,
+                    contentDescription = null,
+                    contentScale = contentScale,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .aspectRatio(1f)
+                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                )
             } else {
                 AsyncImage(
                     model = mediaMetadata.thumbnailUrl,

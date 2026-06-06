@@ -67,7 +67,7 @@ class MusicDatabase(
         SortedSongAlbumMap::class,
         PlaylistSongMapPreview::class
     ],
-    version = 23,
+    version = 24,
     exportSchema = true,
     autoMigrations = [
         AutoMigration(from = 2, to = 3),
@@ -90,7 +90,8 @@ class MusicDatabase(
         AutoMigration(from = 19, to = 20, spec = Migration19To20::class),
         AutoMigration(from = 20, to = 21),
         AutoMigration(from = 21, to = 22),
-        AutoMigration(from = 22, to = 23, spec = Migration22To23::class)
+        AutoMigration(from = 22, to = 23, spec = Migration22To23::class),
+        AutoMigration(from = 23, to = 24)
     ]
 )
 @TypeConverters(Converters::class)
@@ -108,6 +109,7 @@ abstract class InternalDatabase : RoomDatabase() {
                     .addMigrations(MIGRATION_19_20)
                     .addMigrations(MIGRATION_20_21)
                     .addMigrations(MIGRATION_21_22)
+                    .addMigrations(MIGRATION_22_23)
                     .build()
             )
     }
@@ -442,6 +444,7 @@ val MIGRATION_19_20 = object : Migration(19, 20) {
     DeleteColumn(tableName = "song", columnName = "likedDate"),
     DeleteColumn(tableName = "album", columnName = "likedDate"),
     DeleteColumn(tableName = "album", columnName = "inLibrary"),
+    DeleteColumn(tableName = "playlist", columnName = "playlistAuthors")
 )
 @DeleteTable(
     tableName = "playCount"
@@ -475,5 +478,15 @@ val MIGRATION_21_22 = object : Migration(21, 22) {
         database.execSQL("ALTER TABLE artist ADD COLUMN isProfile INTEGER NOT NULL DEFAULT 0")
     }
 }
+
+val MIGRATION_22_23 = object : Migration(22, 23) {
+    override fun migrate(database: SupportSQLiteDatabase) {
+        database.execSQL("ALTER TABLE playlist ADD COLUMN description INTEGER NOT NULL DEFAULT 0")
+    }
+}
+
+@DeleteColumn.Entries(
+    DeleteColumn(tableName = "playlist", columnName = "playlistAuthors")
+)
 
 class Migration22To23 : AutoMigrationSpec

@@ -9,8 +9,6 @@ import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -73,7 +71,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
@@ -90,7 +87,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -98,12 +94,16 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastAny
@@ -124,7 +124,6 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
-import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AccountImageUrlKey
 import com.maloy.muzza.constants.AccountNameKey
@@ -146,6 +145,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
@@ -447,6 +447,7 @@ fun LocalPlaylistScreen(
                             LocalPlaylistHeader(
                                 playlist = playlist,
                                 songs = songs,
+                                navController = navController,
                                 onShowEditDialog = { showEditDialog = true },
                                 onShowRemoveDownloadDialog = { showRemoveDownloadDialog = true },
                                 snackbarHostState = snackbarHostState,
@@ -867,7 +868,8 @@ fun LocalPlaylistScreen(
                                     playlist = playlist!!,
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss,
-                                    showDeleteButton = false
+                                    showDeleteButton = false,
+                                    navController = navController
                                 )
                             }
                         }
@@ -899,6 +901,7 @@ fun LocalPlaylistScreen(
 fun LocalPlaylistHeader(
     playlist: Playlist,
     songs: List<PlaylistSong>,
+    navController: NavController,
     onShowEditDialog: () -> Unit,
     onShowRemoveDownloadDialog: () -> Unit,
     snackbarHostState: SnackbarHostState,
@@ -907,17 +910,6 @@ fun LocalPlaylistHeader(
     val playerConnection = LocalPlayerConnection.current ?: return
     val context = LocalContext.current
     val database = LocalDatabase.current
-    val syncUtils = LocalSyncUtils.current
-    val scope = rememberCoroutineScope()
-
-    val playlistAuthors = playlist.playlist.playlistAuthors
-
-    var refetchIconDegree by remember { mutableFloatStateOf(0f) }
-    val rotationAnimation by animateFloatAsState(
-        targetValue = refetchIconDegree,
-        animationSpec = tween(durationMillis = 800),
-        label = ""
-    )
 
     val playlistLength = remember(songs) {
         songs.fastSumBy { it.song.song.duration }
@@ -937,7 +929,7 @@ fun LocalPlaylistHeader(
     val accountName by rememberPreference(AccountNameKey, "")
 
     val playlistUserTitle = isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal
-    val playlistAuthorTitle = playlistAuthors?.isEmpty() != true && !playlist.playlist.isLocal
+    val playlistUserAvatar = isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal
 
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
@@ -1141,38 +1133,71 @@ fun LocalPlaylistHeader(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                if (isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(RoundedCornerShape(16.dp))
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                    ) {
-                        AsyncImage(
-                            model = accountImageUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .clip(RoundedCornerShape(16.dp))
-                        )
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(MaterialTheme.colorScheme.surfaceVariant)
+                ) {
+                    playlist.playlist.playlistAuthorAvatarUrl.let { imageUrl ->
+                        playlist.playlist.playlistAuthorsId.let { authorId ->
+                            if ((playlistUserAvatar || imageUrl.isNullOrEmpty())) {
+                                AsyncImage(
+                                    model = if (playlistUserAvatar) accountImageUrl else imageUrl,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .clickable(enabled = !playlistUserAvatar && !authorId.isNullOrEmpty()) {
+                                            navController.navigate("artist/${authorId}")
+                                        }
+                                )
+                            }
+                        }
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
                 }
+                Spacer(modifier = Modifier.width(8.dp))
 
-                Text(
-                    text = if (playlistUserTitle) {
-                        accountName
-                    } else if (playlistAuthorTitle) {
-                        playlistAuthors ?: stringResource(R.string.unknow_playlist_author)
-                    } else {
-                        stringResource(R.string.playlist_author)
-                    },
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Normal,
-                        color = MaterialTheme.colorScheme.onBackground
+                if (playlist.playlist.isLocal && playlist.playlist.playlistAuthorName.isNullOrEmpty()) {
+                    Text(
+                        text = if (playlistUserTitle) {
+                            accountName
+                        } else {
+                            stringResource(R.string.playlist_author)
+                        },
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Normal,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
                     )
-                )
+                } else {
+                    Text(
+                        buildAnnotatedString {
+                            withStyle(
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.Normal,
+                                    color = MaterialTheme.colorScheme.onBackground
+                                ).toSpanStyle()
+                            ) {
+                                playlist.playlist.playlistAuthorsId.let { authorId ->
+                                    playlist.playlist.playlistAuthorName!!.let { authorName ->
+                                        val link = authorId.let {
+                                            LinkAnnotation.Clickable(authorName) {
+                                                if (!authorId.isNullOrEmpty()) {
+                                                    navController.navigate("artist/${authorId}")
+                                                }
+                                            }
+                                        }
+                                        withLink(link) {
+                                            append(authorName)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    )
+                }
             }
 
             Text(
@@ -1180,6 +1205,18 @@ fun LocalPlaylistHeader(
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Normal
             )
+
+            playlist.playlist.description.let { description ->
+                if (!description.isNullOrBlank() && !playlist.playlist.isLocal) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    ExpandableText(
+                        text = description,
+                        modifier = Modifier.padding(horizontal = 32.dp),
+                        collapsedMaxLines = 3,
+                    )
+                }
+            }
+
             Spacer(Modifier.height(12.dp))
             Row(
                 horizontalArrangement = Arrangement.SpaceEvenly,
@@ -1276,44 +1313,21 @@ fun LocalPlaylistHeader(
                         }
                     }
                 }
-                if (playlist.playlist.browseId != null && isInternetAvailable(context)) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            refetchIconDegree -= 360
-                            scope.launch(Dispatchers.IO) {
-                                syncUtils.syncPlaylist(playlist.playlist.browseId, playlist.id)
-                                snackbarHostState.showSnackbar(context.getString(R.string.playlist_synced))
-                            }
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.sync),
-                            contentDescription = null,
-                            modifier = Modifier.graphicsLayer(rotationZ = rotationAnimation)
+                Button(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(4.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    onClick = {
+                        playerConnection.addToQueue(
+                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
                         )
                     }
-                }
-                if (playlist.playlist.browseId == null) {
-                    Button(
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(4.dp)
-                            .clip(RoundedCornerShape(12.dp)),
-                        onClick = {
-                            playerConnection.addToQueue(
-                                items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) },
-                            )
-                        }
-                    ) {
-                        Icon(
-                            painter = painterResource(R.drawable.queue_music),
-                            contentDescription = null,
-                        )
-                    }
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.queue_music),
+                        contentDescription = null,
+                    )
                 }
                 if (!playlist.playlist.isLocal) {
                     Button(

@@ -94,6 +94,7 @@ import com.maloy.muzza.R
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
 import com.maloy.muzza.constants.likedMusicThumbnailKey
 import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
@@ -152,6 +153,7 @@ fun LibraryMixScreen(
 
     val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
     val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
+    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
 
     val artists by viewModel.allArtists.collectAsState()
 
@@ -341,13 +343,15 @@ fun LibraryMixScreen(
                         .padding(horizontal = 16.dp)
                         .combinedClickable(
                             onClick = {
-                                navController.navigate("auto_playlist/liked")
+                                navController.navigate("auto_playlist/liked_songs")
                             },
                             onLongClick = {
                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 menuState.show {
                                     AutoPlaylistMenu(
                                         playlist = likedMusicPlaylist,
+                                        playlistAuthor = accountId,
+                                        showRadioButton = isLoggedIn && isInternetAvailable(context),
                                         navController = navController,
                                         thumbnail = likedMusicThumbnail,
                                         iconThumbnail = Icons.Rounded.Favorite,
@@ -676,7 +680,7 @@ fun LibraryMixScreen(
                                         .combinedClickable(
                                             onClick = {
                                                 when (playlist.id) {
-                                                    "downloaded" -> navController.navigate("auto_playlist/downloaded")
+                                                    "downloaded" -> navController.navigate("auto_playlist/downloaded_songs")
                                                     "top" -> navController.navigate("top_playlist/$topSize")
                                                     "cached" -> navController.navigate("CachedPlaylist")
                                                     "local" -> navController.navigate("AutoPlaylistLocal")

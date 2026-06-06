@@ -192,7 +192,7 @@ fun LibraryPlaylistsScreen(
     } else {
         playlists?.filter { playlists ->
             playlists.title.contains(searchQueryStr, ignoreCase = true) ||
-                    playlists.playlist.playlistAuthors
+                    playlists.playlist.playlistAuthorName
                         ?.contains(searchQueryStr, ignoreCase = true) == true
         }
     }
@@ -397,7 +397,8 @@ fun LibraryPlaylistsScreen(
                                                     PlaylistMenu(
                                                         playlist = playlist,
                                                         coroutineScope = coroutineScope,
-                                                        onDismiss = menuState::dismiss
+                                                        onDismiss = menuState::dismiss,
+                                                        navController = navController
                                                     )
                                                 }
                                             }
@@ -422,6 +423,7 @@ fun LibraryPlaylistsScreen(
                                                             playlist = playlist,
                                                             coroutineScope = coroutineScope,
                                                             onDismiss = menuState::dismiss,
+                                                            navController = navController
                                                         )
                                                     }
                                                 },
@@ -497,6 +499,7 @@ fun LibraryPlaylistsScreen(
                                     isPlaying = isPlaying,
                                     fillMaxWidth = true,
                                     coroutineScope = coroutineScope,
+                                    navController = navController,
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .combinedClickable(
@@ -509,7 +512,8 @@ fun LibraryPlaylistsScreen(
                                                     PlaylistMenu(
                                                         playlist = playlist,
                                                         coroutineScope = coroutineScope,
-                                                        onDismiss = menuState::dismiss
+                                                        onDismiss = menuState::dismiss,
+                                                        navController = navController
                                                     )
                                                 }
                                             }

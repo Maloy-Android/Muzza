@@ -467,7 +467,7 @@ fun ArtistScreen(
                         Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
-                if (!isLoggedIn && librarySongs.isNotEmpty()) {
+                if ((!isLoggedIn && librarySongs.isNotEmpty()) || artistPage.artist.isProfile) {
                     item {
                         NavigationTitle(
                             title = stringResource(R.string.from_your_library),
@@ -654,8 +654,10 @@ fun ArtistScreen(
                                                 when (item) {
                                                     is AlbumItem -> navController.navigate("album/${item.id}")
                                                     is ArtistItem -> navController.navigate("artist/${item.id}")
-                                                    is PlaylistItem -> navController.navigate("online_playlist/${item.id}?author=${item.author?.name}")
-                                                    is SongItem -> false
+                                                    is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
+                                                    is SongItem -> if (mediaMetadata?.id == item.id){
+                                                        playerConnection.togglePlayPause()
+                                                    }
                                                 }
                                             }, onLongClick = {
                                                 haptic.performHapticFeedback(HapticFeedbackType.LongPress)

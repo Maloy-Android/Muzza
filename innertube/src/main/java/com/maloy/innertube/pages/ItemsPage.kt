@@ -1,4 +1,4 @@
-package com.maloy.muzza.models
+package com.maloy.innertube.pages
 
 import com.maloy.innertube.models.YTItem
 

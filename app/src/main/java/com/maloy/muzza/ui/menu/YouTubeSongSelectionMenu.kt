@@ -10,6 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.innertube.models.SongItem
@@ -33,6 +34,7 @@ fun YouTubeSongSelectionMenu(
     showPlayNextButton : Boolean = true,
     onHistoryRemoved: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -98,6 +100,7 @@ fun YouTubeSongSelectionMenu(
             playerConnection.playQueue(
                 ListQueue(
                     items = selection.map { it.toMediaItem() },
+                    title = context.getString(R.string.multiselect_queue_title)
                 ),
             )
             onExitSelectionMode()
@@ -113,6 +116,7 @@ fun YouTubeSongSelectionMenu(
             playerConnection.playQueue(
                 ListQueue(
                     items = selection.shuffled().map { it.toMediaItem() },
+                    title = context.getString(R.string.multiselect_queue_title)
                 ),
             )
             onExitSelectionMode()

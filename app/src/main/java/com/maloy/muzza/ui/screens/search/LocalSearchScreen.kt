@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -43,6 +45,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
@@ -139,13 +143,11 @@ fun LocalSearchScreen(
                         key = filter
                     ) {
                         Row(
-                            horizontalArrangement = Arrangement.spacedBy(16.dp),
-                            verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .height(ListItemHeight)
+                                .padding(horizontal = 16.dp, vertical = 16.dp)
                                 .clickable { viewModel.filter.value = filter }
-                                .padding(start = 12.dp, end = 18.dp)
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
                                 text = stringResource(
@@ -158,12 +160,17 @@ fun LocalSearchScreen(
                                     }
                                 ),
                                 style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
                                 modifier = Modifier.weight(1f)
                             )
-
+                            Spacer(Modifier.width(1.dp))
                             Icon(
-                                painter = painterResource(R.drawable.navigate_next),
-                                contentDescription = null
+                                painter = painterResource(R.drawable.arrow_forward),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
                             )
                         }
                     }
@@ -178,6 +185,7 @@ fun LocalSearchScreen(
                         is Song -> SongListItem(
                             song = item,
                             isActive = item.id == mediaMetadata?.id,
+                            showInLibraryIcon = true,
                             isPlaying = isPlaying,
                             trailingContent = {
                                 IconButton(
@@ -213,10 +221,10 @@ fun LocalSearchScreen(
                                                 .map { it.toMediaItem() }
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                title = "${context.getString(R.string.queue_searched_songs)}: $query",
-                                                items = songs,
-                                                startIndex = songs.indexOfFirst { it.mediaId == item.id }
-                                            ))
+                                                    title = "${context.getString(R.string.queue_searched_songs)}: $query",
+                                                    items = songs,
+                                                    startIndex = songs.indexOfFirst { it.mediaId == item.id }
+                                                ))
                                         }
                                     },
                                     onLongClick = {
@@ -344,7 +352,8 @@ fun LocalSearchScreen(
                                                 onDismiss = {
                                                     onDismiss()
                                                     menuState.dismiss()
-                                                }
+                                                },
+                                                navController = navController
                                             )
                                         }
                                     }
@@ -370,7 +379,8 @@ fun LocalSearchScreen(
                                                 onDismiss = {
                                                     onDismiss()
                                                     menuState.dismiss()
-                                                }
+                                                },
+                                                navController = navController
                                             )
                                         }
                                     }

@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.media3.common.Timeline
@@ -126,6 +127,7 @@ fun QueueSelectionMenu(
             playerConnection.playQueue(
                 ListQueue(
                     items = selection.map { it.mediaItem },
+                    title = context.getString(R.string.multiselect_queue_title)
                 ),
             )
             onExitSelectionMode()
@@ -141,6 +143,7 @@ fun QueueSelectionMenu(
             playerConnection.playQueue(
                 ListQueue(
                     items = selection.map { it.mediaItem }.shuffled(),
+                    title = context.getString(R.string.multiselect_queue_title)
                 )
             )
             onExitSelectionMode()

@@ -12,7 +12,7 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.pages.SearchSummaryPage
 import com.maloy.muzza.constants.HideExplicitKey
-import com.maloy.muzza.models.ItemsPage
+import com.maloy.innertube.pages.ItemsPage
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.reportException

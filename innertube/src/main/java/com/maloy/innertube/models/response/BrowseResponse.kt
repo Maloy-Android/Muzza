@@ -4,6 +4,7 @@ import com.maloy.innertube.models.Button
 import com.maloy.innertube.models.Continuation
 import com.maloy.innertube.models.GridRenderer
 import com.maloy.innertube.models.Menu
+import com.maloy.innertube.models.MusicDescriptionShelfRenderer
 import com.maloy.innertube.models.MusicShelfRenderer
 import com.maloy.innertube.models.ResponseContext
 import com.maloy.innertube.models.Runs
@@ -158,6 +159,8 @@ data class BrowseResponse(
             val secondSubtitle: Runs?,
             val straplineTextOne: Runs?,
             val straplineThumbnail: MusicThumbnailRenderer?,
+            val description: DescriptionWrapper? = null,
+            val facepile: FacepileWrapper? = null,
         )
 
         @Serializable
@@ -181,4 +184,70 @@ data class BrowseResponse(
             val urlCanonical: String?,
         )
     }
+    @Serializable
+    data class AvatarStackViewModel(
+        val avatars: List<Avatar>?,
+        val text: AvatarText?,
+        val rendererContext: RendererContext?,
+    ) {
+        @Serializable
+        data class Avatar(
+            val avatarViewModel: AvatarViewModel?,
+        )
+
+        @Serializable
+        data class AvatarViewModel(
+            val image: AvatarImage?,
+        )
+
+        @Serializable
+        data class AvatarImage(
+            val sources: List<ImageSource>?,
+        )
+
+        @Serializable
+        data class ImageSource(
+            val url: String?,
+        )
+
+        @Serializable
+        data class AvatarText(
+            val content: String?,
+        )
+
+        @Serializable
+        data class RendererContext(
+            val commandContext: CommandContext?,
+        )
+
+        @Serializable
+        data class CommandContext(
+            val onTap: OnTap?,
+        )
+
+        @Serializable
+        data class OnTap(
+            val innertubeCommand: InnerTubeBrowseCommand?,
+        )
+
+        @Serializable
+        data class InnerTubeBrowseCommand(
+            val browseEndpoint: BrowseEndpoint?,
+        )
+
+        @Serializable
+        data class BrowseEndpoint(
+            val browseId: String?,
+        )
+    }
+
+    @Serializable
+    data class DescriptionWrapper(
+        val musicDescriptionShelfRenderer: MusicDescriptionShelfRenderer?,
+    )
+
+    @Serializable
+    data class FacepileWrapper(
+        val avatarStackViewModel: AvatarStackViewModel?,
+    )
 }

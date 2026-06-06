@@ -5,6 +5,7 @@ import android.content.Intent
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -81,11 +82,15 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.LinkAnnotation
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.withLink
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.fastSumBy
@@ -103,8 +108,6 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.LocalSyncUtils
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AccountImageUrlKey
-import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.ListItemHeight
@@ -125,6 +128,7 @@ import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.FontSizeRange
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
@@ -137,7 +141,6 @@ import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.PlaylistAlbumItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
-import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
@@ -174,7 +177,6 @@ fun OnlinePlaylistScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val playlist by viewModel.playlist.collectAsState()
-    val authors by viewModel.playlistAuthor.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
 
@@ -186,9 +188,6 @@ fun OnlinePlaylistScreen(
     val syncUtils = LocalSyncUtils.current
 
     val isLoading by viewModel.isLoading.collectAsState()
-
-    val accountName by rememberPreference(AccountNameKey, "")
-    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
@@ -390,7 +389,7 @@ fun OnlinePlaylistScreen(
                                             .combinedClickable(
                                                 onClick = {
                                                     menuState.show {
-                                                        YouTubePlaylistMenu(
+                                                        YouTubePlaylistMenuInPlaylistScreen(
                                                             navController = navController,
                                                             playlist = playlist,
                                                             songs = songs,
@@ -409,44 +408,57 @@ fun OnlinePlaylistScreen(
                                         horizontalArrangement = Arrangement.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        if (playlist.id == "LM") {
-                                            if (accountImageUrl.isNotEmpty()) {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .size(32.dp)
-                                                        .clip(RoundedCornerShape(16.dp))
-                                                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                                                ) {
-                                                    AsyncImage(
-                                                        model = accountImageUrl,
-                                                        contentDescription = null,
-                                                        contentScale = ContentScale.Crop,
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .clip(RoundedCornerShape(16.dp))
-                                                    )
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .clip(RoundedCornerShape(16.dp))
+                                                .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        ) {
+                                            playlist.authorAvatarUrl.let { imageUrl ->
+                                                playlist.author?.id.let { authorId ->
+                                                    if (!imageUrl.isNullOrEmpty()) {
+                                                        AsyncImage(
+                                                            model = imageUrl,
+                                                            contentDescription = null,
+                                                            contentScale = ContentScale.Crop,
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .clip(RoundedCornerShape(16.dp))
+                                                                .clickable(enabled = !authorId.isNullOrEmpty()) {
+                                                                    navController.navigate("artist/${authorId}")
+                                                                }
+                                                        )
+                                                    }
                                                 }
-                                                Spacer(modifier = Modifier.width(8.dp))
                                             }
+                                        }
+                                        Spacer(modifier = Modifier.width(8.dp))
 
-                                            if (playlist.id == "LM" && accountName.isNotEmpty()) {
-                                                Text(
-                                                    text = accountName,
+                                        Text(
+                                            buildAnnotatedString {
+                                                withStyle(
                                                     style = MaterialTheme.typography.titleMedium.copy(
                                                         fontWeight = FontWeight.Normal,
                                                         color = MaterialTheme.colorScheme.onBackground
-                                                    )
-                                                )
+                                                    ).toSpanStyle()
+                                                ) {
+                                                    playlist.author.let { author ->
+                                                        val link = author?.let {
+                                                            LinkAnnotation.Clickable(it.name) {
+                                                                if (!author.id.isNullOrEmpty()) {
+                                                                    navController.navigate("artist/${author.id}")
+                                                                }
+                                                            }
+                                                        }
+                                                        link?.let { link ->
+                                                            withLink(link) {
+                                                                append(author.name)
+                                                            }
+                                                        }
+                                                    }
+                                                }
                                             }
-                                        } else if (playlist.id != "LM" && authors?.isNotEmpty() == true) {
-                                            Text(
-                                                text = authors!!,
-                                                style = MaterialTheme.typography.titleMedium.copy(
-                                                    fontWeight = FontWeight.Normal,
-                                                    color = MaterialTheme.colorScheme.onBackground
-                                                )
-                                            )
-                                        }
+                                        )
                                     }
 
                                     Text(
@@ -454,6 +466,17 @@ fun OnlinePlaylistScreen(
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.Normal
                                     )
+
+                                    playlist.description.let { description ->
+                                        if (!description.isNullOrBlank()) {
+                                            Spacer(modifier = Modifier.height(4.dp))
+                                            ExpandableText(
+                                                text = description,
+                                                modifier = Modifier.padding(horizontal = 32.dp),
+                                                collapsedMaxLines = 3,
+                                            )
+                                        }
+                                    }
 
                                     Spacer(Modifier.height(12.dp))
 
@@ -465,7 +488,9 @@ fun OnlinePlaylistScreen(
                                                         database.transaction {
                                                             val playlistEntity = PlaylistEntity(
                                                                 name = playlist.title,
-                                                                playlistAuthors = authors!!,
+                                                                playlistAuthorsId = playlist.author?.id,
+                                                                playlistAuthorName = playlist.author?.name,
+                                                                playlistAuthorAvatarUrl = playlist.authorAvatarUrl,
                                                                 browseId = playlist.id,
                                                                 thumbnailUrl = playlist.thumbnail,
                                                                 isEditable = true,
@@ -476,7 +501,8 @@ fun OnlinePlaylistScreen(
                                                                 },
                                                                 playEndpointParams = playlist.playEndpoint?.params,
                                                                 shuffleEndpointParams = playlist.shuffleEndpoint?.params,
-                                                                radioEndpointParams = playlist.radioEndpoint?.params
+                                                                radioEndpointParams = playlist.radioEndpoint?.params,
+                                                                description = playlist.description
                                                             ).toggleLike()
                                                             insert(playlistEntity)
                                                             songs.map(SongItem::toMediaMetadata)
@@ -604,8 +630,7 @@ fun OnlinePlaylistScreen(
                                                         playerConnection.playQueue(
                                                             YouTubePlaylistQueue(
                                                                 radioEndpoint,
-                                                                playlistId = playlist.id,
-                                                                playListAuthor = authors!!
+                                                                playlistId = playlist.id
                                                             )
                                                         )
                                                     },
@@ -626,8 +651,7 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id,
-                                                            playListAuthor = authors!!
+                                                            playlist.id
                                                         )
                                                     })
                                                 },
@@ -648,8 +672,7 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.addToQueue(songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id,
-                                                            playListAuthor = authors!!
+                                                            playlist.id
                                                         )
                                                     })
                                                 },
@@ -705,8 +728,7 @@ fun OnlinePlaylistScreen(
                                                     title = playlist.title,
                                                     items = songs.map {
                                                         it.toMediaItemWithPlaylist(
-                                                            playlist.id,
-                                                            playListAuthor = authors!!
+                                                            playlist.id
                                                         )
                                                     }
                                                 )
@@ -729,7 +751,7 @@ fun OnlinePlaylistScreen(
                                                 ListQueue(
                                                     title = playlist.title,
                                                     items = songs.shuffled()
-                                                        .map { it.toMediaItemWithPlaylist(playlist.id, playListAuthor = authors!!) }
+                                                        .map { it.toMediaItemWithPlaylist(playlist.id) }
                                                 )
                                             )
                                         },
@@ -852,8 +874,7 @@ fun OnlinePlaylistScreen(
                                                         title = playlist.title,
                                                         items = songs.map {
                                                             it.toMediaItemWithPlaylist(
-                                                                playlist.id,
-                                                                playListAuthor = authors!!
+                                                                playlist.id
                                                             )
                                                         },
                                                         startIndex = songs.indexOf(song)
@@ -945,8 +966,7 @@ fun OnlinePlaylistScreen(
                             title = playlist!!.title,
                             items = songs.map {
                                 it.toMediaItemWithPlaylist(
-                                    playlist.id,
-                                    playListAuthor = authors!!
+                                    playlist.id
                                 )
                             }
                         )
@@ -1093,8 +1113,8 @@ fun OnlinePlaylistScreen(
                                     songs = songs,
                                     coroutineScope = coroutineScope,
                                     onDismiss = menuState::dismiss,
-                                    playlistAuthors = authors,
-                                    playlistSongCount = playlist!!.songCountText
+                                    playlistAuthors = playlist!!.author?.name,
+                                    playlistSongCount = makeTimeString(songsLength * 1000L)
                                 )
                             }
                         }

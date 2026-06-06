@@ -123,7 +123,7 @@ interface DatabaseDao {
     fun localSongsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isLocal ORDER BY inLibrary")
+    @Query("SELECT * FROM song WHERE isLocal ORDER BY rowId")
     fun localSongsByCreateDateAsc(): Flow<List<Song>>
 
     @Transaction
@@ -365,6 +365,10 @@ interface DatabaseDao {
     @Transaction
     @Query("SELECT * FROM format WHERE id = :id")
     fun format(id: String?): Flow<FormatEntity?>
+
+    @Transaction
+    @Query("SELECT * FROM format WHERE id = :id")
+    suspend fun formatOnce(id: String?): FormatEntity?
 
     @Query("SELECT * FROM lyrics WHERE id = :id")
     fun lyrics(id: String?): Flow<LyricsEntity?>
@@ -640,11 +644,15 @@ interface DatabaseDao {
                 name = playlistItem.title,
                 browseId = playlistItem.id,
                 thumbnailUrl = playlistItem.thumbnail,
+                playlistAuthorsId = playlistItem.author?.id,
+                playlistAuthorName = playlistItem.author?.name,
+                playlistAuthorAvatarUrl = playlistItem.authorAvatarUrl,
                 isEditable = true,
                 remoteSongCount = playlistItem.songCountText?.let { Regex("""\d+""").find(it)?.value?.toIntOrNull() },
                 playEndpointParams = playlistItem.playEndpoint?.params,
                 shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
-                radioEndpointParams = playlistItem.radioEndpoint?.params
+                radioEndpointParams = playlistItem.radioEndpoint?.params,
+                description = playlistItem.description
             )
         )
     }

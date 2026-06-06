@@ -36,6 +36,7 @@ fun SpeedDialGridItem(
     modifier: Modifier = Modifier,
     isActive: Boolean = false,
     isPlaying: Boolean = false,
+    videoThumbnailSize: Boolean = true
 ) {
     Box(
         modifier = modifier
@@ -44,6 +45,10 @@ fun SpeedDialGridItem(
     ) {
         ItemThumbnail(
             thumbnailUrl = item.thumbnail.resize(1080, 1080),
+<<<<<<< yaebal
+=======
+            videoThumbnailSize = videoThumbnailSize,
+>>>>>>> main
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),

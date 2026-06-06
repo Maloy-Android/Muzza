@@ -63,7 +63,6 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.ui.component.AsyncLocalImage
 import com.maloy.muzza.ui.component.Lyrics
-import com.maloy.muzza.utils.imageCache
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.delay
@@ -190,7 +189,7 @@ fun Thumbnail(
 
                     if (metadata.isLocal) {
                         AsyncLocalImage(
-                            image = { imageCache.getLocalThumbnail(metadata.localPath, false) },
+                            image = metadata.thumbnailUrl,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = coverModifier

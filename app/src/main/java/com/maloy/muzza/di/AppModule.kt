@@ -11,7 +11,6 @@ import com.maloy.muzza.db.InternalDatabase
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.listentogether.ListenTogetherClient
 import com.maloy.muzza.listentogether.ListenTogetherManager
-import com.maloy.muzza.utils.LmImageCacheMgr
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
 import dagger.Module
@@ -46,11 +45,6 @@ object AppModule {
     @Provides
     fun provideDatabase(@ApplicationContext context: Context): MusicDatabase =
         InternalDatabase.newInstance(context)
-
-    @Provides
-    @Singleton
-    @ImageCache
-    fun provideImageCache(): LmImageCacheMgr = LmImageCacheMgr()
 
     @Singleton
     @Provides

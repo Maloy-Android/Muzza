@@ -76,7 +76,6 @@ import com.maloy.muzza.ui.component.SongProgressBar
 import com.maloy.muzza.ui.component.SwitchPreference
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.utils.SuperProperties
-import com.maloy.muzza.utils.imageCache
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 
@@ -364,12 +363,7 @@ fun RichPresence(song: Song?, currentPlaybackTimeMillis: Long = 0L) {
                 ) {
                     if (song?.song?.isLocal == true) {
                         AsyncLocalImage(
-                            image = {
-                                imageCache.getLocalThumbnail(
-                                    song.song.localPath,
-                                    false
-                                )
-                            },
+                            image = song.song.thumbnailUrl,
                             contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier

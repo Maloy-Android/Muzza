@@ -481,7 +481,7 @@ fun HistoryScreen(
         if (historySource == HistorySource.REMOTE) {
             filteredRemoteContent?.let { it ->
                 HideOnScrollFAB(
-                    visible = it.isNotEmpty(),
+                    visible = it.isNotEmpty() && !inSelectMode && !isSearching,
                     lazyListState = lazyListState,
                     icon = R.drawable.shuffle,
                     onClick = {
@@ -497,7 +497,7 @@ fun HistoryScreen(
             }
         } else {
             HideOnScrollFAB(
-                visible = filteredEventsMap.isNotEmpty(),
+                visible = filteredEventsMap.isNotEmpty() && !inSelectMode && !isSearching,
                 lazyListState = lazyListState,
                 icon = R.drawable.shuffle,
                 onClick = {

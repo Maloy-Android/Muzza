@@ -159,43 +159,24 @@ class SyncUtils @Inject constructor(
                 if (playlistEntity == null) {
                     val existingById = database.getPlaylistByBrowseId(playlistItem.id)
                     playlistEntity = if (existingById == null) {
-                        val newPlaylist = if (fragments != null) {
+                        val newPlaylist =
                             PlaylistEntity(
-                                name = fragments.name ?: playlistItem.title,
-                                playlistAuthorsId = fragments.playlistAuthorsId ?: playlistItem.author?.id,
-                                playlistAuthorName = fragments.playlistAuthorName ?: playlistItem.author?.name,
-                                playlistAuthorAvatarUrl = fragments.playlistAuthorAvatarUrl ?: playlistItem.authorAvatarUrl,
+                                name = fragments?.name ?: playlistItem.title,
+                                playlistAuthorsId = fragments?.playlistAuthorsId ?: playlistItem.author?.id,
+                                playlistAuthorName = fragments?.playlistAuthorName ?: playlistItem.author?.name,
+                                playlistAuthorAvatarUrl = fragments?.playlistAuthorAvatarUrl ?: playlistItem.authorAvatarUrl,
                                 browseId = playlistItem.id,
-                                thumbnailUrl = fragments.thumbnailUrl ?: playlistItem.thumbnail,
+                                thumbnailUrl = fragments?.thumbnailUrl ?: playlistItem.thumbnail,
                                 isEditable = true,
                                 bookmarkedAt = LocalDateTime.now(),
-                                remoteSongCount = fragments.remoteSongCount ?: playlistItem.songCountText?.let {
+                                remoteSongCount = fragments?.remoteSongCount ?: playlistItem.songCountText?.let {
                                     Regex("""\d+""").find(it)?.value?.toIntOrNull()
                                 },
-                                playEndpointParams = fragments.playEndpointParams ?: playlistItem.playEndpoint?.params,
-                                shuffleEndpointParams = fragments.shuffleEndpointParams ?: playlistItem.shuffleEndpoint?.params,
-                                radioEndpointParams = fragments.radioEndpointParams ?: playlistItem.radioEndpoint?.params,
-                                description = fragments.description ?: playlistItem.description,
+                                playEndpointParams = fragments?.playEndpointParams ?: playlistItem.playEndpoint?.params,
+                                shuffleEndpointParams = fragments?.shuffleEndpointParams ?: playlistItem.shuffleEndpoint?.params,
+                                radioEndpointParams = fragments?.radioEndpointParams ?: playlistItem.radioEndpoint?.params,
+                                description = fragments?.description ?: playlistItem.description,
                             )
-                        } else {
-                            PlaylistEntity(
-                                name = playlistItem.title,
-                                playlistAuthorsId = playlistItem.author?.id,
-                                playlistAuthorName = playlistItem.author?.name,
-                                playlistAuthorAvatarUrl = playlistItem.authorAvatarUrl,
-                                browseId = playlistItem.id,
-                                thumbnailUrl = playlistItem.thumbnail,
-                                isEditable = true,
-                                bookmarkedAt = LocalDateTime.now(),
-                                remoteSongCount = playlistItem.songCountText?.let {
-                                    Regex("""\d+""").find(it)?.value?.toIntOrNull()
-                                },
-                                playEndpointParams = playlistItem.playEndpoint?.params,
-                                shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
-                                radioEndpointParams = playlistItem.radioEndpoint?.params,
-                                description = playlistItem.description,
-                            )
-                        }
                         database.insert(newPlaylist)
                         newPlaylist
                     } else {

@@ -760,6 +760,7 @@ fun AlbumGridItem(
 @Composable
 fun AutoPlaylistListItem(
     playlist: Playlist,
+    playlistAuthorName: String? = null,
     thumbnail: String?,
     modifier: Modifier = Modifier,
     trailingContent: @Composable (RowScope.() -> Unit) = {},
@@ -768,7 +769,10 @@ fun AutoPlaylistListItem(
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
     ListItem(
         title = playlist.playlist.name,
-        subtitle = pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount),
+        subtitle = joinByBullet(
+            playlistAuthorName,
+            pluralStringResource(R.plurals.n_song, playlist.songCount, playlist.songCount)
+        ),
         thumbnailContent = {
             Box(
                 modifier = Modifier

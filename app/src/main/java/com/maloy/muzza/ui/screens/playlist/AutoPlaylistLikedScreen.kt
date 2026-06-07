@@ -465,7 +465,8 @@ fun AutoPlaylistLikedScreen(
                                                     menuState.show {
                                                         AutoPlaylistMenu(
                                                             playlist = likedMusicPlaylist,
-                                                            playlistAuthor = accountId,
+                                                            playlistAuthorId = accountId,
+                                                            playlistAuthorName = accountName,
                                                             showRadioButton = isLoggedIn && isInternetAvailable(context),
                                                             navController = navController,
                                                             thumbnail = likedMusicThumbnail,
@@ -1015,7 +1016,8 @@ fun AutoPlaylistLikedScreen(
                                     menuState.show {
                                         AutoPlaylistMenu(
                                             playlist = likedMusicPlaylist,
-                                            playlistAuthor = accountId,
+                                            playlistAuthorId = accountId,
+                                            playlistAuthorName = accountName,
                                             showRadioButton = isLoggedIn && isInternetAvailable(context),
                                             navController = navController,
                                             thumbnail = likedMusicThumbnail,

@@ -95,6 +95,7 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
 import com.maloy.muzza.constants.likedMusicThumbnailKey
 import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
@@ -154,6 +155,7 @@ fun LibraryMixScreen(
     val (likedMusicThumbnail) = rememberPreference(likedMusicThumbnailKey, defaultValue = "")
     val (likedMusicTitle) = rememberPreference(likedMusicTitleKey, defaultValue = "")
     val accountId by rememberPreference(likedMusicAuthorIdKey, "")
+    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
 
     val artists by viewModel.allArtists.collectAsState()
 
@@ -350,7 +352,8 @@ fun LibraryMixScreen(
                                 menuState.show {
                                     AutoPlaylistMenu(
                                         playlist = likedMusicPlaylist,
-                                        playlistAuthor = accountId,
+                                        playlistAuthorId = accountId,
+                                        playlistAuthorName = accountName,
                                         showRadioButton = isLoggedIn && isInternetAvailable(context),
                                         navController = navController,
                                         thumbnail = likedMusicThumbnail,

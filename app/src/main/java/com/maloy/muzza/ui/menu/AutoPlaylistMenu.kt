@@ -90,7 +90,8 @@ import kotlin.collections.contains
 @Composable
 fun AutoPlaylistMenu(
     playlist: Playlist,
-    playlistAuthor: String? = null,
+    playlistAuthorName: String? = null,
+    playlistAuthorId: String? = null,
     showRadioButton: Boolean = false,
     navController: NavController,
     coroutineScope: CoroutineScope,
@@ -241,7 +242,8 @@ fun AutoPlaylistMenu(
     AutoPlaylistListItem(
         playlist = playlist,
         thumbnail = thumbnail,
-        iconThumbnail = iconThumbnail
+        iconThumbnail = iconThumbnail,
+        playlistAuthorName = playlistAuthorName
     )
     HorizontalDivider()
     if (songs.isNotEmpty()) {
@@ -476,7 +478,7 @@ fun AutoPlaylistMenu(
             ) {
                 showChoosePlaylistDialog = true
             }
-            if (playlistAuthor != null) {
+            if (playlistAuthorId != null) {
                 item {
                     HorizontalDivider()
                 }
@@ -484,7 +486,7 @@ fun AutoPlaylistMenu(
                     icon = R.drawable.artist,
                     title = R.string.view_playlist_creator
                 ) {
-                    navController.navigate("artist/${playlistAuthor}")
+                    navController.navigate("artist/${playlistAuthorId}")
                     onDismiss()
                 }
             }

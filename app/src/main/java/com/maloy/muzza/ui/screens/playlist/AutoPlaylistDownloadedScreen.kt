@@ -380,7 +380,6 @@ fun AutoPlaylistDownloadedScreen(
                                                     menuState.show {
                                                         AutoPlaylistMenu(
                                                             playlist = downloadPlaylist,
-                                                            playlistAuthor = null,
                                                             navController = navController,
                                                             thumbnail = null,
                                                             iconThumbnail = Icons.Rounded.CloudDownload,

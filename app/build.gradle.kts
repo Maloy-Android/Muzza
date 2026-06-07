@@ -221,7 +221,7 @@ tasks.configureEach {
 
 tasks.named("clean") {
     doLast {
-        val generatedDir = file("src/main/java/com/metrolist/music/proto")
+        val generatedDir = file("src/main/java/com/maloyt/muzza/listentogether/proto")
         if (generatedDir.exists()) {
             generatedDir.deleteRecursively()
             println("✓ Deleted generated proto files")

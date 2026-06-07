@@ -239,6 +239,7 @@ fun HomeScreen(
         when (it) {
             is Song -> SongGridItem(
                 song = it,
+                videoThumbnailRatio = false,
                 modifier = Modifier
                     .fillMaxWidth()
                     .combinedClickable(

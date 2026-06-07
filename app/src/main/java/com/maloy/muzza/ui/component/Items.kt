@@ -422,6 +422,7 @@ fun SongGridItem(
     song: Song,
     navController: NavController,
     modifier: Modifier = Modifier,
+    videoThumbnailRatio: Boolean = true,
     showLikedIcon: Boolean = true,
     showInLibraryIcon: Boolean = false,
     showDownloadIcon: Boolean = true,
@@ -448,7 +449,7 @@ fun SongGridItem(
     isPlaying: Boolean = false,
     fillMaxWidth: Boolean = false,
     videoThumbnailSize: Boolean = false,
-    thumbnailRatio: Float = if (song.song.isVideoSong) 16f / 9 else 1f,
+    thumbnailRatio: Float = if (song.song.isVideoSong && videoThumbnailRatio) 16f / 9 else 1f,
     contentScale: ContentScale = ContentScale.Fit,
 ) = GridItem(
     title = song.song.title,

@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.component
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -45,10 +44,7 @@ fun SpeedDialGridItem(
     ) {
         ItemThumbnail(
             thumbnailUrl = item.thumbnail.resize(1080, 1080),
-<<<<<<< yaebal
-=======
             videoThumbnailSize = videoThumbnailSize,
->>>>>>> main
             isActive = isActive,
             isPlaying = isPlaying,
             shape = if (item is ArtistItem) CircleShape else RoundedCornerShape(ThumbnailCornerRadius),

@@ -1,7 +1,7 @@
 package com.maloy.muzza.listentogether
 
 import com.google.protobuf.MessageLite
-import com.maloy.proto.Listentogether
+import com.maloy.muzza.listentogether.proto.Listentogether
 import timber.log.Timber
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream

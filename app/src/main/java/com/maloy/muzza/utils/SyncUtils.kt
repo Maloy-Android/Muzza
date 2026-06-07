@@ -148,8 +148,7 @@ class SyncUtils @Inject constructor(
             val dbPlaylists = database.playlistsByNameAsc().first()
 
             dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
-                .filterNot { it.playlist.bookmarkedAt != null && it.playlist.browseId == null }
-                .filterNot { it.playlist.isLocal }
+                .filterNot { it.playlist.bookmarkedAt != null && it.playlist.isLocal }
                 .forEach { database.update(it.playlist.localToggleLike()) }
 
             playlistList.forEach { playlistItem ->
@@ -159,44 +158,28 @@ class SyncUtils @Inject constructor(
                 if (playlistEntity == null) {
                     val existingById = database.getPlaylistByBrowseId(playlistItem.id)
                     playlistEntity = if (existingById == null) {
-                        val newPlaylist =
-                            PlaylistEntity(
-                                name = fragments?.name ?: playlistItem.title,
-                                playlistAuthorsId = fragments?.playlistAuthorsId ?: playlistItem.author?.id,
-                                playlistAuthorName = fragments?.playlistAuthorName ?: playlistItem.author?.name,
-                                playlistAuthorAvatarUrl = fragments?.playlistAuthorAvatarUrl ?: playlistItem.authorAvatarUrl,
-                                browseId = playlistItem.id,
-                                thumbnailUrl = fragments?.thumbnailUrl ?: playlistItem.thumbnail,
-                                isEditable = true,
-                                bookmarkedAt = LocalDateTime.now(),
-                                remoteSongCount = fragments?.remoteSongCount ?: playlistItem.songCountText?.let {
-                                    Regex("""\d+""").find(it)?.value?.toIntOrNull()
-                                },
-                                playEndpointParams = fragments?.playEndpointParams ?: playlistItem.playEndpoint?.params,
-                                shuffleEndpointParams = fragments?.shuffleEndpointParams ?: playlistItem.shuffleEndpoint?.params,
-                                radioEndpointParams = fragments?.radioEndpointParams ?: playlistItem.radioEndpoint?.params,
-                                description = fragments?.description ?: playlistItem.description,
-                            )
+                        val newPlaylist = PlaylistEntity(
+                            name = fragments?.name ?: playlistItem.title,
+                            playlistAuthorsId = fragments?.playlistAuthorsId ?: playlistItem.author?.id,
+                            playlistAuthorName = fragments?.playlistAuthorName ?: playlistItem.author?.name,
+                            playlistAuthorAvatarUrl = fragments?.playlistAuthorAvatarUrl ?: playlistItem.authorAvatarUrl,
+                            browseId = playlistItem.id,
+                            thumbnailUrl = fragments?.thumbnailUrl ?: playlistItem.thumbnail,
+                            isEditable = true,
+                            bookmarkedAt = LocalDateTime.now(),
+                            remoteSongCount = fragments?.remoteSongCount ?: playlistItem.songCountText?.let {
+                                Regex("""\d+""").find(it)?.value?.toIntOrNull()
+                            },
+                            playEndpointParams = fragments?.playEndpointParams ?: playlistItem.playEndpoint?.params,
+                            shuffleEndpointParams = fragments?.shuffleEndpointParams ?: playlistItem.shuffleEndpoint?.params,
+                            radioEndpointParams = fragments?.radioEndpointParams ?: playlistItem.radioEndpoint?.params,
+                            description = fragments?.description ?: playlistItem.description,
+                        )
                         database.insert(newPlaylist)
                         newPlaylist
                     } else {
                         existingById
                     }
-                } else if (fragments != null) {
-                    val updatedPlaylist = playlistEntity.copy(
-                        name = fragments.name ?: playlistEntity.name,
-                        playlistAuthorsId = fragments.playlistAuthorsId ?: playlistEntity.playlistAuthorsId,
-                        playlistAuthorName = fragments.playlistAuthorName ?: playlistEntity.playlistAuthorName,
-                        playlistAuthorAvatarUrl = fragments.playlistAuthorAvatarUrl ?: playlistEntity.playlistAuthorAvatarUrl,
-                        thumbnailUrl = fragments.thumbnailUrl ?: playlistEntity.thumbnailUrl,
-                        remoteSongCount = fragments.remoteSongCount ?: playlistEntity.remoteSongCount,
-                        playEndpointParams = fragments.playEndpointParams ?: playlistEntity.playEndpointParams,
-                        shuffleEndpointParams = fragments.shuffleEndpointParams ?: playlistEntity.shuffleEndpointParams,
-                        radioEndpointParams = fragments.radioEndpointParams ?: playlistEntity.radioEndpointParams,
-                        description = fragments.description ?: playlistEntity.description,
-                    )
-                    database.update(updatedPlaylist)
-                    playlistEntity = updatedPlaylist
                 }
 
                 syncPlaylist(playlistItem.id, playlistEntity.id)

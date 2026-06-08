@@ -88,6 +88,7 @@
     <string name="filter_library">Библиотека</string>
     <string name="filter_liked">Понравившиеся</string>
     <string name="filter_downloaded">Загруженные</string>
+    <string name="top_results">Популярные результаты</string>
     <string name="filter_all">Все</string>
     <string name="filter_songs">Композиции</string>
     <string name="filter_videos">Видео</string>
@@ -95,6 +96,7 @@
     <string name="filter_artists">Исполнители</string>
     <string name="filter_profiles">Профили</string>
     <string name="filter_playlists">Плейлисты</string>
+    <string name="filter_other">Другие результаты</string>
     <string name="filter_community_playlists">Плейлисты сообщества</string>
     <string name="filter_featured_playlists">Избранные плейлисты</string>
     <string name="filter_bookmarked">Добавлено в закладки</string>

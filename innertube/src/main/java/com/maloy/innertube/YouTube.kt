@@ -178,6 +178,7 @@ object YouTube {
                                             ?.text
                                             ?: YouTubeConstants.DEFAULT_TOP_RESULT,
                                     items = items,
+                                    sectionType = 0
                                 ),
                             )
                         }
@@ -202,7 +203,7 @@ object YouTube {
                                 ?.text
 
                         if (apiTitle != null) {
-                            allSummaries.add(SearchSummary(title = apiTitle, items = items))
+                            allSummaries.add(SearchSummary(title = apiTitle, items = items, sectionType = 0))
                         } else {
                             allSummaries.addAll(groupItemsByType(items))
                         }
@@ -231,6 +232,16 @@ object YouTube {
                         SearchSummary(
                             title = title,
                             items = sections.flatMap { it.items }.distinctBy { it.id },
+                            sectionType = when (title) {
+                                YouTubeConstants.DEFAULT_TOP_RESULT -> 0
+                                YouTubeConstants.RESULT_SONGS -> 1
+                                YouTubeConstants.RESULT_VIDEOS -> 2
+                                YouTubeConstants.RESULT_ALBUMS -> 3
+                                YouTubeConstants.RESULT_PLAYLISTS -> 4
+                                YouTubeConstants.RESULT_ARTISTS -> 5
+                                YouTubeConstants.RESULT_PROFILES -> 6
+                                else -> 7
+                            }
                         )
                     }
                     .sortedBy { summary ->
@@ -275,7 +286,7 @@ object YouTube {
 
         return sectionOrder.mapNotNull { sectionName ->
             grouped[sectionName]?.takeIf { it.isNotEmpty() }?.let { groupItems ->
-                SearchSummary(title = sectionName, items = groupItems)
+                SearchSummary(title = sectionName, items = groupItems, sectionType = 0)
             }
         }
     }

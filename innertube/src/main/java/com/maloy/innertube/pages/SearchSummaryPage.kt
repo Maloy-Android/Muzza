@@ -17,6 +17,7 @@ import com.maloy.innertube.utils.parseTime
 
 data class SearchSummary(
     val title: String,
+    var sectionType: Int,
     val items: List<YTItem>,
 )
 
@@ -29,6 +30,7 @@ data class SearchSummaryPage(
                 summaries.mapNotNull { s ->
                     SearchSummary(
                         title = s.title,
+                        sectionType = s.sectionType,
                         items = s.items.filterExplicit().ifEmpty {
                             return@mapNotNull null
                         }

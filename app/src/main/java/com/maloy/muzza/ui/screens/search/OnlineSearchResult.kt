@@ -133,15 +133,18 @@ fun OnlineSearchResult(
                         navController = navController,
                         onDismiss = menuState::dismiss
                     )
+
                     is AlbumItem -> YouTubeAlbumMenu(
                         albumItem = item,
                         navController = navController,
                         onDismiss = menuState::dismiss
                     )
+
                     is ArtistItem -> YouTubeArtistMenu(
                         artist = item,
                         onDismiss = menuState::dismiss
                     )
+
                     is PlaylistItem -> YouTubePlaylistMenu(
                         navController = navController,
                         playlist = item,
@@ -223,7 +226,19 @@ fun OnlineSearchResult(
             if (searchFilter == null) {
                 searchSummary?.summaries?.forEach { summary ->
                     item {
-                        NavigationTitle(summary.title)
+                        NavigationTitle(
+                            title =
+                                when (summary.sectionType) {
+                                    0 -> stringResource(R.string.top_results)
+                                    1 -> stringResource(R.string.filter_songs)
+                                    2 -> stringResource(R.string.filter_videos)
+                                    3 -> stringResource(R.string.filter_albums)
+                                    4 -> stringResource(R.string.filter_playlists)
+                                    5 -> stringResource(R.string.filter_artists)
+                                    6 -> stringResource(R.string.filter_profiles)
+                                    else -> stringResource(R.string.filter_other)
+                                }
+                        )
                     }
 
                     items(

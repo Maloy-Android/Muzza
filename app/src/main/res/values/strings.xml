@@ -94,6 +94,7 @@
     <string name="filter_library">Library</string>
     <string name="filter_liked">Liked</string>
     <string name="filter_downloaded">Downloaded</string>
+    <string name="top_results">Top results</string>
     <string name="filter_all">All</string>
     <string name="filter_songs">Songs</string>
     <string name="filter_videos">Videos</string>
@@ -101,6 +102,7 @@
     <string name="filter_artists">Artists</string>
     <string name="filter_profiles">Profiles</string>
     <string name="filter_playlists">Playlists</string>
+    <string name="filter_other">Other results</string>
     <string name="filter_community_playlists">Community playlists</string>
     <string name="filter_featured_playlists">Featured playlists</string>
     <string name="filter_bookmarked">Bookmarked</string>

@@ -795,18 +795,8 @@ fun OnlinePlaylistScreen(
                         }
                     }
 
-                    items(
-                        items = filteredSongs,
-                        key = { (index, _) -> index }
-                    ) { (index, song) ->
-                        val onCheckedChange: (Boolean) -> Unit = {
-                            if (it) {
-                                selection.add(index)
-                            } else {
-                                selection.remove(index)
-                            }
-                        }
-                        if (index == 0) {
+                    if (filteredSongs.isNotEmpty()) {
+                        item {
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -825,7 +815,19 @@ fun OnlinePlaylistScreen(
                                 )
                             }
                         }
+                    }
 
+                    items(
+                        items = filteredSongs,
+                        key = { (index, _) -> index }
+                    ) { (index, song) ->
+                        val onCheckedChange: (Boolean) -> Unit = {
+                            if (it) {
+                                selection.add(index)
+                            } else {
+                                selection.remove(index)
+                            }
+                        }
                         ReorderableItem(
                             state = reorderableState,
                             key = filteredSongs

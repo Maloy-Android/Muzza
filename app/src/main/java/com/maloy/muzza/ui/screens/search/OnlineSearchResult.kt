@@ -233,9 +233,10 @@ fun OnlineSearchResult(
                                     1 -> stringResource(R.string.filter_songs)
                                     2 -> stringResource(R.string.filter_videos)
                                     3 -> stringResource(R.string.filter_albums)
-                                    4 -> stringResource(R.string.filter_playlists)
-                                    5 -> stringResource(R.string.filter_artists)
-                                    6 -> stringResource(R.string.filter_profiles)
+                                    4 -> stringResource(R.string.filter_featured_playlists)
+                                    5 -> stringResource(R.string.filter_community_playlists)
+                                    6 -> stringResource(R.string.filter_artists)
+                                    7 -> stringResource(R.string.filter_profiles)
                                     else -> stringResource(R.string.filter_other)
                                 }
                         )

@@ -6,7 +6,8 @@ object YouTubeConstants {
     const val RESULT_VIDEOS = "Videos"
     const val RESULT_ALBUMS = "Albums"
     const val RESULT_ARTISTS = "Artists"
-    const val RESULT_PLAYLISTS = "Playlists"
+    const val RESULT_YOUTUBE_PLAYLISTS = "YouTube-Playlists"
+    const val RESULT_COMMUNITY_PLAYLISTS = "Community - playlists"
     const val RESULT_PROFILES = "Profiles"
     const val DEFAULT_OTHER_RESULTS = "Other"
 }

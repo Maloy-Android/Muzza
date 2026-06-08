@@ -237,10 +237,11 @@ object YouTube {
                                 YouTubeConstants.RESULT_SONGS -> 1
                                 YouTubeConstants.RESULT_VIDEOS -> 2
                                 YouTubeConstants.RESULT_ALBUMS -> 3
-                                YouTubeConstants.RESULT_PLAYLISTS -> 4
-                                YouTubeConstants.RESULT_ARTISTS -> 5
-                                YouTubeConstants.RESULT_PROFILES -> 6
-                                else -> 7
+                                YouTubeConstants.RESULT_YOUTUBE_PLAYLISTS -> 4
+                                YouTubeConstants.RESULT_COMMUNITY_PLAYLISTS -> 5
+                                YouTubeConstants.RESULT_ARTISTS -> 6
+                                YouTubeConstants.RESULT_PROFILES -> 7
+                                else -> 8
                             }
                         )
                     }
@@ -250,10 +251,11 @@ object YouTube {
                             YouTubeConstants.RESULT_SONGS -> 1
                             YouTubeConstants.RESULT_VIDEOS -> 2
                             YouTubeConstants.RESULT_ALBUMS -> 3
-                            YouTubeConstants.RESULT_PLAYLISTS -> 4
-                            YouTubeConstants.RESULT_ARTISTS -> 5
-                            YouTubeConstants.RESULT_PROFILES -> 6
-                            else -> 7
+                            YouTubeConstants.RESULT_YOUTUBE_PLAYLISTS -> 4
+                            YouTubeConstants.RESULT_COMMUNITY_PLAYLISTS -> 5
+                            YouTubeConstants.RESULT_ARTISTS -> 6
+                            YouTubeConstants.RESULT_PROFILES -> 7
+                            else -> 8
                         }
                     }
 
@@ -266,7 +268,7 @@ object YouTube {
                 when (item) {
                     is AlbumItem -> YouTubeConstants.RESULT_ALBUMS
                     is ArtistItem -> if (item.isProfile) YouTubeConstants.RESULT_PROFILES else YouTubeConstants.RESULT_ARTISTS
-                    is PlaylistItem -> YouTubeConstants.RESULT_PLAYLISTS
+                    is PlaylistItem -> if (item.id.startsWith("RDCLAK5uy_")) YouTubeConstants.RESULT_YOUTUBE_PLAYLISTS else YouTubeConstants.RESULT_COMMUNITY_PLAYLISTS
                     is SongItem -> when {
                         item.isVideoSong -> YouTubeConstants.RESULT_VIDEOS
                         else -> YouTubeConstants.RESULT_SONGS
@@ -278,7 +280,8 @@ object YouTube {
             YouTubeConstants.RESULT_SONGS,
             YouTubeConstants.RESULT_VIDEOS,
             YouTubeConstants.RESULT_ALBUMS,
-            YouTubeConstants.RESULT_PLAYLISTS,
+            YouTubeConstants.RESULT_YOUTUBE_PLAYLISTS,
+            YouTubeConstants.RESULT_COMMUNITY_PLAYLISTS,
             YouTubeConstants.RESULT_ARTISTS,
             YouTubeConstants.RESULT_PROFILES,
             YouTubeConstants.DEFAULT_OTHER_RESULTS

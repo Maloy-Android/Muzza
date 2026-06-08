@@ -239,8 +239,8 @@ object YouTube {
                             YouTubeConstants.RESULT_SONGS -> 1
                             YouTubeConstants.RESULT_VIDEOS -> 2
                             YouTubeConstants.RESULT_ALBUMS -> 3
-                            YouTubeConstants.RESULT_ARTISTS -> 4
-                            YouTubeConstants.RESULT_PLAYLISTS -> 5
+                            YouTubeConstants.RESULT_PLAYLISTS -> 4
+                            YouTubeConstants.RESULT_ARTISTS -> 5
                             YouTubeConstants.RESULT_PROFILES -> 6
                             else -> 7
                         }
@@ -267,8 +267,8 @@ object YouTube {
             YouTubeConstants.RESULT_SONGS,
             YouTubeConstants.RESULT_VIDEOS,
             YouTubeConstants.RESULT_ALBUMS,
-            YouTubeConstants.RESULT_ARTISTS,
             YouTubeConstants.RESULT_PLAYLISTS,
+            YouTubeConstants.RESULT_ARTISTS,
             YouTubeConstants.RESULT_PROFILES,
             YouTubeConstants.DEFAULT_OTHER_RESULTS
         )

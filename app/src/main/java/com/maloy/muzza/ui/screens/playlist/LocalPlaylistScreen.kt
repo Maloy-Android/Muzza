@@ -1153,7 +1153,7 @@ fun LocalPlaylistHeader(
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(RoundedCornerShape(16.dp))
-                                        .clickable(enabled = !playlistUserAvatar && !authorId.isNullOrEmpty()) {
+                                        .clickable {
                                             navController.navigate("artist/${authorId}")
                                         }
                                 )

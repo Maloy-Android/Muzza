@@ -1043,7 +1043,7 @@ fun HomeScreen(
 
             homePage?.sections?.forEach { section ->
                 val hasOnlyVideos = section.items.all { it is SongItem && it.isVideoSong }
-                val isMoodsAndGenres = section.endpoint?.browseId?.startsWith("FEmusic_moods_and_genres")
+                val isYouTubePlaylists = section.items.all { it is PlaylistItem && it.id.startsWith("RDCLAK5") }
                 val isNewReleaseAlbums = section.endpoint?.browseId?.startsWith("FEmusic_new_releases")
                 val isMixesForYou = section.endpoint?.browseId?.startsWith("FEmusic_mixed_for_you")
                 val isCharts = section.endpoint?.browseId?.startsWith("FEmusic_charts")
@@ -1076,7 +1076,7 @@ fun HomeScreen(
                                     endpoint.params != null && (isNewReleaseAlbums == true) -> navController.navigate("new_release")
                                     endpoint.params != null && (isLibrary == true) -> navController.navigate("library")
                                     endpoint.params != null && (isMixesForYou == true || isCharts == true) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
-                                    endpoint.params != null && (isMoodsAndGenres == true) -> navController.navigate("mood_and_genres")
+                                    endpoint.params != null && (isYouTubePlaylists) -> navController.navigate("mood_and_genres")
                                     else ->  navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
                                 }
                             }

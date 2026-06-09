@@ -1141,7 +1141,7 @@ fun LocalPlaylistHeader(
                 ) {
                     playlist.playlist.playlistAuthorAvatarUrl.let { imageUrl ->
                         playlist.playlist.playlistAuthorsId.let { authorId ->
-                            if ((playlistUserAvatar || imageUrl.isNullOrEmpty())) {
+                            if ((playlistUserAvatar || !imageUrl.isNullOrEmpty())) {
                                 AsyncImage(
                                     model = if (playlistUserAvatar) accountImageUrl else imageUrl,
                                     contentDescription = null,

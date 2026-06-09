@@ -58,7 +58,9 @@ import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
+import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
@@ -230,7 +232,17 @@ fun YouTubeAlbumMenu(
 
     YouTubeListItem(
         item = albumItem,
-        badges = {},
+        badges = {
+            if (albumItem.explicit) {
+                Icon(
+                    painter = painterResource(R.drawable.explicit),
+                    contentDescription = null,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .padding(end = 2.dp)
+                )
+            }
+        },
         trailingContent = {
             IconButton(
                 onClick = {

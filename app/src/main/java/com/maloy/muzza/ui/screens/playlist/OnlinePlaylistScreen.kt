@@ -199,7 +199,7 @@ fun OnlinePlaylistScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
+    val (startVoiceInput, isVoiceInputAvailable) = rememberVoiceInput(
         onResult = { recognizedText ->
             query = TextFieldValue(recognizedText)
         }
@@ -361,7 +361,7 @@ fun OnlinePlaylistScreen(
                                 modifier = Modifier.padding(12.dp)
                             ) {
                                 AsyncImage(
-                                    model = playlist.thumbnail.resize(1080,1080),
+                                    model = playlist.thumbnail.resize(1080, 1080),
                                     contentScale = ContentScale.Crop,
                                     contentDescription = null,
                                     modifier = Modifier
@@ -408,15 +408,15 @@ fun OnlinePlaylistScreen(
                                         horizontalArrangement = Arrangement.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(32.dp)
-                                                .clip(RoundedCornerShape(16.dp))
-                                                .background(MaterialTheme.colorScheme.surfaceVariant)
-                                        ) {
-                                            playlist.authorAvatarUrl.let { imageUrl ->
-                                                playlist.author?.id.let { authorId ->
-                                                    if (!imageUrl.isNullOrEmpty()) {
+                                        playlist.authorAvatarUrl.let { imageUrl ->
+                                            playlist.author?.id.let { authorId ->
+                                                if (!imageUrl.isNullOrEmpty() && !authorId.isNullOrEmpty()) {
+                                                    Box(
+                                                        modifier = Modifier
+                                                            .size(32.dp)
+                                                            .clip(RoundedCornerShape(16.dp))
+                                                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                                                    ) {
                                                         AsyncImage(
                                                             model = imageUrl,
                                                             contentDescription = null,
@@ -424,7 +424,7 @@ fun OnlinePlaylistScreen(
                                                             modifier = Modifier
                                                                 .fillMaxSize()
                                                                 .clip(RoundedCornerShape(16.dp))
-                                                                .clickable(enabled = !authorId.isNullOrEmpty()) {
+                                                                .clickable {
                                                                     navController.navigate("artist/${authorId}")
                                                                 }
                                                         )

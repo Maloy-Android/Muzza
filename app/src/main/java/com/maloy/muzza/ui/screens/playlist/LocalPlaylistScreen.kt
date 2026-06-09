@@ -214,7 +214,7 @@ fun LocalPlaylistScreen(
     var query by rememberSaveable(stateSaver = TextFieldValue.Saver) {
         mutableStateOf(TextFieldValue())
     }
-    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
+    val (startVoiceInput, isVoiceInputAvailable) = rememberVoiceInput(
         onResult = { recognizedText ->
             query = TextFieldValue(recognizedText)
         }
@@ -422,7 +422,8 @@ fun LocalPlaylistScreen(
     ) {
         LazyColumn(
             state = lazyListState,
-            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime).asPaddingValues(),
+            contentPadding = LocalPlayerAwareWindowInsets.current.union(WindowInsets.ime)
+                .asPaddingValues(),
         ) {
             if (filteredSongs.isEmpty() && isSearching) {
                 item {
@@ -437,7 +438,10 @@ fun LocalPlaylistScreen(
                     item {
                         EmptyPlaceholder(
                             icon = R.drawable.queue_music,
-                            text = stringResource(R.string.playlist_is_empty,playlist.playlist.name),
+                            text = stringResource(
+                                R.string.playlist_is_empty,
+                                playlist.playlist.name
+                            ),
                             modifier = Modifier.animateItem()
                         )
                     }
@@ -1133,15 +1137,15 @@ fun LocalPlaylistHeader(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(RoundedCornerShape(16.dp))
-                        .background(MaterialTheme.colorScheme.surfaceVariant)
-                ) {
-                    playlist.playlist.playlistAuthorAvatarUrl.let { imageUrl ->
-                        playlist.playlist.playlistAuthorsId.let { authorId ->
-                            if ((playlistUserAvatar || !imageUrl.isNullOrEmpty())) {
+                playlist.playlist.playlistAuthorAvatarUrl.let { imageUrl ->
+                    playlist.playlist.playlistAuthorsId.let { authorId ->
+                        if ((playlistUserAvatar || (!imageUrl.isNullOrEmpty() && !authorId.isNullOrEmpty()))) {
+                            Box(
+                                modifier = Modifier
+                                    .size(32.dp)
+                                    .clip(RoundedCornerShape(16.dp))
+                                    .background(MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
                                 AsyncImage(
                                     model = if (playlistUserAvatar) accountImageUrl else imageUrl,
                                     contentDescription = null,

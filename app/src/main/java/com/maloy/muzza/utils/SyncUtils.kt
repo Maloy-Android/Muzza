@@ -145,44 +145,42 @@ class SyncUtils @Inject constructor(
             val playlistList = page.items.filterIsInstance<PlaylistItem>()
                 .filterNot { it.id == "LM" || it.id == "SE" }
                 .reversed()
+
             val dbPlaylists = database.playlistsByNameAsc().first()
 
-            dbPlaylists.filterNot { it.playlist.browseId in playlistList.map(PlaylistItem::id) }
-                .filterNot { it.playlist.bookmarkedAt != null && it.playlist.isLocal }
-                .forEach { database.update(it.playlist.localToggleLike()) }
+            dbPlaylists.filter { dbPlaylist ->
+                dbPlaylist.playlist.browseId !in playlistList.map(PlaylistItem::id) &&
+                        dbPlaylist.playlist.bookmarkedAt != null &&
+                        !dbPlaylist.playlist.isLocal
+            }.forEach { database.update(it.playlist.localToggleLike()) }
 
             playlistList.forEach { playlistItem ->
-                val fragments = getPlaylistFragments(playlistItem.id).getOrNull()
-                var playlistEntity = dbPlaylists.find { playlistItem.id == it.playlist.browseId }?.playlist
+                val fragments = getPlaylistFragments(playlistItem.id).getOrNull() ?: return@forEach
 
-                if (playlistEntity == null) {
-                    val existingById = database.getPlaylistByBrowseId(playlistItem.id)
-                    playlistEntity = if (existingById == null) {
-                        val newPlaylist = PlaylistEntity(
-                            name = fragments?.name ?: playlistItem.title,
-                            playlistAuthorsId = fragments?.playlistAuthorsId ?: playlistItem.author?.id,
-                            playlistAuthorName = fragments?.playlistAuthorName ?: playlistItem.author?.name,
-                            playlistAuthorAvatarUrl = fragments?.playlistAuthorAvatarUrl ?: playlistItem.authorAvatarUrl,
-                            browseId = playlistItem.id,
-                            thumbnailUrl = fragments?.thumbnailUrl ?: playlistItem.thumbnail,
-                            isEditable = true,
-                            bookmarkedAt = LocalDateTime.now(),
-                            remoteSongCount = fragments?.remoteSongCount ?: playlistItem.songCountText?.let {
-                                Regex("""\d+""").find(it)?.value?.toIntOrNull()
-                            },
-                            playEndpointParams = fragments?.playEndpointParams ?: playlistItem.playEndpoint?.params,
-                            shuffleEndpointParams = fragments?.shuffleEndpointParams ?: playlistItem.shuffleEndpoint?.params,
-                            radioEndpointParams = fragments?.radioEndpointParams ?: playlistItem.radioEndpoint?.params,
-                            description = fragments?.description ?: playlistItem.description,
-                        )
-                        database.insert(newPlaylist)
-                        newPlaylist
-                    } else {
-                        existingById
-                    }
+                var playlist = dbPlaylists.find { it.playlist.browseId == playlistItem.id }?.playlist
+                    ?: database.getPlaylistByBrowseId(playlistItem.id)
+
+                if (playlist == null) {
+                    playlist = PlaylistEntity(
+                        name = fragments.name!!,
+                        browseId = playlistItem.id,
+                        thumbnailUrl = fragments.thumbnailUrl,
+                        playlistAuthorsId = fragments.playlistAuthorsId,
+                        playlistAuthorName = fragments.playlistAuthorName,
+                        playlistAuthorAvatarUrl = fragments.playlistAuthorAvatarUrl,
+                        bookmarkedAt = LocalDateTime.now(),
+                        remoteSongCount = fragments.remoteSongCount,
+                        playEndpointParams = fragments.playEndpointParams,
+                        shuffleEndpointParams = fragments.shuffleEndpointParams,
+                        radioEndpointParams = fragments.radioEndpointParams,
+                        description = fragments.description,
+                        isEditable = true
+                    )
+                    database.insert(playlist)
+                    playlist = database.getPlaylistByBrowseId(playlistItem.id) ?: return@forEach
                 }
 
-                syncPlaylist(playlistItem.id, playlistEntity.id)
+                syncPlaylist(playlistItem.id, playlist.id)
             }
         }
     }

@@ -255,6 +255,7 @@ fun AlbumScreen(
             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
         ) {
             val albumWithSongs = albumWithSongs
+            val isPlayingAlbum = mediaMetadata?.album?.id == albumWithSongs?.album?.id
             if (albumWithSongs != null && albumWithSongs.songs.isNotEmpty()) {
                 item {
                     Column(
@@ -520,21 +521,25 @@ fun AlbumScreen(
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             Button(
                                 onClick = {
-                                    playerConnection.playQueue(
-                                        LocalAlbumRadio(albumWithSongs)
-                                    )
+                                    if (isPlayingAlbum) {
+                                        playerConnection.togglePlayPause()
+                                    } else {
+                                        playerConnection.playQueue(
+                                            LocalAlbumRadio(albumWithSongs)
+                                        )
+                                    }
                                 },
                                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                 modifier = Modifier.weight(1f)
                             ) {
                                 Icon(
-                                    painter = painterResource(R.drawable.play),
+                                    painter = painterResource(if (isPlayingAlbum && isPlaying) R.drawable.pause else R.drawable.play),
                                     contentDescription = null,
                                     modifier = Modifier.size(ButtonDefaults.IconSize)
                                 )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                 Text(
-                                    text = stringResource(R.string.play)
+                                    text = stringResource(if (isPlayingAlbum && isPlaying) R.string.pause else R.string.play)
                                 )
                             }
 
@@ -734,17 +739,23 @@ fun AlbumScreen(
             visible = lazyChecker,
             state = state
         )
+        val isPlayingAlbum = mediaMetadata?.album?.id == albumWithSongs?.album?.id
         HideOnScrollFAB(
             visible = lazyChecker && !inSelectMode,
             lazyListState = state,
-            icon = R.drawable.play,
+            icon = if (isPlayingAlbum && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = albumWithSongs?.album?.title,
-                        items = albumWithSongs?.songs?.map { it.toMediaItem() } ?: return@HideOnScrollFAB
+                if (isPlayingAlbum) {
+                    playerConnection.togglePlayPause()
+                } else  {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = albumWithSongs?.album?.title,
+                            items = albumWithSongs?.songs?.map { it.toMediaItem() }
+                                ?: return@HideOnScrollFAB
+                        )
                     )
-                )
+                }
             }
         )
     }

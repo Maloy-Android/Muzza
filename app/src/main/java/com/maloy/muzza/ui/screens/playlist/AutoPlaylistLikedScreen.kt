@@ -127,6 +127,7 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -213,7 +214,7 @@ fun AutoPlaylistLikedScreen(
     }
     val likedMusicPlaylist = Playlist(
         playlist = PlaylistEntity(
-            id = "likedMusic",
+            id = "LM",
             name = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
                 stringResource(R.string.liked)
             }
@@ -221,6 +222,8 @@ fun AutoPlaylistLikedScreen(
         songCount = songs.size,
         songThumbnails = emptyList()
     )
+
+    val autoPlaylistPlaying = mediaMetadata?.playlist?.id == likedMusicPlaylist.playlist.id
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
@@ -655,7 +658,7 @@ fun AutoPlaylistLikedScreen(
                                     Button(
                                         onClick = {
                                             playerConnection.addToQueue(
-                                                items = songs.map { it.toMediaItem() }
+                                                items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
                                             )
                                         },
                                         modifier = Modifier
@@ -673,23 +676,31 @@ fun AutoPlaylistLikedScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Button(
                                     onClick = {
+                                        if (autoPlaylistPlaying) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = playlist,
-                                                    items = songs.map { it.toMediaItem() }
+                                                    items = songs.map {
+                                                        it.toMediaItemWithPlaylist(
+                                                            likedMusicPlaylist.playlist.id
+                                                        )
+                                                    }
                                                 )
                                             )
+                                        }
                                     },
                                     contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.play),
+                                        painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                                         contentDescription = null,
                                         modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
                                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(stringResource(R.string.play))
+                                    Text(stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else  R.string.play))
                                 }
                                 Button(
                                     onClick = {
@@ -697,7 +708,7 @@ fun AutoPlaylistLikedScreen(
                                                 ListQueue(
                                                     title = playlist,
                                                     items = songs.shuffled()
-                                                        .map { it.toMediaItem() }
+                                                        .map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
                                                 )
                                             )
                                     },
@@ -818,7 +829,7 @@ fun AutoPlaylistLikedScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = playlist,
-                                                items = songs.map { it.toMediaItem() },
+                                                items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) },
                                                 startIndex = songs.indexOfFirst { it.song.id == songWrapper.id })
                                         )
                                     }
@@ -851,14 +862,18 @@ fun AutoPlaylistLikedScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = state,
-            icon = R.drawable.play,
+            icon = if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = playlist,
-                        items = songs.map { it.toMediaItem() }
+                if (autoPlaylistPlaying) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist,
+                            items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
+                        )
                     )
-                )
+                }
             }
         )
         if (inSelectMode) {

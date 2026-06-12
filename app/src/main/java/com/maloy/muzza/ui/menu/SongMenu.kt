@@ -94,8 +94,11 @@ fun SongMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val songState = database.song(originalSong.id).collectAsState(initial = originalSong)
     val song = songState.value ?: originalSong
+    val songPlaying = mediaMetadata?.id == song.song.id
     val download by LocalDownloadUtil.current.getDownload(originalSong.id)
         .collectAsState(initial = null)
     val coroutineScope = rememberCoroutineScope()
@@ -315,24 +318,28 @@ fun SongMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    onDismiss()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = song.song.title,
-                            items = listOf(song.toMediaItem())
+                    if (songPlaying) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        onDismiss()
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = song.song.title,
+                                items = listOf(song.toMediaItem())
+                            )
                         )
-                    )
+                    }
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.play),
+                painter = painterResource(if (songPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.play),
+                text = stringResource(if (songPlaying && isPlaying) R.string.pause else R.string.play),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier

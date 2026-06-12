@@ -69,6 +69,9 @@ fun YouTubePlaylistMenu(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val playlistPlaying = mediaMetadata?.playlist?.id == playlist.id
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
 
     var showChoosePlaylistDialog by rememberSaveable {
@@ -206,37 +209,41 @@ fun YouTubePlaylistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        coroutineScope.launch {
-                            songs.ifEmpty {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist(playlist.id).completed()
-                                        .getOrNull()?.songs.orEmpty()
-                                }
-                            }.let { songs ->
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = playlist.title,
-                                        items = songs.map {
-                                            it.toMediaItemWithPlaylist(
-                                                playlist.id
-                                            )
-                                        }
+                        if (playlistPlaying && isPlaying) {
+                            playerConnection.togglePlayPause()
+                        } else {
+                            coroutineScope.launch {
+                                songs.ifEmpty {
+                                    withContext(Dispatchers.IO) {
+                                        YouTube.playlist(playlist.id).completed()
+                                            .getOrNull()?.songs.orEmpty()
+                                    }
+                                }.let { songs ->
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = playlist.title,
+                                            items = songs.map {
+                                                it.toMediaItemWithPlaylist(
+                                                    playlist.id
+                                                )
+                                            }
+                                        )
                                     )
-                                )
+                                }
                             }
+                            onDismiss()
                         }
-                        onDismiss()
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play),
+                    text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
@@ -255,37 +262,41 @@ fun YouTubePlaylistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        coroutineScope.launch {
-                            songs.ifEmpty {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist(playlist.id).completed()
-                                        .getOrNull()?.songs.orEmpty()
-                                }
-                            }.let { songs ->
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = playlist.title,
-                                        items = songs.map {
-                                            it.toMediaItemWithPlaylist(
-                                                playlist.id
-                                            )
-                                        }
+                        if (playlistPlaying && isPlaying) {
+                            playerConnection.togglePlayPause()
+                        } else {
+                            coroutineScope.launch {
+                                songs.ifEmpty {
+                                    withContext(Dispatchers.IO) {
+                                        YouTube.playlist(playlist.id).completed()
+                                            .getOrNull()?.songs.orEmpty()
+                                    }
+                                }.let { songs ->
+                                    playerConnection.playQueue(
+                                        ListQueue(
+                                            title = playlist.title,
+                                            items = songs.map {
+                                                it.toMediaItemWithPlaylist(
+                                                    playlist.id
+                                                )
+                                            }
+                                        )
                                     )
-                                )
+                                }
                             }
+                            onDismiss()
                         }
-                        onDismiss()
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play),
+                    text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
@@ -555,6 +566,9 @@ fun YouTubePlaylistMenuInPlaylistScreen(
     val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val playlistPlaying = mediaMetadata?.playlist?.id == playlist.id
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
 
     var showChoosePlaylistDialog by rememberSaveable {
@@ -685,28 +699,32 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.title,
-                                items = songs.map {
-                                    it.toMediaItemWithPlaylist(
-                                        playlist.id
-                                    )
-                                }
+                        if (playlistPlaying) {
+                            playerConnection.togglePlayPause()
+                        } else {
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = playlist.title,
+                                    items = songs.map {
+                                        it.toMediaItemWithPlaylist(
+                                            playlist.id
+                                        )
+                                    }
+                                )
                             )
-                        )
-                        onDismiss()
+                            onDismiss()
+                        }
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play),
+                    text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
@@ -725,28 +743,32 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.title,
-                                items = songs.map {
-                                    it.toMediaItemWithPlaylist(
-                                        playlist.id
-                                    )
-                                }
+                        if (playlistPlaying) {
+                            playerConnection.togglePlayPause()
+                        } else {
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = playlist.title,
+                                    items = songs.map {
+                                        it.toMediaItemWithPlaylist(
+                                            playlist.id
+                                        )
+                                    }
+                                )
                             )
-                        )
-                        onDismiss()
+                            onDismiss()
+                        }
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play),
+                    text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier

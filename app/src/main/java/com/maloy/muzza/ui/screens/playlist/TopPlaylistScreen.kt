@@ -110,6 +110,7 @@ import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.move
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.menu.AutoPlaylistMenu
@@ -147,6 +148,9 @@ fun TopPlaylistScreen(
         songCount = minOf(songs.size, topSize),
         songThumbnails = emptyList()
     )
+
+    val autoPlaylistPlaying = mediaMetadata?.playlist?.id == topPlaylist.playlist.id
+
     val mutableSongs =
         remember {
             mutableStateListOf<Song>()
@@ -460,7 +464,7 @@ fun TopPlaylistScreen(
                                     Button(
                                         onClick = {
                                             playerConnection.addToQueue(
-                                                items = songs.map { it.toMediaItem() },
+                                                items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) },
                                             )
                                         },
                                         modifier = Modifier
@@ -478,23 +482,27 @@ fun TopPlaylistScreen(
                             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                 Button(
                                     onClick = {
-                                        playerConnection.playQueue(
-                                            ListQueue(
-                                                title = context.getString(R.string.my_top),
-                                                items = songs.map { it.toMediaItem() }
+                                        if (autoPlaylistPlaying) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = context.getString(R.string.my_top),
+                                                    items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) }
+                                                )
                                             )
-                                        )
+                                        }
                                     },
                                     contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                     modifier = Modifier.weight(1f)
                                 ) {
                                     Icon(
-                                        painter = painterResource(R.drawable.play),
+                                        painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                                         contentDescription = null,
                                         modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
                                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text(stringResource(R.string.play))
+                                    Text(stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else R.string.play))
                                 }
                                 Button(
                                     onClick = {
@@ -502,7 +510,7 @@ fun TopPlaylistScreen(
                                             ListQueue(
                                                 title = context.getString(R.string.my_top),
                                                 items = songs.shuffled()
-                                                    .map { it.toMediaItem() }
+                                                    .map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) }
                                             )
                                         )
                                     },
@@ -630,7 +638,7 @@ fun TopPlaylistScreen(
                                         playerConnection.playQueue(
                                             ListQueue(
                                                 title = context.getString(R.string.my_top),
-                                                items = songs.map { it.toMediaItem() },
+                                                items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) },
                                                 startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                             )
                                         )
@@ -656,14 +664,18 @@ fun TopPlaylistScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = state,
-            icon = R.drawable.play,
+            icon = if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = context.getString(R.string.my_top),
-                        items = songs.map { it.toMediaItem() }
+                if (autoPlaylistPlaying) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = context.getString(R.string.my_top),
+                            items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) }
+                        )
                     )
-                )
+                }
             }
         )
         if (inSelectMode) {

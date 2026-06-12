@@ -180,6 +180,8 @@ fun OnlinePlaylistScreen(
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
 
+    val playlistPlaying = mediaMetadata?.playlist?.id == playlist?.id
+
     val hideExplicit by rememberPreference(key = HideExplicitKey, defaultValue = false)
 
     val lazyListState = rememberLazyListState()
@@ -723,27 +725,31 @@ fun OnlinePlaylistScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist.title,
-                                                    items = songs.map {
-                                                        it.toMediaItemWithPlaylist(
-                                                            playlist.id
-                                                        )
-                                                    }
+                                            if (playlistPlaying) {
+                                                playerConnection.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist.title,
+                                                        items = songs.map {
+                                                            it.toMediaItemWithPlaylist(
+                                                                playlist.id
+                                                            )
+                                                        }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.play),
+                                            painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                                             contentDescription = null,
                                             modifier = Modifier.size(ButtonDefaults.IconSize)
                                         )
                                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.play))
+                                        Text(stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play))
                                     }
                                     Button(
                                         onClick = {
@@ -960,19 +966,23 @@ fun OnlinePlaylistScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = lazyListState,
-            icon = R.drawable.play,
+            icon = if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
                 playlist.let { playlist ->
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist!!.title,
-                            items = songs.map {
-                                it.toMediaItemWithPlaylist(
-                                    playlist.id
-                                )
-                            }
+                    if (playlistPlaying) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist!!.title,
+                                items = songs.map {
+                                    it.toMediaItemWithPlaylist(
+                                        playlist.id
+                                    )
+                                }
+                            )
                         )
-                    )
+                    }
                 }
             }
         )

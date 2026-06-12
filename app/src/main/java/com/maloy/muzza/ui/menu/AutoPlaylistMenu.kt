@@ -32,6 +32,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -66,7 +67,7 @@ import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
@@ -109,6 +110,9 @@ fun AutoPlaylistMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val autoPlaylistPlaying = mediaMetadata?.playlist?.id == playlist.playlist.id
     val songs = songs ?: return
     val cacheViewModel = viewModel<CachePlaylistViewModel>()
 
@@ -310,23 +314,27 @@ fun AutoPlaylistMenu(
                         )
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-                            onDismiss()
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = playlist.playlist.name,
-                                    items = songs.map { it.toMediaItem() })
-                            )
+                            if (autoPlaylistPlaying) {
+                                playerConnection.togglePlayPause()
+                            } else {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = playlist.playlist.name,
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.playlist.id) })
+                                )
+                                onDismiss()
+                            }
                         }
                         .padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
+                        painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                     )
                     Text(
-                        text = stringResource(R.string.play),
+                        text = stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else R.string.play),
                         style = MaterialTheme.typography.labelMedium,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier
@@ -345,23 +353,27 @@ fun AutoPlaylistMenu(
                         )
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
-                            onDismiss()
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = playlist.playlist.name,
-                                    items = songs.map { it.toMediaItem() })
-                            )
+                            if (autoPlaylistPlaying) {
+                                playerConnection.togglePlayPause()
+                            } else {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = playlist.playlist.name,
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.playlist.id) })
+                                )
+                                onDismiss()
+                            }
                         }
                         .padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Icon(
-                        painter = painterResource(R.drawable.play),
+                        painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                         contentDescription = null,
                         modifier = Modifier.size(24.dp),
                     )
                     Text(
-                        text = stringResource(R.string.play),
+                        text = stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else R.string.play),
                         style = MaterialTheme.typography.labelMedium,
                         textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                         modifier = Modifier
@@ -384,7 +396,7 @@ fun AutoPlaylistMenu(
                                 ListQueue(
                                     title = playlist.playlist.name,
                                     items = songs.shuffled()
-                                        .map { it.toMediaItem() })
+                                        .map { it.toMediaItemWithPlaylist(playlist.playlist.id) })
                             )
                         }
                         .padding(12.dp),
@@ -416,7 +428,7 @@ fun AutoPlaylistMenu(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         onDismiss()
-                        playerConnection.addToQueue(songs.map { it.toMediaItem() })
+                        playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.playlist.id) })
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -455,7 +467,7 @@ fun AutoPlaylistMenu(
                     playerConnection.playQueue(
                         ListQueue(
                             title = playlist.playlist.name,
-                            items = songs.shuffled().map { it.toMediaItem() })
+                            items = songs.shuffled().map { it.toMediaItemWithPlaylist(playlist.playlist.id) })
                     )
                 }
                 item {
@@ -467,7 +479,7 @@ fun AutoPlaylistMenu(
                 title = R.string.play_next
             ) {
                 onDismiss()
-                playerConnection.playNext(songs.map { it.toMediaItem() })
+                playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.playlist.id) })
             }
             item {
                 HorizontalDivider()

@@ -85,7 +85,10 @@ fun YouTubeAlbumMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val isPlaying by playerConnection.isPlaying.collectAsState()
     val album by database.albumWithSongs(albumItem.id).collectAsState(initial = null)
+    val albumPlaying = mediaMetadata?.album?.id == album?.album?.id
     val coroutineScope = rememberCoroutineScope()
 
     LaunchedEffect(Unit) {
@@ -305,24 +308,28 @@ fun YouTubeAlbumMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    onDismiss()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = album?.album?.title,
-                            items = album?.songs!!.map { it.toMediaItem() }
+                    if (albumPlaying) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        onDismiss()
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = album?.album?.title,
+                                items = album?.songs!!.map { it.toMediaItem() }
+                            )
                         )
-                    )
+                    }
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.play),
+                painter = painterResource(if (albumPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.play),
+                text = stringResource(if (albumPlaying && isPlaying) R.string.pause else R.string.play),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier

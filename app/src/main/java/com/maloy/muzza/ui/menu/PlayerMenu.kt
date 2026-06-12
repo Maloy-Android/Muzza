@@ -132,6 +132,8 @@ fun PlayerMenu(
     }
     val listenTogetherManager = LocalListenTogetherManager.current
 
+    val topSize = 50
+
     val sleepTimerEnabled = remember(
         playerConnection.service.sleepTimer.triggerTime,
         playerConnection.service.sleepTimer.pauseWhenSongEnd
@@ -341,6 +343,7 @@ fun PlayerMenu(
                     valueRange = 0f..1f
                 )
             }
+
             SliderStyle.SQUIGGLY -> {
                 SquigglySlider(
                     value = playerVolume.value,
@@ -348,6 +351,7 @@ fun PlayerMenu(
                     valueRange = 0f..1f,
                 )
             }
+
             SliderStyle.COMPOSE -> {
                 Slider(
                     value = playerVolume.value,
@@ -586,7 +590,8 @@ fun PlayerMenu(
                     icon = R.drawable.queue_music,
                     title = R.string.suggest_to_host
                 ) {
-                    val durationMs = if (mediaMetadata.duration > 0) mediaMetadata.duration.toLong() * 1000 else 180000L
+                    val durationMs =
+                        if (mediaMetadata.duration > 0) mediaMetadata.duration.toLong() * 1000 else 180000L
                     val trackInfo = com.maloy.muzza.listentogether.TrackInfo(
                         id = mediaMetadata.id,
                         title = mediaMetadata.title,
@@ -702,22 +707,30 @@ fun PlayerMenu(
                     HorizontalDivider()
                 }
             }
-            if (playlistId?.isNotEmpty() == true) {
-                ListMenuItem(
-                    icon = R.drawable.playlist_play,
-                    title = R.string.view_playlist
-                ) {
-                    if (dbPlaylistValue?.playlist?.id != null) {
-                        navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
-                    } else {
-                        navController.navigate("online_playlist/${mediaMetadata.playlist.id}")
-                    }
-                    bottomSheetState.collapseSoft()
-                    onDismiss()
+        }
+        if (playlistId?.isNotEmpty() == true) {
+            ListMenuItem(
+                icon = R.drawable.playlist_play,
+                title = R.string.view_playlist
+            ) {
+                if (dbPlaylistValue?.playlist?.id != null) {
+                    navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
+                } else when (mediaMetadata.playlist.id) {
+                    "LM" -> navController.navigate("auto_playlist/liked_songs")
+                    "libraryMusic" -> navController.navigate("AutoPlaylistLibrary")
+                    "downloaded" -> navController.navigate("auto_playlist/downloaded_songs")
+                    "top" -> navController.navigate("top_playlist/$topSize")
+                    "cached" -> navController.navigate("CachedPlaylist")
+                    "local" -> navController.navigate("AutoPlaylistLocal")
+                    else -> navController.navigate("online_playlist/${mediaMetadata.playlist.id}")
                 }
-                item {
-                    HorizontalDivider()
-                }
+                bottomSheetState.collapseSoft()
+                onDismiss()
+            }
+        }
+        if (!mediaMetadata.isLocal) {
+            item {
+                HorizontalDivider()
             }
             ListMenuItem(
                 icon = R.drawable.youtube_music,
@@ -739,9 +752,9 @@ fun PlayerMenu(
                 onShowDetailsDialog()
                 onDismiss()
             }
-            item {
-                HorizontalDivider()
-            }
+        }
+        item {
+            HorizontalDivider()
         }
         ListMenuItem(
             icon = R.drawable.equalizer,
@@ -865,6 +878,7 @@ fun TempoPitchDialog(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = tempo,
@@ -876,6 +890,7 @@ fun TempoPitchDialog(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+
                         SliderStyle.COMPOSE -> {
                             Slider(
                                 value = tempo,
@@ -925,6 +940,7 @@ fun TempoPitchDialog(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+
                         SliderStyle.SQUIGGLY -> {
                             SquigglySlider(
                                 value = transposeValue.toFloat(),
@@ -936,6 +952,7 @@ fun TempoPitchDialog(
                                 modifier = Modifier.weight(1f)
                             )
                         }
+
                         SliderStyle.COMPOSE -> {
                             Slider(
                                 value = transposeValue.toFloat(),

@@ -93,9 +93,12 @@ fun AlbumMenu(
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
     val scope = rememberCoroutineScope()
     val libraryAlbum by database.album(originalAlbum.id).collectAsState(initial = originalAlbum)
     val album = libraryAlbum ?: originalAlbum
+    val albumPlaying = mediaMetadata?.album?.id == album.album.id
     var songs by remember {
         mutableStateOf(emptyList<Song>())
     }
@@ -289,24 +292,28 @@ fun AlbumMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    onDismiss()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = album.album.title,
-                            items = songs.map { it.toMediaItem() }
+                    if (albumPlaying) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = album.album.title,
+                                items = songs.map { it.toMediaItem() }
+                            )
                         )
-                    )
+                        onDismiss()
+                    }
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Icon(
-                painter = painterResource(R.drawable.play),
+                painter = painterResource(if (albumPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                 contentDescription = null,
                 modifier = Modifier.size(24.dp),
             )
             Text(
-                text = stringResource(R.string.play),
+                text = stringResource(if (albumPlaying && isPlaying) R.string.pause else R.string.play),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier

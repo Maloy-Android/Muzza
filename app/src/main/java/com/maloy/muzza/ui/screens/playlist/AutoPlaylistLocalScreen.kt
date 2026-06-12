@@ -63,6 +63,7 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.*
@@ -120,6 +121,8 @@ fun AutoPlaylistLocalScreen(
         songCount = localSongs.size,
         songThumbnails = emptyList()
     )
+
+    val autoPlaylistPlaying = mediaMetadata?.playlist?.id == localPlaylist.playlist.id
 
     val snackbarHostState = remember { SnackbarHostState() }
     val lazyListState = rememberLazyListState()
@@ -365,7 +368,7 @@ fun AutoPlaylistLocalScreen(
                                     Button(
                                         onClick = {
                                             playerConnection.addToQueue(
-                                                items = localSongs.map { it.toMediaItem() },
+                                                items = localSongs.map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) },
                                             )
                                         },
                                         modifier = Modifier
@@ -383,23 +386,31 @@ fun AutoPlaylistLocalScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = context.getString(R.string.local),
-                                                    items = localSongs.map { it.toMediaItem() }
+                                            if (autoPlaylistPlaying){
+                                                playerConnection.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = context.getString(R.string.local),
+                                                        items = localSongs.map {
+                                                            it.toMediaItemWithPlaylist(
+                                                                localPlaylist.playlist.id
+                                                            )
+                                                        }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.play),
+                                            painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                                             contentDescription = null,
                                             modifier = Modifier.size(ButtonDefaults.IconSize)
                                         )
                                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.play))
+                                        Text(stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else R.string.play))
                                     }
                                     Button(
                                         onClick = {
@@ -407,7 +418,7 @@ fun AutoPlaylistLocalScreen(
                                                 ListQueue(
                                                     title = context.getString(R.string.local),
                                                     items = localSongs.shuffled()
-                                                        .map { it.toMediaItem() }
+                                                        .map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) }
                                                 )
                                             )
                                         },
@@ -531,7 +542,7 @@ fun AutoPlaylistLocalScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = context.getString(R.string.local),
-                                                    items = localSongs.map { it.toMediaItem() },
+                                                    items = localSongs.map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) },
                                                     startIndex = localSongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
                                             )
@@ -558,14 +569,18 @@ fun AutoPlaylistLocalScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = lazyListState,
-            icon = R.drawable.play,
+            icon = if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = context.getString(R.string.local),
-                        items = localSongs.map { it.toMediaItem() }
+                if (autoPlaylistPlaying) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = context.getString(R.string.local),
+                            items = localSongs.map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) }
+                        )
                     )
-                )
+                }
             }
         )
         if (inSelectMode) {

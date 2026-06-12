@@ -101,6 +101,7 @@ import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
@@ -208,7 +209,7 @@ fun LibraryMixScreen(
 
     val likedMusicPlaylist = Playlist(
         playlist = PlaylistEntity(
-            id = "likedMusic",
+            id = "LM",
             name =  if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
                 stringResource(R.string.liked)
             }
@@ -533,7 +534,7 @@ fun LibraryMixScreen(
                                                                     title = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
                                                                         context.getString(R.string.liked)
                                                                     },
-                                                                    items = songs.map { it.toMediaItem() },
+                                                                    items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) },
                                                                     startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                                                 )
                                                             )

@@ -59,6 +59,7 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -99,6 +100,8 @@ fun AutoPlaylistLibraryScreen(
         songCount = librarySongs.size,
         songThumbnails = emptyList()
     )
+
+    val autoPlaylistPlaying = mediaMetadata?.playlist?.id == libraryMusicPlaylist.playlist.id
 
     val snackbarHostState = remember { SnackbarHostState() }
     val lazyListState = rememberLazyListState()
@@ -416,7 +419,7 @@ fun AutoPlaylistLibraryScreen(
                                     Button(
                                         onClick = {
                                             playerConnection.addToQueue(
-                                                items = librarySongs.map { it.toMediaItem() },
+                                                items = librarySongs.map { it.toMediaItemWithPlaylist(libraryMusicPlaylist.playlist.id) },
                                             )
                                         },
                                         modifier = Modifier
@@ -434,23 +437,31 @@ fun AutoPlaylistLibraryScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = context.getString(R.string.songs_from_library),
-                                                    items = librarySongs.map { it.toMediaItem() }
+                                            if (autoPlaylistPlaying) {
+                                                playerConnection.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = context.getString(R.string.songs_from_library),
+                                                        items = librarySongs.map {
+                                                            it.toMediaItemWithPlaylist(
+                                                                libraryMusicPlaylist.playlist.id
+                                                            )
+                                                        }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.play),
+                                            painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                                             contentDescription = null,
                                             modifier = Modifier.size(ButtonDefaults.IconSize)
                                         )
                                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.play))
+                                        Text(stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else R.string.play))
                                     }
                                     Button(
                                         onClick = {
@@ -458,7 +469,7 @@ fun AutoPlaylistLibraryScreen(
                                                 ListQueue(
                                                     title = context.getString(R.string.songs_from_library),
                                                     items = librarySongs.shuffled()
-                                                        .map { it.toMediaItem() }
+                                                        .map { it.toMediaItemWithPlaylist(libraryMusicPlaylist.playlist.id) }
                                                 )
                                             )
                                         },
@@ -582,7 +593,7 @@ fun AutoPlaylistLibraryScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = context.getString(R.string.songs_from_library),
-                                                    items = librarySongs.map { it.toMediaItem() },
+                                                    items = librarySongs.map { it.toMediaItemWithPlaylist(libraryMusicPlaylist.playlist.id) },
                                                     startIndex = librarySongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
                                             )
@@ -609,14 +620,22 @@ fun AutoPlaylistLibraryScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = lazyListState,
-            icon = R.drawable.play,
+            icon = if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = context.getString(R.string.songs_from_library),
-                        items = librarySongs.map { it.toMediaItem() }
+                if (autoPlaylistPlaying) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = context.getString(R.string.songs_from_library),
+                            items = librarySongs.map {
+                                it.toMediaItemWithPlaylist(
+                                    libraryMusicPlaylist.playlist.id
+                                )
+                            }
+                        )
                     )
-                )
+                }
             }
         )
         if (inSelectMode) {

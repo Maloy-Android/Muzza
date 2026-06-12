@@ -188,6 +188,8 @@ fun BottomSheetPlayer(
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
     val currentSongThumbnail = mediaMetadata?.thumbnailUrl
 
+    val topSize = 50
+
     val context = LocalContext.current
     val canSkipPrevious by playerConnection.canSkipPrevious.collectAsState()
     val canSkipNext by playerConnection.canSkipNext.collectAsState()
@@ -316,8 +318,14 @@ fun BottomSheetPlayer(
                             mediaMetadata.let { mediaMetadata ->
                                 if (dbPlaylistValue?.playlist?.id != null) {
                                     navController.navigate("local_playlist/${mediaMetadata?.playlist?.id}")
-                                } else {
-                                    navController.navigate("online_playlist/${mediaMetadata?.playlist?.id}")
+                                } else when (mediaMetadata?.playlist?.id) {
+                                    "LM" -> navController.navigate("auto_playlist/liked_songs")
+                                    "libraryMusic" -> navController.navigate("AutoPlaylistLibrary")
+                                    "downloaded" -> navController.navigate("auto_playlist/downloaded_songs")
+                                    "top" -> navController.navigate("top_playlist/$topSize")
+                                    "cached" -> navController.navigate("CachedPlaylist")
+                                    "local" -> navController.navigate("AutoPlaylistLocal")
+                                    else -> navController.navigate("online_playlist/${mediaMetadata?.playlist?.id}")
                                 }
                             }
                             state.collapseSoft()
@@ -488,8 +496,14 @@ fun BottomSheetPlayer(
                                             mediaMetadata.playlist?.id != null -> {
                                                 if (dbPlaylistValue?.playlist?.id != null) {
                                                     navController.navigate("local_playlist/${mediaMetadata.playlist.id}")
-                                                } else {
-                                                    navController.navigate("online_playlist/${mediaMetadata.playlist.id}")
+                                                } else when (mediaMetadata.playlist.id) {
+                                                    "LM" -> navController.navigate("auto_playlist/liked_songs")
+                                                    "libraryMusic" -> navController.navigate("AutoPlaylistLibrary")
+                                                    "downloaded" -> navController.navigate("auto_playlist/downloaded_songs")
+                                                    "top" -> navController.navigate("top_playlist/$topSize")
+                                                    "cached" -> navController.navigate("CachedPlaylist")
+                                                    "local" -> navController.navigate("AutoPlaylistLocal")
+                                                    else -> navController.navigate("online_playlist/${mediaMetadata.playlist.id}")
                                                 }
                                                 state.collapseSoft()
                                             }

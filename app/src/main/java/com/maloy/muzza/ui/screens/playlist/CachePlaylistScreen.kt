@@ -59,6 +59,7 @@ import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -101,6 +102,8 @@ fun CachePlaylistScreen(
         songCount = cachedSongs.size,
         songThumbnails = emptyList()
     )
+
+    val autoPlaylistPlaying = mediaMetadata?.playlist?.id == cachedPlaylist.playlist.id
 
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         SongSortTypeKey,
@@ -420,7 +423,7 @@ fun CachePlaylistScreen(
                                     Button(
                                         onClick = {
                                             playerConnection.addToQueue(
-                                                items = cachedSongs.map { it.toMediaItem() },
+                                                items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) },
                                             )
                                         },
                                         modifier = Modifier
@@ -438,23 +441,27 @@ fun CachePlaylistScreen(
                                 Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                                     Button(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = context.getString(R.string.cached),
-                                                    items = cachedSongs.map { it.toMediaItem() }
+                                            if (autoPlaylistPlaying) {
+                                                playerConnection.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = context.getString(R.string.cached),
+                                                        items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                                         modifier = Modifier.weight(1f)
                                     ) {
                                         Icon(
-                                            painter = painterResource(R.drawable.play),
+                                            painter = painterResource(if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                                             contentDescription = null,
                                             modifier = Modifier.size(ButtonDefaults.IconSize)
                                         )
                                         Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                        Text(stringResource(R.string.play))
+                                        Text(stringResource(if (autoPlaylistPlaying && isPlaying) R.string.pause else R.string.play))
                                     }
                                     Button(
                                         onClick = {
@@ -462,7 +469,7 @@ fun CachePlaylistScreen(
                                                 ListQueue(
                                                     title = context.getString(R.string.cached),
                                                     items = cachedSongs.shuffled()
-                                                        .map { it.toMediaItem() }
+                                                        .map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) }
                                                 )
                                             )
                                         },
@@ -587,7 +594,7 @@ fun CachePlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = context.getString(R.string.cached),
-                                                    items = cachedSongs.map { it.toMediaItem() },
+                                                    items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) },
                                                     startIndex = cachedSongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
                                             )
@@ -614,14 +621,18 @@ fun CachePlaylistScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = lazyListState,
-            icon = R.drawable.play,
+            icon = if (autoPlaylistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = context.getString(R.string.cached),
-                        items = cachedSongs.map { it.toMediaItem() }
+                if (autoPlaylistPlaying) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = context.getString(R.string.cached),
+                            items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) }
+                        )
                     )
-                )
+                }
             }
         )
         if (inSelectMode) {

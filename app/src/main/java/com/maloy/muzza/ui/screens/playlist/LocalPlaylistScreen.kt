@@ -197,6 +197,8 @@ fun LocalPlaylistScreen(
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
 
+    val playlistPlaying = mediaMetadata?.playlist?.id == playlist?.playlist?.id
+
     val (sortType, onSortTypeChange) = rememberEnumPreference(
         PlaylistSongSortTypeKey,
         PlaylistSongSortType.CUSTOM
@@ -703,18 +705,22 @@ fun LocalPlaylistScreen(
         HideOnScrollFAB(
             visible = lazyChecker && !isSearching && !inSelectMode,
             lazyListState = lazyListState,
-            icon = R.drawable.play,
+            icon = if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play,
             onClick = {
-                playerConnection.playQueue(
-                    ListQueue(
-                        title = playlist!!.playlist.name,
-                        items = songs.map {
-                            it.song.toMediaItemWithPlaylist(
-                                playlist!!.id
-                            )
-                        }
+                if (playlistPlaying) {
+                    playerConnection.togglePlayPause()
+                } else {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist!!.playlist.name,
+                            items = songs.map {
+                                it.song.toMediaItemWithPlaylist(
+                                    playlist!!.id
+                                )
+                            }
+                        )
                     )
-                )
+                }
             }
         )
         CenterAlignedTopAppBar(
@@ -912,6 +918,9 @@ fun LocalPlaylistHeader(
     modifier: Modifier,
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val playlistPlaying = mediaMetadata?.playlist?.id == playlist.playlist.id
     val context = LocalContext.current
     val database = LocalDatabase.current
 
@@ -1368,23 +1377,27 @@ fun LocalPlaylistHeader(
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             Button(
                 onClick = {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist.playlist.name,
-                            items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) }
+                    if (playlistPlaying) {
+                        playerConnection.togglePlayPause()
+                    } else {
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist.playlist.name,
+                                items = songs.map { it.song.toMediaItemWithPlaylist(playlist.id) }
+                            )
                         )
-                    )
+                    }
                 },
                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
                 modifier = Modifier.weight(1f)
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
                     contentDescription = null,
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text(stringResource(R.string.play))
+                Text(stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play))
             }
 
             Button(

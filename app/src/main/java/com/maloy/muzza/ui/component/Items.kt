@@ -1317,74 +1317,33 @@ fun CommunityPlaylistCard(
                     .padding(16.dp),
                 horizontalArrangement = Arrangement.spacedBy(16.dp),
             ) {
-                // 2x2 Grid of thumbnails
                 Box(
                     modifier = Modifier
                         .size(100.dp)
                         .clip(RoundedCornerShape(12.dp)),
                 ) {
                     Column(modifier = Modifier.fillMaxSize()) {
-                        Row(modifier = Modifier.weight(1f)) {
+                        Row {
                             AsyncImage(
-                                model = item.songs
-                                    .getOrNull(0)
-                                    ?.thumbnail
-                                    ?.resize(200, 200),
+                                model = item.playlist.thumbnail,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxSize(),
+                                modifier = Modifier.fillMaxSize(),
                             )
-                            AsyncImage(
-                                model = item.songs
-                                    .getOrNull(1)
-                                    ?.thumbnail
-                                    ?.resize(200, 200),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
+
+                            PlayingIndicatorBox(
+                                isActive = isActive,
+                                playWhenReady = isPlaying,
+                                color = Color.White,
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxSize(),
-                            )
-                        }
-                        Row(modifier = Modifier.weight(1f)) {
-                            AsyncImage(
-                                model = item.songs
-                                    .getOrNull(2)
-                                    ?.thumbnail
-                                    ?.resize(200, 200),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxSize(),
-                            )
-                            AsyncImage(
-                                model = item.songs
-                                    .getOrNull(3)
-                                    ?.thumbnail
-                                    ?.resize(200, 200),
-                                contentDescription = null,
-                                contentScale = ContentScale.Crop,
-                                modifier = Modifier
-                                    .weight(1f)
-                                    .fillMaxSize(),
+                                    .fillMaxSize()
+                                    .background(
+                                        color = Color.Black.copy(alpha = 0.5f),
+                                        shape = RoundedCornerShape(12.dp)
+                                    )
                             )
                         }
                     }
-
-                    PlayingIndicatorBox(
-                        isActive = isActive,
-                        playWhenReady = isPlaying,
-                        color = Color.White,
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .background(
-                                color = Color.Black.copy(alpha = 0.5f),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                    )
                 }
 
                 Column(
@@ -1499,8 +1458,22 @@ fun CommunityPlaylistCard(
                 IconButton(
                     onClick = {
                         if (!isListenTogetherGuest) {
-                            item.playlist.playEndpoint?.let {
-                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
+                            scope.launch {
+                                withContext(Dispatchers.IO) {
+                                    YouTube.playlist(item.playlist.id).completed()
+                                        .getOrNull()?.songs.orEmpty()
+                                }.let { songs ->
+                                    playerConnection?.playQueue(
+                                        ListQueue(
+                                            title = item.playlist.title,
+                                            items = songs.map {
+                                                it.toMediaItemWithPlaylist(
+                                                    item.playlist.id
+                                                )
+                                            }
+                                        )
+                                    )
+                                }
                             }
                         }
                     },

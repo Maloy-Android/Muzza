@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.settings
 
 import android.annotation.SuppressLint
+import android.text.format.Formatter
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -65,7 +66,6 @@ import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.utils.backToMain
-import com.maloy.muzza.ui.utils.formatFileSize
 import com.maloy.muzza.utils.TranslationHelper
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -163,7 +163,7 @@ fun StorageSettings(
                 ) {
                     Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = formatFileSize(downloadCacheSize),
+                            text = Formatter.formatShortFileSize(context,downloadCacheSize),
                             style = MaterialTheme.typography.titleMedium
                         )
                         Spacer(modifier = Modifier.height(8.dp))
@@ -375,6 +375,7 @@ private fun CacheCard(
     onClear: () -> Unit,
     clearButtonText: String
 ) {
+    val context = LocalContext.current
     val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
     var sliderPosition by remember { mutableStateOf<Float?>(null) }
 
@@ -408,7 +409,7 @@ private fun CacheCard(
                 Spacer(modifier = Modifier.height(12.dp))
             } else if (selectedValue == -1) {
                 Text(
-                    text = formatFileSize(usedSpace),
+                    text = Formatter.formatShortFileSize(context,usedSpace),
                     style = MaterialTheme.typography.titleMedium
                 )
                 Spacer(modifier = Modifier.height(12.dp))
@@ -422,7 +423,7 @@ private fun CacheCard(
                     text = when {
                         currentValue == 0f -> stringResource(R.string.off)
                         currentValue >= maxValue -> stringResource(R.string.unlimited)
-                        else -> formatFileSize((currentValue.toInt() * 1024 * 1024L))
+                        else -> Formatter.formatShortFileSize(context,currentValue.toInt() * 1024 * 1024L)
                     },
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary

@@ -184,6 +184,7 @@ fun BottomSheetPlayer(
     }
     val dbPlaylistValue by dbPlaylist
     val queueTitle by playerConnection.queueTitle.collectAsState()
+    val queueTitleText = if (queueTitle.orEmpty().endsWith("\"")) queueTitle.orEmpty() else "\"${queueTitle.orEmpty()}\""
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
     val currentSongThumbnail = mediaMetadata?.thumbnailUrl
@@ -1097,9 +1098,9 @@ fun BottomSheetPlayer(
                             color = onBackgroundColor,
                             maxLines = 1
                         )
-                        if (!queueTitle.isNullOrEmpty()) {
+                        if (queueTitleText.isNotEmpty()) {
                             Text(
-                               text = "\"${queueTitle.orEmpty()}\"",
+                               text = queueTitleText,
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Bold,
                                 overflow = TextOverflow.Ellipsis,

@@ -29,16 +29,19 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
@@ -775,7 +778,7 @@ class MainActivity : ComponentActivity() {
                                         style = MaterialTheme.typography.titleLarge,
                                     )
                                 },
-                                navigationIcon = {
+                                actions = {
                                     IconButton(
                                         onClick = {
                                             onActiveChange(true)
@@ -790,20 +793,23 @@ class MainActivity : ComponentActivity() {
                                             contentDescription = stringResource(R.string.search)
                                         )
                                     }
-                                },
-                                actions = {
-                                    IconButton(
-                                        content = {
-                                            BadgedBox(
-                                                badge = {
-                                                    if (showBadge) {
-                                                        Badge()
-                                                    }
+
+                                    Box {
+                                        BadgedBox(
+                                            badge = {
+                                                if (showBadge) {
+                                                    Badge()
+                                                }
+                                            }
+                                        ) {
+                                            IconButton(
+                                                onClick = {
+                                                    showOptionsDropdown = !showOptionsDropdown
                                                 }
                                             ) {
                                                 if (isLoggedIn && accountImageUrl.isNotEmpty()) {
                                                     AsyncImage(
-                                                        model = (accountImageUrl),
+                                                        model = accountImageUrl,
                                                         contentDescription = null,
                                                         contentScale = ContentScale.Crop,
                                                         modifier = Modifier
@@ -813,73 +819,63 @@ class MainActivity : ComponentActivity() {
                                                 } else {
                                                     Icon(
                                                         painterResource(R.drawable.menu),
-                                                        null
+                                                        contentDescription = null
                                                     )
                                                 }
                                             }
-                                            DropdownMenu(
-                                                expanded = showOptionsDropdown,
-                                                onDismissRequest = { showOptionsDropdown = false },
-                                            ) {
-                                                DropdownMenuItem(
-                                                    leadingIcon = {
-                                                        Icon(
-                                                            painterResource(R.drawable.history),
-                                                            contentDescription = null
-                                                        )
-                                                    },
-                                                    text = {
-                                                        Text(stringResource(R.string.history))
-                                                    },
-                                                    onClick = {
-                                                        showOptionsDropdown = false
-                                                        navController.navigate("history")
-                                                    }
-                                                )
-                                                DropdownMenuItem(
-                                                    leadingIcon = {
-                                                        Icon(
-                                                            painterResource(R.drawable.trending_up),
-                                                            contentDescription = null
-                                                        )
-                                                    },
-                                                    text = {
-                                                        Text(stringResource(R.string.stats))
-                                                    },
-                                                    onClick = {
-                                                        showOptionsDropdown = false
-                                                        navController.navigate("stats")
-                                                    }
-                                                )
-                                                DropdownMenuItem(
-                                                    leadingIcon = {
-                                                        BadgedBox(
-                                                            badge = {
-                                                                if (showBadge) {
-                                                                    Badge()
-                                                                }
-                                                            }
-                                                        ) {
-                                                            Icon(
-                                                                painterResource(R.drawable.settings),
-                                                                contentDescription = null
-                                                            )
-                                                        }
-                                                    },
-                                                    text = {
-                                                        Text(stringResource(R.string.settings))
-                                                    },
-                                                    onClick = {
-                                                        showOptionsDropdown = false
-                                                        navController.navigate("settings")
-                                                    }
-                                                )
-                                            }
-                                        },
-                                        onClick = {
-                                            showOptionsDropdown = !showOptionsDropdown
-                                        },
-                                    )
+                                        }
+
+                                        DropdownMenu(
+                                            expanded = showOptionsDropdown,
+                                            onDismissRequest = { showOptionsDropdown = false },
+                                        ) {
+                                            DropdownMenuItem(
+                                                leadingIcon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.history),
+                                                        contentDescription = null
+                                                    )
+                                                },
+                                                text = {
+                                                    Text(stringResource(R.string.history))
+                                                },
+                                                onClick = {
+                                                    showOptionsDropdown = false
+                                                    navController.navigate("history")
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                leadingIcon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.trending_up),
+                                                        contentDescription = null
+                                                    )
+                                                },
+                                                text = {
+                                                    Text(stringResource(R.string.stats))
+                                                },
+                                                onClick = {
+                                                    showOptionsDropdown = false
+                                                    navController.navigate("stats")
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                leadingIcon = {
+                                                    Icon(
+                                                        painterResource(R.drawable.settings),
+                                                        contentDescription = null
+                                                    )
+                                                },
+                                                text = {
+                                                    Text(stringResource(R.string.settings))
+                                                },
+                                                onClick = {
+                                                    showOptionsDropdown = false
+                                                    navController.navigate("settings")
+                                                }
+                                            )
+                                        }
+                                    }
                                 },
                                 scrollBehavior = searchBarScrollBehavior
                             )

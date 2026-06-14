@@ -184,7 +184,8 @@ fun BottomSheetPlayer(
     }
     val dbPlaylistValue by dbPlaylist
     val queueTitle by playerConnection.queueTitle.collectAsState()
-    val queueTitleText = if (queueTitle.orEmpty().endsWith("\"")) queueTitle.orEmpty() else "\"${queueTitle.orEmpty()}\""
+    val queueTitleParams = if (queueTitle.orEmpty().endsWith("\"")) queueTitle.orEmpty() else "\"${queueTitle.orEmpty()}\""
+    val queueTitleText = queueTitleParams.ifEmpty { mediaMetadata?.title ?: return }
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
     val currentSongThumbnail = mediaMetadata?.thumbnailUrl
@@ -1098,29 +1099,15 @@ fun BottomSheetPlayer(
                             color = onBackgroundColor,
                             maxLines = 1
                         )
-                        if (queueTitleText.isNotEmpty()) {
-                            Text(
-                               text = queueTitleText,
-                                style = MaterialTheme.typography.bodyMedium,
-                                fontWeight = FontWeight.Bold,
-                                overflow = TextOverflow.Ellipsis,
-                                color = onBackgroundColor,
-                                maxLines = 1,
-                                modifier = Modifier.basicMarquee()
-                            )
-                        } else {
-                            mediaMetadata?.let {
-                                Text(
-                                    text = it.title,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    overflow = TextOverflow.Ellipsis,
-                                    color = onBackgroundColor,
-                                    maxLines = 1,
-                                    modifier = Modifier.basicMarquee()
-                                )
-                            }
-                        }
+                        Text(
+                            text = queueTitleText,
+                            style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.Bold,
+                            overflow = TextOverflow.Ellipsis,
+                            color = onBackgroundColor,
+                            maxLines = 1,
+                            modifier = Modifier.basicMarquee()
+                        )
                     }
                     Box(modifier = Modifier.width(25.dp)) {
                         if (mediaMetadata?.isLocal == false) {

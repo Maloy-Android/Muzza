@@ -24,6 +24,8 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
+import com.maloy.muzza.constants.PlaylistFilter
+import com.maloy.muzza.constants.PlaylistFilterKey
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
@@ -52,6 +54,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
@@ -62,6 +65,7 @@ import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDateTime
 import javax.inject.Inject
+import kotlin.collections.filter
 
 @HiltViewModel
 class LibraryArtistsViewModel @Inject constructor(
@@ -130,6 +134,7 @@ class LibraryAlbumsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
+    downloadUtil: DownloadUtil
 ) : ViewModel() {
     @OptIn(ExperimentalCoroutinesApi::class)
     private val _error = MutableStateFlow<String?>(null)
@@ -149,6 +154,16 @@ class LibraryAlbumsViewModel @Inject constructor(
             when (filter) {
                 AlbumFilter.LIBRARY -> database.albums(sortType, descending)
                 AlbumFilter.LIKED -> database.albumsLiked(sortType, descending)
+                AlbumFilter.DOWNLOADED -> combine(
+                    database.albums(sortType, descending),
+                    downloadUtil.downloads
+                ) { albums, downloads ->
+                    albums.filter { album ->
+                        database.albumSongs(album.id).first().all { song ->
+                            downloads[song.id]?.state == Download.STATE_COMPLETED
+                        }
+                    }
+                }
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
@@ -199,18 +214,35 @@ class LibraryPlaylistsViewModel @Inject constructor(
     @ApplicationContext context: Context,
     database: MusicDatabase,
     private val syncUtils: SyncUtils,
+    downloadUtil: DownloadUtil
 ) : ViewModel() {
     private val _isRefreshing = MutableStateFlow(false)
     val isRefreshing = _isRefreshing.asStateFlow()
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
     val allPlaylists = context.dataStore.data
-        .map {
-            it[PlaylistSortTypeKey].toEnum(PlaylistSortType.CREATE_DATE) to (it[PlaylistSortDescendingKey] ?: true)
+        .map { preferences ->
+            Triple(
+                preferences[PlaylistFilterKey]?.toEnum(PlaylistFilter.LIKED) ?: PlaylistFilter.LIKED,
+                preferences[PlaylistSortTypeKey]?.toEnum(PlaylistSortType.CREATE_DATE) ?: PlaylistSortType.CREATE_DATE,
+                preferences[PlaylistSortDescendingKey] ?: true
+            )
         }
         .distinctUntilChanged()
-        .flatMapLatest { (sortType, descending) ->
-            database.playlists(sortType, descending)
+        .flatMapLatest { (filter, sortType, descending) ->
+            when (filter) {
+                PlaylistFilter.LIKED -> database.playlists(sortType, descending)
+                PlaylistFilter.DOWNLOADED -> combine(
+                    database.playlists(sortType, descending),
+                    downloadUtil.downloads
+                ) { playlists, downloads ->
+                    playlists.filter { playlist ->
+                        database.playlistSongs(playlist.id).first().all { song ->
+                            downloads[song.song.id]?.state == Download.STATE_COMPLETED
+                        }
+                    }
+                }
+            }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 

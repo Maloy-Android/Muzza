@@ -131,6 +131,7 @@ fun LibraryAlbumsScreen(
                 listOf(
                     AlbumFilter.LIKED to stringResource(R.string.filter_liked),
                     AlbumFilter.LIBRARY to stringResource(R.string.filter_library),
+                    AlbumFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
                 ),
                 currentValue = filter,
                 onValueUpdate = {
@@ -142,7 +143,7 @@ fun LibraryAlbumsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (ytmSync && isLoggedIn && isInternetAvailable(context))
+        if (filter ==  AlbumFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context))
             withContext(Dispatchers.IO) {
                 viewModel.sync()
         }

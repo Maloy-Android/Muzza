@@ -78,6 +78,8 @@ import com.maloy.muzza.constants.GridCellSizeKey
 import com.maloy.muzza.constants.GridThumbnailHeight
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.LibraryViewType
+import com.maloy.muzza.constants.PlaylistFilter
+import com.maloy.muzza.constants.PlaylistFilterKey
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSortType
 import com.maloy.muzza.constants.PlaylistSortTypeKey
@@ -85,6 +87,7 @@ import com.maloy.muzza.constants.PlaylistViewTypeKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.PlaylistEntity
+import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
@@ -123,6 +126,8 @@ fun LibraryPlaylistsScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
+    var filter by rememberEnumPreference(PlaylistFilterKey, PlaylistFilter.LIKED)
+
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
@@ -133,6 +138,23 @@ fun LibraryPlaylistsScreen(
         PlaylistSortDescendingKey,
         true
     )
+
+    val filterContent = @Composable {
+        Row {
+            ChipsRow(
+                chips =
+                    listOf(
+                        PlaylistFilter.LIKED to stringResource(R.string.filter_liked),
+                        PlaylistFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
+                    ),
+                currentValue = filter,
+                onValueUpdate = {
+                    filter = it
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
 
     val playlists by viewModel.allPlaylists.collectAsState()
 
@@ -163,7 +185,7 @@ fun LibraryPlaylistsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+        if (filter ==  PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context)) {
             viewModel.sync()
         }
     }
@@ -353,6 +375,13 @@ fun LibraryPlaylistsScreen(
                             columns = GridCells.Fixed(1),
                             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                         ) {
+                            item(
+                                key = "filter",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
                             if (isSearching) {
                                 item {
                                     EmptyPlaceholder(
@@ -374,6 +403,12 @@ fun LibraryPlaylistsScreen(
                             state = lazyListState,
                             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                         ) {
+                            item(
+                                key = "filter",
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
                             item(
                                 key = "header",
                                 contentType = CONTENT_TYPE_HEADER
@@ -453,6 +488,13 @@ fun LibraryPlaylistsScreen(
                             columns = GridCells.Fixed(1),
                             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                         ) {
+                            item(
+                                key = "filter",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
                             if (isSearching) {
                                 item {
                                     EmptyPlaceholder(
@@ -480,6 +522,13 @@ fun LibraryPlaylistsScreen(
                             ),
                             contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
                         ) {
+                            item(
+                                key = "filter",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
                             item(
                                 key = "header",
                                 span = { GridItemSpan(maxLineSpan) },

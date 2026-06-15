@@ -457,7 +457,7 @@ fun LibraryMixScreen(
                                                 title = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
                                                     context.getString(R.string.liked)
                                                 },
-                                                items = songs.map { it.toMediaItem() }
+                                                items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
                                             )
                                         )
                                     }

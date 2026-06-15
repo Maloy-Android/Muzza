@@ -5,7 +5,6 @@ import androidx.media3.common.PlaybackException
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YouTubeClient
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_CREATOR
-import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_NO_SDK
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_43_32
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_1_61_48
 import com.maloy.innertube.models.YouTubeClient.Companion.ANDROID_VR_NO_AUTH
@@ -33,20 +32,20 @@ object YTPlayerUtils {
 
     private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
-        ANDROID_VR_1_61_48,
+        VISIONOS,
+        WEB_CREATOR,
+        TVHTML5_SIMPLY_EMBEDDED_PLAYER,
+        TVHTML5,
         ANDROID_VR_1_43_32,
-        ANDROID_CREATOR,
+        ANDROID_VR_1_61_48,
+        IOS,
         IPADOS,
-        ANDROID_NO_SDK,
+        ANDROID_CREATOR,
         ANDROID_VR_NO_AUTH,
         MOBILE,
-        TVHTML5,
-        TVHTML5_SIMPLY_EMBEDDED_PLAYER,
-        IOS,
-        VISIONOS,
         WEB,
-        WEB_CREATOR
     )
+
     data class PlaybackData(
         val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
         val videoDetails: PlayerResponse.VideoDetails?,
@@ -67,8 +66,7 @@ object YTPlayerUtils {
         val signatureTimestamp = getSignatureTimestampOrNull(videoId)
         Timber.tag(logTag).d("Signature timestamp: $signatureTimestamp")
 
-        val isLoggedIn = YouTube.cookie != null
-        Timber.tag(logTag).d("Session authentication status: ${if (isLoggedIn) "Logged in" else "Not logged in"}")
+        val sessionId = YouTube.visitorData
 
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
         val mainPlayerResponse =
@@ -95,7 +93,7 @@ object YTPlayerUtils {
                 client = STREAM_FALLBACK_CLIENTS[clientIndex]
                 Timber.tag(logTag).d("Trying fallback client ${clientIndex + 1}/${STREAM_FALLBACK_CLIENTS.size}: ${client.clientName}")
 
-                if (client.loginRequired && !isLoggedIn && YouTube.cookie == null) {
+                if (client.loginRequired && sessionId.isNullOrEmpty() && YouTube.cookie == null) {
                     Timber.tag(logTag).d("Skipping client ${client.clientName} - requires login but user is not logged in")
                     continue
                 }

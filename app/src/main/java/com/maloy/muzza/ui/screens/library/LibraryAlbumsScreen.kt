@@ -272,6 +272,7 @@ fun LibraryAlbumsScreen(
         modifier = Modifier
             .fillMaxSize()
             .pullToRefresh(
+                enabled = filter ==  AlbumFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refresh

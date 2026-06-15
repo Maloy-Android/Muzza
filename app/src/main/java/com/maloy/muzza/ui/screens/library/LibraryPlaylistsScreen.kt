@@ -185,7 +185,7 @@ fun LibraryPlaylistsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (filter ==  PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context)) {
+        if (filter == PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context)) {
             viewModel.sync()
         }
     }
@@ -360,6 +360,7 @@ fun LibraryPlaylistsScreen(
         modifier = Modifier
             .fillMaxSize()
             .pullToRefresh(
+                enabled = filter == PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refresh

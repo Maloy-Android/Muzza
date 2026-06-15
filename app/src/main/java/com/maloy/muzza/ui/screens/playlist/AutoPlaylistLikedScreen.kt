@@ -372,6 +372,7 @@ fun AutoPlaylistLikedScreen(
         modifier = Modifier
             .fillMaxSize()
             .pullToRefresh(
+                enabled = ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refresh

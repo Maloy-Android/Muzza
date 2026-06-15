@@ -137,7 +137,7 @@ fun LibraryArtistsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (ytmSync && isLoggedIn && isInternetAvailable(context))
+        if (filter == ArtistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context))
             withContext(Dispatchers.IO) {
                 viewModel.sync()
         }
@@ -260,6 +260,7 @@ fun LibraryArtistsScreen(
         modifier = Modifier
             .fillMaxSize()
             .pullToRefresh(
+                enabled = filter == ArtistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refresh

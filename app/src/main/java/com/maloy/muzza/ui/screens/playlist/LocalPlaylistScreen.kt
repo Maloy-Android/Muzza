@@ -416,6 +416,7 @@ fun LocalPlaylistScreen(
         modifier = Modifier
             .fillMaxSize()
             .pullToRefresh(
+                enabled = playlist?.playlist?.isLocal != true && isInternetAvailable(context),
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refresh

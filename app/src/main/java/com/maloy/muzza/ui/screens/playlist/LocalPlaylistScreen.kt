@@ -1167,6 +1167,7 @@ fun LocalPlaylistHeader(
                         ) {
                             playlist.playlist.playlistAuthorsId.let { authorId ->
                                 playlist.playlist.playlistAuthorName!!.let { authorName ->
+                                    val authorName = authorName.ifEmpty { stringResource(R.string.playlist_author) }
                                     val link = authorId.let {
                                         LinkAnnotation.Clickable(authorName) {
                                             if (!authorId.isNullOrEmpty()) {

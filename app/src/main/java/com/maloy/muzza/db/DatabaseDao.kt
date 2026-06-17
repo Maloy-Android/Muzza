@@ -491,6 +491,23 @@ interface DatabaseDao {
     @Transaction
     @Query(
         """
+    SELECT album.*
+    FROM album
+    LEFT JOIN song ON song.albumId = album.id
+    WHERE album.bookmarkedAt IS NOT NULL 
+       OR EXISTS(SELECT 1 FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL)
+    GROUP BY album.id
+    ORDER BY 
+        CASE WHEN album.bookmarkedAt IS NOT NULL THEN 0 ELSE 1 END,
+        album.bookmarkedAt,
+        SUM(song.totalPlayTime)
+    """
+    )
+    fun getCombinedAlbums(): Flow<List<Album>>
+
+    @Transaction
+    @Query(
+        """
         SELECT album.*
         FROM album
                  JOIN song

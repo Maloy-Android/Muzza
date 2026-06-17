@@ -155,7 +155,7 @@ class LibraryAlbumsViewModel @Inject constructor(
                 AlbumFilter.LIBRARY -> database.albums(sortType, descending)
                 AlbumFilter.LIKED -> database.albumsLiked(sortType, descending)
                 AlbumFilter.DOWNLOADED -> combine(
-                    database.albums(sortType, descending),
+                    database.getCombinedAlbums(),
                     downloadUtil.downloads
                 ) { albums, downloads ->
                     albums.filter { album ->
@@ -237,7 +237,8 @@ class LibraryPlaylistsViewModel @Inject constructor(
                     downloadUtil.downloads
                 ) { playlists, downloads ->
                     playlists.filter { playlist ->
-                        database.playlistSongs(playlist.id).first().all { song ->
+                        val songs = database.playlistSongs(playlist.id).first()
+                        songs.isNotEmpty() && songs.all { song ->
                             downloads[song.song.id]?.state == Download.STATE_COMPLETED
                         }
                     }

@@ -119,16 +119,12 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AccountImageUrlKey
-import com.maloy.muzza.constants.AccountNameKey
 import com.maloy.muzza.constants.AlbumThumbnailSize
-import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.ListItemHeight
 import com.maloy.muzza.constants.PlaylistEditLockKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
@@ -172,7 +168,6 @@ import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 import java.io.File
 import java.io.FileOutputStream
-import kotlin.collections.contains
 
 @SuppressLint("SuspiciousIndentation", "UseKtx", "UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -934,17 +929,6 @@ fun LocalPlaylistHeader(
         mutableIntStateOf(Download.STATE_STOPPED)
     }
 
-    val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
-    val isLoggedIn =
-        remember(innerTubeCookie) {
-            "SAPISID" in parseCookieString(innerTubeCookie)
-        }
-    val accountImageUrl by rememberPreference(AccountImageUrlKey, "")
-    val accountName by rememberPreference(AccountNameKey, "")
-
-    val playlistUserTitle = isLoggedIn && accountName.isNotEmpty() && playlist.playlist.isLocal
-    val playlistUserAvatar = isLoggedIn && accountImageUrl.isNotEmpty() && playlist.playlist.isLocal
-
     var customThumbnailUri by remember { mutableStateOf<Uri?>(null) }
 
     fun saveImageToPrivateStorage(uri: Uri): Uri? {
@@ -1149,7 +1133,7 @@ fun LocalPlaylistHeader(
             ) {
                 playlist.playlist.playlistAuthorAvatarUrl.let { imageUrl ->
                     playlist.playlist.playlistAuthorsId.let { authorId ->
-                        if ((playlistUserAvatar || (!imageUrl.isNullOrEmpty() && !authorId.isNullOrEmpty()))) {
+                        if (!imageUrl.isNullOrEmpty() && !authorId.isNullOrEmpty()) {
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
@@ -1157,13 +1141,13 @@ fun LocalPlaylistHeader(
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
                                 AsyncImage(
-                                    model = if (playlistUserAvatar) accountImageUrl else imageUrl,
+                                    model = imageUrl,
                                     contentDescription = null,
                                     contentScale = ContentScale.Crop,
                                     modifier = Modifier
                                         .fillMaxSize()
                                         .clip(RoundedCornerShape(16.dp))
-                                        .clickable(enabled = !imageUrl.isNullOrEmpty() && !authorId.isNullOrEmpty()) {
+                                        .clickable {
                                             navController.navigate("artist/${authorId}")
                                         }
                                 )
@@ -1173,45 +1157,31 @@ fun LocalPlaylistHeader(
                 }
                 Spacer(modifier = Modifier.width(8.dp))
 
-                if (playlist.playlist.isLocal && playlist.playlist.playlistAuthorName.isNullOrEmpty()) {
-                    Text(
-                        text = if (playlistUserTitle) {
-                            accountName
-                        } else {
-                            stringResource(R.string.playlist_author)
-                        },
-                        style = MaterialTheme.typography.titleMedium.copy(
-                            fontWeight = FontWeight.Normal,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    )
-                } else {
-                    Text(
-                        buildAnnotatedString {
-                            withStyle(
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.Normal,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                ).toSpanStyle()
-                            ) {
-                                playlist.playlist.playlistAuthorsId.let { authorId ->
-                                    playlist.playlist.playlistAuthorName!!.let { authorName ->
-                                        val link = authorId.let {
-                                            LinkAnnotation.Clickable(authorName) {
-                                                if (!authorId.isNullOrEmpty()) {
-                                                    navController.navigate("artist/${authorId}")
-                                                }
+                Text(
+                    buildAnnotatedString {
+                        withStyle(
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.Normal,
+                                color = MaterialTheme.colorScheme.onBackground
+                            ).toSpanStyle()
+                        ) {
+                            playlist.playlist.playlistAuthorsId.let { authorId ->
+                                playlist.playlist.playlistAuthorName!!.let { authorName ->
+                                    val link = authorId.let {
+                                        LinkAnnotation.Clickable(authorName) {
+                                            if (!authorId.isNullOrEmpty()) {
+                                                navController.navigate("artist/${authorId}")
                                             }
                                         }
-                                        withLink(link) {
-                                            append(authorName)
-                                        }
+                                    }
+                                    withLink(link) {
+                                        append(authorName)
                                     }
                                 }
                             }
                         }
-                    )
-                }
+                    }
+                )
             }
 
             Text(

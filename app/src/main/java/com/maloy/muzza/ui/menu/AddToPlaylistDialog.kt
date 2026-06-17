@@ -35,6 +35,7 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.R
@@ -52,6 +53,9 @@ import com.maloy.muzza.constants.AddToPlaylistSortDescendingKey
 import com.maloy.muzza.constants.AddToPlaylistSortTypeKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.PlaylistSortType
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.utils.isInternetAvailable
@@ -87,6 +91,11 @@ fun AddToPlaylistDialog(
         AddToPlaylistSortDescendingKey,
         false
     )
+
+    val accountImageUrl by rememberPreference(likedMusicAuthorAvatarImageKey, "")
+    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
+    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
+
     val playlists by viewModel.allPlaylists.collectAsState()
     val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn = remember(innerTubeCookie) {
@@ -199,6 +208,10 @@ fun AddToPlaylistDialog(
                             PlaylistEntity(
                                 name = playlistName,
                                 browseId = browseId,
+                                playlistAuthorsId = accountId,
+                                playlistAuthorName = accountName,
+                                playlistAuthorAvatarUrl = accountImageUrl,
+                                description = null,
                                 bookmarkedAt = LocalDateTime.now(),
                                 isEditable = true,
                                 isLocal = !syncedPlaylist

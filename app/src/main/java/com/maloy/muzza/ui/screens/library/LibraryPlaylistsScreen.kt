@@ -86,6 +86,9 @@ import com.maloy.muzza.constants.PlaylistSortTypeKey
 import com.maloy.muzza.constants.PlaylistViewTypeKey
 import com.maloy.muzza.constants.SmallGridThumbnailHeight
 import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -123,6 +126,10 @@ fun LibraryPlaylistsScreen(
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    val accountImageUrl by rememberPreference(likedMusicAuthorAvatarImageKey, "")
+    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
+    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
 
     val coroutineScope = rememberCoroutineScope()
 
@@ -258,6 +265,10 @@ fun LibraryPlaylistsScreen(
                             PlaylistEntity(
                                 name = playlistName,
                                 browseId = browseId,
+                                playlistAuthorsId = accountId,
+                                playlistAuthorName = accountName,
+                                playlistAuthorAvatarUrl = accountImageUrl,
+                                description = null,
                                 bookmarkedAt = LocalDateTime.now(),
                                 isLocal = !syncedPlaylist,
                                 isEditable = true

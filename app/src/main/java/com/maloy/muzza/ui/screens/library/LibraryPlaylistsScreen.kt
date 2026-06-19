@@ -265,9 +265,9 @@ fun LibraryPlaylistsScreen(
                             PlaylistEntity(
                                 name = playlistName,
                                 browseId = browseId,
-                                playlistAuthorsId = accountId,
-                                playlistAuthorName = accountName,
-                                playlistAuthorAvatarUrl = accountImageUrl,
+                                playlistAuthorsId = if (isLoggedIn) accountId else null,
+                                playlistAuthorName = if (isLoggedIn) accountName else null,
+                                playlistAuthorAvatarUrl = if (isLoggedIn) accountImageUrl else null,
                                 description = null,
                                 bookmarkedAt = LocalDateTime.now(),
                                 isLocal = !syncedPlaylist,

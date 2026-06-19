@@ -497,32 +497,34 @@ fun LocalPlaylistScreen(
                             }
                         }
                     }
+                    if (filteredSongs.isNotEmpty()) {
+                        item {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = pluralStringResource(
+                                        R.plurals.n_song,
+                                        filteredSongs.size,
+                                        filteredSongs.size
+                                    ),
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    fontWeight = FontWeight.Normal
+                                )
+                            }
+                        }
+                    }
                 }
             }
 
             itemsIndexed(
                 items = if (isSearching) filteredSongs else mutableSongs,
                 key = { _, song -> song.map.id }
-            ) { index, song ->
-                if (index == 0) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(12.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = pluralStringResource(
-                                R.plurals.n_song,
-                                filteredSongs.size,
-                                filteredSongs.size
-                            ),
-                            style = MaterialTheme.typography.bodyMedium,
-                            fontWeight = FontWeight.Normal
-                        )
-                    }
-                }
+            ) { _, song ->
                 ReorderableItem(
                     state = reorderableState,
                     key = song.map.id

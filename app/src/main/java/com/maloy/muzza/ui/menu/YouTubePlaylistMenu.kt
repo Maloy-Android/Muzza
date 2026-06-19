@@ -55,6 +55,7 @@ import androidx.core.net.toUri
 import androidx.navigation.NavController
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.ListQueuePlaylist
 import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import kotlinx.coroutines.withContext
 
@@ -212,25 +213,13 @@ fun YouTubePlaylistMenu(
                         if (playlistPlaying && isPlaying) {
                             playerConnection.togglePlayPause()
                         } else {
-                            coroutineScope.launch {
-                                songs.ifEmpty {
-                                    withContext(Dispatchers.IO) {
-                                        YouTube.playlist(playlist.id).completed()
-                                            .getOrNull()?.songs.orEmpty()
-                                    }
-                                }.let { songs ->
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = playlist.title,
-                                            items = songs.map {
-                                                it.toMediaItemWithPlaylist(
-                                                    playlist.id
-                                                )
-                                            }
-                                        )
-                                    )
-                                }
-                            }
+                            val listQueuePlaylist = ListQueuePlaylist(
+                                playlistId = playlist.id,
+                                playlistTitle = playlist.title,
+                                coroutineScope = coroutineScope,
+                                playerConnection = playerConnection
+                            )
+                            listQueuePlaylist.play()
                             onDismiss()
                         }
                     }
@@ -265,25 +254,13 @@ fun YouTubePlaylistMenu(
                         if (playlistPlaying && isPlaying) {
                             playerConnection.togglePlayPause()
                         } else {
-                            coroutineScope.launch {
-                                songs.ifEmpty {
-                                    withContext(Dispatchers.IO) {
-                                        YouTube.playlist(playlist.id).completed()
-                                            .getOrNull()?.songs.orEmpty()
-                                    }
-                                }.let { songs ->
-                                    playerConnection.playQueue(
-                                        ListQueue(
-                                            title = playlist.title,
-                                            items = songs.map {
-                                                it.toMediaItemWithPlaylist(
-                                                    playlist.id
-                                                )
-                                            }
-                                        )
-                                    )
-                                }
-                            }
+                            val listQueuePlaylist = ListQueuePlaylist(
+                                playlistId = playlist.id,
+                                playlistTitle = playlist.title,
+                                coroutineScope = coroutineScope,
+                                playerConnection = playerConnection
+                            )
+                            listQueuePlaylist.play()
                             onDismiss()
                         }
                     }
@@ -314,26 +291,13 @@ fun YouTubePlaylistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        coroutineScope.launch {
-                            songs.ifEmpty {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist(playlist.id).completed()
-                                        .getOrNull()?.songs.orEmpty()
-                                }
-                            }.let { songs ->
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = playlist.title,
-                                        items = songs.shuffled()
-                                            .map {
-                                                it.toMediaItemWithPlaylist(
-                                                    playlist.id
-                                                )
-                                            }
-                                    )
-                                )
-                            }
-                        }
+                        val listQueuePlaylist = ListQueuePlaylist(
+                            playlistId = playlist.id,
+                            playlistTitle = playlist.title,
+                            coroutineScope = coroutineScope,
+                            playerConnection = playerConnection
+                        )
+                        listQueuePlaylist.playShuffled()
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -399,26 +363,13 @@ fun YouTubePlaylistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        coroutineScope.launch {
-                            songs.ifEmpty {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist(playlist.id).completed()
-                                        .getOrNull()?.songs.orEmpty()
-                                }
-                            }.let { songs ->
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = playlist.title,
-                                        items =
-                                            songs.shuffled()
-                                                .map {
-                                                    it.toMediaItemWithPlaylist(
-                                                        playlist.id
-                                                    )
-                                                })
-                                )
-                            }
-                        }
+                        val listQueuePlaylist = ListQueuePlaylist(
+                            playlistId = playlist.id,
+                            playlistTitle = playlist.title,
+                            coroutineScope = coroutineScope,
+                            playerConnection = playerConnection
+                        )
+                        listQueuePlaylist.playShuffled()
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -453,25 +404,13 @@ fun YouTubePlaylistMenu(
             ListMenuItem(
                 icon = R.drawable.shuffle, title = R.string.shuffle
             ) {
-                coroutineScope.launch {
-                    songs.ifEmpty {
-                        withContext(Dispatchers.IO) {
-                            YouTube.playlist(playlist.id).completed()
-                                .getOrNull()?.songs.orEmpty()
-                        }
-                    }.let { songs ->
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.title,
-                                items = songs.shuffled().map {
-                                    it.toMediaItemWithPlaylist(
-                                        playlist.id
-                                    )
-                                }
-                            )
-                        )
-                    }
-                }
+                val listQueuePlaylist = ListQueuePlaylist(
+                    playlistId = playlist.id,
+                    playlistTitle = playlist.title,
+                    coroutineScope = coroutineScope,
+                    playerConnection = playerConnection
+                )
+                listQueuePlaylist.playShuffled()
                 onDismiss()
             }
             item {
@@ -481,16 +420,13 @@ fun YouTubePlaylistMenu(
         ListMenuItem(
             icon = R.drawable.playlist_play, title = R.string.play_next
         ) {
-            coroutineScope.launch {
-                songs.ifEmpty {
-                    withContext(Dispatchers.IO) {
-                        YouTube.playlist(playlist.id).completed()
-                            .getOrNull()?.songs.orEmpty()
-                    }
-                }.let { songs ->
-                    playerConnection.playNext(songs.map { it.toMediaItemWithPlaylist(playlist.id) })
-                }
-            }
+            val listQueuePlaylist = ListQueuePlaylist(
+                playlistId = playlist.id,
+                playlistTitle = playlist.title,
+                coroutineScope = coroutineScope,
+                playerConnection = playerConnection
+            )
+            listQueuePlaylist.playNext()
             onDismiss()
         }
         item {
@@ -499,16 +435,13 @@ fun YouTubePlaylistMenu(
         ListMenuItem(
             icon = R.drawable.queue_music, title = R.string.add_to_queue
         ) {
-            coroutineScope.launch {
-                songs.ifEmpty {
-                    withContext(Dispatchers.IO) {
-                        YouTube.playlist(playlist.id).completed()
-                            .getOrNull()?.songs.orEmpty()
-                    }
-                }.let { songs ->
-                    playerConnection.addToQueue(songs.map { it.toMediaItemWithPlaylist(playlist.id)  })
-                }
-            }
+            val listQueuePlaylist = ListQueuePlaylist(
+                playlistId = playlist.id,
+                playlistTitle = playlist.title,
+                coroutineScope = coroutineScope,
+                playerConnection = playerConnection
+            )
+            listQueuePlaylist.addToQueue()
             onDismiss()
         }
         item {

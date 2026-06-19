@@ -117,6 +117,7 @@ import com.maloy.muzza.models.data.CommunityPlaylistItem
 import com.maloy.muzza.models.data.DailyDiscoverItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.ListQueuePlaylist
 import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
@@ -1971,20 +1972,13 @@ fun YouTubeGridItem(
             visible = (item is PlaylistItem || item is SongItem && (!item.isVideoSong && item.album?.id != null)) && !isActive,
             onClick = {
                 if (item is PlaylistItem) {
-                    coroutineScope.launch {
-                        withContext(Dispatchers.IO) {
-                            YouTube.playlist(item.id).completed()
-                                .getOrNull()?.songs.orEmpty()
-                        }
-                            .let { songs ->
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = item.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
-                                    )
-                                )
-                            }
-                    }
+                    val listQueuePlaylist = ListQueuePlaylist(
+                        playlistId = item.id,
+                        playlistTitle = item.title,
+                        coroutineScope = coroutineScope,
+                        playerConnection = playerConnection
+                    )
+                    listQueuePlaylist.play()
                 } else if (item is SongItem) {
                     playerConnection.playQueue(
                         YouTubeQueue(
@@ -1999,22 +1993,7 @@ fun YouTubeGridItem(
         ItemsVideoPlayButton(
             visible = (item is SongItem && (item.isVideoSong || item.album?.id == null)) && !isActive,
             onClick = {
-                if (item is PlaylistItem) {
-                    coroutineScope.launch {
-                        withContext(Dispatchers.IO) {
-                            YouTube.playlist(item.id).completed()
-                                .getOrNull()?.songs.orEmpty()
-                        }
-                            .let { songs ->
-                                playerConnection.playQueue(
-                                    ListQueue(
-                                        title = item.title,
-                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
-                                    )
-                                )
-                            }
-                    }
-                } else if (item is SongItem) {
+                if (item is SongItem) {
                     playerConnection.playQueue(
                         YouTubeQueue(
                             item.endpoint

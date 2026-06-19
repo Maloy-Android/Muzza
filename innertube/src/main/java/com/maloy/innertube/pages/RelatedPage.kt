@@ -10,6 +10,7 @@ import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.oddElements
+import com.maloy.innertube.utils.parseTime
 
 data class RelatedPage(
     val songs: List<SongItem>,
@@ -37,7 +38,9 @@ data class RelatedPage(
                             id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                         )
                     },
-                duration = null,
+                duration = renderer.fixedColumns?.firstOrNull()
+                    ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                    ?.text?.parseTime(),
                 thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
                     ?: return null,
                 musicVideoType = renderer.musicVideoType,

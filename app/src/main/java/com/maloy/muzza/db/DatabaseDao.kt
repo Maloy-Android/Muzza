@@ -489,21 +489,123 @@ interface DatabaseDao {
     fun albumsByLengthAsc(): Flow<List<Album>>
 
     @Transaction
-    @Query(
-        """
+    @Query("""
     SELECT album.*
     FROM album
-    LEFT JOIN song ON song.albumId = album.id
     WHERE album.bookmarkedAt IS NOT NULL 
-       OR EXISTS(SELECT 1 FROM song WHERE song.albumId = album.id AND song.inLibrary IS NOT NULL)
+       OR EXISTS(
+           SELECT 1 
+           FROM song 
+           WHERE song.albumId = album.id 
+           AND song.inLibrary IS NOT NULL
+       )
     GROUP BY album.id
     ORDER BY 
         CASE WHEN album.bookmarkedAt IS NOT NULL THEN 0 ELSE 1 END,
-        album.bookmarkedAt,
-        SUM(song.totalPlayTime)
-    """
+        album.bookmarkedAt
+""")
+    fun combinedAlbumsByPlayTimeAsc(): Flow<List<Album>>
+
+    @Transaction
+    @Query("""
+    SELECT album.*
+    FROM album
+    WHERE album.bookmarkedAt IS NOT NULL 
+       OR EXISTS(
+           SELECT 1 
+           FROM song 
+           WHERE song.albumId = album.id 
+           AND song.inLibrary IS NOT NULL
+       )
+    ORDER BY album.rowId
+""")
+    fun combinedAlbumsByCreateDateAsc(): Flow<List<Album>>
+
+    @Transaction
+    @Query("""
+    SELECT album.*
+    FROM album
+    WHERE album.bookmarkedAt IS NOT NULL 
+       OR EXISTS(
+           SELECT 1 
+           FROM song 
+           WHERE song.albumId = album.id 
+           AND song.inLibrary IS NOT NULL
+       )
+    ORDER BY album.title
+""")
+    fun combinedAlbumsByNameAsc(): Flow<List<Album>>
+
+    @Transaction
+    @Query("""
+    SELECT album.*
+    FROM album
+    WHERE album.bookmarkedAt IS NOT NULL 
+       OR EXISTS(
+           SELECT 1 
+           FROM song 
+           WHERE song.albumId = album.id 
+           AND song.inLibrary IS NOT NULL
+       )
+    ORDER BY album.year
+""")
+    fun combinedAlbumsByYearAsc(): Flow<List<Album>>
+
+    @Transaction
+    @Query("""
+    SELECT album.*
+    FROM album
+    WHERE album.bookmarkedAt IS NOT NULL 
+       OR EXISTS(
+           SELECT 1 
+           FROM song 
+           WHERE song.albumId = album.id 
+           AND song.inLibrary IS NOT NULL
+       )
+    ORDER BY (
+        SELECT COUNT(1) 
+        FROM song 
+        WHERE song.albumId = album.id 
+        AND song.inLibrary IS NOT NULL
     )
-    fun getCombinedAlbums(): Flow<List<Album>>
+""")
+    fun combinedAlbumsBySongCountAsc(): Flow<List<Album>>
+
+    @Transaction
+    @Query("""
+    SELECT album.*
+    FROM album
+    WHERE album.bookmarkedAt IS NOT NULL 
+       OR EXISTS(
+           SELECT 1 
+           FROM song 
+           WHERE song.albumId = album.id 
+           AND song.inLibrary IS NOT NULL
+       )
+    ORDER BY (
+        SELECT SUM(duration) 
+        FROM song 
+        WHERE song.albumId = album.id 
+        AND song.inLibrary IS NOT NULL
+    )
+""")
+    fun combinedAlbumsByLengthAsc(): Flow<List<Album>>
+
+    fun combinedAlbums(sortType: AlbumSortType, descending: Boolean) =
+        when (sortType) {
+            AlbumSortType.CREATE_DATE -> combinedAlbumsByCreateDateAsc()
+            AlbumSortType.NAME -> combinedAlbumsByNameAsc()
+            AlbumSortType.ARTIST -> combinedAlbumsByCreateDateAsc().map { albums ->
+                albums.sortedBy { album ->
+                    album.artists.joinToString(separator = "") { it.name }
+                }
+            }
+
+            AlbumSortType.YEAR -> combinedAlbumsByYearAsc()
+            AlbumSortType.SONG_COUNT -> combinedAlbumsBySongCountAsc()
+            AlbumSortType.LENGTH -> combinedAlbumsByLengthAsc()
+            AlbumSortType.PLAY_TIME -> combinedAlbumsByPlayTimeAsc()
+        }.map { it.reversed(descending) }
 
     @Transaction
     @Query(

@@ -155,7 +155,7 @@ class LibraryAlbumsViewModel @Inject constructor(
                 AlbumFilter.LIBRARY -> database.albums(sortType, descending)
                 AlbumFilter.LIKED -> database.albumsLiked(sortType, descending)
                 AlbumFilter.DOWNLOADED -> combine(
-                    database.getCombinedAlbums(),
+                    database.combinedAlbums(sortType, descending),
                     downloadUtil.downloads
                 ) { albums, downloads ->
                     albums.filter { album ->

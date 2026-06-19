@@ -265,7 +265,7 @@ fun LocalPlaylistScreen(
         }
     }
 
-    val headerItems = 2
+    val headerItems = 3
     var dragInfo by remember {
         mutableStateOf<Pair<Int, Int>?>(null)
     }
@@ -375,7 +375,7 @@ fun LocalPlaylistScreen(
                 Text(
                     text = stringResource(
                         R.string.remove_download_playlist_confirm,
-                        playlist?.playlist!!.name
+                        playlist?.playlist?.name ?: return@DefaultDialog
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
@@ -648,17 +648,19 @@ fun LocalPlaylistScreen(
                                         } else if (song.song.id == mediaMetadata?.id) {
                                             playerConnection.player.togglePlayPause()
                                         } else {
-                                            playerConnection.playQueue(
-                                                ListQueue(
-                                                    title = playlist!!.playlist.name,
-                                                    items = songs.map {
-                                                        it.song.toMediaItemWithPlaylist(
-                                                            playlist!!.id
-                                                        )
-                                                    },
-                                                    startIndex = songs.indexOfFirst { it.map.id == song.map.id }
+                                            playlist?.playlist.let { playlist ->
+                                                playerConnection.playQueue(
+                                                    ListQueue(
+                                                        title = playlist?.name,
+                                                        items = songs.map {
+                                                            it.song.toMediaItemWithPlaylist(
+                                                                playlist?.id ?: return@let
+                                                            )
+                                                        },
+                                                        startIndex = songs.indexOfFirst { it.map.id == song.map.id }
+                                                    )
                                                 )
-                                            )
+                                            }
                                         }
                                     },
                                     onLongClick = {
@@ -708,16 +710,18 @@ fun LocalPlaylistScreen(
                 if (playlistPlaying) {
                     playerConnection.togglePlayPause()
                 } else {
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = playlist!!.playlist.name,
-                            items = songs.map {
-                                it.song.toMediaItemWithPlaylist(
-                                    playlist!!.id
-                                )
-                            }
+                    playlist?.playlist.let { playlist ->
+                        playerConnection.playQueue(
+                            ListQueue(
+                                title = playlist?.name,
+                                items = songs.map {
+                                    it.song.toMediaItemWithPlaylist(
+                                        playlist?.id ?: return@let
+                                    )
+                                }
+                            )
                         )
-                    )
+                    }
                 }
             }
         )
@@ -872,13 +876,15 @@ fun LocalPlaylistScreen(
                     IconButton(
                         onClick = {
                             menuState.show {
-                                PlaylistMenu(
-                                    playlist = playlist!!,
-                                    coroutineScope = coroutineScope,
-                                    onDismiss = menuState::dismiss,
-                                    showDeleteButton = false,
-                                    navController = navController
-                                )
+                                playlist?.let { playlist ->
+                                    PlaylistMenu(
+                                        playlist = playlist,
+                                        coroutineScope = coroutineScope,
+                                        onDismiss = menuState::dismiss,
+                                        showDeleteButton = false,
+                                        navController = navController
+                                    )
+                                }
                             }
                         }
                     ) {
@@ -1168,12 +1174,14 @@ fun LocalPlaylistHeader(
                             ).toSpanStyle()
                         ) {
                             playlist.playlist.playlistAuthorsId.let { authorId ->
-                                playlist.playlist.playlistAuthorName!!.let { authorName ->
-                                    val authorName = authorName.ifEmpty { stringResource(R.string.playlist_author) }
+                                playlist.playlist.playlistAuthorName.let { authorName ->
+                                    val authorName = if (!authorName.isNullOrEmpty()) authorName else stringResource(R.string.playlist_author)
                                     val link = authorId.let {
-                                        LinkAnnotation.Clickable(authorName) {
-                                            if (!authorId.isNullOrEmpty()) {
-                                                navController.navigate("artist/${authorId}")
+                                        authorName.let { tag ->
+                                            LinkAnnotation.Clickable(tag) {
+                                                if (!authorId.isNullOrEmpty()) {
+                                                    navController.navigate("artist/${authorId}")
+                                                }
                                             }
                                         }
                                     }
@@ -1194,7 +1202,7 @@ fun LocalPlaylistHeader(
             )
 
             playlist.playlist.description.let { description ->
-                if (!description.isNullOrBlank() && !playlist.playlist.isLocal) {
+                if (!description.isNullOrBlank()) {
                     Spacer(modifier = Modifier.height(4.dp))
                     ExpandableText(
                         text = description,

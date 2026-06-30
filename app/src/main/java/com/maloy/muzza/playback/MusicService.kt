@@ -285,11 +285,121 @@ class MusicService : MediaLibraryService(),
 
     private var playbackStatsListener: PlaybackStatsListener? = null
 
+    private var bluetoothDisconnectReceiver: BroadcastReceiver? = null
+
+    private var playbackTrackingJob: Job? = null
+    private val trackedSongs = mutableSetOf<String>()
+    private var crossfadeTrackingJob: Job? = null
+
     private val secondaryPlayerListener = object : Player.Listener {
         override fun onPlayerError(error: PlaybackException) {
             secondaryPlayer?.stop()
             secondaryPlayer?.clearMediaItems()
             secondaryPlayer = null
+        }
+    }
+
+    private fun registerBluetoothReceiver() {
+        bluetoothDisconnectReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                when (intent.action) {
+                    BluetoothDevice.ACTION_ACL_DISCONNECTED -> {
+                        if (::player.isInitialized && player.isPlaying) {
+                            player.pause()
+                            Timber.d("Bluetooth disconnected, paused playback")
+                        }
+                    }
+                }
+            }
+        }
+
+        val filter = IntentFilter().apply {
+            addAction(BluetoothDevice.ACTION_ACL_DISCONNECTED)
+        }
+
+        registerReceiver(bluetoothDisconnectReceiver, filter)
+    }
+
+    private suspend fun checkAndTrackSong(player: Player, trackedSongs: MutableSet<String>) {
+        try {
+            val mediaItem = player.currentMediaItem ?: return
+            val songId = mediaItem.mediaId
+            val currentPosition = player.currentPosition
+            val duration = player.duration
+
+            if (duration == C.TIME_UNSET || duration <= 0) return
+
+            val isLocal = withContext(Dispatchers.IO) {
+                database.song(songId).firstOrNull()?.song?.isLocal == true
+            }
+
+            val progress = (currentPosition.toFloat() / duration) * 100
+
+            if (progress >= 30f && !trackedSongs.contains(songId)) {
+                trackedSongs.add(songId)
+
+                if (!dataStore.get(PauseListenHistoryKey, false)) {
+                    withContext(Dispatchers.IO) {
+                        database.query {
+                            incrementTotalPlayTime(songId, currentPosition)
+                            try {
+                                insert(
+                                    Event(
+                                        songId = songId,
+                                        timestamp = LocalDateTime.now(),
+                                        playTime = currentPosition
+                                    )
+                                )
+                            } catch (_: SQLException) {
+                            }
+                        }
+                    }
+                }
+
+                if (dataStore.get(AddingPlayedSongsToYTMHistoryKey, true) && !isLocal) {
+                    withContext(Dispatchers.IO) {
+                        val playbackUrl = playbackUrlCache[cacheKey(songId)]
+                            ?: YTPlayerUtils
+                                .playerResponseForMetadata(songId, null)
+                                .getOrNull()
+                                ?.playbackTracking
+                                ?.videostatsPlaybackUrl
+                                ?.baseUrl
+
+                        if (playbackUrl != null) {
+                            YouTube.registerPlayback(null, playbackUrl).onFailure {
+                                reportException(it)
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (_: Exception) {
+
+        }
+    }
+
+    private fun startPlaybackTracking() {
+        playbackTrackingJob?.cancel()
+        playbackTrackingJob = scope.launch {
+            trackedSongs.clear()
+            while (isActive) {
+                try {
+                    if (::player.isInitialized && player.playbackState == Player.STATE_READY) {
+                        checkAndTrackSong(player, trackedSongs)
+                    }
+
+                    if (isCrossfading && fadingPlayer != null) {
+                        val fading = fadingPlayer!!
+                        if (fading.playbackState == Player.STATE_READY) {
+                            checkAndTrackSong(fading, trackedSongs)
+                        }
+                    }
+                } catch (_: Exception) {
+
+                }
+                delay(2000)
+            }
         }
     }
 
@@ -608,7 +718,10 @@ class MusicService : MediaLibraryService(),
                                 && !player.isPlaying
                                 && dataStore.get(PersistentQueueKey, true)
                             ) {
-                                player.play()
+                                scope.launch {
+                                    delay(1000)
+                                    player.play()
+                                }
                             }
                         }
                     }
@@ -626,6 +739,14 @@ class MusicService : MediaLibraryService(),
             addAction(Intent.ACTION_SCREEN_OFF)
         }
         registerReceiver(screenStateReceiver, screenStateFilter)
+        if (!ensureStartedAsForegroundOrStop()) {
+            return
+        }
+
+        registerBluetoothReceiver()
+
+        startPlaybackTracking()
+
         if (!ensureStartedAsForegroundOrStop()) {
             return
         }
@@ -914,6 +1035,11 @@ class MusicService : MediaLibraryService(),
 
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
+
+        if (!isCrossfading) {
+            trackedSongs.clear()
+        }
+
         if (consecutivePlaybackErr > 0) {
             consecutivePlaybackErr--
         }
@@ -1230,11 +1356,29 @@ class MusicService : MediaLibraryService(),
     ) {
         val mediaItem =
             eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
-        if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(
-                PauseListenHistoryKey,
-                false
-            )
-        ) {
+
+        if (isCrossfading) {
+            if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(PauseListenHistoryKey, false)) {
+                if (!trackedSongs.contains(mediaItem.mediaId)) {
+                    database.query {
+                        incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
+                        try {
+                            insert(
+                                Event(
+                                    songId = mediaItem.mediaId,
+                                    timestamp = LocalDateTime.now(),
+                                    playTime = playbackStats.totalPlayTimeMs
+                                )
+                            )
+                        } catch (_: SQLException) {
+                        }
+                    }
+                }
+            }
+            return
+        }
+
+        if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(PauseListenHistoryKey, false)) {
             database.query {
                 incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
                 try {
@@ -1268,8 +1412,8 @@ class MusicService : MediaLibraryService(),
                     return@launch
                 }
                 YouTube.registerPlayback(null, playbackUrl).onFailure {
-                        reportException(it)
-                    }
+                    reportException(it)
+                }
             }
         }
     }
@@ -1329,8 +1473,14 @@ class MusicService : MediaLibraryService(),
         bluetoothReceiver?.let {
             unregisterReceiver(it)
         }
+        bluetoothDisconnectReceiver = null
         abandonAudioFocus()
         super.onDestroy()
+        playbackTrackingJob?.cancel()
+        playbackTrackingJob = null
+        crossfadeTrackingJob?.cancel()
+        crossfadeTrackingJob = null
+        trackedSongs.clear()
     }
 
     override fun onBind(intent: Intent?) = super.onBind(intent) ?: binder
@@ -1460,13 +1610,13 @@ class MusicService : MediaLibraryService(),
 
         nextPlayer.removeListener(secondaryPlayerListener)
 
-        playbackStatsListener?.let { oldListener ->
-            currentPlayer.removeAnalyticsListener(oldListener)
+        val oldPlaybackStatsListener = playbackStatsListener
+        if (oldPlaybackStatsListener != null) {
+            currentPlayer.removeAnalyticsListener(oldPlaybackStatsListener)
+            val newPlaybackStatsListener = PlaybackStatsListener(false, this@MusicService)
+            playbackStatsListener = newPlaybackStatsListener
+            nextPlayer.addAnalyticsListener(newPlaybackStatsListener)
         }
-
-        val newPlaybackStatsListener = PlaybackStatsListener(false, this@MusicService)
-        playbackStatsListener = newPlaybackStatsListener
-        nextPlayer.addAnalyticsListener(newPlaybackStatsListener)
 
         nextPlayer.addListener(this)
         nextPlayer.addListener(sleepTimer)
@@ -1477,6 +1627,13 @@ class MusicService : MediaLibraryService(),
             (mediaSession as MediaSession).player = player
         } catch (e: Exception) {
             Timber.e(e, "Failed to swap player in MediaSession")
+        }
+
+        trackedSongs.clear()
+
+        val currentMediaItem = player.currentMediaItem
+        if (currentMediaItem != null) {
+            trackedSongs.add(currentMediaItem.mediaId)
         }
 
         crossfadeJob = scope.launch {
@@ -1521,7 +1678,7 @@ class MusicService : MediaLibraryService(),
         val player = ExoPlayer.Builder(this)
             .setMediaSourceFactory(DefaultMediaSourceFactory(createDataSourceFactory()))
             .setRenderersFactory(createRenderersFactory())
-            .setHandleAudioBecomingNoisy(false)  // Отключаем
+            .setHandleAudioBecomingNoisy(false)
             .setWakeMode(C.WAKE_MODE_NETWORK)
             .setAudioAttributes(
                 AudioAttributes.Builder()
@@ -1613,6 +1770,9 @@ class MusicService : MediaLibraryService(),
         fadingPlayer = null
         isCrossfading = false
         applyEffectiveVolume()
+        if (!player.isPlaying) {
+            trackedSongs.clear()
+        }
     }
 
     private fun isNextItemGapless(): Boolean {

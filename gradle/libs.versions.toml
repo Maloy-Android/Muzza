@@ -97,7 +97,7 @@ firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "
 
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
-newpipe-extractor = { module = "com.github.mostafaalagamy:MetrolistExtractor", version.ref = "extractor" }
+newpipe-extractor = { module = "com.github.MetrolistGroup:MetrolistExtractor", version.ref = "extractor" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }

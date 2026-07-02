@@ -599,6 +599,11 @@
     <string name="listen_together_create_room_desc">Створіть кімнату та поділіться кодом з друзями</string>
     <string name="listen_together_join_requests">Запити на приєднання</string>
     <string name="listen_together_username">Ім\'я користувача</string>
+    <string name="listen_together_auto_approval_joins">Автопідтвердження запитів на приєднання</string>
+    <string name="listen_together_auto_approval_joins_desc">Автоматично підтверджувати запити на приєднання без ручного перегляду</string>
+    <string name="listen_together_auto_approval_suggestions">Автопідтвердження пропозицій пісень</string>
+    <string name="listen_together_auto_approval_suggestions_desc">Автоматично підтверджувати та додавати в чергу пісні, запропоновані гостями</string>
+    <string name="listen_together_sync_volume">Синхронізувати гучність із ведучим</string>
     <string name="listen_together_connected">Підключено</string>
     <string name="listen_together_connecting">Підключення…</string>
     <string name="listen_together_reconnecting">Перепідключення…</string>

@@ -306,7 +306,7 @@ constructor(
         ensureNotificationChannel()
         observeAppLifecycle()
         // Load persisted session info asynchronously after construction to avoid calling log() before flows are initialized
-        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+        scope.launch {
             loadPersistedSession()
             observeNetworkChanges()
         }
@@ -376,7 +376,8 @@ constructor(
     private fun observeNetworkChanges() {
         scope.launch {
             try {
-                    if (isNetworkAvailable) {
+                    val previous = isNetworkAvailable
+                    if (!previous) {
                         log(LogLevel.INFO, "Network restored, checking if reconnection needed")
                         // Reset attempts when network is restored to allow a fresh set of retries
                         if (_connectionState.value == ConnectionState.ERROR ||
@@ -388,7 +389,7 @@ constructor(
                                 connect()
                             }
                         }
-                    } else {
+                    } else  {
                         log(LogLevel.WARNING, "Network lost")
                     }
             } catch (e: Exception) {
@@ -450,7 +451,7 @@ constructor(
      */
     private fun loadBlockedUsernames() {
         try {
-            val blockedJson = context.dataStore.get(com.maloy.muzza.constants.ListenTogetherBlockedUsersKey, "")
+            val blockedJson = context.dataStore.get( com.maloy.muzza.constants.ListenTogetherBlockedUsersKey, "")
             val blockedList =
                 if (blockedJson.isNotEmpty()) {
                     json.decodeFromString<List<String>>(blockedJson)
@@ -643,6 +644,7 @@ constructor(
             Request
                 .Builder()
                 .url(getServerUrl())
+                .header("User-Agent", context.packageName)
                 .build()
 
         webSocket =

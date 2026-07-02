@@ -311,15 +311,3 @@ dependencies {
     implementation(libs.protobuf.javalite)
     implementation(libs.protobuf.kotlin.lite)
 }
-configurations.all {
-    resolutionStrategy {
-        force("com.google.protobuf:protobuf-javalite:${libs.versions.protobuf.get()}")
-    }
-    exclude(group = "com.google.protobuf", module = "protobuf-java")
-}
-
-subprojects {
-    configurations.all {
-        exclude(group = "com.google.protobuf", module = "protobuf-java")
-    }
-}

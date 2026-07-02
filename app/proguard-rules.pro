@@ -80,6 +80,10 @@
 # Keep Gateway data classes
 -keep class com.my.kizzy.gateway.entities.** { <fields>; }
 
+## Listen Together Protobuf
+-keep class com.maloy.muzza.listentogether.proto.** { *; }
+-keepclassmembers class com.maloy.muzza.listentogether.proto.** { *; }
+
 ## Rules for NewPipeExtractor
 -keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
 -keep class org.mozilla.javascript.** { *; }

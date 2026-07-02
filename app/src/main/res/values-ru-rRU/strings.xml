@@ -611,6 +611,11 @@
     <string name="listen_together_create_room_desc">Создайте комнату и поделитесь кодом с друзьями</string>
     <string name="listen_together_join_requests">Запросы на присоединение</string>
     <string name="listen_together_username">Имя пользователя</string>
+    <string name="listen_together_auto_approval_joins">Автоподтверждение запросов на присоединение</string>
+    <string name="listen_together_auto_approval_joins_desc">Автоматически подтверждать запросы на присоединение без ручного одобрения</string>
+    <string name="listen_together_auto_approval_suggestions">Автоподтверждение предложенных песен</string>
+    <string name="listen_together_auto_approval_suggestions_desc">Автоматически подтверждать и ставить в очередь предложенные гостями песни</string>
+    <string name="listen_together_sync_volume">Синхронизировать громкость с ведущим</string>
     <string name="listen_together_connected">Подключено</string>
     <string name="listen_together_connecting">Подключение…</string>
     <string name="listen_together_reconnecting">Переподключение…</string>

@@ -206,7 +206,7 @@ fun MiniPlayer(
                     }
                 } else {
                     IconButton(
-                        onClick = { playerConnection.isMuted },
+                        onClick = { playerConnection.setMuted(!playerConnection.isMuted.value) },
                     ) {
                         Icon(
                             imageVector =

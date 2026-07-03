@@ -250,7 +250,6 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onStop() {
-        listenTogetherManager.setPlayerConnection(null)
         super.onStop()
     }
 
@@ -266,6 +265,7 @@ class MainActivity : ComponentActivity() {
         ) {
             stopService(Intent(this, MusicService::class.java))
             unbindService(serviceConnection)
+            playerConnection?.dispose()
             playerConnection = null
             playerConnectionSnapshot = null
         }

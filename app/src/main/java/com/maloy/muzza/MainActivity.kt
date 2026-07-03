@@ -29,19 +29,16 @@ import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBars
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialogDefaults
@@ -64,7 +61,6 @@ import androidx.compose.material3.contentColorFor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -216,7 +212,6 @@ class MainActivity : ComponentActivity() {
         override fun onServiceDisconnected(name: ComponentName?) {
             listenTogetherManager.setPlayerConnection(null)
             playerConnection?.dispose()
-            playerConnection = null
         }
     }
 
@@ -527,16 +522,6 @@ class MainActivity : ComponentActivity() {
                         FirstSetupPassed,
                         defaultValue = false
                     )
-
-                    var showListenTogetherDialog by rememberSaveable { mutableStateOf(false) }
-                    val pendingSuggestions by listenTogetherManager.pendingSuggestions.collectAsState()
-                    val mediaMetadata by playerConnection?.mediaMetadata?.collectAsState() ?: remember { mutableStateOf(null) }
-                    val listenTogetherRole by listenTogetherManager.role.collectAsState()
-                    val listenTogetherStatus by listenTogetherManager.connectionState.collectAsState()
-
-
-                    val (selectedThemeColorInt) = rememberPreference(SelectedThemeColorKey, defaultValue = DefaultThemeColor.toArgb())
-                    val selectedThemeColor = Color(selectedThemeColorInt)
 
                     LaunchedEffect(Unit) {
                         if (!firstSetupPassed) {

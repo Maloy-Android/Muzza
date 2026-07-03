@@ -7,6 +7,7 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.ListenTogetherSyncVolumeKey
 import com.maloy.muzza.extensions.currentMetadata
+import com.maloy.muzza.extensions.mediaItems
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.models.MediaMetadata
@@ -26,6 +27,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import timber.log.Timber
 import javax.inject.Inject
@@ -1727,21 +1729,46 @@ constructor(
 
         Timber.tag(TAG).d("Sending track change: ${trackInfo.title}, duration: $durationMs")
 
-        // Also grab current queue to send along with track change
-        val currentQueue =
-            try {
-                playerConnection?.queueWindows?.value?.map { it.toTrackInfo() }
-            } catch (e: Exception) {
-                Timber.tag(TAG).e(e, "Failed to get current queue")
+        val currentQueue = try {
+            val player = playerConnection?.player
+            if (player == null) {
+                Timber.tag(TAG).w("Player is null, cannot get queue")
                 null
+            } else {
+                val mediaItems = player.mediaItems
+                Timber.tag(TAG).d("Got ${mediaItems.size} items from player.mediaItems")
+
+                mediaItems.mapNotNull { mediaItem ->
+                    val m = mediaItem.metadata
+                    if (m == null) {
+                        Timber.tag(TAG).w("MediaItem has no metadata, skipping")
+                        return@mapNotNull null
+                    }
+                    val durationMsItem = if (m.duration > 0) m.duration.toLong() * 1000 else 180000L
+                    TrackInfo(
+                        id = m.id,
+                        title = m.title,
+                        artist = m.artists.joinToString(", ") { it.name },
+                        album = m.album?.title,
+                        duration = durationMsItem,
+                        thumbnail = m.thumbnailUrl,
+                        suggestedBy = m.suggestedBy,
+                    )
+                }
             }
-        val currentTitle =
-            try {
-                playerConnection?.queueTitle?.value
-            } catch (e: Exception) {
-                Timber.tag(TAG).e(e, "Failed to get current title")
-                null
-            }
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to get current queue from player")
+            null
+        }
+
+        val currentTitle = try {
+            playerConnection?.queueTitle?.value
+        } catch (e: Exception) {
+            Timber.tag(TAG).e(e, "Failed to get current title")
+            null
+        }
+
+        Timber.tag(TAG).d("Sending SYNC_QUEUE with ${currentQueue?.size ?: 0} items, title: $currentTitle")
 
         client.sendPlaybackAction(
             PlaybackActions.CHANGE_TRACK,
@@ -1757,32 +1784,49 @@ constructor(
         Timber.tag(TAG).d("Starting queue sync observation")
         queueObserverJob =
             scope.launch {
-                playerConnection
-                    ?.queueWindows
-                    ?.map { windows ->
-                        windows.map { it.toTrackInfo() }
-                    }?.distinctUntilChanged()
-                    ?.collectLatest { tracks ->
-                        if (!isHost || !isInRoom || isSyncing) return@collectLatest
+                while (isActive) {
+                    try {
+                        delay(500)
 
-                        delay(500) // Debounce rapid playlist manipulations
+                        if (!isHost || !isInRoom || isSyncing) continue
 
-                        Timber.tag(TAG).d("Sending SYNC_QUEUE with ${tracks.size} items")
-                        val queueTitle =
-                            try {
-                                playerConnection?.queueTitle?.value
-                            } catch (e: Exception) {
-                                Timber.tag(TAG).e(e, "Failed to get queue title")
-                                null
-                            }
-                        client.sendPlaybackAction(
-                            PlaybackActions.SYNC_QUEUE,
-                            queueTitle = queueTitle,
-                            queue = tracks,
-                        )
+                        val player = playerConnection?.player ?: continue
+                        val mediaItems = player.mediaItems
+
+                        if (mediaItems.isEmpty()) continue
+
+                        val tracks = mediaItems.mapNotNull { mediaItem ->
+                            val m = mediaItem.metadata ?: return@mapNotNull null
+                            val durationMs = if (m.duration > 0) m.duration.toLong() * 1000 else 180000L
+                            TrackInfo(
+                                id = m.id,
+                                title = m.title,
+                                artist = m.artists.joinToString(", ") { it.name },
+                                album = m.album?.title,
+                                duration = durationMs,
+                                thumbnail = m.thumbnailUrl,
+                                suggestedBy = m.suggestedBy,
+                            )
+                        }
+
+                        if (tracks != lastSentQueue) {
+                            lastSentQueue = tracks
+                            Timber.tag(TAG).d("Queue changed, sending SYNC_QUEUE with ${tracks.size} items")
+                            val queueTitle = playerConnection?.queueTitle?.value
+                            client.sendPlaybackAction(
+                                PlaybackActions.SYNC_QUEUE,
+                                queueTitle = queueTitle,
+                                queue = tracks,
+                            )
+                        }
+                    } catch (e: Exception) {
+                        Timber.tag(TAG).e(e, "Error in queue sync observation")
                     }
+                }
             }
     }
+
+    private var lastSentQueue: List<TrackInfo>? = null
 
     private fun startVolumeSyncObservation() {
         if (volumeObserverJob?.isActive == true) return

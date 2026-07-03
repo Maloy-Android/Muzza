@@ -115,6 +115,7 @@ import com.maloy.muzza.extensions.mediaItems
 import com.maloy.muzza.extensions.metadata
 import com.maloy.muzza.extensions.setOffloadEnabled
 import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.listentogether.ListenTogetherManager
 import com.maloy.muzza.lyrics.LyricsHelper
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.PersistQueue
@@ -192,6 +193,9 @@ class MusicService : MediaLibraryService(),
 
     @Inject
     lateinit var mediaLibrarySessionCallback: MediaLibrarySessionCallback
+
+    @Inject
+    lateinit var listenTogetherManager: ListenTogetherManager
 
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()

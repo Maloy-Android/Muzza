@@ -60,6 +60,7 @@ import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -464,8 +465,7 @@ class LibraryMixViewModel @Inject constructor(
     val librarySongs = database.librarySongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val libraryLikedLibrarySongs = database.allSongs()
-        .map { songs -> songs.filter { it.song.liked || it.song.inLibrary != null } }
+    val libraryLikedLibrarySongs = database.likedOrLibrarySongs()
         // Only emit when the actual set of songs changes, not on every metadata/date update.
         // Prevents the (network + DB write) effect that observes this from re-firing constantly
         // while songs are being downloaded/cached.
@@ -478,18 +478,21 @@ class LibraryMixViewModel @Inject constructor(
     val downloadSongs =
         downloadUtil.downloads
             // Collapse the constant DownloadManager progress churn down to only the set of
-            // completed ids; the expensive full-table query below then re-runs only when a
-            // download actually completes, not on every progress tick.
+            // completed ids; the query below then re-runs only when a download actually
+            // completes, not on every progress tick.
             .map { downloads ->
                 downloads.filterValues { it.state == Download.STATE_COMPLETED }.keys
             }
             .distinctUntilChanged()
             .flatMapLatest { completedIds ->
-                database.allSongs()
-                    .flowOn(Dispatchers.IO)
-                    .map { songs ->
-                        songs.filter { it.id in completedIds }
-                    }
+                if (completedIds.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    // Fetch only the completed songs by id instead of loading the entire
+                    // song table and filtering in memory.
+                    database.songsByIdsFlow(completedIds.toList())
+                        .flowOn(Dispatchers.IO)
+                }
             }
     val topSongs = database.mostPlayedSongs(0, 100)
 }

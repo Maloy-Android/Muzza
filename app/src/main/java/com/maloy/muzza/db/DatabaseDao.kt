@@ -353,6 +353,14 @@ interface DatabaseDao {
     suspend fun getSongsByIds(songIds: List<String>): List<Song>
 
     @Transaction
+    @Query("SELECT * FROM song WHERE id IN (:songIds)")
+    fun songsByIdsFlow(songIds: List<String>): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE liked OR inLibrary IS NOT NULL")
+    fun likedOrLibrarySongs(): Flow<List<Song>>
+
+    @Transaction
     @Query("SELECT * FROM song WHERE liked AND dateDownload IS NULL")
     fun likedSongsNotDownloaded(): Flow<List<Song>>
 

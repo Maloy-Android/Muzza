@@ -118,6 +118,12 @@ interface DatabaseDao {
     @Query("SELECT COUNT(1) FROM song WHERE liked")
     fun likedSongsCount(): Flow<Int>
 
+    @Query("SELECT COUNT(1) FROM song WHERE inLibrary")
+    fun librarySongsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(1) FROM song WHERE isLocal")
+    fun localSongsCount(): Flow<Int>
+
     @Transaction
     @Query("SELECT * FROM song WHERE isLocal ORDER BY rowId")
     fun localSongsByRowIdAsc(): Flow<List<Song>>

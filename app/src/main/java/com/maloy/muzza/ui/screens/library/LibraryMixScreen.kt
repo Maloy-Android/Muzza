@@ -144,6 +144,9 @@ fun LibraryMixScreen(
         }
 
     val likedSongs by viewModel.likedSongs.collectAsState()
+    val likedSongsCount by viewModel.likedSongsCount.collectAsState()
+    val librarySongsCount by viewModel.librarySongsCount.collectAsState()
+    val localSongsCount by viewModel.localSongsCount.collectAsState()
     val downloadSongs by viewModel.downloadSongs.collectAsState(initial = null)
     val topSongs by viewModel.topSongs.collectAsState(initial = null)
     val localSongs by viewModel.localSongs.collectAsState()
@@ -203,7 +206,7 @@ fun LibraryMixScreen(
             id = "local",
             name = stringResource(R.string.local)
         ),
-        songCount = localSongs?.size ?: 0,
+        songCount = localSongsCount ?: 0,
         songThumbnails = emptyList()
     )
 
@@ -214,7 +217,7 @@ fun LibraryMixScreen(
                 stringResource(R.string.liked)
             }
         ),
-        songCount = likedSongs?.size ?: 0,
+        songCount = likedSongsCount ?: 0,
         songThumbnails = emptyList()
     )
 
@@ -223,7 +226,7 @@ fun LibraryMixScreen(
             id = "libraryMusic",
             name = stringResource(R.string.songs_from_library)
         ),
-        songCount = librarySongs?.size ?: 0,
+        songCount = librarySongsCount ?: 0,
         songThumbnails = emptyList()
     )
 
@@ -422,8 +425,8 @@ fun LibraryMixScreen(
                         Text(
                             text = pluralStringResource(
                                 R.plurals.n_song,
-                                likedSongs?.size ?: 0,
-                                likedSongs?.size ?: 0
+                                likedSongsCount ?: 0,
+                                likedSongsCount ?: 0
                             ),
                             style = MaterialTheme.typography.bodyMedium
                         )
@@ -641,8 +644,8 @@ fun LibraryMixScreen(
                                     Text(
                                         text = pluralStringResource(
                                             R.plurals.n_song,
-                                            librarySongs?.size ?: 0,
-                                            librarySongs?.size ?: 0
+                                            librarySongsCount ?: 0,
+                                            librarySongsCount ?: 0
                                         ),
                                         style = MaterialTheme.typography.bodySmall
                                     )

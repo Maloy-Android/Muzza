@@ -56,6 +56,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
@@ -447,25 +448,48 @@ class LibraryMixViewModel @Inject constructor(
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    // Section counts are read straight from SQL COUNT(...) instead of materializing the full
+    // relation-joined song lists just to call .size on them. This lets the cards show the
+    // correct numbers immediately (instead of "0 songs" until the whole list loads) and avoids
+    // heavy work on every library change.
+    val likedSongsCount = database.likedSongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val librarySongsCount = database.librarySongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val localSongsCount = database.localSongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     val librarySongs = database.librarySongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val libraryLikedLibrarySongs = database.allSongs()
         .map { songs -> songs.filter { it.song.liked || it.song.inLibrary != null } }
+        // Only emit when the actual set of songs changes, not on every metadata/date update.
+        // Prevents the (network + DB write) effect that observes this from re-firing constantly
+        // while songs are being downloaded/cached.
+        .distinctUntilChangedBy { songs -> songs.map { it.song.id } }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val localSongs = database.localSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val downloadSongs =
-        downloadUtil.downloads.flatMapLatest { downloads ->
-            database.allSongs()
-                .flowOn(Dispatchers.IO)
-                .map { songs ->
-                    songs.filter {
-                        downloads[it.id]?.state == Download.STATE_COMPLETED
+        downloadUtil.downloads
+            // Collapse the constant DownloadManager progress churn down to only the set of
+            // completed ids; the expensive full-table query below then re-runs only when a
+            // download actually completes, not on every progress tick.
+            .map { downloads ->
+                downloads.filterValues { it.state == Download.STATE_COMPLETED }.keys
+            }
+            .distinctUntilChanged()
+            .flatMapLatest { completedIds ->
+                database.allSongs()
+                    .flowOn(Dispatchers.IO)
+                    .map { songs ->
+                        songs.filter { it.id in completedIds }
                     }
-                }
-        }
+            }
     val topSongs = database.mostPlayedSongs(0, 100)
 }

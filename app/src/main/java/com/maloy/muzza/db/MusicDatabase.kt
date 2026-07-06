@@ -102,14 +102,33 @@ abstract class InternalDatabase : RoomDatabase() {
     companion object {
         const val DB_NAME = "song.db"
 
+        /**
+         * Shared builder used both for the live database and for validating/migrating a
+         * restored backup. Keeping a single definition guarantees that a backup is migrated
+         * through exactly the same path the app itself uses, so any backup that a given app
+         * version can open in-place can also be restored by that version.
+         */
+        fun databaseBuilder(
+            context: Context,
+            name: String,
+        ): RoomDatabase.Builder<InternalDatabase> =
+            Room.databaseBuilder(context, InternalDatabase::class.java, name)
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_19_20,
+                    MIGRATION_20_21,
+                    MIGRATION_21_22,
+                    MIGRATION_22_23,
+                )
+
         fun newInstance(context: Context): MusicDatabase =
             MusicDatabase(
-                delegate = Room.databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
-                    .addMigrations(MIGRATION_1_2)
-                    .addMigrations(MIGRATION_19_20)
-                    .addMigrations(MIGRATION_20_21)
-                    .addMigrations(MIGRATION_21_22)
-                    .addMigrations(MIGRATION_22_23)
+                delegate = databaseBuilder(context, DB_NAME)
+                    // A backup created by a newer app version cannot be safely opened by an
+                    // older one. Rather than crash-looping on startup (forcing the user to
+                    // clear app data), reset gracefully. Restore itself refuses such backups
+                    // up-front, so this is only a last-resort safety net.
+                    .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
                     .build()
             )
     }
@@ -430,9 +449,30 @@ class Migration18To19 : AutoMigrationSpec {
     }
 }
 
+/**
+ * True if [column] already exists on [table]. Used to make additive migrations idempotent,
+ * so restoring a backup (which may already contain the column, depending on the exact
+ * migration path a previous app version took) never aborts with "duplicate column name".
+ */
+private fun SupportSQLiteDatabase.hasColumn(table: String, column: String): Boolean =
+    query("PRAGMA table_info(`$table`)").use { cursor ->
+        val nameIndex = cursor.getColumnIndex("name")
+        if (nameIndex < 0) return false
+        while (cursor.moveToNext()) {
+            if (cursor.getString(nameIndex) == column) return true
+        }
+        false
+    }
+
+private fun SupportSQLiteDatabase.addColumnIfMissing(table: String, column: String, definition: String) {
+    if (!hasColumn(table, column)) {
+        execSQL("ALTER TABLE `$table` ADD COLUMN $column $definition")
+    }
+}
+
 val MIGRATION_19_20 = object : Migration(19, 20) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE song ADD COLUMN isVideoSong INTEGER NOT NULL DEFAULT 0")
+        database.addColumnIfMissing("song", "isVideoSong", "INTEGER NOT NULL DEFAULT 0")
     }
 }
 
@@ -469,19 +509,19 @@ class Migration19To20: AutoMigrationSpec {
 
 val MIGRATION_20_21 = object : Migration(20, 21) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE song ADD COLUMN explicit INTEGER NOT NULL DEFAULT 0")
+        database.addColumnIfMissing("song", "explicit", "INTEGER NOT NULL DEFAULT 0")
     }
 }
 
 val MIGRATION_21_22 = object : Migration(21, 22) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE artist ADD COLUMN isProfile INTEGER NOT NULL DEFAULT 0")
+        database.addColumnIfMissing("artist", "isProfile", "INTEGER NOT NULL DEFAULT 0")
     }
 }
 
 val MIGRATION_22_23 = object : Migration(22, 23) {
     override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE playlist ADD COLUMN description INTEGER NOT NULL DEFAULT 0")
+        database.addColumnIfMissing("playlist", "description", "INTEGER NOT NULL DEFAULT 0")
     }
 }
 

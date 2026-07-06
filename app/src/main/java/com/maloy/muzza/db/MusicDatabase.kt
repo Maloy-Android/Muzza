@@ -113,13 +113,16 @@ abstract class InternalDatabase : RoomDatabase() {
             name: String,
         ): RoomDatabase.Builder<InternalDatabase> =
             Room.databaseBuilder(context, InternalDatabase::class.java, name)
-                .addMigrations(
-                    MIGRATION_1_2,
-                    MIGRATION_19_20,
-                    MIGRATION_20_21,
-                    MIGRATION_21_22,
-                    MIGRATION_22_23,
-                )
+                // Only MIGRATION_1_2 is a hand-written migration with no auto-migration
+                // counterpart. Everything from v2 onwards is handled by the generated
+                // auto-migrations declared in @Database. Manually added migrations for
+                // 19->24 used to be listed here too, but Room lets a manually added
+                // migration override the auto-migration for the same version pair, and the
+                // hand-written 19->20 was incomplete (it only added `isVideoSong` and never
+                // performed the column deletions the real Migration19To20 does). That left
+                // stale columns behind and made restoring older backups fail schema
+                // validation. Relying solely on the compile-verified auto-migrations fixes it.
+                .addMigrations(MIGRATION_1_2)
 
         fun newInstance(context: Context): MusicDatabase =
             MusicDatabase(
@@ -449,33 +452,6 @@ class Migration18To19 : AutoMigrationSpec {
     }
 }
 
-/**
- * True if [column] already exists on [table]. Used to make additive migrations idempotent,
- * so restoring a backup (which may already contain the column, depending on the exact
- * migration path a previous app version took) never aborts with "duplicate column name".
- */
-private fun SupportSQLiteDatabase.hasColumn(table: String, column: String): Boolean =
-    query("PRAGMA table_info(`$table`)").use { cursor ->
-        val nameIndex = cursor.getColumnIndex("name")
-        if (nameIndex < 0) return false
-        while (cursor.moveToNext()) {
-            if (cursor.getString(nameIndex) == column) return true
-        }
-        false
-    }
-
-private fun SupportSQLiteDatabase.addColumnIfMissing(table: String, column: String, definition: String) {
-    if (!hasColumn(table, column)) {
-        execSQL("ALTER TABLE `$table` ADD COLUMN $column $definition")
-    }
-}
-
-val MIGRATION_19_20 = object : Migration(19, 20) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.addColumnIfMissing("song", "isVideoSong", "INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "song", columnName = "explicit"),
     DeleteColumn(tableName = "song", columnName = "year"),
@@ -489,41 +465,11 @@ val MIGRATION_19_20 = object : Migration(19, 20) {
 @DeleteTable(
     tableName = "playCount"
 )
-class Migration19To20: AutoMigrationSpec {
-    override fun onPostMigrate(db: SupportSQLiteDatabase) {
-        var columnExists = false
-        db.query("PRAGMA table_info(lyrics)").use { cursor ->
-            val nameIndex = cursor.getColumnIndex("name")
-            while (cursor.moveToNext()) {
-                if (cursor.getString(nameIndex) == "provider") {
-                    columnExists = true
-                    break
-                }
-            }
-        }
-        if (!columnExists) {
-            db.execSQL("ALTER TABLE lyrics ADD COLUMN provider TEXT NOT NULL DEFAULT 'Unknown'")
-        }
-    }
-}
-
-val MIGRATION_20_21 = object : Migration(20, 21) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.addColumnIfMissing("song", "explicit", "INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-val MIGRATION_21_22 = object : Migration(21, 22) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.addColumnIfMissing("artist", "isProfile", "INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-val MIGRATION_22_23 = object : Migration(22, 23) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.addColumnIfMissing("playlist", "description", "INTEGER NOT NULL DEFAULT 0")
-    }
-}
+// NOTE: `lyrics.provider` is intentionally NOT added here. Per the exported schemas it is
+// first introduced in version 21, so the auto-migration for 20 -> 21 adds it. Adding it here
+// (as a previous version did) makes the column exist prematurely and causes the 20 -> 21
+// migration to fail with "duplicate column name: provider" when migrating an older backup.
+class Migration19To20 : AutoMigrationSpec
 
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "playlist", columnName = "playlistAuthors")

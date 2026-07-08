@@ -70,7 +70,7 @@ class OnlinePlaylistViewModel @Inject constructor(
                      }
 
                  SongSortType.PLAY_TIME ->
-                     songs.sortedBy { it.duration }
+                     songs.sortedByDescending { it.duration }
              }.reversed(!descending)
             }
         }

@@ -309,7 +309,7 @@ fun AlbumScreen(
                                 modifier = Modifier.fillMaxWidth()
                             ) {
                                 albumWithSongs.artists.first().thumbnailUrl?.let { firstArtistThumbnail ->
-                                    if (firstArtistThumbnail.isNotEmpty()) {
+                                    if (firstArtistThumbnail.isNotEmpty() && albumWithSongs.artists.size == 1) {
                                         Box(
                                             modifier = Modifier
                                                 .size(32.dp)

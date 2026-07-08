@@ -409,7 +409,7 @@ fun BottomSheetPlayer(
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
                 Row {
-                    if (!firstArtistThumbnail.isNullOrEmpty() && !showLyrics) {
+                    if (!firstArtistThumbnail.isNullOrEmpty() && mediaMetadata.artists.size == 1 && !showLyrics) {
                         Box(
                             modifier = Modifier
                                 .size(52.dp)

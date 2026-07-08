@@ -102,14 +102,36 @@ abstract class InternalDatabase : RoomDatabase() {
     companion object {
         const val DB_NAME = "song.db"
 
+        /**
+         * Shared builder used both for the live database and for validating/migrating a
+         * restored backup. Keeping a single definition guarantees that a backup is migrated
+         * through exactly the same path the app itself uses, so any backup that a given app
+         * version can open in-place can also be restored by that version.
+         */
+        fun databaseBuilder(
+            context: Context,
+            name: String,
+        ): RoomDatabase.Builder<InternalDatabase> =
+            Room.databaseBuilder(context, InternalDatabase::class.java, name)
+                // Only MIGRATION_1_2 is a hand-written migration with no auto-migration
+                // counterpart. Everything from v2 onwards is handled by the generated
+                // auto-migrations declared in @Database. Manually added migrations for
+                // 19->24 used to be listed here too, but Room lets a manually added
+                // migration override the auto-migration for the same version pair, and the
+                // hand-written 19->20 was incomplete (it only added `isVideoSong` and never
+                // performed the column deletions the real Migration19To20 does). That left
+                // stale columns behind and made restoring older backups fail schema
+                // validation. Relying solely on the compile-verified auto-migrations fixes it.
+                .addMigrations(MIGRATION_1_2)
+
         fun newInstance(context: Context): MusicDatabase =
             MusicDatabase(
-                delegate = Room.databaseBuilder(context, InternalDatabase::class.java, DB_NAME)
-                    .addMigrations(MIGRATION_1_2)
-                    .addMigrations(MIGRATION_19_20)
-                    .addMigrations(MIGRATION_20_21)
-                    .addMigrations(MIGRATION_21_22)
-                    .addMigrations(MIGRATION_22_23)
+                delegate = databaseBuilder(context, DB_NAME)
+                    // A backup created by a newer app version cannot be safely opened by an
+                    // older one. Rather than crash-looping on startup (forcing the user to
+                    // clear app data), reset gracefully. Restore itself refuses such backups
+                    // up-front, so this is only a last-resort safety net.
+                    .fallbackToDestructiveMigrationOnDowngrade(dropAllTables = true)
                     .build()
             )
     }
@@ -430,12 +452,6 @@ class Migration18To19 : AutoMigrationSpec {
     }
 }
 
-val MIGRATION_19_20 = object : Migration(19, 20) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE song ADD COLUMN isVideoSong INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "song", columnName = "explicit"),
     DeleteColumn(tableName = "song", columnName = "year"),
@@ -449,41 +465,11 @@ val MIGRATION_19_20 = object : Migration(19, 20) {
 @DeleteTable(
     tableName = "playCount"
 )
-class Migration19To20: AutoMigrationSpec {
-    override fun onPostMigrate(db: SupportSQLiteDatabase) {
-        var columnExists = false
-        db.query("PRAGMA table_info(lyrics)").use { cursor ->
-            val nameIndex = cursor.getColumnIndex("name")
-            while (cursor.moveToNext()) {
-                if (cursor.getString(nameIndex) == "provider") {
-                    columnExists = true
-                    break
-                }
-            }
-        }
-        if (!columnExists) {
-            db.execSQL("ALTER TABLE lyrics ADD COLUMN provider TEXT NOT NULL DEFAULT 'Unknown'")
-        }
-    }
-}
-
-val MIGRATION_20_21 = object : Migration(20, 21) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE song ADD COLUMN explicit INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-val MIGRATION_21_22 = object : Migration(21, 22) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE artist ADD COLUMN isProfile INTEGER NOT NULL DEFAULT 0")
-    }
-}
-
-val MIGRATION_22_23 = object : Migration(22, 23) {
-    override fun migrate(database: SupportSQLiteDatabase) {
-        database.execSQL("ALTER TABLE playlist ADD COLUMN description INTEGER NOT NULL DEFAULT 0")
-    }
-}
+// NOTE: `lyrics.provider` is intentionally NOT added here. Per the exported schemas it is
+// first introduced in version 21, so the auto-migration for 20 -> 21 adds it. Adding it here
+// (as a previous version did) makes the column exist prematurely and causes the 20 -> 21
+// migration to fail with "duplicate column name: provider" when migrating an older backup.
+class Migration19To20 : AutoMigrationSpec
 
 @DeleteColumn.Entries(
     DeleteColumn(tableName = "playlist", columnName = "playlistAuthors")

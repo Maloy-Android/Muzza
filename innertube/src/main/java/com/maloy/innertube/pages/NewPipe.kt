@@ -23,14 +23,19 @@ class NewPipeDownloaderImpl(
     proxy: Proxy?,
     proxyAuth: String? = null,
 ) : Downloader() {
-    private val client = OkHttpClient.Builder()
-        .proxy(proxy)
-        .proxyAuthenticator { _, response ->
-            response.request.newBuilder()
-                .header("Proxy-Authorization", proxyAuth!!)
-                .build()
-        }
-        .build()
+    private val client =
+        OkHttpClient
+            .Builder()
+            .proxy(proxy)
+            .proxyAuthenticator { _, response ->
+                proxyAuth?.let { auth ->
+                    response.request.newBuilder()
+                        .header("Proxy-Authorization", auth)
+                        .build()
+                } ?: response.request
+            }
+            .build()
+
     @Throws(IOException::class, ReCaptchaException::class)
     override fun execute(request: Request): Response {
         val httpMethod = request.httpMethod()
@@ -121,6 +126,38 @@ class NewPipeUtils(
             // Don't print stack trace - caller handles errors
             null
         }
+
+    /**
+     * Like [getStreamUrl] but skips the n-parameter (throttle) deobfuscation step.
+     * Use this when the caller will apply its own n-transform (e.g. NTransformSolver)
+     * to avoid double-transforming the n parameter.
+     */
+    fun deobfuscateSignatureOnly(
+        format: PlayerResponse.StreamingData.Format,
+        videoId: String,
+    ): String? =
+        try {
+            format.url ?: format.signatureCipher?.let { signatureCipher ->
+                val params = parseQueryString(signatureCipher)
+                val obfuscatedSignature =
+                    params["s"]
+                        ?: throw ParsingException("Could not parse cipher signature")
+                val signatureParam =
+                    params["sp"]
+                        ?: throw ParsingException("Could not parse cipher signature parameter")
+                val url =
+                    params["url"]?.let { URLBuilder(it) }
+                        ?: throw ParsingException("Could not parse cipher url")
+                url.parameters[signatureParam] =
+                    YoutubeJavaScriptPlayerManager.deobfuscateSignature(
+                        videoId,
+                        obfuscatedSignature,
+                    )
+                url.toString()
+            }
+        } catch (e: Exception) {
+            null
+        }
 }
 
 object NewPipeExtractor {
@@ -151,6 +188,19 @@ object NewPipeExtractor {
     ): String? {
         init()
         return newPipeUtils?.getStreamUrl(format, videoId)
+    }
+
+    /**
+     * Deobfuscate the signature in [format] using NewPipe's JS engine, but do NOT
+     * apply the n-parameter throttle transform. The caller (NTransformSolver) handles
+     * n-transform separately to avoid transforming the n parameter twice.
+     */
+    fun deobfuscateSignatureOnly(
+        format: PlayerResponse.StreamingData.Format,
+        videoId: String
+    ): String? {
+        init()
+        return newPipeUtils?.deobfuscateSignatureOnly(format, videoId)
     }
 
     fun newPipePlayer(videoId: String): List<Pair<Int, String>> {

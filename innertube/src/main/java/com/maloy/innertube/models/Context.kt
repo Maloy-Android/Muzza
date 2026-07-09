@@ -6,7 +6,8 @@ import kotlinx.serialization.Serializable
 data class Context(
     val client: Client,
     val thirdParty: ThirdParty? = null,
-    private val user: User = User()
+    val request: Request = Request(),
+    val user: User = User()
 ) {
     @Serializable
     data class Client(
@@ -30,5 +31,10 @@ data class Context(
     data class User(
         val lockedSafetyMode: Boolean = false,
         val onBehalfOfUser: String? = null,
+    )
+    @Serializable
+    data class Request(
+        val internalExperimentFlags: Array<String> = emptyArray(),
+        val useSsl: Boolean = true,
     )
 }

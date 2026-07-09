@@ -232,7 +232,8 @@ class InnerTube {
         client: YouTubeClient,
         videoId: String,
         playlistId: String?,
-        signatureTimestamp: Int?,
+        poToken: Int? = null,
+        signatureTimestamp: String?,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
@@ -254,6 +255,9 @@ class InnerTube {
                             signatureTimestamp
                         )
                     )
+                } else null,
+                serviceIntegrityDimensions = if (client.useWebPoTokens && poToken != null) {
+                    PlayerBody.ServiceIntegrityDimensions(poToken)
                 } else null,
             )
         )

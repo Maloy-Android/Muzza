@@ -28,6 +28,7 @@ import com.maloy.muzza.constants.SYSTEM_DEFAULT
 import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.extensions.toInetSocketAddress
+import com.maloy.muzza.utils.cipher.CipherDeobfuscator
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.reportException
@@ -131,6 +132,7 @@ class App : Application(), ImageLoaderFactory {
                     }
                 }
         }
+        CipherDeobfuscator.initialize(this)
     }
 
     @SuppressLint("UsableSpace")

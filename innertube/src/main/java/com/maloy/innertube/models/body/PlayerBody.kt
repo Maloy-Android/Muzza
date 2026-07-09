@@ -19,11 +19,11 @@ data class PlayerBody(
     ) {
         @Serializable
         data class ContentPlaybackContext(
-            val signatureTimestamp: Int
+            val signatureTimestamp: String
         )
     }
     @Serializable
     data class ServiceIntegrityDimensions(
-        val poToken: String
+        val poToken: Int
     )
 }

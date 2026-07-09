@@ -102,3 +102,26 @@
  -dontwarn org.apache.log4j.**
  -dontwarn org.apache.logging.log4j.**
  -dontwarn okhttp3.internal.**
+ 
+ 
+ # WEB_REMIX Streaming - WebView JavaScript interfaces
+ -keepclassmembers class com.maloy.muzza.utils.sabr.EjsNTransformSolver$SolverWebView {
+     @android.webkit.JavascriptInterface public *;
+ }
+ -keepclassmembers class com.maloy.muzza.utils.cipher.CipherWebView {
+     @android.webkit.JavascriptInterface public *;
+ }
+ -keepclassmembers class com.maloy.muzza.utils.potoken.PoTokenWebView {
+     @android.webkit.JavascriptInterface public *;
+ }
+ 
+ # Keep streaming utility classes
+ -keep class com.maloy.muzza.utils.cipher.** { *; }
+ -keep class com.maloy.muzza.utils.sabr.** { *; }
+ -keep class com.maloy.muzza.utils.potoken.** { *; }
+ 
+ # Keep coroutine continuation for WebView callbacks
+ -keepclassmembers class * {
+     void resume(...);
+     void resumeWithException(...);
+ }

@@ -1,4 +1,4 @@
-package com.maloy.muzza.utils.protoken
+package com.maloy.muzza.utils.potoken
 
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonNull

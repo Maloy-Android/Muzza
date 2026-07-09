@@ -1,4 +1,4 @@
-package com.maloy.muzza.utils.protoken
+package com.maloy.muzza.utils.potoken
 
 class PoTokenResult(
     val playerRequestPoToken: String,

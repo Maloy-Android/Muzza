@@ -26,6 +26,10 @@ import java.util.*
 class InnerTube {
     private var httpClient = createClient()
 
+    private companion object {
+        const val PLAYBACK_TELEMETRY_VER = "2"
+    }
+
     var locale = YouTubeLocale(
         gl = Locale.getDefault().country,
         hl = Locale.getDefault().toLanguageTag()
@@ -228,12 +232,13 @@ class InnerTube {
         parameter("ctoken", continuation)
     }
 
+
     suspend fun player(
         client: YouTubeClient,
         videoId: String,
         playlistId: String?,
-        poToken: Int? = null,
-        signatureTimestamp: String?,
+        poToken: String? = null,
+        signatureTimestamp: Int?,
     ) = httpClient.post("player") {
         ytClient(client, setLogin = true)
         setBody(
@@ -268,16 +273,18 @@ class InnerTube {
         cpn: String,
         playlistId: String?,
         client: YouTubeClient = YouTubeClient.WEB_REMIX,
-    ) = httpClient.get(url) {
-        ytClient(client, true)
-        parameter("c", client.clientName)
-        parameter("cpn", cpn)
+    ) =
+        httpClient.get(url) {
+            ytClient(client, true)
+            parameter("c", client.clientName)
+            parameter("cpn", cpn)
+            parameter("ver", PLAYBACK_TELEMETRY_VER)
 
-        if (playlistId != null) {
-            parameter("list", playlistId)
-            parameter("referrer", "https://music.youtube.com/playlist?list=$playlistId")
+            if (playlistId != null) {
+                parameter("list", playlistId)
+                parameter("referrer", "https://music.youtube.com/playlist?list=$playlistId")
+            }
         }
-    }
 
     suspend fun browse(
         client: YouTubeClient,

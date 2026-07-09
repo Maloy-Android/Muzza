@@ -132,7 +132,6 @@ class App : Application(), ImageLoaderFactory {
                     }
                 }
         }
-        PlayerJsFetcher.initialize(this)
     }
 
     @SuppressLint("UsableSpace")

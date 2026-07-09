@@ -104,22 +104,18 @@
  -dontwarn okhttp3.internal.**
  
  
- # WEB_REMIX Streaming - WebView JavaScript interfaces
-# WEB_REMIX Streaming - NTransformSolver WebView JavaScript interface
--keepclassmembers class com.maloy.muzza.utils.cipher.NTransformSolver$SolverWebView {
-     @android.webkit.JavascriptInterface public *;
- }
- -keepclassmembers class com.maloy.muzza.utils.potoken.PoTokenWebView {
-     @android.webkit.JavascriptInterface public *;
- }
- 
- # Keep streaming utility classes
- -keep class com.maloy.muzza.utils.cipher.** { *; }
- -keep class com.maloy.muzza.utils.potoken.** { *; }
- 
- # Keep SignatureDeobfuscator inner types (Op, OpType) for reflection-safe serialization
- -keepclassmembers class com.maloy.muzza.utils.cipher.SignatureDeobfuscator {*;}
- 
+# WebView JavaScript interfaces
+-keepclassmembers class com.maloy.muzza.utils.cipher.CipherWebView {
+    @android.webkit.JavascriptInterface public *;
+}
+-keepclassmembers class com.maloy.muzza.utils.potoken.PoTokenWebView {
+    @android.webkit.JavascriptInterface public *;
+}
+
+# Keep streaming utility classes
+-keep class com.maloy.muzza.utils.cipher.** { *; }
+-keep class com.maloy.muzza.utils.potoken.** { *; }
+
  # Keep coroutine continuation for WebView callbacks
  -keepclassmembers class * {
      void resume(...);

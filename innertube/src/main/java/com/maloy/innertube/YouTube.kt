@@ -1090,28 +1090,36 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         }
     }
 
-    suspend fun player(videoId: String, playlistId: String? = null, client: YouTubeClient, signatureTimestamp: Int? = null, poToken: String? = null): Result<PlayerResponse> = runCatching {
-        innerTube.player(client, videoId, playlistId, signatureTimestamp, poToken)
-            .body<PlayerResponse>()
-    }
+    suspend fun player(
+        videoId: String,
+        playlistId: String? = null,
+        client: YouTubeClient,
+        signatureTimestamp: Int? = null,
+        poToken: String? = null,
+    ): Result<PlayerResponse> =
+        runCatching {
+            innerTube.player(client, videoId, playlistId, poToken = poToken, signatureTimestamp = signatureTimestamp).body<PlayerResponse>()
+        }
 
-    suspend fun registerPlayback(playlistId: String? = null, playbackTracking: String) = runCatching {
-        val cpn = (1..16).map {
-            "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[Random.Default.nextInt(
-                0,
-                64
-            )]
-        }.joinToString("")
-
-        val playbackUrl = playbackTracking.replace(
-            "https://s.youtube.com",
-            "https://music.youtube.com",
-        )
+    suspend fun registerPlayback(
+        playlistId: String? = null,
+        playbackTracking: String,
+    ) = runCatching {
+        val cpn =
+            (1..16)
+                .map {
+                    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"[
+                        Random.Default.nextInt(
+                            0,
+                            64,
+                        ),
+                    ]
+                }.joinToString("")
 
         innerTube.registerPlayback(
-            url = playbackUrl,
+            url = playbackTracking,
             playlistId = playlistId,
-            cpn = cpn
+            cpn = cpn,
         )
     }
 

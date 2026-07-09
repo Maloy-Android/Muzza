@@ -1,6 +1,7 @@
 package com.maloy.muzza.utils
 
 import android.net.ConnectivityManager
+import android.net.Uri
 import androidx.media3.common.PlaybackException
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YouTubeClient
@@ -20,9 +21,14 @@ import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.innertube.pages.NewPipeExtractor
 import com.maloy.muzza.constants.AudioQuality
-import com.maloy.muzza.utils.cipher.CipherManager
-import com.maloy.muzza.utils.cipher.NTransformSolver
-import com.maloy.muzza.utils.protoken.PoTokenGenerator
+import com.maloy.muzza.utils.cipher.CipherDeobfuscator
+import com.maloy.muzza.utils.potoken.PoTokenGenerator
+import com.maloy.muzza.utils.potoken.PoTokenResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import timber.log.Timber
 
@@ -34,23 +40,81 @@ object YTPlayerUtils {
         .proxy(YouTube.proxy)
         .build()
 
+    private val poTokenGenerator = PoTokenGenerator()
+
+    // Track videoIds whose WEB_REMIX stream URL 403'd on the ExoPlayer GET, so the next resolution
+    // falls through to the fallback clients instead of skipping HEAD validation and looping.
+    private val webRemixFailedIds = java.util.Collections.newSetFromMap(
+        java.util.concurrent.ConcurrentHashMap<String, Boolean>(),
+    )
+
+    fun markWebRemixFailed(videoId: String) {
+        webRemixFailedIds.add(videoId)
+    }
+
+    /**
+     * Cleared when the cipher recovers (player config refreshed after a stream rejection): the
+     * prior WEB_REMIX failures were caused by the stale cipher, so let resolution try WEB_REMIX
+     * again instead of staying pinned to a lower fallback client for the rest of the process.
+     */
+    fun clearWebRemixFailures() {
+        webRemixFailedIds.clear()
+    }
+
+    // Fire-and-forget scope for the cipher config self-heal triggered when a cipher client fails
+    // stream validation during resolution. Only WEB_REMIX skips HEAD validation (so its bad URL
+    // 403s on ExoPlayer and hits MusicService's handler); WEB_CREATOR / TVHTML5 / WEB are validated
+    // here and never reach ExoPlayer, so without this trigger a WEB_REMIX-disabled user would never
+    // self-heal a stale/wrong cipher config. Kept off the resolution coroutine so the (network)
+    // refresh never blocks falling through to the next client.
+    private val cipherRefreshScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
     private val MAIN_CLIENT: YouTubeClient = WEB_REMIX
 
+    // VISIONOS first (its CDN URL has no spc throttle gate, so it streams whole songs with no
+    // poToken/cipher — the most reliable fallback), then WEB_CREATOR, TVHTML5, the ANDROID_VR
+    // variants, then TVHTML5_SIMPLY_EMBEDDED_PLAYER (login-free, bypasses age-restriction for
+    // logged-out users), then the spc-gated IOS/IPADOS as last-ditch attempts.
     private val STREAM_FALLBACK_CLIENTS: Array<YouTubeClient> = arrayOf(
-        TVHTML5_SIMPLY_EMBEDDED_PLAYER,  // Try embedded player first for age-restricted content
+        VISIONOS,
+        WEB_CREATOR,
         TVHTML5,
         ANDROID_VR_1_43_32,
         ANDROID_VR_1_61_48,
+        TVHTML5_SIMPLY_EMBEDDED_PLAYER,
         IOS,
         IPADOS,
         ANDROID_CREATOR,
-        IPADOS,
         ANDROID_VR_NO_AUTH,
         MOBILE,
-        IOS,
         WEB,
-        WEB_CREATOR
     )
+
+    /** Client names disabled by the user in Settings → Stream sources. Updated reactively by MusicService. */
+    @Volatile
+    var disabledStreamClients: Set<String> = emptySet()
+
+    // A stable video id used only to warm the local BotGuard token generator; the token is
+    // discarded. PoToken generation is a local WebView computation (no YouTube /player call), so
+    // this triggers no network request to YouTube for the video itself.
+    private const val POTOKEN_WARMUP_VIDEO_ID = "jNQXAC9IVRw"
+
+    /**
+     * Best-effort warm-up of the PoToken/BotGuard generator (BotGuard cold-start is ~2–5s) so the
+     * first real playback skips it. Requires a session (visitorData); the caller should gate this on
+     * visitorData being ready. The cipher WebView warm-up is separate (CipherDeobfuscator.prewarm)
+     * since it needs no session. Failure is swallowed; playback falls back to lazy init unchanged.
+     */
+    suspend fun prewarmPoToken() {
+        val sessionId = YouTube.visitorData ?: return
+        if (!MAIN_CLIENT.useWebPoTokens) return
+        runCatching {
+            withContext(Dispatchers.IO) {
+                poTokenGenerator.getWebClientPoToken(POTOKEN_WARMUP_VIDEO_ID, sessionId)
+            }
+        }.onFailure { Timber.tag(TAG).w(it, "PoToken prewarm skipped: ${it.message}") }
+    }
+
     data class PlaybackData(
         val audioConfig: PlayerResponse.PlayerConfig.AudioConfig?,
         val videoDetails: PlayerResponse.VideoDetails?,
@@ -58,6 +122,7 @@ object YTPlayerUtils {
         val format: PlayerResponse.StreamingData.Format,
         val streamUrl: String,
         val streamExpiresInSeconds: Int,
+        val streamClient: String = "unknown",
     )
     /**
      * Custom player response intended to use for playback.
@@ -70,29 +135,41 @@ object YTPlayerUtils {
         audioQuality: AudioQuality,
         connectivityManager: ConnectivityManager,
     ): Result<PlaybackData> = runCatching {
-        Timber.tag(logTag).d("Fetching player response for videoId: $videoId, playlistId: $playlistId")
-        // Debug: Log ALL playback attempts
-        println("[PLAYBACK_DEBUG] playerResponseForPlayback called: videoId=$videoId, playlistId=$playlistId")
+        Timber.tag(TAG).d("=== PLAYER RESPONSE FOR PLAYBACK ===")
+        Timber.tag(TAG).d("videoId: $videoId")
+        Timber.tag(TAG).d("playlistId: $playlistId")
+        Timber.tag(TAG).d("audioQuality: $audioQuality")
+
         // Check if this is an uploaded/privately owned track
         val isUploadedTrack = playlistId == "MLPT" || playlistId?.contains("MLPT") == true
+        Timber.tag(TAG).d("Content type detection (preliminary):")
+        Timber.tag(TAG).d("  isUploadedTrack (from playlistId): $isUploadedTrack")
 
         val isLoggedIn = YouTube.cookie != null
-        Timber.tag(logTag).d("Session authentication status: ${if (isLoggedIn) "Logged in" else "Not logged in"}")
+        Timber.tag(TAG).d("Authentication status: ${if (isLoggedIn) "LOGGED_IN" else "ANONYMOUS"}")
 
         // Get signature timestamp (same as before for normal content)
         val signatureTimestamp = getSignatureTimestampOrNull(videoId)
         Timber.tag(logTag).d("Signature timestamp: ${signatureTimestamp.timestamp}")
 
-        // Generate PoToken (cold-start, SmartTube-based approach - no WebView required)
-        val sessionId = if (isLoggedIn) YouTube.dataSyncId else YouTube.visitorData
-        val mainPoToken = if (MAIN_CLIENT.useWebPoTokens && sessionId != null) {
+        // Generate PoToken
+        var poToken: PoTokenResult? = null
+        val sessionId = YouTube.visitorData
+        if (MAIN_CLIENT.useWebPoTokens && sessionId != null) {
             Timber.tag(logTag).d("Generating PoToken for WEB_REMIX with sessionId")
-            PoTokenGenerator.generateContentToken(sessionId, videoId)
-        } else null
+            try {
+                poToken = poTokenGenerator.getWebClientPoToken(videoId, sessionId)
+                if (poToken != null) {
+                    Timber.tag(logTag).d("PoToken generated successfully")
+                }
+            } catch (e: Exception) {
+                Timber.tag(logTag).e(e, "PoToken generation failed: ${e.message}")
+            }
+        }
 
-        // Try WEB_REMIX with signature timestamp and poToken
+        // Try WEB_REMIX with signature timestamp and poToken (same as before)
         Timber.tag(logTag).d("Attempting to get player response using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
-        var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, mainPoToken).getOrThrow()
+        var mainPlayerResponse = YouTube.player(videoId, playlistId, MAIN_CLIENT, signatureTimestamp.timestamp, poToken?.playerRequestPoToken).getOrThrow()
 
         // Debug uploaded track response
         if (isUploadedTrack || playlistId?.contains("MLPT") == true) {
@@ -112,14 +189,15 @@ object YTPlayerUtils {
         wasOriginallyAgeRestricted = isAgeRestrictedFromResponse
 
         if (isAgeRestrictedFromResponse && isLoggedIn) {
-            // Age-restricted: use WEB_CREATOR directly (no NewPipe needed from here).
-            // Pass the signatureTimestamp so the player can generate correct stream URLs;
-            // WEB_CREATOR with proper auth typically returns direct (non-cipher) URLs.
+            // Age-restricted: use WEB_CREATOR directly (no NewPipe needed from here)
             Timber.tag(logTag).d("Age-restricted detected, using WEB_CREATOR")
             Timber.tag(TAG).i("Age-restricted: using WEB_CREATOR for videoId=$videoId")
-            val creatorResponse = YouTube.player(
-                videoId, playlistId, WEB_CREATOR, signatureTimestamp.timestamp, null
-            ).getOrNull()
+            val creatorResponse = YouTube.player(videoId, playlistId, WEB_CREATOR, null, null)
+                .onFailure {
+                    // Distinguish thrown request/parse failures from genuine playability
+                    // rejections (both otherwise surface as a null response downstream).
+                    Timber.tag(logTag).e(it, "player() request FAILED for WEB_CREATOR")
+                }.getOrNull()
             if (creatorResponse?.playabilityStatus?.status == "OK") {
                 Timber.tag(logTag).d("WEB_CREATOR works for age-restricted content")
                 mainPlayerResponse = creatorResponse
@@ -128,22 +206,19 @@ object YTPlayerUtils {
         }
 
         // If we still don't have a valid response, throw
-        if (mainPlayerResponse == null) {
-            throw Exception("Failed to get player response")
-        }
 
-        val audioConfig = mainPlayerResponse.playerConfig?.audioConfig
+        var audioConfig = mainPlayerResponse.playerConfig?.audioConfig
         val videoDetails = mainPlayerResponse.videoDetails
         val playbackTracking = mainPlayerResponse.playbackTracking
         var format: PlayerResponse.StreamingData.Format? = null
         var streamUrl: String? = null
         var streamExpiresInSeconds: Int? = null
         var streamPlayerResponse: PlayerResponse? = null
-        var retryMainPlayerResponse: PlayerResponse? = if (usedAgeRestrictedClient != null) mainPlayerResponse else null
+        val retryMainPlayerResponse: PlayerResponse? = if (usedAgeRestrictedClient != null) mainPlayerResponse else null
 
         // Check current status
         val currentStatus = mainPlayerResponse.playabilityStatus.status
-        var isAgeRestricted = currentStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
+        val isAgeRestricted = currentStatus in listOf("AGE_CHECK_REQUIRED", "AGE_VERIFICATION_REQUIRED", "LOGIN_REQUIRED", "CONTENT_CHECK_REQUIRED")
 
         if (isAgeRestricted) {
             Timber.tag(logTag).d("Content is still age-restricted (status: $currentStatus), will try fallback clients")
@@ -151,22 +226,21 @@ object YTPlayerUtils {
                 .i("Age-restricted content detected: videoId=$videoId, status=$currentStatus")
         }
 
-        // Check if this is a privately owned track (uploaded song)
-        val isPrivateTrack = mainPlayerResponse.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK"
-
-        // startIndex controls which client is tried first for the stream:
-        //  - Private/uploaded tracks → TVHTML5 (index 1, loginRequired).
-        //    WEB_REMIX URLs for private tracks require Cookie headers that ExoPlayer
-        //    does not send, causing 403. TVHTML5 provides CDN URLs authenticated
-        //    via pot= query param instead, which ExoPlayer can fetch without cookies.
-        //  - Age-restricted → TVHTML5_SIMPLY_EMBEDDED_PLAYER (index 0), which
-        //    bypasses age-checks via the embedded-player third-party context.
-        //  - Normal content → MAIN_CLIENT first (index -1), then fallbacks.
+        // For age-restricted: skip main client, start with fallbacks
+        // For normal content: standard order
         val startIndex = when {
-            isPrivateTrack -> 1   // TVHTML5
-            isAgeRestricted -> 0  // TVHTML5_SIMPLY_EMBEDDED_PLAYER
+            isAgeRestricted -> 0
             else -> -1
         }
+
+        var bestFallbackFormat: PlayerResponse.StreamingData.Format? = null
+        var bestFallbackUrl: String? = null
+        var bestFallbackExpiry: Int? = null
+        var bestFallbackResponse: PlayerResponse? = null
+        var bestFallbackClient: String? = null
+        var successClient: String? = null
+
+        val hasHighQuality = mainPlayerResponse.streamingData?.adaptiveFormats?.any { it.audioQuality == "AUDIO_QUALITY_HIGH" } == true
 
         for (clientIndex in (startIndex until STREAM_FALLBACK_CLIENTS.size)) {
             // reset for each client
@@ -179,12 +253,21 @@ object YTPlayerUtils {
             if (clientIndex == -1) {
                 // try with streams from main client first (use retry response if available)
                 client = MAIN_CLIENT
+                if (client.clientName in disabledStreamClients) {
+                    Timber.tag(logTag).d("Skipping MAIN_CLIENT ${client.clientName} — disabled in stream sources")
+                    continue
+                }
                 streamPlayerResponse = retryMainPlayerResponse ?: mainPlayerResponse
                 Timber.tag(logTag).d("Trying stream from MAIN_CLIENT: ${client.clientName}")
             } else {
                 // after main client use fallback clients
                 client = STREAM_FALLBACK_CLIENTS[clientIndex]
                 Timber.tag(logTag).d("Trying fallback client ${clientIndex + 1}/${STREAM_FALLBACK_CLIENTS.size}: ${client.clientName}")
+
+                if (client.clientName in disabledStreamClients) {
+                    Timber.tag(logTag).d("Skipping client ${client.clientName} — disabled in stream sources")
+                    continue
+                }
 
                 if (client.loginRequired && !isLoggedIn && YouTube.cookie == null) {
                     // skip client if it requires login but user is not logged in
@@ -193,14 +276,15 @@ object YTPlayerUtils {
                 }
 
                 Timber.tag(logTag).d("Fetching player response for fallback client: ${client.clientName}")
-                // Generate a fresh content token for web clients (cold-start, no WebView)
-                val clientPoToken = if (client.useWebPoTokens && sessionId != null) {
-                    PoTokenGenerator.generateContentToken(sessionId, videoId)
-                } else null
+                // Only pass poToken for clients that support it
+                val clientPoToken = if (client.useWebPoTokens) poToken?.playerRequestPoToken else null
                 // Skip signature timestamp for age-restricted (faster), use it for normal content
                 val clientSigTimestamp = if (wasOriginallyAgeRestricted) null else signatureTimestamp.timestamp
                 streamPlayerResponse =
-                    YouTube.player(videoId, playlistId, client, clientSigTimestamp, clientPoToken).getOrNull()
+                    YouTube.player(videoId, playlistId, client, clientSigTimestamp, clientPoToken)
+                        .onFailure {
+                            Timber.tag(logTag).e(it, "player() request FAILED for %s", client.clientName)
+                        }.getOrNull()
             }
 
             // process current client response
@@ -215,6 +299,16 @@ object YTPlayerUtils {
                     // Try to get streams using newPipePlayer method
                     val newPipeResponse = YouTube.newPipePlayer(videoId, streamPlayerResponse)
                     newPipeResponse ?: streamPlayerResponse
+                }
+
+                if (audioConfig == null) {
+                    audioConfig = responseToUse.playerConfig?.audioConfig
+
+                    if (audioConfig != null) {
+                        Timber.tag(logTag).d("AudioConfig obtained from response of client: ${if (clientIndex == -1) MAIN_CLIENT.clientName else STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
+                    } else {
+                        Timber.tag(logTag).d("No audioConfig found in responseToUse.")
+                    }
                 }
 
                 format =
@@ -244,46 +338,60 @@ object YTPlayerUtils {
                     STREAM_FALLBACK_CLIENTS[clientIndex]
                 }
 
-                // Check if this is a privately owned track
-                val isPrivatelyOwnedTrack = streamPlayerResponse.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK"
+                val musicVideoType = streamPlayerResponse.videoDetails?.musicVideoType
 
-                // Apply n-transform for web clients, age-restricted, or private tracks.
-                // All YouTube web stream URLs contain the 'n' throttle param and must be
-                // transformed; age-restricted embedded-client URLs are no exception.
+                Timber.tag(TAG).d("=== N-TRANSFORM DECISION ===")
+                Timber.tag(TAG).d("Content type analysis:")
+                Timber.tag(TAG).d("  musicVideoType: $musicVideoType")
+                Timber.tag(TAG).d("  isUploadedTrack (from playlistId): $isUploadedTrack")
+                Timber.tag(TAG).d("  wasOriginallyAgeRestricted: $wasOriginallyAgeRestricted")
+                Timber.tag(TAG).d("Client analysis:")
+                Timber.tag(TAG).d("  currentClient: ${currentClient.clientName}")
+                Timber.tag(TAG).d("  useWebPoTokens: ${currentClient.useWebPoTokens}")
+
+                // Apply n-transform and PoToken for web clients (WEB, WEB_REMIX, WEB_CREATOR, TVHTML5)
                 val needsNTransform = currentClient.useWebPoTokens ||
-                        currentClient.clientName in listOf(
-                    "WEB", "WEB_REMIX", "WEB_CREATOR", "TVHTML5",
-                    "TVHTML5_SIMPLY_EMBEDDED_PLAYER"
-                ) ||
-                        isPrivatelyOwnedTrack ||
-                        wasOriginallyAgeRestricted
+                        currentClient.clientName in listOf("WEB", "WEB_REMIX", "WEB_CREATOR", "TVHTML5")
+
+                Timber.tag(TAG).d("N-transform decision:")
+                Timber.tag(TAG).d("  needsNTransform: $needsNTransform")
+                Timber.tag(TAG).d("  Reason: useWebPoTokens=${currentClient.useWebPoTokens}, " +
+                        "clientInList=${currentClient.clientName in listOf("WEB", "WEB_REMIX", "WEB_CREATOR", "TVHTML5")}")
 
                 if (needsNTransform) {
                     try {
-                        Timber.tag(logTag).d("Applying n-transform to stream URL for ${currentClient.clientName}")
-                        streamUrl = NTransformSolver.transformNParamInUrl(streamUrl!!)
+                        Timber.tag(TAG).d("Applying n-transform to stream URL...")
+                        Timber.tag(TAG).d("  Original URL length: ${streamUrl.length}")
+                        Timber.tag(TAG).d("  Original URL preview: ${streamUrl.take(100)}...")
 
-                        // Append pot= parameter (base64 - do NOT Uri.encode).
-                        // pot= is required for web-PoToken clients (WEB_REMIX, TVHTML5)
-                        // and for the embedded player used to bypass age-restriction
-                        // (TVHTML5_SIMPLY_EMBEDDED_PLAYER).
-                        // Do NOT append for cookie-auth clients (WEB_CREATOR, WEB) because
-                        // their CDN URLs are already authenticated via SAPISID and adding
-                        // pot= can cause the server to reject the request with 403.
-                        val needsPot = currentClient.useWebPoTokens ||
-                                (isPrivatelyOwnedTrack && currentClient.clientName == "TVHTML5") ||
-                                (wasOriginallyAgeRestricted &&
-                                        currentClient.clientName == "TVHTML5_SIMPLY_EMBEDDED_PLAYER")
-                        if (needsPot && sessionId != null) {
-                            Timber.tag(logTag).d("Appending pot= parameter to stream URL")
-                            val streamingPoToken = PoTokenGenerator.generateContentToken(sessionId, videoId)
-                            val separator = if ("?" in streamUrl!!) "&" else "?"
-                            streamUrl = "${streamUrl}${separator}pot=${streamingPoToken}"
+                        val originalUrl = streamUrl
+                        // Use CipherDeobfuscator for n-transform (fixed implementation)
+                        streamUrl = CipherDeobfuscator.transformNParamInUrl(streamUrl)
+
+                        Timber.tag(TAG).d("  Transformed URL length: ${streamUrl.length}")
+                        Timber.tag(TAG).d("  URL changed: ${originalUrl != streamUrl}")
+
+                        // Append pot= parameter with streaming data poToken
+                        val needsPoToken = currentClient.useWebPoTokens && poToken?.streamingDataPoToken != null
+                        Timber.tag(TAG).d("PoToken decision:")
+                        Timber.tag(TAG).d("  needsPoToken: $needsPoToken")
+                        Timber.tag(TAG).d("  hasStreamingDataPoToken: ${poToken?.streamingDataPoToken != null}")
+
+                        if (needsPoToken) {
+                            Timber.tag(TAG).d("Appending pot= parameter to stream URL")
+                            val separator = if ("?" in streamUrl) "&" else "?"
+                            streamUrl = "${streamUrl}${separator}pot=${Uri.encode(poToken.streamingDataPoToken)}"
+                            Timber.tag(TAG).d("  Final URL length (with pot): ${streamUrl.length}")
                         }
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e // request superseded/cancelled — abort cleanly, don't validate an un-transformed URL
                     } catch (e: Exception) {
-                        Timber.tag(logTag).e(e, "N-transform or pot append failed: ${e.message}")
+                        Timber.tag(TAG).e(e, "N-transform or pot append failed: ${e.message}")
+                        Timber.tag(TAG).e("Stack trace: ${e.stackTraceToString().take(500)}")
                         // Continue with original URL
                     }
+                } else {
+                    Timber.tag(TAG).d("Skipping n-transform (not required for this client/content)")
                 }
 
                 streamExpiresInSeconds = streamPlayerResponse.streamingData?.expiresInSeconds
@@ -294,37 +402,94 @@ object YTPlayerUtils {
 
                 Timber.tag(logTag).d("Stream expires in: $streamExpiresInSeconds seconds")
 
-                // Check if this is a privately owned track (uploaded song).
-                // Use both the stream response AND the main response flags so that
-                // clients like TVHTML5 (which may not include musicVideoType) are also
-                // correctly identified as serving a private track.
-                val isPrivatelyOwned = isPrivateTrack ||
-                        streamPlayerResponse.videoDetails?.musicVideoType == "MUSIC_VIDEO_TYPE_PRIVATELY_OWNED_TRACK"
+                fun scoreFallbackQuality(quality: String?): Int = when (quality) {
+                    "AUDIO_QUALITY_HIGH" -> 3
+                    "AUDIO_QUALITY_MEDIUM" -> 2
+                    "AUDIO_QUALITY_LOW" -> 1
+                    else -> 0
+                }
 
-                if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1 || isPrivatelyOwned) {
-                    /** skip [validateStatus] for last client or private tracks */
-                    if (isPrivatelyOwned) {
-                        Timber.tag(logTag).d("Skipping validation for privately owned track: ${currentClient.clientName}")
-                    } else {
-                        Timber.tag(logTag).d("Using last fallback client without validation: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
+                fun scoreFallbackCodec(mimeType: String): Int = when {
+                    mimeType.contains("opus", ignoreCase = true) -> 2
+                    mimeType.contains("mp4a", ignoreCase = true) -> 1
+                    else -> 0
+                }
+
+                if (audioQuality == AudioQuality.HIGH && format.audioQuality != "AUDIO_QUALITY_HIGH" && hasHighQuality) {
+                    val isBetter = bestFallbackFormat == null ||
+                            compareValuesBy(
+                                format, bestFallbackFormat,
+                                { scoreFallbackQuality(it.audioQuality) },
+                                { it.audioChannels ?: 2 },
+                                { scoreFallbackCodec(it.mimeType) },
+                                { it.bitrate }
+                            ) > 0
+                    if (isBetter) {
+                        Timber.tag(logTag).d("Saving fallback format: ${format.mimeType}, bitrate: ${format.bitrate}")
+                        bestFallbackFormat = format
+                        bestFallbackUrl = streamUrl
+                        bestFallbackExpiry = streamExpiresInSeconds
+                        bestFallbackResponse = streamPlayerResponse
+                        bestFallbackClient = currentClient.clientName
                     }
+                    continue
+                }
+
+                if (clientIndex == STREAM_FALLBACK_CLIENTS.size - 1) {
+                    /** skip [validateStatus] for last client */
+                    Timber.tag(logTag).d("Using last fallback client without validation: ${STREAM_FALLBACK_CLIENTS[clientIndex].clientName}")
                     Timber.tag(TAG)
-                        .i("Playback: client=${currentClient.clientName}, videoId=$videoId, private=$isPrivatelyOwned")
+                        .i("Playback: client=${currentClient.clientName}, videoId=$videoId")
+                    successClient = currentClient.clientName
                     break
                 }
 
-                if (validateStatus(streamUrl!!)) {
+                // WEB_REMIX authenticated CDN URLs can 403 on HEAD yet serve fine on the byte-range
+                // GET that ExoPlayer makes. Skip HEAD validation for the main client and let ExoPlayer
+                // try directly, UNLESS this videoId already 403'd on GET (markWebRemixFailed) — then
+                // fall through to the fallback clients. Saves a validateStatus round-trip per resolve.
+                if (clientIndex == -1 && currentClient.clientName == "WEB_REMIX" &&
+                    !webRemixFailedIds.contains(videoId)
+                ) {
+                    Timber.tag(logTag).d("WEB_REMIX — skipping HEAD validation, letting ExoPlayer try directly")
+                    Timber.tag(TAG).i("Playback: client=${currentClient.clientName}, videoId=$videoId")
+                    successClient = currentClient.clientName
+                    break
+                }
+
+                if (validateStatus(streamUrl)) {
                     // working stream found
                     Timber.tag(logTag).d("Stream validated successfully with client: ${currentClient.clientName}")
                     // Log for release builds
                     Timber.tag(TAG).i("Playback: client=${currentClient.clientName}, videoId=$videoId")
+                    successClient = currentClient.clientName
                     break
                 } else {
                     Timber.tag(logTag).d("Stream validation failed for client: ${currentClient.clientName}")
+                    // A cipher client failing validation can mean a wrong-but-non-throwing signature
+                    // from a stale/wrong player config — caught here at resolution, so it never
+                    // reaches ExoPlayer and MusicService's 403 handler never fires. Ask the cipher to
+                    // re-fetch its config (rate-limited, off this coroutine); if it changes, the
+                    // cipher rebuilds its WebView and the next resolution returns to this client — no
+                    // app restart. This is what covers WEB_CREATOR/TVHTML5/WEB-only users.
+                    if (needsNTransform) {
+                        cipherRefreshScope.launch {
+                            if (CipherDeobfuscator.onStreamRejected()) clearWebRemixFailures()
+                        }
+                    }
                 }
             } else {
                 Timber.tag(logTag).d("Player response status not OK: ${streamPlayerResponse?.playabilityStatus?.status}, reason: ${streamPlayerResponse?.playabilityStatus?.reason}")
             }
+        }
+
+        if (audioQuality == AudioQuality.HIGH && format?.audioQuality != "AUDIO_QUALITY_HIGH" && bestFallbackFormat != null) {
+            Timber.tag(logTag).d("Using best fallback format: ${bestFallbackFormat.mimeType}, bitrate: ${bestFallbackFormat.bitrate}")
+            format = bestFallbackFormat
+            streamUrl = bestFallbackUrl
+            streamExpiresInSeconds = bestFallbackExpiry
+            streamPlayerResponse = bestFallbackResponse
+            successClient = bestFallbackClient
         }
 
         if (streamPlayerResponse == null) {
@@ -337,6 +502,8 @@ object YTPlayerUtils {
 
         if (streamPlayerResponse.playabilityStatus.status != "OK") {
             val errorReason = streamPlayerResponse.playabilityStatus.reason
+            // YouTube often surfaces generic reasons (e.g. "error 2000") for restricted or
+            // unavailable streams; Metrolist cannot recover those without official playback.
             Timber.tag(logTag).e("Playability status not OK: $errorReason")
             if (isUploadedTrack) {
                 println("[PLAYBACK_DEBUG] FAILURE: Playability not OK for uploaded track - status=${streamPlayerResponse.playabilityStatus.status}, reason=$errorReason")
@@ -365,7 +532,7 @@ object YTPlayerUtils {
 
         Timber.tag(logTag).d("Successfully obtained playback data with format: ${format.mimeType}, bitrate: ${format.bitrate}")
         if (isUploadedTrack) {
-            println("[PLAYBACK_DEBUG] SUCCESS: Got playback data for uploaded track - format=${format.mimeType}, streamUrl=${streamUrl?.take(100)}...")
+            println("[PLAYBACK_DEBUG] SUCCESS: Got playback data for uploaded track - format=${format.mimeType}, streamUrl=${streamUrl.take(100)}...")
         }
         PlaybackData(
             audioConfig,
@@ -374,23 +541,32 @@ object YTPlayerUtils {
             format,
             streamUrl,
             streamExpiresInSeconds,
+            streamClient = successClient ?: "unknown",
         )
     }.onFailure { e ->
         println("[PLAYBACK_DEBUG] EXCEPTION during playback for videoId=$videoId: ${e::class.simpleName}: ${e.message}")
         e.printStackTrace()
     }
     /**
-     * Simple player response intended to use for metadata only.
+     * Player response intended for metadata / playback-tracking retrieval.
      * Stream URLs of this response might not work so don't use them.
      */
     suspend fun playerResponseForMetadata(
         videoId: String,
         playlistId: String? = null,
     ): Result<PlayerResponse> {
-        Timber.tag(logTag).d("Fetching metadata-only player response for videoId: $videoId using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
-        return YouTube.player(videoId, playlistId, client = WEB_REMIX) // ANDROID_VR does not work with history
-            .onSuccess { Timber.tag(logTag).d("Successfully fetched metadata") }
-            .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata") }
+        Timber.tag(logTag).d("Fetching metadata player response for videoId: $videoId using MAIN_CLIENT: ${MAIN_CLIENT.clientName}")
+        val signatureTimestamp = getSignatureTimestampOrNull(videoId)
+        val sessionId = YouTube.visitorData
+        var poToken: PoTokenResult? = null
+        if (MAIN_CLIENT.useWebPoTokens && sessionId != null) {
+            try {
+                poToken = poTokenGenerator.getWebClientPoToken(videoId, sessionId)
+            } catch (_: Exception) { }
+        }
+        return YouTube.player(videoId, playlistId, WEB_REMIX, signatureTimestamp.timestamp, poToken?.playerRequestPoToken)
+            .onSuccess { Timber.tag(logTag).d("Successfully fetched metadata player response") }
+            .onFailure { Timber.tag(logTag).e(it, "Failed to fetch metadata player response") }
     }
 
     private fun findFormat(
@@ -418,14 +594,18 @@ object YTPlayerUtils {
         }
 
         if (format != null) {
-            Timber.tag(logTag).d("Selected format: ${format.mimeType}, bitrate: ${format.bitrate}")
+            Timber.tag(logTag).d("Selected format: itag=${format.itag}, mimeType=${format.mimeType}, bitrate=${format.bitrate}, audioQuality label: ${format.audioQuality}")
         } else {
             Timber.tag(logTag).d("No suitable audio format found")
         }
 
         return format
     }
-
+    /**
+     * Checks if the stream url returns a successful status.
+     * If this returns true the url is likely to work.
+     * If this returns false the url might cause an error during playback.
+     */
     private fun validateStatus(url: String): Boolean {
         Timber.tag(logTag).d("Validating stream URL status")
         try {
@@ -433,15 +613,10 @@ object YTPlayerUtils {
                 .head()
                 .url(url)
 
-            // Send X-Goog-Visitor-Id so YouTube's CDN accepts the HEAD probe for
-            // age-restricted and region-restricted content.
-            YouTube.visitorData?.let { vd ->
-                requestBuilder.addHeader("X-Goog-Visitor-Id", vd)
-            }
-
             // Add authentication cookie for privately owned tracks
             YouTube.cookie?.let { cookie ->
                 requestBuilder.addHeader("Cookie", cookie)
+                println("[PLAYBACK_DEBUG] Added cookie to validation request")
             }
 
             val response = httpClient.newCall(requestBuilder.build()).execute()
@@ -459,25 +634,52 @@ object YTPlayerUtils {
         val isAgeRestricted: Boolean
     )
 
-    private fun getSignatureTimestampOrNull(videoId: String): SignatureTimestampResult {
+    private suspend fun getSignatureTimestampOrNull(videoId: String): SignatureTimestampResult {
         Timber.tag(logTag).d("Getting signature timestamp for videoId: $videoId")
+
+        // Prefer the STS of the player the cipher actually deciphers with. The STS decides which
+        // player generation YouTube mints the signatureCipher for; during A/B rollouts NewPipe's
+        // independently fetched player can be a DIFFERENT generation, and a sig minted for one
+        // player but deciphered by another 403s on the CDN. NewPipe is kept for age-restriction
+        // detection and as the STS source only when the cipher player fetch fails.
+        val cipherSts = try {
+            CipherDeobfuscator.signatureTimestamp()
+                ?.also { Timber.tag(logTag).d("Signature timestamp from cipher player: $it") }
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e // cooperative cancellation: don't swallow, let the playback coroutine unwind
+        } catch (e: Exception) {
+            Timber.tag(logTag).e(e, "Cipher player STS fetch failed")
+            null
+        }
+
         val result = NewPipeExtractor.getSignatureTimestamp(videoId)
         return result.fold(
             onSuccess = { timestamp ->
-                Timber.tag(logTag).d("Signature timestamp obtained: $timestamp")
-                SignatureTimestampResult(timestamp, isAgeRestricted = false)
+                val chosen = cipherSts ?: timestamp
+                Timber.tag(logTag).d("Signature timestamp resolved: cipher=$cipherSts newpipe=$timestamp -> using $chosen")
+                SignatureTimestampResult(chosen, isAgeRestricted = false)
             },
             onFailure = { error ->
                 val isAgeRestricted = error.message?.contains("age-restricted", ignoreCase = true) == true ||
                         error.cause?.message?.contains("age-restricted", ignoreCase = true) == true
-                if (isAgeRestricted) {
-                    Timber.tag(logTag).d("Age-restricted content detected from NewPipe")
-                    Timber.tag(TAG).i("Age-restricted detected early via NewPipe: videoId=$videoId")
-                } else {
-                    Timber.tag(logTag).e(error, "Failed to get signature timestamp")
-                    reportException(error)
+                when {
+                    isAgeRestricted -> {
+                        Timber.tag(logTag).d("Age-restricted content detected from NewPipe")
+                        Timber.tag(TAG).i("Age-restricted detected early via NewPipe: videoId=$videoId")
+                    }
+                    cipherSts != null -> {
+                        // Non-fatal: the cipher player's STS already covers us, so NewPipe is just
+                        // a fallback here — don't report its failure as an exception (avoids noise).
+                        Timber.tag(logTag).w("NewPipe STS unavailable, using cipher player STS: ${error.message}")
+                    }
+                    else -> {
+                        Timber.tag(logTag).e(error, "Failed to get signature timestamp via NewPipe")
+                        reportException(error)
+                    }
                 }
-                SignatureTimestampResult(null, isAgeRestricted)
+                // The cipher player's STS is exactly the one the cipher will decipher with.
+                Timber.tag(logTag).d("Signature timestamp resolved: cipher=$cipherSts (NewPipe failed)")
+                SignatureTimestampResult(cipherSts, isAgeRestricted)
             }
         )
     }
@@ -497,36 +699,30 @@ object YTPlayerUtils {
         }
 
         // Try custom cipher deobfuscation for signatureCipher formats
-        // (age-restricted content, user-uploaded videos)
         val signatureCipher = format.signatureCipher ?: format.cipher
         if (!signatureCipher.isNullOrEmpty()) {
-            // Attempt 1: pure-Kotlin deobfuscation (fastest, no extra network call)
-            Timber.tag(logTag).d("Format has signatureCipher, trying Kotlin deobfuscation")
-            val customDeobfuscatedUrl = CipherManager.deobfuscateSignatureCipher(signatureCipher, videoId)
+            Timber.tag(logTag).d("Format has signatureCipher, using custom deobfuscation")
+            val customDeobfuscatedUrl = CipherDeobfuscator.deobfuscateStreamUrl(signatureCipher, videoId)
             if (customDeobfuscatedUrl != null) {
-                Timber.tag(logTag).d("Stream URL obtained via Kotlin cipher deobfuscation")
+                Timber.tag(logTag).d("Stream URL obtained via custom cipher deobfuscation")
                 return customDeobfuscatedUrl
             }
-            Timber.tag(logTag).d("Kotlin cipher deobfuscation failed, trying NewPipe sig deobfuscation")
-
-            // Attempt 2: NewPipe signature-only deobfuscation as fallback.
-            // Uses NewPipe's YoutubeJavaScriptPlayerManager to deobfuscate the sig,
-            // but intentionally does NOT apply n-transform so the outer loop's
-            // NTransformSolver handles it (avoiding double-transform).
-            // Works for embedded-player (TVHTML5_SIMPLY_EMBEDDED_PLAYER) age-restricted URLs
-            // because those don't require account auth to deobfuscate.
-            val newPipeDeobfuscatedUrl = NewPipeExtractor.deobfuscateSignatureOnly(format, videoId)
-            if (newPipeDeobfuscatedUrl != null) {
-                Timber.tag(logTag).d("Stream URL obtained via NewPipe sig deobfuscation (fallback)")
-                return newPipeDeobfuscatedUrl
-            }
-            Timber.tag(logTag).e("All cipher deobfuscation methods failed for signatureCipher, videoId=$videoId")
+            Timber.tag(logTag).d("Custom cipher deobfuscation failed")
         }
 
-        // Skip the StreamInfo (full NewPipe extraction) for age-restricted content –
-        // it makes unauthenticated requests that won't work for restricted formats.
+        // Always try NewPipe signature deobfuscation - it doesn't need auth,
+        // it just applies the cipher algorithm from player.js.
+        // This is critical for privately-owned tracks where skipNewPipe is true.
+        val deobfuscatedUrl = NewPipeExtractor.getStreamUrl(format, videoId)
+        if (deobfuscatedUrl != null) {
+            Timber.tag(logTag).d("Stream URL obtained via NewPipe deobfuscation")
+            return deobfuscatedUrl
+        }
+
+        // Skip StreamInfo fallback for age-restricted or private content
+        // (StreamInfo fetch may fail without auth for these)
         if (skipNewPipe) {
-            Timber.tag(logTag).d("Skipping NewPipe StreamInfo for age-restricted content")
+            Timber.tag(logTag).d("Skipping StreamInfo fallback for age-restricted/private content")
             return null
         }
 

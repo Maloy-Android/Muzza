@@ -52,7 +52,7 @@ class AutoPlaylistLocalViewModel @Inject constructor(
                                 }
 
                             SongSortType.PLAY_TIME ->
-                                songs.sortedBy { it.song.totalPlayTime }
+                                songs.sortedByDescending { it.song.totalPlayTime }
                         }.reversed(!descending)
                     }
             }.stateIn(scope = viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList())

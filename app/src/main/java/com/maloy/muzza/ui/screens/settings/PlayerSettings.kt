@@ -29,6 +29,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.NavController
+import com.maloy.innertube.models.Icon
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.AudioNormalizationKey
@@ -115,6 +116,14 @@ fun PlayerSettings(
 
         PreferenceGroupTitle(
             title = stringResource(R.string.player)
+        )
+
+        PreferenceEntry(
+            icon = { Icon(painterResource(R.drawable.play),null) },
+            title = { Text(stringResource(R.string.stream_sources)) },
+            onClick = {
+                navController.navigate("settings/player/stream_sources")
+            }
         )
 
         EnumListPreference(

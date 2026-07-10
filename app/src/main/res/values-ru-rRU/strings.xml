@@ -473,6 +473,26 @@
     <string name="configure_supported_links">Настройка поддерживаемых ссылок</string>
     <string name="intent_supported_links_not_found">Не удалось найти настройки поддерживаемых ссылок, пожалуйста, настройте их вручную</string>
 
+    <string name="stream_sources">Источники потока</string>
+    <string name="stream_source_order">Порядок источников</string>
+    <string name="stream_source_web_clients">Веб-клиенты</string>
+    <string name="stream_source_native_clients">Нативные клиенты</string>
+    <string name="stream_source_creator_clients">Клиенты для авторов</string>
+    <string name="stream_source_web_remix">WEB_REMIX</string>
+    <string name="stream_source_web_remix_desc">Основной клиент. С авторизацией; охватывает большинство треков.</string>
+    <string name="stream_source_tvhtml5">TVHTML5</string>
+    <string name="stream_source_tvhtml5_desc">ТВ-клиент. Надежный запасной вариант.</string>
+    <string name="stream_source_visionos">visionOS</string>
+    <string name="stream_source_visionos_desc">Apple Vision. Без ограничений; очень надежный.</string>
+    <string name="stream_source_android_vr">Android VR</string>
+    <string name="stream_source_android_vr_desc">VR-клиенты Android (все версии).</string>
+    <string name="stream_source_ios">iOS / iPadOS</string>
+    <string name="stream_source_ios_desc">Клиенты Apple iOS и iPadOS. Отключен по умолчанию; ограничение трафика после ~1 МиБ.</string>
+    <string name="stream_source_web_creator">WEB_CREATOR</string>
+    <string name="stream_source_web_creator_desc">Веб-клиент для авторов.</string>
+    <string name="stream_source_android_creator">ANDROID_CREATOR</string>
+    <string name="stream_source_android_creator_desc">Android-клиент для авторов. Отключен по умолчанию; требуется DroidGuard.</string>
+
     <string name="player_and_audio">Плеер и аудио</string>
     <string name="audio_quality">Качество аудио</string>
     <string name="audio_quality_auto">Авто</string>

@@ -99,6 +99,13 @@ import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
+import com.maloy.muzza.constants.StreamSourceAndroidCreatorKey
+import com.maloy.muzza.constants.StreamSourceAndroidVRKey
+import com.maloy.muzza.constants.StreamSourceIOSKey
+import com.maloy.muzza.constants.StreamSourceTVHTML5Key
+import com.maloy.muzza.constants.StreamSourceVisionOSKey
+import com.maloy.muzza.constants.StreamSourceWebCreatorKey
+import com.maloy.muzza.constants.StreamSourceWebRemixKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
 import com.maloy.muzza.db.entities.FormatEntity
@@ -173,6 +180,7 @@ import java.net.UnknownHostException
 import java.time.LocalDateTime
 import java.util.Collections
 import javax.inject.Inject
+import kotlin.collections.buildSet
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -753,6 +761,23 @@ class MusicService : MediaLibraryService(),
 
         if (!ensureStartedAsForegroundOrStop()) {
             return
+        }
+
+        scope.launch {
+            dataStore.data
+                .map { prefs ->
+                    buildSet {
+                        if (prefs[StreamSourceWebRemixKey] == false) add("WEB_REMIX")
+                        if (prefs[StreamSourceTVHTML5Key] == false) add("TVHTML5")
+                        if (prefs[StreamSourceAndroidVRKey] == false) add("ANDROID_VR")
+                        if (prefs[StreamSourceIOSKey] != true) add("IOS")
+                        if (prefs[StreamSourceVisionOSKey] == false) add("VISIONOS")
+                        if (prefs[StreamSourceWebCreatorKey] == false) add("WEB_CREATOR")
+                        if (prefs[StreamSourceAndroidCreatorKey] != true) add("ANDROID_CREATOR")
+                    }
+                }
+                .distinctUntilChanged()
+                .collect { YTPlayerUtils.disabledStreamClients = it }
         }
     }
 

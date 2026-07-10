@@ -43,6 +43,7 @@ import com.maloy.muzza.ui.screens.settings.AccountSettings
 import com.maloy.muzza.ui.screens.settings.NotificationSettings
 import com.maloy.muzza.ui.screens.settings.ContentSettings
 import com.maloy.muzza.ui.screens.settings.ListenTogetherSettings
+import com.maloy.muzza.ui.screens.settings.StreamSourcesSettings
 import com.maloy.muzza.ui.screens.settings.ThemeScreen
 import com.maloy.muzza.ui.screens.settings.import_from_spotify.ImportFromSpotifyScreen
 
@@ -278,6 +279,9 @@ fun NavGraphBuilder.navigationBuilder(
     }
     composable("settings/player") {
         PlayerSettings(navController, scrollBehavior)
+    }
+    composable("settings/player/stream_sources") {
+        StreamSourcesSettings(navController, scrollBehavior)
     }
     composable("settings/player/lyrics") {
         LyricsSettings(navController, scrollBehavior)

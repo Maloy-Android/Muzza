@@ -122,6 +122,68 @@ fun SwipeToSongBox(
     }
 }
 
+@Composable
+fun SwipeToSongBoxWitchMediaMetadata(
+    modifier: Modifier = Modifier,
+    onRemove: () -> Unit,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val ctx = LocalContext.current
+    val scope = rememberCoroutineScope()
+    val offset = remember { mutableFloatStateOf(0f) }
+    val threshold = 300f
+
+    val dragState = rememberDraggableState { delta ->
+        offset.floatValue = (offset.floatValue + delta).coerceIn(0f, threshold)
+    }
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .draggable(
+                orientation = Orientation.Horizontal,
+                state = dragState,
+                onDragStopped = {
+                    when {
+                        offset.floatValue >= threshold -> {
+                            onRemove()
+                            Toast.makeText(ctx, R.string.remove_from_queue, Toast.LENGTH_SHORT).show()
+                            reset(offset, scope)
+                        }
+                        else -> reset(offset, scope)
+                    }
+                }
+            )
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .align(Alignment.Center)
+                .background(Color.Red),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Icon(
+                painter = painterResource(id = R.drawable.delete),
+                contentDescription = null,
+                modifier = Modifier
+                    .padding(horizontal = 24.dp)
+                    .size(30.dp)
+                    .alpha(0.9f),
+                tint = Color.White
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .offset { IntOffset(offset.floatValue.roundToInt(), 0) }
+                .fillMaxWidth()
+                .background(MaterialTheme.colorScheme.surfaceContainer),
+            content = content
+        )
+    }
+}
+
 private fun reset(offset: MutableState<Float>, scope: CoroutineScope) {
     scope.launch {
         animate(

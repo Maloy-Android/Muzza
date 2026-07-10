@@ -44,11 +44,8 @@ import androidx.compose.material3.NavigationBarDefaults
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.material3.surfaceColorAtElevation
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,7 +56,6 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -105,6 +101,7 @@ import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import com.maloy.muzza.ui.component.PlayerSliderTrack
+import com.maloy.muzza.ui.component.SwipeToSongBoxWitchMediaMetadata
 import com.maloy.muzza.ui.menu.MediaMetadataMenu
 import com.maloy.muzza.ui.menu.QueueSelectionMenu
 import com.maloy.muzza.utils.joinByBullet
@@ -544,17 +541,6 @@ fun Queue(
                         state = reorderableState,
                         key = window.uid.hashCode()
                     ) {
-                        val currentItem by rememberUpdatedState(window)
-                        val dismissState = rememberSwipeToDismissBoxState(
-                            positionalThreshold = { totalDistance -> totalDistance },
-                            confirmValueChange = { dismissValue ->
-                                if (dismissValue == SwipeToDismissBoxValue.StartToEnd || dismissValue == SwipeToDismissBoxValue.EndToStart) {
-                                    playerConnection.player.removeMediaItem(currentItem.firstPeriodIndex)
-                                }
-                                true
-                            }
-                        )
-
                         val onCheckedChange: (Boolean) -> Unit = {
                             if (it) {
                                 selection.add(window.uid.hashCode())
@@ -642,11 +628,20 @@ fun Queue(
                         }
 
                         if (!lockQueue && !inSelectMode && !isListenTogetherGuest) {
-                            SwipeToDismissBox(
-                                state = dismissState,
-                                backgroundContent = {},
-                                content = { content() }
-                            )
+                            window.mediaItem.metadata?.let {
+                                SwipeToSongBoxWitchMediaMetadata(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    onRemove = {
+                                        val index = mutableQueueWindows.indexOfFirst { it.uid == window.uid }
+                                        if (index != -1) {
+                                            mutableQueueWindows.removeAt(index)
+                                            playerConnection.player.removeMediaItem(index)
+                                        }
+                                    }
+                                ) {
+                                    content()
+                                }
+                            }
                         } else {
                             content()
                         }
@@ -798,7 +793,7 @@ fun Queue(
 
             if (inSelectMode) {
                 IconButton(
-                    enabled = selection.size > 0,
+                    enabled = selection.isNotEmpty(),
                     onClick = {
                         menuState.show {
                             QueueSelectionMenu(

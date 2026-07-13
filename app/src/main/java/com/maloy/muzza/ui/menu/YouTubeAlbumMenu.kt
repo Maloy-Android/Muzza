@@ -94,11 +94,11 @@ fun YouTubeAlbumMenu(
     LaunchedEffect(Unit) {
         database.album(albumItem.id).collect { album ->
             if (album == null) {
-                YouTube.album(albumItem.id).onSuccess { albumPage ->
+                YouTube.album(albumItem.id)?.onSuccess { albumPage ->
                     database.transaction {
                         insert(albumPage)
                     }
-                }.onFailure {
+                }?.onFailure {
                     reportException(it)
                 }
             }

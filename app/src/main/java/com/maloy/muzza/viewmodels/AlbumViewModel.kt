@@ -32,7 +32,7 @@ class AlbumViewModel @Inject constructor(
         viewModelScope.launch {
             _isRefreshing.value = true
             try {
-                YouTube.album(albumId).onSuccess { album ->
+                YouTube.album(albumId)?.onSuccess { album ->
                     val existingAlbum = database.album(albumId).first()
                     database.transaction {
                         if (existingAlbum != null) {
@@ -42,7 +42,7 @@ class AlbumViewModel @Inject constructor(
                         }
                     }
                     otherVersions.value = album.otherVersions
-                }.onFailure {
+                }?.onFailure {
                     reportException(it)
                 }
             } finally {
@@ -54,7 +54,7 @@ class AlbumViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             val album = database.album(albumId).first()
-            YouTube.album(albumId).onSuccess {
+            YouTube.album(albumId)?.onSuccess {
                 if (album == null || album.album.songCount == 0) {
                     database.transaction {
                         if (album == null) insert(it)
@@ -62,7 +62,7 @@ class AlbumViewModel @Inject constructor(
                     }
                 }
                 otherVersions.value = it.otherVersions
-            }.onFailure {
+            }?.onFailure {
                 reportException(it)
                 if (it.message?.contains("NOT_FOUND") == true) {
                     database.query {

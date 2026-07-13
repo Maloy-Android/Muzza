@@ -93,7 +93,7 @@ class SyncUtils @Inject constructor(
 
             albums.forEach { album ->
                 val dbAlbum = database.album(album.id).firstOrNull()
-                YouTube.album(album.browseId).onSuccess { albumPage ->
+                YouTube.album(album.browseId)?.onSuccess { albumPage ->
                     when (dbAlbum) {
                         null -> {
                             database.insert(albumPage)
@@ -101,6 +101,7 @@ class SyncUtils @Inject constructor(
                                 database.update(it.album.localToggleLike())
                             }
                         }
+
                         else -> if (dbAlbum.album.bookmarkedAt == null)
                             database.update(dbAlbum.album.localToggleLike())
                     }

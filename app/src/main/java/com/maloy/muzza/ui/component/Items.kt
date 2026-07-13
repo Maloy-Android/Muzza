@@ -1949,12 +1949,12 @@ fun YouTubeGridItem(
                 coroutineScope.launch(Dispatchers.IO) {
                     var albumWithSongs = database.albumWithSongs(item.id).first()
                     if (albumWithSongs?.songs.isNullOrEmpty()) {
-                        YouTube.album(item.id).onSuccess { albumPage ->
+                        YouTube.album(item.id)?.onSuccess { albumPage ->
                             database.transaction {
                                 insert(albumPage)
                             }
                             albumWithSongs = database.albumWithSongs(item.id).first()
-                        }.onFailure {
+                        }?.onFailure {
                             reportException(it)
                         }
                     }

@@ -37,7 +37,7 @@ class LocalAlbumRadio(
 
     override suspend fun nextPage(): List<MediaItem> = withContext(IO) {
         if (!firstTimeLoaded) {
-            playlistId = YouTube.album(albumWithSongs.album.id).getOrThrow().album.playlistId
+            playlistId = YouTube.album(albumWithSongs.album.id)?.getOrThrow()?.album?.playlistId ?: return@withContext emptyList()
             val nextResult = YouTube.next(endpoint, continuation).getOrThrow()
             continuation = nextResult.continuation
             firstTimeLoaded = true

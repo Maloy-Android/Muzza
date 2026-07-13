@@ -193,11 +193,11 @@ class LibraryAlbumsViewModel @Inject constructor(
                         it.album.songCount == 0
                     }
                     ?.forEach { album ->
-                        YouTube.album(album.id).onSuccess { albumPage ->
+                        YouTube.album(album.id)?.onSuccess { albumPage ->
                             database.query {
                                 update(album.album, albumPage)
                             }
-                        }.onFailure {
+                        }?.onFailure {
                             reportException(it)
                             if (it.message?.contains("NOT_FOUND") == true) {
                                 database.query {

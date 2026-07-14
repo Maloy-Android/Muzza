@@ -1974,7 +1974,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsPlayButton(
-            visible = (item is PlaylistItem || item is SongItem && (!item.isVideoSong && item.album?.id != null)) && !isActive,
+            visible = (item is PlaylistItem || item is SongItem && !item.isVideoSong) && !isActive,
             onClick = {
                 if (item is PlaylistItem) {
                     val listQueuePlaylist = ListQueuePlaylist(
@@ -1996,7 +1996,7 @@ fun YouTubeGridItem(
             }
         )
         ItemsVideoPlayButton(
-            visible = (item is SongItem && (item.isVideoSong || item.album?.id == null)) && !isActive,
+            visible = (item is SongItem && item.isVideoSong) && !isActive,
             onClick = {
                 if (item is SongItem) {
                     playerConnection.playQueue(

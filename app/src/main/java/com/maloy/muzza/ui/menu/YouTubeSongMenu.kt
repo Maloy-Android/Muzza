@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -35,7 +34,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -47,7 +45,6 @@ import androidx.core.net.toUri
 import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
-import coil.compose.AsyncImage
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
@@ -56,11 +53,8 @@ import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.ListItemHeight
-import com.maloy.muzza.constants.ListThumbnailSize
-import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
@@ -70,13 +64,11 @@ import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
-import com.maloy.muzza.ui.component.ListItem
 import com.maloy.muzza.ui.component.YouTubeListItem
-import com.maloy.muzza.utils.joinByBullet
-import com.maloy.muzza.utils.makeTimeString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDateTime
 
 @Composable
@@ -449,18 +441,28 @@ fun YouTubeSongMenu(
                 HorizontalDivider()
             }
         }
-        song.album?.let { album ->
-            if (!song.isVideoSong) {
-                ListMenuItem(
-                    icon = R.drawable.album,
-                    title = R.string.view_album
-                ) {
-                    navController.navigate("album/${album.id}")
-                    onDismiss()
+        if (!song.isVideoSong) {
+            ListMenuItem(
+                icon = R.drawable.album,
+                title = R.string.view_album
+            ) {
+                coroutineScope.launch(Dispatchers.IO) {
+                    YouTube.queue(listOf(song.id))
+                        .onSuccess { updatedSongs ->
+                            updatedSongs.firstOrNull()?.let { updatedSong ->
+                                val albumId = updatedSong.album?.id
+                                if (!albumId.isNullOrEmpty()) {
+                                    withContext(Dispatchers.Main) {
+                                        navController.navigate("album/${albumId}")
+                                    }
+                                }
+                            }
+                        }
                 }
-                item {
-                    HorizontalDivider()
-                }
+                onDismiss()
+            }
+            item {
+                HorizontalDivider()
             }
         }
         ListMenuItem(

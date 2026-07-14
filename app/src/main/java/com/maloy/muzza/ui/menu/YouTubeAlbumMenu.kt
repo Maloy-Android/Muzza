@@ -62,6 +62,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
+import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
@@ -277,8 +278,10 @@ fun YouTubeAlbumMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    YouTubeAlbumRadio(
-                        playlistId = albumItem.id
+                    playerConnection.playQueue(
+                        YouTubeAlbumRadio(
+                            playlistId = albumItem.id
+                        )
                     )
                     onDismiss()
                 }

@@ -95,8 +95,8 @@ data class SearchSummaryPage(
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?: return null,
-                        year = null,
                         thumbnail = renderer.thumbnail.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        radioEndpoint = null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null
@@ -210,6 +210,7 @@ data class SearchSummaryPage(
                         } ?: return null,
                         year = secondaryLine.getOrNull(2)?.firstOrNull()?.text?.toIntOrNull(),
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                        radioEndpoint = null,
                         explicit = renderer.badges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null

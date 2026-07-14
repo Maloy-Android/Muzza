@@ -113,7 +113,8 @@ class HomeViewModel @Inject constructor(
                                     )
                                 },
                                 year = item.album.year,
-                                thumbnail = item.thumbnailUrl ?: ""
+                                thumbnail = item.thumbnailUrl ?: "",
+                                radioEndpoint = null
                             )
                             else -> null
                         }
@@ -245,7 +246,8 @@ class HomeViewModel @Inject constructor(
                                 )
                             },
                             year = item.album.year,
-                            thumbnail = item.thumbnailUrl ?: ""
+                            radioEndpoint = null,
+                            thumbnail = item.thumbnailUrl ?: "",
                         ))
                         else -> {}
                     }

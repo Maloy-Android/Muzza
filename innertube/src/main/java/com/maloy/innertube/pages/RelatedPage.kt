@@ -83,9 +83,9 @@ data class RelatedPage(
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     }?:return null,
-                    year = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
+                    radioEndpoint = null,
                     explicit = renderer.subtitleBadges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null,

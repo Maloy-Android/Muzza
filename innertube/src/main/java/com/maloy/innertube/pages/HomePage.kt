@@ -118,9 +118,9 @@ data class HomePage(
                                     id = it.navigationEndpoint?.browseEndpoint?.browseId
                                 )
                             },
-                            year = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,
+                            radioEndpoint = null,
                             explicit = renderer.subtitleBadges?.find {
                                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                             } != null

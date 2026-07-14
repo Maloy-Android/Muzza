@@ -118,7 +118,6 @@ import com.maloy.muzza.models.data.DailyDiscoverItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.ListQueuePlaylist
-import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.menu.AlbumMenu
@@ -736,7 +735,10 @@ fun AlbumGridItem(
                 coroutineScope.launch {
                     database.albumWithSongs(album.id).first()?.let { albumWithSongs ->
                         playerConnection.playQueue(
-                            LocalAlbumRadio(albumWithSongs)
+                            ListQueue(
+                                title = albumWithSongs.album.title,
+                                items = albumWithSongs.songs.map { it.toMediaItem() }
+                            )
                         )
                     }
                 }
@@ -1961,7 +1963,10 @@ fun YouTubeGridItem(
                     albumWithSongs?.let {
                         withContext(Dispatchers.Main) {
                             playerConnection.playQueue(
-                                LocalAlbumRadio(it)
+                                ListQueue(
+                                    title = albumWithSongs.album.title,
+                                    items = albumWithSongs.songs.map { it.toMediaItem() }
+                                )
                             )
                         }
                     }

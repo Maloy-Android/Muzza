@@ -40,7 +40,8 @@ data class SpeedDialItem(
                 title = title,
                 artists = subtitle?.split(", ")?.map { Artist(name = it, id = null) },
                 thumbnail = thumbnailUrl ?: "",
-                explicit = explicit
+                explicit = explicit,
+                radioEndpoint = null
             )
             "ARTIST", "USER_PROFILE" -> ArtistItem(
                 id = id,

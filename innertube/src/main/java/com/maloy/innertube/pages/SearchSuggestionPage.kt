@@ -86,6 +86,7 @@ object SearchSuggestionPage {
                     } ?: return null,
                     year = secondaryLine.lastOrNull()?.firstOrNull()?.text?.toIntOrNull(),
                     thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                    radioEndpoint = null,
                     explicit = renderer.badges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null

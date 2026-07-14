@@ -23,6 +23,7 @@ object NewReleaseAlbumPage {
             } ?: return null,
             year = renderer.subtitle.runs.lastOrNull()?.text?.toIntOrNull(),
             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+            radioEndpoint = null,
             explicit = renderer.subtitleBadges?.find {
                 it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
             } != null

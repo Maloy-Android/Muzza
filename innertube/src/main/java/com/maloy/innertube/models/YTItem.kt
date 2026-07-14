@@ -50,6 +50,7 @@ data class AlbumItem(
     val year: Int? = null,
     override val thumbnail: String,
     override val explicit: Boolean = false,
+    val radioEndpoint: WatchEndpoint?,
 ) : YTItem() {
     override val shareLink: String
         get() = "https://music.youtube.com/playlist?list=$playlistId"

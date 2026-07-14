@@ -72,6 +72,7 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubeAlbumRadio
 import com.maloy.muzza.ui.component.AlbumListItem
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
@@ -292,6 +293,39 @@ fun AlbumMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
+                    playerConnection.playQueue(
+                        YouTubeAlbumRadio(
+                            playlistId = album.album.id
+                        )
+                    )
+                    onDismiss()
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.radio),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.start_radio),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
+        }
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
                     if (albumPlaying) {
                         playerConnection.togglePlayPause()
                     } else {
@@ -314,40 +348,6 @@ fun AlbumMenu(
             )
             Text(
                 text = stringResource(if (albumPlaying && isPlaying) R.string.pause else R.string.play),
-                style = MaterialTheme.typography.labelMedium,
-                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                modifier = Modifier
-                    .basicMarquee()
-                    .padding(top = 4.dp),
-            )
-        }
-        Column(
-            modifier = Modifier
-                .weight(1f)
-                .background(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shape = RoundedCornerShape(8.dp)
-                )
-                .clip(RoundedCornerShape(8.dp))
-                .clickable {
-                    onDismiss()
-                    playerConnection.playQueue(
-                        ListQueue(
-                            title = album.album.title,
-                            items = songs.shuffled().map { it.toMediaItem() }
-                        )
-                    )
-                }
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Icon(
-                painter = painterResource(R.drawable.shuffle),
-                contentDescription = null,
-                modifier = Modifier.size(24.dp),
-            )
-            Text(
-                text = stringResource(R.string.shuffle),
                 style = MaterialTheme.typography.labelMedium,
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier
@@ -402,6 +402,21 @@ fun AlbumMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
+        ListMenuItem(
+            icon = R.drawable.shuffle,
+            title = R.string.shuffle
+        ) {
+            onDismiss()
+            playerConnection.playQueue(
+                ListQueue(
+                    title = album.album.title,
+                    items = songs.shuffled().map { it.toMediaItem() }
+                )
+            )
+        }
+        item {
+            ListMenuDivider()
+        }
         ListMenuItem(
             icon = R.drawable.playlist_play,
             title = R.string.play_next

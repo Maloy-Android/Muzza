@@ -58,7 +58,6 @@ import com.maloy.innertube.models.YTItem
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AppBarHeight
 import com.maloy.muzza.constants.SearchFilterHeight
 import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause

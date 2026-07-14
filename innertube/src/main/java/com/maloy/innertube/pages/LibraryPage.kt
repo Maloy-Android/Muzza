@@ -27,9 +27,9 @@ data class LibraryPage(
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
                     artists = parseArtists(renderer.subtitle?.runs),
-                    year = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
+                    radioEndpoint = null,
                     explicit = renderer.subtitleBadges?.find {
                         it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                     } != null

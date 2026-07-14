@@ -167,7 +167,8 @@ data class ArtistPage(
                             ?: return null,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
-                        } != null
+                        } != null,
+                        radioEndpoint = null
                     )
                 }
 

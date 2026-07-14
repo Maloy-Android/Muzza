@@ -101,7 +101,6 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.LocalAlbumRadio
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.FontSizeRange
@@ -525,7 +524,10 @@ fun AlbumScreen(
                                         playerConnection.togglePlayPause()
                                     } else {
                                         playerConnection.playQueue(
-                                            LocalAlbumRadio(albumWithSongs)
+                                            ListQueue(
+                                                title = albumWithSongs.album.title,
+                                                items = albumWithSongs.songs.map { it.toMediaItem(context) }
+                                            )
                                         )
                                     }
                                 },
@@ -546,7 +548,10 @@ fun AlbumScreen(
                             Button(
                                 onClick = {
                                     playerConnection.playQueue(
-                                        LocalAlbumRadio(albumWithSongs.copy(songs = albumWithSongs.songs.shuffled()))
+                                        ListQueue(
+                                            title = albumWithSongs.album.title,
+                                            items = albumWithSongs.songs.shuffled().map { it.toMediaItem(context) }
+                                        )
                                     )
                                 },
                                 contentPadding = ButtonDefaults.ButtonWithIconContentPadding,
@@ -636,7 +641,11 @@ fun AlbumScreen(
                                         playerConnection.player.togglePlayPause()
                                     } else {
                                         playerConnection.playQueue(
-                                            LocalAlbumRadio(albumWithSongs, startIndex = index)
+                                            ListQueue(
+                                                title = albumWithSongs.album.title,
+                                                items = albumWithSongs.songs.map { it.toMediaItem(context) },
+                                                startIndex = index
+                                            )
                                         )
                                     }
                                 },

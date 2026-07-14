@@ -633,7 +633,8 @@ fun OnlinePlaylistScreen(
                                                 onClick = {
                                                     playerConnection.playQueue(
                                                         YouTubePlaylistRadio(
-                                                            playlistId = playlist.id
+                                                            playlistId = playlist.id,
+                                                            context = context
                                                         )
                                                     )
                                                 },

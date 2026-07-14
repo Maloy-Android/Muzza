@@ -1156,7 +1156,12 @@ fun HomeScreen(
                     )
                 } else if (explorePage?.newReleaseAlbums?.isNotEmpty() == true) {
                     val album = explorePage?.newReleaseAlbums!!.random()
-                    playerConnection.playQueue(YouTubeAlbumRadio(album.playlistId))
+                    playerConnection.playQueue(
+                        YouTubeAlbumRadio(
+                            playlistId = album.playlistId,
+                            context = context
+                        )
+                    )
                 }
             }
         )

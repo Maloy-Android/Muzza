@@ -547,7 +547,8 @@ fun AutoPlaylistLikedScreen(
                                         Button(
                                             onClick = {
                                                 YouTubePlaylistRadio(
-                                                    playlistId = likedMusicPlaylist.playlist.id
+                                                    playlistId = likedMusicPlaylist.playlist.id,
+                                                    context = context
                                                 )
                                             },
                                             modifier = Modifier

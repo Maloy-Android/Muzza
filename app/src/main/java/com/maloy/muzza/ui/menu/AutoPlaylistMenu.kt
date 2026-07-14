@@ -266,7 +266,8 @@ fun AutoPlaylistMenu(
                         .clickable {
                             onDismiss()
                             YouTubePlaylistRadio(
-                                playlistId = playlist.playlist.id
+                                playlistId = playlist.playlist.id,
+                                context = context
                             )
                         }
                         .padding(12.dp),

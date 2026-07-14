@@ -1285,6 +1285,7 @@ fun CommunityPlaylistCard(
     onCardClick: () -> Unit = {},
     onCardLongClick: () -> Unit = {}
 ) {
+    val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current
@@ -1498,7 +1499,8 @@ fun CommunityPlaylistCard(
                             item.playlist.radioEndpoint?.let {
                                 playerConnection?.playQueue(
                                     YouTubePlaylistRadio(
-                                        playlistId = item.playlist.id
+                                        playlistId = item.playlist.id,
+                                        context = context
                                     )
                                 )
                             }

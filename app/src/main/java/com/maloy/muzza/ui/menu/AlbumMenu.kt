@@ -295,7 +295,8 @@ fun AlbumMenu(
                 .clickable {
                     playerConnection.playQueue(
                         YouTubeAlbumRadio(
-                            playlistId = album.album.id
+                            playlistId = album.album.id,
+                            context = context
                         )
                     )
                     onDismiss()

@@ -8,38 +8,37 @@ import com.maloy.muzza.models.MediaMetadata
 import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
-class YouTubePlaylistQueue(
-    private var endpoint: WatchEndpoint,
+class YouTubePlaylistRadio(
     private val playlistId: String,
     override val preloadItem: MediaMetadata? = null,
 ) : Queue {
     private var continuation: String? = null
 
     override suspend fun getInitialStatus(): Queue.Status {
-        val nextResult = withContext(IO) {
-            YouTube.next(endpoint, continuation).getOrThrow()
+        val playlist = YouTube.playlist(playlistId).getOrThrow()
+        val radioEndpoint: WatchEndpoint = playlist.playlist.radioEndpoint!!
+        val title = YouTube.next(radioEndpoint, null).getOrThrow().title
+        val radioSongs = run {
+            val result = YouTube.next(radioEndpoint, null).getOrThrow()
+            continuation = result.continuation
+            result.items
         }
-        endpoint = nextResult.endpoint
-        continuation = nextResult.continuation
         return Queue.Status(
-            title = nextResult.title,
-            items = nextResult.items.map { it.toMediaItemWithPlaylist(playlistId = playlistId) },
-            mediaItemIndex = nextResult.currentIndex ?: 0
+            title = title,
+            items = radioSongs.map { it.toMediaItemWithPlaylist(playlistId = playlistId) },
+            mediaItemIndex = 0
         )
     }
 
     override fun hasNextPage(): Boolean = continuation != null
 
     override suspend fun nextPage(): List<MediaItem> {
+        val playlist = YouTube.playlist(playlistId).getOrThrow()
+        val radioEndpoint: WatchEndpoint = playlist.playlist.radioEndpoint!!
         val nextResult = withContext(IO) {
-            YouTube.next(endpoint, continuation).getOrThrow()
+            YouTube.next(radioEndpoint, continuation).getOrThrow()
         }
-        endpoint = nextResult.endpoint
         continuation = nextResult.continuation
         return nextResult.items.map { it.toMediaItemWithPlaylist(playlistId = playlistId) }
-    }
-
-    companion object {
-        fun radio(song: MediaMetadata) = YouTubeQueue(WatchEndpoint(song.id), song)
     }
 }

@@ -118,7 +118,7 @@ import com.maloy.muzza.models.data.DailyDiscoverItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.ListQueuePlaylist
-import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.PlaylistMenu
@@ -1496,7 +1496,11 @@ fun CommunityPlaylistCard(
                     onClick = {
                         if (!isListenTogetherGuest) {
                             item.playlist.radioEndpoint?.let {
-                                playerConnection?.playQueue(YouTubePlaylistQueue(it, playlistId = item.playlist.id))
+                                playerConnection?.playQueue(
+                                    YouTubePlaylistRadio(
+                                        playlistId = item.playlist.id
+                                    )
+                                )
                             }
                         }
                     },

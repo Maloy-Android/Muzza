@@ -124,7 +124,7 @@ import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -179,6 +179,9 @@ fun OnlinePlaylistScreen(
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
+
+    val isMixPlaylist = playlist?.id?.startsWith("RDTMAK5uy") == true
+    val isLikedMusicPlaylist = playlist?.id == "LM"
 
     val playlistPlaying = mediaMetadata?.playlist?.id == playlist?.id
 
@@ -625,37 +628,14 @@ fun OnlinePlaylistScreen(
                                                 }
                                             }
                                         }
-                                        if (playlist.id == "LM") {
-                                            playlist.radioEndpoint?.let { radioEndpoint ->
-                                                Button(
-                                                    onClick = {
-                                                        playerConnection.playQueue(
-                                                            YouTubePlaylistQueue(
-                                                                radioEndpoint,
-                                                                playlistId = playlist.id
-                                                            )
-                                                        )
-                                                    },
-                                                    enabled = !isLoading,
-                                                    modifier = Modifier
-                                                        .weight(1f)
-                                                        .padding(4.dp)
-                                                        .clip(RoundedCornerShape(12.dp))
-                                                ) {
-                                                    Icon(
-                                                        painter = painterResource(R.drawable.radio),
-                                                        contentDescription = null
-                                                    )
-                                                }
-                                            }
-                                        } else {
+                                        if (!isMixPlaylist || isLikedMusicPlaylist) {
                                             Button(
                                                 onClick = {
-                                                    playerConnection.addToQueue(songs.map {
-                                                        it.toMediaItemWithPlaylist(
-                                                            playlist.id
+                                                    playerConnection.playQueue(
+                                                        YouTubePlaylistRadio(
+                                                            playlistId = playlist.id
                                                         )
-                                                    })
+                                                    )
                                                 },
                                                 enabled = !isLoading,
                                                 modifier = Modifier
@@ -664,31 +644,29 @@ fun OnlinePlaylistScreen(
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.queue_music),
+                                                    painter = painterResource(R.drawable.radio),
                                                     contentDescription = null
                                                 )
                                             }
                                         }
-                                        if (playlist.id == "LM") {
-                                            Button(
-                                                onClick = {
-                                                    playerConnection.addToQueue(songs.map {
-                                                        it.toMediaItemWithPlaylist(
-                                                            playlist.id
-                                                        )
-                                                    })
-                                                },
-                                                enabled = !isLoading,
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .padding(4.dp)
-                                                    .clip(RoundedCornerShape(12.dp))
-                                            ) {
-                                                Icon(
-                                                    painterResource(R.drawable.queue_music),
-                                                    contentDescription = null
-                                                )
-                                            }
+                                        Button(
+                                            onClick = {
+                                                playerConnection.addToQueue(songs.map {
+                                                    it.toMediaItemWithPlaylist(
+                                                        playlist.id
+                                                    )
+                                                })
+                                            },
+                                            enabled = !isLoading,
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .padding(4.dp)
+                                                .clip(RoundedCornerShape(12.dp))
+                                        ) {
+                                            Icon(
+                                                painterResource(R.drawable.queue_music),
+                                                contentDescription = null
+                                            )
                                         }
 
                                         if (playlist.id != "LM") {

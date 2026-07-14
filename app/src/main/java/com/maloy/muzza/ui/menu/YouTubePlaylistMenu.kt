@@ -44,7 +44,6 @@ import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.PlaylistSongMap
 import com.maloy.muzza.models.toMediaMetadata
-import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
@@ -56,7 +55,7 @@ import androidx.navigation.NavController
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.ListQueuePlaylist
-import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import kotlinx.coroutines.withContext
 
 @Composable
@@ -75,6 +74,8 @@ fun YouTubePlaylistMenu(
     val playlistPlaying = mediaMetadata?.playlist?.id == playlist.id
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
 
+    val isMixPlaylist = playlist.id.startsWith("RDTMAK5uy")
+    
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
     }
@@ -163,7 +164,7 @@ fun YouTubePlaylistMenu(
             .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
     ) {
-        if (playlist.radioEndpoint != null) {
+        if (!isMixPlaylist) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -173,14 +174,11 @@ fun YouTubePlaylistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playlist.radioEndpoint?.let { radioEndpoint ->
-                            playerConnection.playQueue(
-                                YouTubePlaylistQueue(
-                                    radioEndpoint,
-                                    playlistId = playlist.id
-                                )
+                        playerConnection.playQueue(
+                            YouTubePlaylistRadio(
+                                playlistId = playlist.id
                             )
-                        }
+                        )
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -241,7 +239,7 @@ fun YouTubePlaylistMenu(
                 )
             }
         }
-        if (playlist.radioEndpoint != null) {
+        if (!isMixPlaylist) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -400,7 +398,7 @@ fun YouTubePlaylistMenu(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (playlist.id != "LM" && playlist.radioEndpoint != null) {
+        if (playlist.id != "LM" && !isMixPlaylist) {
             ListMenuItem(
                 icon = R.drawable.shuffle, title = R.string.shuffle
             ) {
@@ -503,6 +501,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val playlistPlaying = mediaMetadata?.playlist?.id == playlist.id
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
+    val isMixPlaylist = playlist.id.startsWith("RDTMAK5uy")
 
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -590,7 +589,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
             .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
     ) {
-        if (playlist.radioEndpoint != null) {
+        if (!isMixPlaylist) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -600,9 +599,11 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playlist.radioEndpoint?.let { radioEndpoint ->
-                            playerConnection.playQueue(YouTubeQueue(radioEndpoint))
-                        }
+                        playerConnection.playQueue(
+                            YouTubePlaylistRadio(
+                                playlistId = playlist.id
+                            )
+                        )
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -666,7 +667,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
                 )
             }
         }
-        if (playlist.radioEndpoint != null) {
+        if (!isMixPlaylist) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -834,7 +835,7 @@ fun YouTubePlaylistMenuInPlaylistScreen(
             bottom = 8.dp + WindowInsets.systemBars.asPaddingValues().calculateBottomPadding()
         )
     ) {
-        if (playlist.id != "LM" && playlist.radioEndpoint != null) {
+        if (playlist.id != "LM" && !isMixPlaylist) {
             ListMenuItem(
                 icon = R.drawable.shuffle, title = R.string.shuffle
             ) {

@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -101,8 +100,6 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
-import com.maloy.innertube.YouTube
-import com.maloy.innertube.utils.completed
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -126,12 +123,11 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import com.maloy.muzza.ui.component.AutoResizeText
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -154,7 +150,6 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.AutoPlaylistLikedViewModel
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -551,28 +546,9 @@ fun AutoPlaylistLikedScreen(
                                     if (isLoggedIn && isInternetAvailable(context)) {
                                         Button(
                                             onClick = {
-                                                scope.launch {
-                                                    withContext(Dispatchers.IO) {
-                                                        YouTube.playlist("LM").completed()
-                                                            .getOrNull()?.playlist
-                                                    }.let { playlist ->
-                                                        if (playlist != null) {
-                                                            playerConnection.playQueue(
-                                                                YouTubePlaylistQueue(
-                                                                    playlistId = playlist.id,
-                                                                    endpoint = playlist.radioEndpoint
-                                                                        ?: return@let,
-                                                                )
-                                                            )
-                                                        } else {
-                                                            Toast.makeText(
-                                                                context,
-                                                                R.string.unknow_playlist_radio_error,
-                                                                Toast.LENGTH_LONG
-                                                            ).show()
-                                                        }
-                                                    }
-                                                }
+                                                YouTubePlaylistRadio(
+                                                    playlistId = likedMusicPlaylist.playlist.id
+                                                )
                                             },
                                             modifier = Modifier
                                                 .weight(1f)

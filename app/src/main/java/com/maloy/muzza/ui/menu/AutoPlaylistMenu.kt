@@ -5,7 +5,6 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
-import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -57,7 +56,6 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.utils.completed
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
@@ -70,7 +68,7 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.YouTubePlaylistQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import com.maloy.muzza.ui.component.AutoPlaylistListItem
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
@@ -85,7 +83,6 @@ import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.collections.contains
 
 @Composable
@@ -268,24 +265,9 @@ fun AutoPlaylistMenu(
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
                             onDismiss()
-                            coroutineScope.launch {
-                                withContext(Dispatchers.IO) {
-                                    YouTube.playlist("LM").completed()
-                                        .getOrNull()?.playlist
-                                }.let { playlist ->
-                                    if (playlist != null) {
-                                        playerConnection.playQueue(
-                                            YouTubePlaylistQueue(
-                                                playlistId = playlist.id,
-                                                endpoint = playlist.radioEndpoint ?: return@let,
-                                            )
-                                        )
-                                    } else {
-                                        Toast.makeText(context, R.string.unknow_playlist_radio_error, Toast.LENGTH_LONG)
-                                            .show()
-                                    }
-                                }
-                            }
+                            YouTubePlaylistRadio(
+                                playlistId = playlist.playlist.id
+                            )
                         }
                         .padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,

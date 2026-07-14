@@ -69,6 +69,7 @@ import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import com.maloy.muzza.ui.component.DefaultDialog
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
@@ -99,6 +100,8 @@ fun PlaylistMenu(
     var songs by remember {
         mutableStateOf(emptyList<Song>())
     }
+    val isMixPlaylist = playlist.id.startsWith("RDTMAK5uy")
+    val isLocalPlaylist = playlist.playlist.isLocal
 
     var refetchIconDegree by remember { mutableFloatStateOf(0f) }
 
@@ -238,7 +241,7 @@ fun PlaylistMenu(
                             delete(playlist.playlist)
                         }
 
-                        if (!playlist.playlist.isLocal) {
+                        if (!isLocalPlaylist) {
                             coroutineScope.launch(Dispatchers.IO) {
                                 playlist.playlist.browseId?.let { YouTube.deletePlaylist(it) }
                             }
@@ -275,7 +278,7 @@ fun PlaylistMenu(
         showLikedIcon = false,
         thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
         trailingContent = {
-            if (!playlist.playlist.isLocal) {
+            if (!isLocalPlaylist) {
                 IconButton(
                     onClick = {
                         database.query {
@@ -301,80 +304,157 @@ fun PlaylistMenu(
                 .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
             horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
         ) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        if (playlistPlaying) {
-                            playerConnection.togglePlayPause()
-                        } else {
+            if (!isMixPlaylist && !isLocalPlaylist) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
                             playerConnection.playQueue(
-                                ListQueue(
-                                    title = playlist.playlist.name,
-                                    items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
+                                YouTubePlaylistRadio(
+                                    playlistId = playlist.id
                                 )
                             )
                             onDismiss()
                         }
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
-            }
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.radio),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
                     )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        onDismiss()
-                        playerConnection.playQueue(
-                            ListQueue(
-                                title = playlist.playlist.name,
-                                items = songs.shuffled()
-                                    .map { it.toMediaItemWithPlaylist(playlist.id) }
-                            ))
-                    }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.shuffle),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.shuffle),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    Text(
+                        text = stringResource(R.string.start_radio),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Column(
                     modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            if (playlistPlaying) {
+                                playerConnection.togglePlayPause()
+                            } else {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = playlist.playlist.name,
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
+                                    )
+                                )
+                                onDismiss()
+                            }
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            }
+            if (!isMixPlaylist && !isLocalPlaylist) {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            if (playlistPlaying) {
+                                playerConnection.togglePlayPause()
+                            } else {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = playlist.playlist.name,
+                                        items = songs.map { it.toMediaItemWithPlaylist(playlist.id) }
+                                    )
+                                )
+                                onDismiss()
+                            }
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(if (playlistPlaying && isPlaying) R.drawable.pause else R.drawable.play),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(if (playlistPlaying && isPlaying) R.string.pause else R.string.play),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .background(
+                            color = MaterialTheme.colorScheme.surfaceVariant,
+                            shape = RoundedCornerShape(8.dp)
+                        )
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable {
+                            onDismiss()
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = playlist.playlist.name,
+                                    items = songs.shuffled()
+                                        .map { it.toMediaItemWithPlaylist(playlist.id) }
+                                ))
+                        }
+                        .padding(12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Icon(
+                        painter = painterResource(R.drawable.shuffle),
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    Text(
+                        text = stringResource(R.string.shuffle),
+                        style = MaterialTheme.typography.labelMedium,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                        modifier = Modifier
+                            .basicMarquee()
+                            .padding(top = 4.dp),
+                    )
+                }
             }
 
-            if (playlist.playlist.isLocal) {
+            if (isLocalPlaylist) {
                 Column(
                     modifier = Modifier
                         .weight(1f)
@@ -464,7 +544,25 @@ fun PlaylistMenu(
         )
     ) {
         if (songs.isNotEmpty()) {
-            if (!playlist.playlist.isLocal) {
+            if (!isMixPlaylist) {
+                ListMenuItem(
+                    icon = R.drawable.shuffle,
+                    title = R.string.shuffle
+                ) {
+                    playerConnection.playQueue(
+                        ListQueue(
+                            title = playlist.title,
+                            items = songs.shuffled()
+                                .map { it.toMediaItemWithPlaylist(playlistId = playlist.id) }
+                        )
+                    )
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
+            }
+            if (!isLocalPlaylist) {
                 ListMenuItem(
                     icon = R.drawable.queue_music,
                     title = R.string.add_to_queue

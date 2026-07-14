@@ -73,7 +73,6 @@ data class HomePage(
                 return when {
                     renderer.isSong -> {
                         val subtitleRuns = renderer.subtitle?.runs?.oddElements() ?: return null
-                        val album = renderer.subtitle.runs.getOrNull(0) ?: return null
                         SongItem(
                             id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
@@ -89,12 +88,7 @@ data class HomePage(
                                     listOf(Artist(name = run.text, id = null))
                                 } ?: emptyList()
                             },
-                            album = album.let {
-                                Album(
-                                    name = it.text,
-                                    id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return@let null
-                                )
-                            },
+                            album = null,
                             duration = null,
                             thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                                 ?: return null,

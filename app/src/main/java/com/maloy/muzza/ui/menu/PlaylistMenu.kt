@@ -316,7 +316,7 @@ fun PlaylistMenu(
                         .clickable {
                             playerConnection.playQueue(
                                 YouTubePlaylistRadio(
-                                    playlistId = playlist.id,
+                                    playlistId = playlist.playlist.browseId!!,
                                     context = context
                                 )
                             )

@@ -100,6 +100,8 @@ import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import coil.compose.AsyncImage
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.completed
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDownloadUtil
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -150,6 +152,7 @@ import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.AutoPlaylistLikedViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -546,10 +549,19 @@ fun AutoPlaylistLikedScreen(
                                     if (isLoggedIn && isInternetAvailable(context)) {
                                         Button(
                                             onClick = {
-                                                YouTubePlaylistRadio(
-                                                    playlistId = likedMusicPlaylist.playlist.id,
-                                                    context = context
-                                                )
+                                                scope.launch {
+                                                    withContext(Dispatchers.IO) {
+                                                        YouTube.playlist("LM").completed()
+                                                            .getOrNull()?.playlist
+                                                    }.let { playlist ->
+                                                        playerConnection.playQueue(
+                                                            YouTubePlaylistRadio(
+                                                                playlistId = playlist?.id ?: return@let,
+                                                                context = context
+                                                            )
+                                                        )
+                                                    }
+                                                }
                                             },
                                             modifier = Modifier
                                                 .weight(1f)

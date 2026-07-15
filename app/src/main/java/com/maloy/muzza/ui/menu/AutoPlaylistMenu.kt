@@ -56,6 +56,7 @@ import androidx.media3.exoplayer.offline.DownloadRequest
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.completed
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalDownloadUtil
@@ -83,6 +84,7 @@ import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.collections.contains
 
 @Composable
@@ -265,10 +267,19 @@ fun AutoPlaylistMenu(
                         .clip(RoundedCornerShape(8.dp))
                         .clickable {
                             onDismiss()
-                            YouTubePlaylistRadio(
-                                playlistId = playlist.playlist.id,
-                                context = context
-                            )
+                            coroutineScope.launch {
+                                withContext(Dispatchers.IO) {
+                                    YouTube.playlist("LM").completed()
+                                        .getOrNull()?.playlist
+                                }.let { playlist ->
+                                    playerConnection.playQueue(
+                                        YouTubePlaylistRadio(
+                                            playlistId = playlist?.id ?: return@let,
+                                            context = context
+                                        )
+                                    )
+                                }
+                            }
                         }
                         .padding(12.dp),
                     horizontalAlignment = Alignment.CenterHorizontally,

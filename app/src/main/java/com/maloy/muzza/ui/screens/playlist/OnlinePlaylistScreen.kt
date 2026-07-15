@@ -179,8 +179,6 @@ fun OnlinePlaylistScreen(
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
-
-    val isMixPlaylist = playlist?.id?.startsWith("RDTMAK5uy") == true
     val isLikedMusicPlaylist = playlist?.id == "LM"
 
     val playlistPlaying = mediaMetadata?.playlist?.id == playlist?.id
@@ -628,7 +626,7 @@ fun OnlinePlaylistScreen(
                                                 }
                                             }
                                         }
-                                        if (!isMixPlaylist || isLikedMusicPlaylist) {
+                                        if (isLikedMusicPlaylist) {
                                             Button(
                                                 onClick = {
                                                     playerConnection.playQueue(

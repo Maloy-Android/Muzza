@@ -221,7 +221,6 @@ fun StatsScreen(
                                                 menuState.show {
                                                     ArtistMenu(
                                                         originalArtist = artist,
-                                                        coroutineScope = coroutineScope,
                                                         onDismiss = menuState::dismiss
                                                     )
                                                 }

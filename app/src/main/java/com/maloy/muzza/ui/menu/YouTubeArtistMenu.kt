@@ -37,12 +37,12 @@ import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.db.entities.ArtistEntity
-import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
 import java.time.LocalDateTime
 import androidx.core.net.toUri
+import com.maloy.muzza.playback.queues.YouTubeArtistRadio
 
 @Composable
 fun YouTubeArtistMenu(
@@ -94,7 +94,7 @@ fun YouTubeArtistMenu(
             .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
     ) {
-        artist.radioEndpoint?.let { watchEndpoint ->
+        if (!artist.isProfile) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -104,7 +104,13 @@ fun YouTubeArtistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                        playerConnection.playQueue(
+                            YouTubeArtistRadio(
+                                artistId = artist.id,
+                                context = context,
+                                shuffleEndpointEnabled = false
+                            )
+                        )
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -124,9 +130,6 @@ fun YouTubeArtistMenu(
                         .padding(top = 4.dp),
                 )
             }
-        }
-
-        artist.shuffleEndpoint?.let { watchEndpoint ->
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -136,7 +139,13 @@ fun YouTubeArtistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        playerConnection.playQueue(YouTubeQueue(watchEndpoint))
+                        playerConnection.playQueue(
+                            YouTubeArtistRadio(
+                                artistId = artist.id,
+                                context = context,
+                                shuffleEndpointEnabled = true
+                            )
+                        )
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -166,13 +175,16 @@ fun YouTubeArtistMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
+                    onDismiss()
                     val intent = Intent().apply {
                         action = Intent.ACTION_SEND
                         type = "text/plain"
-                        putExtra(Intent.EXTRA_TEXT, artist.shareLink)
+                        putExtra(
+                            Intent.EXTRA_TEXT,
+                            "https://music.youtube.com/channel/${artist.shareLink}"
+                        )
                     }
                     context.startActivity(Intent.createChooser(intent, null))
-                    onDismiss()
                 }
                 .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -202,10 +214,11 @@ fun YouTubeArtistMenu(
         )
     ) {
         ListMenuItem(
-            icon = R.drawable.music_note,
-            title = R.string.listen_youtube_music
+            icon = R.drawable.youtube_music, title = R.string.listen_youtube_music
         ) {
-            val intent = Intent(Intent.ACTION_VIEW, artist.shareLink.toUri())
+            val intent = Intent(
+                Intent.ACTION_VIEW, "https://music.youtube.com/channel/${artist.id}".toUri()
+            )
             context.startActivity(intent)
         }
     }

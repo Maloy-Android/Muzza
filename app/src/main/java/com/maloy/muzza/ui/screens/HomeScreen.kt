@@ -311,7 +311,6 @@ fun HomeScreen(
                             menuState.show {
                                 ArtistMenu(
                                     originalArtist = it,
-                                    coroutineScope = scope,
                                     onDismiss = menuState::dismiss,
                                 )
                             }

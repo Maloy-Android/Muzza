@@ -321,7 +321,6 @@ fun LibraryArtistsScreen(
                                             menuState.show {
                                                 ArtistMenu(
                                                     originalArtist = artist,
-                                                    coroutineScope = coroutineScope,
                                                     onDismiss = menuState::dismiss
                                                 )
                                             }
@@ -344,7 +343,6 @@ fun LibraryArtistsScreen(
                                             menuState.show {
                                                 ArtistMenu(
                                                     originalArtist = artist,
-                                                    coroutineScope = coroutineScope,
                                                     onDismiss = menuState::dismiss
                                                 )
                                             }
@@ -426,7 +424,6 @@ fun LibraryArtistsScreen(
                                             menuState.show {
                                                 ArtistMenu(
                                                     originalArtist = artist,
-                                                    coroutineScope = coroutineScope,
                                                     onDismiss = menuState::dismiss
                                                 )
                                             }

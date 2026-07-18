@@ -32,26 +32,16 @@ import androidx.compose.ui.unit.dp
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.ArtistSongSortType
 import com.maloy.muzza.db.entities.Artist
-import com.maloy.muzza.extensions.toMediaItem
-import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ArtistListItem
 import com.maloy.muzza.ui.component.ListMenuItem
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import androidx.core.net.toUri
-import com.maloy.muzza.constants.TwoLineSongItemLabelKey
+import com.maloy.muzza.playback.queues.YouTubeArtistRadio
 import com.maloy.muzza.ui.component.ListMenu
-import com.maloy.muzza.utils.rememberPreference
 
 @Composable
 fun ArtistMenu(
     originalArtist: Artist,
-    coroutineScope: CoroutineScope,
     onDismiss: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -82,7 +72,7 @@ fun ArtistMenu(
             .padding(start = 24.dp, end = 24.dp, top = 8.dp, bottom = 8.dp),
         horizontalArrangement = androidx.compose.foundation.layout.Arrangement.spacedBy(8.dp),
     ) {
-        if (artist.songCount > 0) {
+        if (!artist.artist.isProfile) {
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -92,30 +82,25 @@ fun ArtistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        coroutineScope.launch {
-                            val songs = withContext(Dispatchers.IO) {
-                                database.artistSongs(
-                                    artist.id, ArtistSongSortType.CREATE_DATE, true
-                                ).first().map { it.toMediaItem() }
-                            }
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = artist.artist.name, items = songs
-                                )
+                        playerConnection.playQueue(
+                            YouTubeArtistRadio(
+                                artistId = artist.artist.id,
+                                context = context,
+                                shuffleEndpointEnabled = false
                             )
-                        }
+                        )
                         onDismiss()
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Icon(
-                    painter = painterResource(R.drawable.play),
+                    painter = painterResource(R.drawable.radio),
                     contentDescription = null,
                     modifier = Modifier.size(24.dp),
                 )
                 Text(
-                    text = stringResource(R.string.play),
+                    text = stringResource(R.string.start_radio),
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier
@@ -132,18 +117,13 @@ fun ArtistMenu(
                     )
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
-                        coroutineScope.launch {
-                            val songs = withContext(Dispatchers.IO) {
-                                database.artistSongs(
-                                    artist.id, ArtistSongSortType.CREATE_DATE, true
-                                ).first().map { it.toMediaItem() }.shuffled()
-                            }
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = artist.artist.name, items = songs
-                                )
+                        playerConnection.playQueue(
+                            YouTubeArtistRadio(
+                                artistId = artist.artist.id,
+                                context = context,
+                                shuffleEndpointEnabled = true
                             )
-                        }
+                        )
                         onDismiss()
                     }
                     .padding(12.dp),
@@ -164,43 +144,41 @@ fun ArtistMenu(
                 )
             }
         }
-        if (artist.artist.isYouTubeArtist) {
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                    .clip(RoundedCornerShape(8.dp))
-                    .clickable {
-                        onDismiss()
-                        val intent = Intent().apply {
-                            action = Intent.ACTION_SEND
-                            type = "text/plain"
-                            putExtra(
-                                Intent.EXTRA_TEXT, "https://music.youtube.com/channel/${artist.id}"
-                            )
-                        }
-                        context.startActivity(Intent.createChooser(intent, null))
+        Column(
+            modifier = Modifier
+                .weight(1f)
+                .background(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = RoundedCornerShape(8.dp)
+                )
+                .clip(RoundedCornerShape(8.dp))
+                .clickable {
+                    onDismiss()
+                    val intent = Intent().apply {
+                        action = Intent.ACTION_SEND
+                        type = "text/plain"
+                        putExtra(
+                            Intent.EXTRA_TEXT, "https://music.youtube.com/channel/${artist.id}"
+                        )
                     }
-                    .padding(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Icon(
-                    painter = painterResource(R.drawable.share),
-                    contentDescription = null,
-                    modifier = Modifier.size(24.dp),
-                )
-                Text(
-                    text = stringResource(R.string.share),
-                    style = MaterialTheme.typography.labelMedium,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier
-                        .basicMarquee()
-                        .padding(top = 4.dp),
-                )
-            }
+                    context.startActivity(Intent.createChooser(intent, null))
+                }
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.share),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp),
+            )
+            Text(
+                text = stringResource(R.string.share),
+                style = MaterialTheme.typography.labelMedium,
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                modifier = Modifier
+                    .basicMarquee()
+                    .padding(top = 4.dp),
+            )
         }
     }
 

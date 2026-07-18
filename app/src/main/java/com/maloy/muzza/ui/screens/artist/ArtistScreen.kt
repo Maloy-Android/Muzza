@@ -97,6 +97,7 @@ import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubeArtistRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.component.ExpandableText
 import com.maloy.muzza.ui.component.HideOnScrollFAB
@@ -416,12 +417,14 @@ fun ArtistScreen(
                                         horizontalArrangement = Arrangement.spacedBy(16.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        artistPage.artist.radioEndpoint?.let { radioEndpoint ->
+                                        if (!artistPage.artist.isProfile) {
                                             OutlinedButton(
                                                 onClick = {
                                                     playerConnection.playQueue(
-                                                        YouTubeQueue(
-                                                            radioEndpoint
+                                                        YouTubeArtistRadio(
+                                                            artistId = artistPage.artist.id,
+                                                            context = context,
+                                                            shuffleEndpointEnabled = false
                                                         )
                                                     )
                                                 },
@@ -439,13 +442,13 @@ fun ArtistScreen(
                                                     fontSize = 14.sp
                                                 )
                                             }
-                                        }
-                                        artistPage.artist.shuffleEndpoint?.let { shuffleEndpoint ->
                                             IconButton(
                                                 onClick = {
                                                     playerConnection.playQueue(
-                                                        YouTubeQueue(
-                                                            shuffleEndpoint
+                                                        YouTubeArtistRadio(
+                                                            artistId = artistPage.artist.id,
+                                                            context = context,
+                                                            shuffleEndpointEnabled = true
                                                         )
                                                     )
                                                 }, modifier = Modifier

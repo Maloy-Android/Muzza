@@ -3,7 +3,6 @@ package com.maloy.muzza.ui.screens.search
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.WindowInsetsSides
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBars
@@ -54,8 +52,6 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.CONTENT_TYPE_LIST
-import com.maloy.muzza.constants.ListItemHeight
-import com.maloy.muzza.constants.TwoLineSongItemLabelKey
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.Playlist
@@ -74,7 +70,6 @@ import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
-import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.LocalFilter
 import com.maloy.muzza.viewmodels.LocalSearchViewModel
 import kotlinx.coroutines.flow.drop
@@ -301,7 +296,6 @@ fun LocalSearchScreen(
                                         menuState.show {
                                             ArtistMenu(
                                                 originalArtist = item,
-                                                coroutineScope = scope,
                                                 onDismiss = {
                                                     onDismiss()
                                                     menuState.dismiss()
@@ -327,7 +321,6 @@ fun LocalSearchScreen(
                                         menuState.show {
                                             ArtistMenu(
                                                 originalArtist = item,
-                                                coroutineScope = scope,
                                                 onDismiss = {
                                                     onDismiss()
                                                     menuState.dismiss()

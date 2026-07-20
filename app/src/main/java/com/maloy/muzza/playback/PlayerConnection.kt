@@ -274,6 +274,11 @@ class PlayerConnection(
         }
     }
 
+    fun replay() {
+        player.seekTo(0, 0)
+        player.playWhenReady = true
+    }
+
     fun toggleShuffle() {
         player.shuffleModeEnabled = !player.shuffleModeEnabled
     }

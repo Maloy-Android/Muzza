@@ -184,8 +184,7 @@ fun MiniPlayer(
                     IconButton(
                         onClick = {
                             if (playbackState == Player.STATE_ENDED) {
-                                playerConnection.player.seekTo(0, 0)
-                                playerConnection.player.playWhenReady = true
+                                playerConnection.replay()
                             } else {
                                 playerConnection.player.togglePlayPause()
                             }

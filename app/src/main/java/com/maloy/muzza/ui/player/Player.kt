@@ -814,8 +814,7 @@ fun BottomSheetPlayer(
                         FilledTonalIconButton(
                             onClick = {
                                 if (playbackState == STATE_ENDED) {
-                                    playerConnection.player.seekTo(0, 0)
-                                    playerConnection.player.playWhenReady = true
+                                    playerConnection.replay()
                                 } else {
                                     playerConnection.player.togglePlayPause()
                                 }

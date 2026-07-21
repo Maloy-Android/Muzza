@@ -458,9 +458,7 @@ fun LibraryMixScreen(
                                     likedSongs?.let { songs ->
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
-                                                    context.getString(R.string.liked)
-                                                },
+                                                title = likedMusicPlaylist.playlist.name,
                                                 items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
                                             )
                                         )
@@ -535,9 +533,7 @@ fun LibraryMixScreen(
                                                         likedSongs?.let { songs ->
                                                             playerConnection.playQueue(
                                                                 ListQueue(
-                                                                    title = if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else {
-                                                                        context.getString(R.string.liked)
-                                                                    },
+                                                                    title = likedMusicPlaylist.playlist.name,
                                                                     items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) },
                                                                     startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                                                 )

@@ -598,6 +598,7 @@ fun LibraryPlaylistsScreen(
                         )
                     }
                     HideOnScrollFAB(
+                        visible = filter != PlaylistFilter.DOWNLOADED,
                         lazyListState = lazyGridState,
                         icon = R.drawable.add,
                         onClick = {

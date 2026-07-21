@@ -416,7 +416,7 @@ fun AboutScreen(
                 icon = R.drawable.telegram,
                 title = stringResource(R.string.help_title_telegram),
                 subtitle = stringResource(R.string.help_text),
-                onClick = { uriHandler.openUri("https://web.telegram.org/k/#@MaloyBegonia") }
+                onClick = { uriHandler.openUri("https://t.me/MaloyBegonia") }
             )
         }
 

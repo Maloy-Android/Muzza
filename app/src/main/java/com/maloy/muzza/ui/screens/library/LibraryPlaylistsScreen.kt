@@ -135,6 +135,11 @@ fun LibraryPlaylistsScreen(
 
     var filter by rememberEnumPreference(PlaylistFilterKey, PlaylistFilter.LIKED)
 
+    val filterTitle = when (filter) {
+        PlaylistFilter.LIKED -> R.string.filter_liked
+        PlaylistFilter.DOWNLOADED -> R.string.filter_downloaded
+    }
+
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
     var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
     val (sortType, onSortTypeChange) = rememberEnumPreference(
@@ -405,7 +410,7 @@ fun LibraryPlaylistsScreen(
                                 item {
                                     EmptyPlaceholder(
                                         icon = R.drawable.queue_music,
-                                        text = stringResource(R.string.library_playlist_empty)
+                                        text = stringResource(R.string.library_playlists_empty_witch_chip,filterTitle)
                                     )
                                 }
                             }
@@ -519,7 +524,7 @@ fun LibraryPlaylistsScreen(
                                 item {
                                     EmptyPlaceholder(
                                         icon = R.drawable.queue_music,
-                                        text = stringResource(R.string.library_playlist_empty)
+                                        text = stringResource(R.string.library_playlists_empty_witch_chip,filterTitle)
                                     )
                                 }
                             }

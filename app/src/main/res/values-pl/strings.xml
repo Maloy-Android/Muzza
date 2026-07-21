@@ -274,7 +274,6 @@
     <string name="remove_from_queue">Usuń z kolejki</string>
     <string name="login_failed">Błąd logowania</string>
     <string name="similar_to">Podobne do</string>
-    <string name="library_playlist_empty">Twoje playlisty pojawią się tutaj</string>
     <string name="other_versions">Inne wersje</string>
     <string name="duplicates_description_single">Utwór jest już obecny w Twojej playliście</string>
     <string name="action_remove_like_all">Usuń wszystkie polubienia</string>
@@ -283,9 +282,6 @@
     <string name="squiggly">Falisty</string>
     <string name="forgotten_favorites">Zapomniane ulubione</string>
     <string name="keep_listening">Słuchaj dalej</string>
-    <string name="library_song_empty">Utwory z biblioteki pojawią się tutaj</string>
-    <string name="library_artist_empty">Artyści z biblioteki pojawią się tutaj</string>
-    <string name="library_album_empty">Albumy z biblioteki pojawią się tutaj</string>
     <string name="remove_download_playlist_confirm">Czy na pewno chcesz usunąć wszystkie utwory playlisty \"%s\" z Pobranych Utworów?</string>
     <string name="delete_playlist_confirm">Czy na pewno chcesz usunąć playlistę \"%s\"?</string>
     <string name="tempo_and_pitch">Tempo i Wysokość</string>

@@ -261,10 +261,6 @@
     <string name="forgotten_favorites">Unutulan favoriler</string>
     <string name="keep_listening">Dinlemeye devam edin</string>
     <string name="similar_to">Benzerleri</string>
-    <string name="library_song_empty">Kütüphane şarkıları burada görünecektir</string>
-    <string name="library_artist_empty">Kütüphane sanatçıları burada görünecektir</string>
-    <string name="library_album_empty">Kütüphane albümleri burada görünecektir</string>
-    <string name="library_playlist_empty">Çalma listeleriniz burada görünecektir</string>
     <string name="other_versions">Diğer versiyonlar</string>
     <string name="remove_download_playlist_confirm">İndirilen şarkılar deposundaki \"%s\" şarkının hepsini silmek istiyor musunuz?</string>
     <string name="delete_playlist_confirm">\"%s\" çalma listesini silmek istiyor musunuz?</string>

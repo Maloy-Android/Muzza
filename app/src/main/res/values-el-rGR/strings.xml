@@ -52,10 +52,6 @@
     <string name="no_results_found">Δεν βρέθηκαν αποτελέσματα</string>
 
     <!-- Artist screen -->
-    <string name="library_song_empty">Τα τραγούδια βιβλιοθήκης εμφανίζονται εδώ</string>
-    <string name="library_artist_empty">Οι καλλιτέχνες βιβλιοθήκης εμφανίζονται εδώ</string>
-    <string name="library_album_empty">Τα άλμπουμ βιβλιοθήκης εμφανίζονται εδώ</string>
-    <string name="library_playlist_empty">Οι λίστες αναπαραγωγής θα εμφανίζονται εδώ</string>
     <string name="from_your_library">Από τη βιβλιοθήκη σας</string>
 
     <!-- Playlist -->

@@ -25,9 +25,6 @@
     <string name="filter_featured_playlists">قوائم أغاني مميزة</string>
     <string name="filter_bookmarked">محفوظ</string>
     <string name="no_results_found">لم يتم العثور على نتائج</string>
-    <string name="library_artist_empty">سيظهر الفنانون هنا</string>
-    <string name="library_album_empty">ستظهر الألبومات هنا</string>
-    <string name="library_playlist_empty">قوائم أغانيك ستظهر هنا</string>
     <string name="other_versions">نسخ اخرى</string>
     <string name="songs">أغاني</string>
     <string name="playlists">قوائم الأغاني</string>
@@ -39,7 +36,6 @@
     <string name="filter_library">مكتبة</string>
     <string name="filter_albums">ألبومات</string>
     <string name="filter_videos">فيديوهات</string>
-    <string name="library_song_empty">ستظهر أغاني المكتبة هنا</string>
     <string name="from_your_library">من مكتبتك</string>
     <string name="home">الرئيسية</string>
     <plurals name="n_selected">

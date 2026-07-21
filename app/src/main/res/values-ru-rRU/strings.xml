@@ -116,11 +116,9 @@
     <string name="remove_download_album_confirm">Вы уверены, что хотите удалить все песни из альбома «%s» из хранилища загруженной музыки?</string>
 
     <!-- Library -->
-    <string name="library_empty">Здесь будет отображаться ваша библиотека</string>
-    <string name="library_song_empty">Здесь будут отображаться песни из вашей библиотеки</string>
-    <string name="library_artist_empty">Здесь будут отображаться исполнители из вашей библиотеки</string>
-    <string name="library_album_empty">Здесь будут отображаться альбомы из вашей библиотеки</string>
-    <string name="library_playlist_empty">Здесь будут отображаться ваши плейлисты</string>
+    <string name="library_albums_empty_with_chip">Альбомы из вкладки \"%s\" will будут отображаться здесь</string>
+    <string name="library_playlists_empty_witch_chip">Плейлисты из вкладки \"%s\" будут отображаться здесь</string>
+    <string name="library_artists_empty_witch_chip">Исполнители из вкадки \"%s\" будут отображаться здесь</string>
     <string name="also_in_your_library">Ещё у вас в Библиотеке</string>
     <string name="your_artists">Ваши исполнители</string>
 

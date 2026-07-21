@@ -113,6 +113,10 @@ fun LibraryArtistsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(ArtistSortTypeKey, ArtistSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
+    val filterTitle = when(filter) {
+        ArtistFilter.LIKED -> R.string.filter_liked
+        ArtistFilter.LIBRARY -> R.string.filter_library
+    }
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
         remember(innerTubeCookie) {
@@ -301,7 +305,7 @@ fun LibraryArtistsScreen(
                                 item {
                                     EmptyPlaceholder(
                                         icon = R.drawable.artist,
-                                        text = stringResource(R.string.library_artist_empty),
+                                        text = stringResource(R.string.library_artists_empty_witch_chip, filterTitle),
                                         modifier = Modifier.animateItem()
                                     )
                                 }
@@ -398,7 +402,7 @@ fun LibraryArtistsScreen(
                                 } else {
                                     EmptyPlaceholder(
                                         icon = R.drawable.artist,
-                                        text = stringResource(R.string.library_artist_empty),
+                                        text = stringResource(R.string.library_artists_empty_witch_chip,filterTitle),
                                         modifier = Modifier.animateItem()
                                     )
                                 }

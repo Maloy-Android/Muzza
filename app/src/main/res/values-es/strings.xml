@@ -47,11 +47,6 @@
     <string name="filter_featured_playlists">Listas destacadas</string>
     <string name="filter_bookmarked">En marcadores</string>
     <string name="no_results_found">No se han encontrado resultados</string>
-    <!-- Library -->
-    <string name="library_song_empty">Las canciones de la biblioteca aparecerán aquí</string>
-    <string name="library_artist_empty">Los artistas de la biblioteca aparecerán aquí</string>
-    <string name="library_album_empty">Los álbumes de la biblioteca aparecerán aquí</string>
-    <string name="library_playlist_empty">Las listas de reproducción de la biblioteca aparecerán aquí</string>
     <!-- Artist screen -->
     <string name="from_your_library">De tu biblioteca</string>
     <!-- Playlist -->

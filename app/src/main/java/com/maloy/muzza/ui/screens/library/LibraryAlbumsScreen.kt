@@ -117,6 +117,11 @@ fun LibraryAlbumsScreen(
     val (sortType, onSortTypeChange) = rememberEnumPreference(AlbumSortTypeKey, AlbumSortType.CREATE_DATE)
     val (sortDescending, onSortDescendingChange) = rememberPreference(AlbumSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
+    val filterTitle = when (filter) {
+        AlbumFilter.LIKED -> stringResource(R.string.filter_liked)
+        AlbumFilter.LIBRARY -> stringResource(R.string.filter_library)
+        AlbumFilter.DOWNLOADED -> stringResource(R.string.filter_downloaded)
+    }
 
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =
@@ -313,7 +318,7 @@ fun LibraryAlbumsScreen(
                                 item {
                                     EmptyPlaceholder(
                                         icon = R.drawable.album,
-                                        text = stringResource(R.string.library_album_empty),
+                                        text = stringResource(R.string.library_albums_empty_with_chip,filterTitle),
                                         modifier = Modifier.animateItem()
                                     )
                                 }
@@ -414,7 +419,7 @@ fun LibraryAlbumsScreen(
                                 } else {
                                     EmptyPlaceholder(
                                         icon = R.drawable.album,
-                                        text = stringResource(R.string.library_album_empty),
+                                        text = stringResource(R.string.library_albums_empty_with_chip,filterTitle),
                                         modifier = Modifier.animateItem()
                                     )
                                 }

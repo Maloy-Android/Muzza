@@ -353,9 +353,6 @@
 <string name="listen_history">Histórico de escuta</string>
 <string name="disable_screenshot">Desativar capturas de tela</string>
 <string name="similar_to">Parecido com</string>
-<string name="library_song_empty">Músicas da biblioteca aparecerão aqui</string>
-<string name="library_artist_empty">Artistas da biblioteca aparecerão aqui</string>
-<string name="library_album_empty">Álbuns da biblioteca aparecerão aqui</string>
 <string name="other_versions">Outras versões</string>
 <string name="keep_listening">Continue ouvindo</string>
 <string name="add_all_to_library">Adicionar tudo à biblioteca</string>
@@ -375,7 +372,6 @@
 <string name="search_history">Histórico de pesquisa</string>
 <string name="disable_screenshot_desc">Quando esta opção está ativada, as capturas de tela e a visualização do app nos recentes são desativadas.</string>
 <string name="forgotten_favorites">Favoritos esquecidos</string>
-<string name="library_playlist_empty">Suas playlists aparecerão aqui</string>
 <string name="import_from_spotify">Importar do Spotify</string>
 <string name="theme">Tema</string>
 <string name="ytm_sync">Sincronize automaticamente com sua conta do YouTube Music</string>

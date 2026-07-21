@@ -110,11 +110,9 @@
     <string name="speak_now">Speak now…</string>
 
     <!-- Library -->
-    <string name="library_empty">Library will show up here</string>
-    <string name="library_song_empty">Library songs will show up here</string>
-    <string name="library_artist_empty">Library artists will show up here</string>
-    <string name="library_album_empty">Library albums will show up here</string>
-    <string name="library_playlist_empty">Your playlists will show up here</string>
+    <string name="library_albums_empty_with_chip">Albums from chip \"%s\" will up show here</string>
+    <string name="library_playlists_empty_witch_chip">Playlists from chip \"%s\" will up show here</string>
+    <string name="library_artists_empty_witch_chip">Artists from chip \"%s\" will up show here</string>
     <string name="also_in_your_library">Also in your Library</string>
     <string name="your_artists">Your artists</string>
 

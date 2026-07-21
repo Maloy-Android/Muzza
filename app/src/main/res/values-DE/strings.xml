@@ -244,7 +244,6 @@
     <string name="theme">Theme</string>
     <string name="other_versions">Andere Versionen</string>
     <string name="stop_music_on_task_clear">Stop music on task clear</string>
-    <string name="library_album_empty">Alben aus der Bibliothek werden hier angezeigt</string>
     <string name="add_all_to_library">Alle zur Bibliothek hinzufügen</string>
     <string name="similar_to">Ähnlich wie</string>
     <string name="listen_history">Hörverlauf</string>
@@ -253,7 +252,6 @@
     <string name="duplicates">Duplikate</string>
     <string name="auto_skip_next_on_error">Automatisch zum nächsten Lied springen, wenn ein Fehler auftritt</string>
     <string name="sided">Seite</string>
-    <string name="library_artist_empty">Künstler aus der Bibliothek werden hier angezeigt</string>
     <string name="player">Player</string>
     <string name="preview">Vorschau</string>
     <string name="misc">Sonstiges</string>
@@ -274,7 +272,6 @@
     <string name="options">Optionen</string>
     <string name="big">Groß</string>
     <string name="keep_listening">Weiterhören</string>
-    <string name="library_playlist_empty">Ihre Wiedergabelisten werden hier angezeigt</string>
     <string name="disable_screenshot_desc">Wenn diese Option aktiviert ist, sind Screenshots und die App-Ansicht in „Zuletzt gesehen“ deaktiviert.</string>
     <string name="discord_information">Muzza verwendet die KizzyRPC-Bibliothek, um den Status Ihres Discord-Kontos zu setzen. Dazu wird die Discord-Gateway-Verbindung verwendet, was als Verstoß gegen die AGB von Discord angesehen werden kann. Es sind jedoch keine Fälle bekannt, in denen Benutzerkonten aus diesem Grund gesperrt wurden. Die Verwendung erfolgt auf eigene Gefahr. Muzza extrahiert nur dein Token, alles andere wird lokal gespeichert.</string>
     <string name="squiggly">Verschnörkelt</string>
@@ -282,7 +279,6 @@
     <string name="search_history">Suchverlauf</string>
     <string name="hide_explicit">Explizite Inhalte ausblenden</string>
     <string name="discord_integration">Discord-Integration</string>
-    <string name="library_song_empty">Songs aus der Bibliothek werden hier angezeigt</string>
     <string name="remove_download_playlist_confirm">Möchten Sie wirklich alle Lieder der Wiedergabeliste „%s“ aus dem Speicher für heruntergeladene Lieder entfernen?</string>
     <string name="delete_playlist_confirm">Wollen Sie die Wiedergabeliste %s wirklich löschen?</string>
     <string name="duplicates_description_single">Der Titel befindet sich bereits in Ihrer Wiedergabeliste</string>

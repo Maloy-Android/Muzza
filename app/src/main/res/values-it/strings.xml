@@ -249,15 +249,12 @@
     <string name="clear_translation_models">Cancella i modelli di traduzione</string>
     <string name="squiggly">Ondulato</string>
     <string name="action_remove_like_all">Rimuovi tutti i mi piace</string>
-    <string name="library_album_empty">Gli album della libreria verranno visualizzati qui</string>
-    <string name="library_playlist_empty">Le tue playlist verranno visualizzate qui</string>
     <string name="remove_from_queue">Rimuovi dalla coda</string>
     <string name="slider_style">Stile slider</string>
     <string name="keep_listening">Continua ad ascoltare</string>
     <string name="duplicates_description_multiple">La canzone %d è già nella tua playlist</string>
     <string name="duplicates_description_single">La canzone è già nella tua playlist</string>
     <string name="delete_playlist_confirm">Vuoi davvero rimuovere la playlist \"%s\"?</string>
-    <string name="library_song_empty">I brani della libreria verranno visualizzati qui</string>
     <string name="remove_all_from_library">Rimuovi tutto da libreria</string>
     <string name="duplicates">Duplicati</string>
     <string name="default_">Default</string>
@@ -272,6 +269,5 @@
     <string name="add_anyway">Aggiungere comunque</string>
     <string name="remove_download_playlist_confirm">Vuoi davvero rimuovere tutti i brani della playlist \"%s\" dalla memoria dei Brani Scaricati?</string>
     <string name="skip_duplicates">Salta duplicati</string>
-    <string name="library_artist_empty">Gli artisti della libreria verranno visualizzati qui</string>
     <string name="action_like_all">Mi piace a tutto</string>
 </resources>

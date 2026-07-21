@@ -175,7 +175,8 @@ class SyncUtils @Inject constructor(
                         shuffleEndpointParams = fragments.shuffleEndpointParams,
                         radioEndpointParams = fragments.radioEndpointParams,
                         description = fragments.description,
-                        isEditable = true
+                        isEditable = true,
+                        isLocal = false
                     )
                     database.insert(playlist)
                     playlist = database.getPlaylistByBrowseId(playlistItem.id) ?: return@forEach

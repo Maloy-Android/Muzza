@@ -234,6 +234,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
         .flatMapLatest { (filter, sortType, descending) ->
             when (filter) {
                 PlaylistFilter.LIKED -> database.playlists(sortType, descending)
+                PlaylistFilter.LOCAL -> database.localPlaylists(sortType, descending)
                 PlaylistFilter.DOWNLOADED -> combine(
                     database.playlists(sortType, descending),
                     downloadUtil.downloads

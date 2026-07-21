@@ -212,7 +212,7 @@ fun AddToPlaylistDialog(
                                 playlistAuthorName = if (isLoggedIn) accountName else null,
                                 playlistAuthorAvatarUrl = if (isLoggedIn) accountImageUrl else null,
                                 description = null,
-                                bookmarkedAt = LocalDateTime.now(),
+                                bookmarkedAt = if (syncedPlaylist) LocalDateTime.now() else null,
                                 isEditable = true,
                                 isLocal = !syncedPlaylist
                             )

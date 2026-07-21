@@ -87,6 +87,7 @@
     <string name="search_library">Поиск в библиотеке…</string>
     <string name="filter_library">Библиотека</string>
     <string name="filter_liked">Понравившиеся</string>
+    <string name="filter_local">Локальные</string>
     <string name="filter_downloaded">Загруженные</string>
     <string name="top_results">Популярные результаты</string>
     <string name="filter_all">Все</string>

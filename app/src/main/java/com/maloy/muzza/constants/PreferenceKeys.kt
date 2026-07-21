@@ -193,7 +193,7 @@ enum class ArtistFilter {
 }
 
 enum class PlaylistFilter {
-    LIKED, DOWNLOADED
+    LIKED, LOCAL, DOWNLOADED
 }
 
 enum class AlbumFilter {

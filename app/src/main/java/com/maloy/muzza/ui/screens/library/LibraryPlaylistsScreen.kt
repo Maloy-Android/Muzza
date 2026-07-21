@@ -89,6 +89,7 @@ import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
 import com.maloy.muzza.constants.likedMusicAuthorIdKey
 import com.maloy.muzza.constants.likedMusicAuthorNameKey
+import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.ui.component.ChipsRow
 import com.maloy.muzza.ui.component.EmptyPlaceholder
@@ -137,6 +138,7 @@ fun LibraryPlaylistsScreen(
 
     val filterTitle = when (filter) {
         PlaylistFilter.LIKED -> stringResource(R.string.filter_liked)
+        PlaylistFilter.LOCAL -> stringResource(R.string.filter_local)
         PlaylistFilter.DOWNLOADED -> stringResource(R.string.filter_downloaded)
     }
 
@@ -157,6 +159,7 @@ fun LibraryPlaylistsScreen(
                 chips =
                     listOf(
                         PlaylistFilter.LIKED to stringResource(R.string.filter_liked),
+                        PlaylistFilter.LOCAL to stringResource(R.string.filter_local),
                         PlaylistFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
                     ),
                 currentValue = filter,
@@ -274,7 +277,7 @@ fun LibraryPlaylistsScreen(
                                 playlistAuthorName = if (isLoggedIn) accountName else null,
                                 playlistAuthorAvatarUrl = if (isLoggedIn) accountImageUrl else null,
                                 description = null,
-                                bookmarkedAt = LocalDateTime.now(),
+                                bookmarkedAt = if (syncedPlaylist) LocalDateTime.now() else null,
                                 isLocal = !syncedPlaylist,
                                 isEditable = true
                             )

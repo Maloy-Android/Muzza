@@ -737,6 +737,30 @@ interface DatabaseDao {
             PlaylistSortType.LAST_UPDATED -> editablePlaylistsByNameAsc()
         }.map { it.reversed(descending) }
 
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isLocal IS NOT NULL ORDER BY rowId")
+    fun localPlaylistsByCreateDateAsc(): Flow<List<Playlist>>
+
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isEditable AND isLocal IS NOT NULL ORDER BY name")
+    fun localEditablePlaylistsByNameAsc(): Flow<List<Playlist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isLocal IS NOT NULL ORDER BY name")
+    fun localPlaylistsByNameAsc(): Flow<List<Playlist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE isLocal IS NOT NULL ORDER BY songCount")
+    fun localPlaylistsBySongCountAsc(): Flow<List<Playlist>>
+
+    fun localPlaylists(sortType: PlaylistSortType, descending: Boolean) =
+        when (sortType) {
+            PlaylistSortType.CREATE_DATE -> localPlaylistsByCreateDateAsc()
+            PlaylistSortType.NAME -> localPlaylistsByNameAsc()
+            PlaylistSortType.SONG_COUNT -> localPlaylistsBySongCountAsc()
+            PlaylistSortType.LAST_UPDATED -> localEditablePlaylistsByNameAsc()
+        }.map { it.reversed(descending) }
+
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE id = :playlistId")
     fun playlist(playlistId: String): Flow<Playlist?>
@@ -785,7 +809,8 @@ interface DatabaseDao {
                 playEndpointParams = playlistItem.playEndpoint?.params,
                 shuffleEndpointParams = playlistItem.shuffleEndpoint?.params,
                 radioEndpointParams = playlistItem.radioEndpoint?.params,
-                description = playlistItem.description
+                description = playlistItem.description,
+                isLocal = false
             )
         )
     }

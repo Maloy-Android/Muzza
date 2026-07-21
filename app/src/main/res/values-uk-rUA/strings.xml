@@ -82,6 +82,7 @@
     <string name="search_library">Пошук в бібліотеці…</string>
     <string name="filter_library">Бібліотека</string>
     <string name="filter_liked">Вподобані</string>
+    <string name="filter_local">Локальні</string>
     <string name="filter_downloaded">Завантажені</string>
     <string name="filter_all">Всі</string>
     <string name="filter_songs">Композиції</string>

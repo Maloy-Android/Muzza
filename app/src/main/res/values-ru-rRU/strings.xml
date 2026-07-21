@@ -295,6 +295,7 @@
 
     <!-- Player -->
     <string name="now_playing">Сейчас играет</string>
+    <string name="your_queue_title">Ваша очередь</string>
     <string name="lyrics_not_found">Текст песни не найден</string>
     <string name="lyrics_from">Текст песни от %s</string>
     <string name="sleep_timer">Таймер сна</string>

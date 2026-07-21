@@ -448,6 +448,7 @@ fun Queue(
     ) {
         val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
         val queueTitle by playerConnection.queueTitle.collectAsState()
+        val queueTitleText = if (queueTitle.isNullOrEmpty()) stringResource(R.string.your_queue_title) else queueTitle
         val queueWindows by playerConnection.queueWindows.collectAsState()
         val mutableQueueWindows = remember { mutableStateListOf<Timeline.Window>() }
         val queueLength = remember(queueWindows) {
@@ -703,24 +704,14 @@ fun Queue(
                                 .padding(horizontal = 6.dp)
                                 .weight(1f)
                         ) {
-                            if (!queueTitle.isNullOrEmpty()) {
+                            queueTitleText?.let { queueTitle ->
                                 Text(
-                                    text = queueTitle.orEmpty(),
+                                    text = queueTitle,
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     maxLines = 1,
                                     overflow = TextOverflow.Ellipsis
                                 )
-                            } else {
-                                mediaMetadata?.let {
-                                    Text(
-                                        text = it.title,
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.Bold,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
                             }
                         }
 

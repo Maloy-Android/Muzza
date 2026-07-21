@@ -279,6 +279,7 @@
 
     <!-- Player -->
     <string name="now_playing">Now playing</string>
+    <string name="your_queue_title">Your queue</string>
     <string name="lyrics_not_found">Lyrics not found</string>
     <string name="lyrics_from">Lyrics from %s</string>
     <string name="sleep_timer">Sleep timer</string>

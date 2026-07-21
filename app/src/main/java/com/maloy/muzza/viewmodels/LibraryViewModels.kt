@@ -443,9 +443,9 @@ class LibraryMixViewModel @Inject constructor(
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
-    var albums = database.albumsLiked(AlbumSortType.CREATE_DATE, true)
+    var albums = database.combinedAlbums(AlbumSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
-    var playlists = database.playlists(PlaylistSortType.CREATE_DATE, true)
+    var playlists = database.combinedPlaylists(PlaylistSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
     val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)

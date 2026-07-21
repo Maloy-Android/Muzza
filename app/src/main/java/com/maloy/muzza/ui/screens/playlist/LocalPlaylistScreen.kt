@@ -531,6 +531,7 @@ fun LocalPlaylistScreen(
                 ) {
                     val currentItem by rememberUpdatedState(song)
 
+                    @SuppressLint("LocalContextGetResourceValueCall")
                     fun deleteFromPlaylist() {
                         database.transaction {
                             coroutineScope.launch {

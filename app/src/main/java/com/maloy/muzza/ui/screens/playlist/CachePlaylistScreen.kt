@@ -58,7 +58,6 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -205,7 +204,7 @@ fun CachePlaylistScreen(
                 Text(
                     text = stringResource(
                         R.string.remove_download_playlist_confirm,
-                        stringResource(R.string.cached)
+                        cachedPlaylist.playlist.name
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
@@ -313,7 +312,7 @@ fun CachePlaylistScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AutoResizeText(
-                                    text = context.getString(R.string.cached),
+                                    text = cachedPlaylist.playlist.name,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
@@ -446,7 +445,7 @@ fun CachePlaylistScreen(
                                             } else {
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = context.getString(R.string.cached),
+                                                        title = cachedPlaylist.playlist.name,
                                                         items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) }
                                                     )
                                                 )
@@ -467,7 +466,7 @@ fun CachePlaylistScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.cached),
+                                                    title = cachedPlaylist.playlist.name,
                                                     items = cachedSongs.shuffled()
                                                         .map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) }
                                                 )
@@ -593,7 +592,7 @@ fun CachePlaylistScreen(
                                         } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.cached),
+                                                    title = cachedPlaylist.playlist.name,
                                                     items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) },
                                                     startIndex = cachedSongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
@@ -628,7 +627,7 @@ fun CachePlaylistScreen(
                 } else {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.cached),
+                            title = cachedPlaylist.playlist.name,
                             items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) }
                         )
                     )
@@ -739,7 +738,7 @@ fun CachePlaylistScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(stringResource(R.string.cached))
+                        Text(cachedPlaylist.playlist.name)
                     }
                 },
                 navigationIcon = {

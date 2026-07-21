@@ -78,7 +78,6 @@ import com.maloy.muzza.constants.AlbumThumbnailSize
 import com.maloy.muzza.constants.MyTopFilter
 import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.db.entities.Song
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
 import com.maloy.muzza.playback.queues.ListQueue
@@ -241,7 +240,7 @@ fun TopPlaylistScreen(
                 Text(
                     text = stringResource(
                         R.string.remove_download_playlist_confirm,
-                        stringResource(R.string.my_top)
+                        topPlaylist.playlist.name
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
@@ -355,7 +354,7 @@ fun TopPlaylistScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AutoResizeText(
-                                    text = stringResource(R.string.my_top),
+                                    text = topPlaylist.playlist.name,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
@@ -487,7 +486,7 @@ fun TopPlaylistScreen(
                                         } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.my_top),
+                                                    title = topPlaylist.playlist.name,
                                                     items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) }
                                                 )
                                             )
@@ -508,7 +507,7 @@ fun TopPlaylistScreen(
                                     onClick = {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = context.getString(R.string.my_top),
+                                                title = topPlaylist.playlist.name,
                                                 items = songs.shuffled()
                                                     .map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) }
                                             )
@@ -637,7 +636,7 @@ fun TopPlaylistScreen(
                                     } else {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = context.getString(R.string.my_top),
+                                                title = topPlaylist.playlist.name,
                                                 items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) },
                                                 startIndex = songs.indexOfFirst { it.song.id == songWrapper.id }
                                             )
@@ -671,7 +670,7 @@ fun TopPlaylistScreen(
                 } else {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.my_top),
+                            title = topPlaylist.playlist.name,
                             items = songs.map { it.toMediaItemWithPlaylist(topPlaylist.playlist.id) }
                         )
                     )
@@ -775,7 +774,7 @@ fun TopPlaylistScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(stringResource(R.string.my_top))
+                        Text(topPlaylist.playlist.name)
                     }
                 },
                 navigationIcon = {

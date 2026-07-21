@@ -58,7 +58,6 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -202,7 +201,7 @@ fun AutoPlaylistLibraryScreen(
                 Text(
                     text = stringResource(
                         R.string.remove_download_playlist_confirm,
-                        stringResource(R.string.songs_from_library)
+                        libraryMusicPlaylist.playlist.name
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
@@ -310,7 +309,7 @@ fun AutoPlaylistLibraryScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AutoResizeText(
-                                    text = context.getString(R.string.songs_from_library),
+                                    text = libraryMusicPlaylist.playlist.name,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
@@ -442,7 +441,7 @@ fun AutoPlaylistLibraryScreen(
                                             } else {
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = context.getString(R.string.songs_from_library),
+                                                        title = libraryMusicPlaylist.playlist.name,
                                                         items = librarySongs.map {
                                                             it.toMediaItemWithPlaylist(
                                                                 libraryMusicPlaylist.playlist.id
@@ -467,7 +466,7 @@ fun AutoPlaylistLibraryScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.songs_from_library),
+                                                    title = libraryMusicPlaylist.playlist.name,
                                                     items = librarySongs.shuffled()
                                                         .map { it.toMediaItemWithPlaylist(libraryMusicPlaylist.playlist.id) }
                                                 )
@@ -592,7 +591,7 @@ fun AutoPlaylistLibraryScreen(
                                         } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.songs_from_library),
+                                                    title = libraryMusicPlaylist.playlist.name,
                                                     items = librarySongs.map { it.toMediaItemWithPlaylist(libraryMusicPlaylist.playlist.id) },
                                                     startIndex = librarySongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
@@ -627,7 +626,7 @@ fun AutoPlaylistLibraryScreen(
                 } else {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.songs_from_library),
+                            title = libraryMusicPlaylist.playlist.name,
                             items = librarySongs.map {
                                 it.toMediaItemWithPlaylist(
                                     libraryMusicPlaylist.playlist.id
@@ -741,7 +740,7 @@ fun AutoPlaylistLibraryScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(stringResource(R.string.songs_from_library))
+                        Text(libraryMusicPlaylist.playlist.name)
                     }
                 },
                 navigationIcon = {

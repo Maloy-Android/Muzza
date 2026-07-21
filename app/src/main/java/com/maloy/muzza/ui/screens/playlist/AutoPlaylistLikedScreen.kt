@@ -201,8 +201,6 @@ fun AutoPlaylistLikedScreen(
     val accountName by rememberPreference(likedMusicAuthorNameKey, "")
     val accountId by rememberPreference(likedMusicAuthorIdKey, "")
     val description by rememberPreference(likedMusicDescriptionKey, "")
-    val playlist =
-        if (isLoggedIn && likedMusicTitle.isNotEmpty()) likedMusicTitle else stringResource(R.string.liked)
     val songs by viewModel.likedSongs.collectAsState()
     val mutableSongs = remember {
         mutableStateListOf<Song>()
@@ -307,7 +305,7 @@ fun AutoPlaylistLikedScreen(
             icon = { Icon(Icons.Rounded.CloudOff, null) },
             content = {
                 Text(
-                    text = stringResource(R.string.remove_download_playlist_confirm, playlist),
+                    text = stringResource(R.string.remove_download_playlist_confirm, likedMusicPlaylist.playlist.name),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
                 )
@@ -393,7 +391,7 @@ fun AutoPlaylistLikedScreen(
                 item {
                     EmptyPlaceholderImage(
                         icon = Icons.Rounded.Favorite,
-                        text = stringResource(R.string.playlist_is_empty, playlist)
+                        text = stringResource(R.string.playlist_is_empty, likedMusicPlaylist.playlist.name)
                     )
                 }
             } else {
@@ -441,7 +439,7 @@ fun AutoPlaylistLikedScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AutoResizeText(
-                                    text = playlist,
+                                    text = likedMusicPlaylist.playlist.name,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
@@ -671,7 +669,7 @@ fun AutoPlaylistLikedScreen(
                                         } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = playlist,
+                                                    title = likedMusicPlaylist.playlist.name,
                                                     items = songs.map {
                                                         it.toMediaItemWithPlaylist(
                                                             likedMusicPlaylist.playlist.id
@@ -696,7 +694,7 @@ fun AutoPlaylistLikedScreen(
                                     onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = playlist,
+                                                    title = likedMusicPlaylist.playlist.name,
                                                     items = songs.shuffled()
                                                         .map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
                                                 )
@@ -818,7 +816,7 @@ fun AutoPlaylistLikedScreen(
                                     } else {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = playlist,
+                                                title = likedMusicPlaylist.playlist.name,
                                                 items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) },
                                                 startIndex = songs.indexOfFirst { it.song.id == songWrapper.id })
                                         )
@@ -859,7 +857,7 @@ fun AutoPlaylistLikedScreen(
                 } else {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = playlist,
+                            title = likedMusicPlaylist.playlist.name,
                             items = songs.map { it.toMediaItemWithPlaylist(likedMusicPlaylist.playlist.id) }
                         )
                     )
@@ -963,7 +961,7 @@ fun AutoPlaylistLikedScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(playlist)
+                        Text(likedMusicPlaylist.playlist.name)
                     }
                 },
                 navigationIcon = {

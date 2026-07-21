@@ -103,7 +103,6 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.ExoDownloadService
@@ -257,7 +256,7 @@ fun AutoPlaylistDownloadedScreen(
                 Text(
                     text = stringResource(
                         R.string.remove_download_playlist_confirm,
-                        stringResource(R.string.offline)
+                        downloadPlaylist.playlist.name
                     ),
                     style = MaterialTheme.typography.bodyLarge,
                     modifier = Modifier.padding(horizontal = 18.dp)
@@ -337,7 +336,7 @@ fun AutoPlaylistDownloadedScreen(
                         icon = Icons.Rounded.CloudDownload,
                         text = stringResource(
                             R.string.playlist_is_empty,
-                            stringResource(R.string.offline)
+                            downloadPlaylist.playlist.name
                         )
                     )
                 }
@@ -374,7 +373,7 @@ fun AutoPlaylistDownloadedScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AutoResizeText(
-                                    text = stringResource(R.string.offline),
+                                    text = downloadPlaylist.playlist.name,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
@@ -509,7 +508,7 @@ fun AutoPlaylistDownloadedScreen(
                                         } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.offline),
+                                                    title = downloadPlaylist.playlist.name,
                                                     items = songs.map {
                                                         it.toMediaItemWithPlaylist(
                                                             downloadPlaylist.playlist.id
@@ -534,7 +533,7 @@ fun AutoPlaylistDownloadedScreen(
                                     onClick = {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = context.getString(R.string.offline),
+                                                title = downloadPlaylist.playlist.name,
                                                 items = songs.shuffled()
                                                     .map { it.toMediaItemWithPlaylist(downloadPlaylist.playlist.id) }
                                             )
@@ -656,7 +655,7 @@ fun AutoPlaylistDownloadedScreen(
                                     } else {
                                         playerConnection.playQueue(
                                             ListQueue(
-                                                title = context.getString(R.string.offline),
+                                                title = downloadPlaylist.playlist.name,
                                                 items = songs.map { it.toMediaItemWithPlaylist(downloadPlaylist.playlist.id) },
                                                 startIndex = songs.indexOfFirst { it.song.id == songWrapper.id })
                                         )
@@ -688,7 +687,7 @@ fun AutoPlaylistDownloadedScreen(
                 } else {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.offline),
+                            title = downloadPlaylist.playlist.name,
                             items = songs.map { it.toMediaItemWithPlaylist(downloadPlaylist.playlist.id) }
                         )
                     )
@@ -792,7 +791,7 @@ fun AutoPlaylistDownloadedScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(stringResource(R.string.offline))
+                        Text(downloadPlaylist.playlist.name)
                     }
                 },
                 navigationIcon = {

@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.pm.PackageManager
 import android.os.Build
@@ -62,7 +63,6 @@ import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.PlaylistEntity
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.extensions.move
-import com.maloy.muzza.extensions.toMediaItem
 import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.playback.queues.ListQueue
@@ -83,6 +83,7 @@ import kotlinx.coroutines.launch
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
+@SuppressLint("LocalContextGetResourceValueCall")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AutoPlaylistLocalScreen(
@@ -285,7 +286,7 @@ fun AutoPlaylistLocalScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally
                             ) {
                                 AutoResizeText(
-                                    text = stringResource(R.string.local),
+                                    text = localPlaylist.playlist.name,
                                     fontWeight = FontWeight.Bold,
                                     textAlign = TextAlign.Center,
                                     maxLines = 2,
@@ -391,7 +392,7 @@ fun AutoPlaylistLocalScreen(
                                             } else {
                                                 playerConnection.playQueue(
                                                     ListQueue(
-                                                        title = context.getString(R.string.local),
+                                                        title = localPlaylist.playlist.name,
                                                         items = localSongs.map {
                                                             it.toMediaItemWithPlaylist(
                                                                 localPlaylist.playlist.id
@@ -416,7 +417,7 @@ fun AutoPlaylistLocalScreen(
                                         onClick = {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.local),
+                                                    title = localPlaylist.playlist.name,
                                                     items = localSongs.shuffled()
                                                         .map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) }
                                                 )
@@ -541,7 +542,7 @@ fun AutoPlaylistLocalScreen(
                                         } else {
                                             playerConnection.playQueue(
                                                 ListQueue(
-                                                    title = context.getString(R.string.local),
+                                                    title = localPlaylist.playlist.name,
                                                     items = localSongs.map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) },
                                                     startIndex = localSongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
@@ -576,7 +577,7 @@ fun AutoPlaylistLocalScreen(
                 } else {
                     playerConnection.playQueue(
                         ListQueue(
-                            title = context.getString(R.string.local),
+                            title = localPlaylist.playlist.name,
                             items = localSongs.map { it.toMediaItemWithPlaylist(localPlaylist.playlist.id) }
                         )
                     )
@@ -687,7 +688,7 @@ fun AutoPlaylistLocalScreen(
                             }
                         )
                     } else if (lazyChecker) {
-                        Text(stringResource(R.string.local))
+                        Text(localPlaylist.playlist.name)
                     }
                 },
                 navigationIcon = {

@@ -114,8 +114,8 @@ fun LibraryArtistsScreen(
     val (sortDescending, onSortDescendingChange) = rememberPreference(ArtistSortDescendingKey, true)
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val filterTitle = when(filter) {
-        ArtistFilter.LIKED -> R.string.filter_liked
-        ArtistFilter.LIBRARY -> R.string.filter_library
+        ArtistFilter.LIKED -> stringResource(R.string.filter_liked)
+        ArtistFilter.LIBRARY -> stringResource(R.string.filter_library)
     }
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
     val isLoggedIn =

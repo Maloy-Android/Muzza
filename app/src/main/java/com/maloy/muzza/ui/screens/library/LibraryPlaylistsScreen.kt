@@ -136,8 +136,8 @@ fun LibraryPlaylistsScreen(
     var filter by rememberEnumPreference(PlaylistFilterKey, PlaylistFilter.LIKED)
 
     val filterTitle = when (filter) {
-        PlaylistFilter.LIKED -> R.string.filter_liked
-        PlaylistFilter.DOWNLOADED -> R.string.filter_downloaded
+        PlaylistFilter.LIKED -> stringResource(R.string.filter_liked)
+        PlaylistFilter.DOWNLOADED -> stringResource(R.string.filter_downloaded)
     }
 
     val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)

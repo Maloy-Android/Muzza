@@ -761,6 +761,29 @@ interface DatabaseDao {
             PlaylistSortType.LAST_UPDATED -> localEditablePlaylistsByNameAsc()
         }.map { it.reversed(descending) }
 
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE (isLocal = 1) OR (bookmarkedAt IS NOT NULL) ORDER BY rowId")
+    fun combinedPlaylistsByCreateDateAsc(): Flow<List<Playlist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE (isLocal = 1) OR (bookmarkedAt IS NOT NULL) ORDER BY name")
+    fun combinedEditablePlaylistsByNameAsc(): Flow<List<Playlist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE (isLocal = 1) OR (bookmarkedAt IS NOT NULL) ORDER BY name")
+    fun combinedPlaylistsByNameAsc(): Flow<List<Playlist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE (isLocal = 1) OR (bookmarkedAt IS NOT NULL)  ORDER BY songCount")
+    fun combinedPlaylistsBySongCountAsc(): Flow<List<Playlist>>
+
+    fun combinedPlaylists(sortType: PlaylistSortType, descending: Boolean) =
+        when (sortType) {
+            PlaylistSortType.CREATE_DATE -> combinedPlaylistsByCreateDateAsc()
+            PlaylistSortType.NAME -> combinedPlaylistsByNameAsc()
+            PlaylistSortType.SONG_COUNT -> combinedPlaylistsBySongCountAsc()
+            PlaylistSortType.LAST_UPDATED -> combinedEditablePlaylistsByNameAsc()
+        }.map { it.reversed(descending) }
+
     @Transaction
     @Query("SELECT *, (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount FROM playlist WHERE id = :playlistId")
     fun playlist(playlistId: String): Flow<Playlist?>

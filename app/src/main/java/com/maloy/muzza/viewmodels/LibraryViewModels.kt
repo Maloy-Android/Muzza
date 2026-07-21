@@ -236,7 +236,7 @@ class LibraryPlaylistsViewModel @Inject constructor(
                 PlaylistFilter.LIKED -> database.playlists(sortType, descending)
                 PlaylistFilter.LOCAL -> database.localPlaylists(sortType, descending)
                 PlaylistFilter.DOWNLOADED -> combine(
-                    database.playlists(sortType, descending),
+                    database.combinedPlaylists(sortType, descending),
                     downloadUtil.downloads
                 ) { playlists, downloads ->
                     playlists.filter { playlist ->

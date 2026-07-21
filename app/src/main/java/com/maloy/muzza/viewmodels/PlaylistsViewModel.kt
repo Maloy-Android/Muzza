@@ -36,7 +36,7 @@ constructor(
                     ?: true)
             }.distinctUntilChanged()
             .flatMapLatest { (sortType, descending) ->
-                database.playlists(sortType, descending)
+                database.combinedPlaylists(sortType, descending)
             }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     suspend fun sync() {

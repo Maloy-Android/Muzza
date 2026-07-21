@@ -1391,8 +1391,10 @@ fun CommunityPlaylistCard(
                                     } else {
                                         playerConnection?.playQueue(
                                             YouTubeQueue(
-                                                song.endpoint ?: WatchEndpoint(videoId = song.id),
-                                                song.toMediaMetadata(),
+                                                title = song.title,
+                                                endpoint = song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                preloadItem = song.toMediaMetadata(),
+                                                context = context
                                             )
                                         )
                                     }
@@ -1936,6 +1938,7 @@ fun YouTubeGridItem(
     },
     badges = badges,
     thumbnailContent = {
+        val context = LocalContext.current
         val menuState = LocalMenuState.current
         val database = LocalDatabase.current
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
@@ -1993,9 +1996,10 @@ fun YouTubeGridItem(
                 } else if (item is SongItem) {
                     playerConnection.playQueue(
                         YouTubeQueue(
-                            item.endpoint
-                                ?: WatchEndpoint(videoId = item.id),
-                            item.toMediaMetadata()
+                            title = item.title,
+                            endpoint = item.endpoint ?: WatchEndpoint(videoId = item.id),
+                            preloadItem = item.toMediaMetadata(),
+                            context = context
                         )
                     )
                 }
@@ -2007,9 +2011,10 @@ fun YouTubeGridItem(
                 if (item is SongItem) {
                     playerConnection.playQueue(
                         YouTubeQueue(
-                            item.endpoint
-                                ?: WatchEndpoint(videoId = item.id),
-                            item.toMediaMetadata()
+                            title = item.title,
+                            endpoint = item.endpoint ?: WatchEndpoint(videoId = item.id),
+                            preloadItem = item.toMediaMetadata(),
+                            context = context
                         )
                     )
                 }

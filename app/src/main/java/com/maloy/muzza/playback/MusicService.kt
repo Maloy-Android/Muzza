@@ -205,6 +205,8 @@ class MusicService : MediaLibraryService(),
     @Inject
     lateinit var listenTogetherManager: ListenTogetherManager
 
+    private lateinit var context: Context
+
     private var scope = CoroutineScope(Dispatchers.Main) + Job()
     private val binder = MusicBinder()
 
@@ -965,7 +967,11 @@ class MusicService : MediaLibraryService(),
         )
         scope.launch(SilentHandler) {
             val radioQueue =
-                YouTubeQueue(endpoint = WatchEndpoint(videoId = currentMediaMetadata.id))
+                YouTubeQueue(
+                    title = currentMediaMetadata.title,
+                    endpoint = WatchEndpoint(videoId = currentMediaMetadata.id),
+                    context = context
+                )
             val initialStatus = radioQueue.getInitialStatus()
             if (initialStatus.title != null) {
                 queueTitle = initialStatus.title

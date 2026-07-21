@@ -288,7 +288,13 @@ fun SongMenu(
                     .clip(RoundedCornerShape(8.dp))
                     .clickable {
                         onDismiss()
-                        playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+                        playerConnection.playQueue(
+                            YouTubeQueue.radio(
+                                title = song.song.title,
+                                song = song.toMediaMetadata(),
+                                context = context
+                            )
+                        )
                     }
                     .padding(12.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,

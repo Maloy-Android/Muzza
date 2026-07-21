@@ -46,6 +46,7 @@ import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.pluralStringResource
@@ -98,6 +99,7 @@ fun ArtistItemsScreen(
     scrollBehavior: TopAppBarScrollBehavior,
     viewModel: ArtistItemsViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val menuState = LocalMenuState.current
     val haptic = LocalHapticFeedback.current
     val playerConnection = LocalPlayerConnection.current ?: return
@@ -367,9 +369,11 @@ fun ArtistItemsScreen(
                                             when (item) {
                                                 is SongItem -> playerConnection.playQueue(
                                                     YouTubeQueue(
-                                                        item.endpoint
+                                                        title = item.title,
+                                                        endpoint = item.endpoint
                                                             ?: WatchEndpoint(videoId = item.id),
-                                                        item.toMediaMetadata()
+                                                        preloadItem = item.toMediaMetadata(),
+                                                        context = context
                                                     )
                                                 )
 

@@ -517,9 +517,11 @@ fun ArtistScreen(
                                     } else {
                                         playerConnection.playQueue(
                                             YouTubeQueue(
-                                                WatchEndpoint(
+                                                title = song.song.title,
+                                                endpoint = WatchEndpoint(
                                                     videoId = song.id
-                                                ), song.toMediaMetadata()
+                                                ), preloadItem = song.toMediaMetadata(),
+                                                context = context
                                             )
                                         )
                                     }
@@ -614,7 +616,9 @@ fun ArtistScreen(
                                                     } else {
                                                         playerConnection.playQueue(
                                                             YouTubeQueue.radio(
-                                                                song.toMediaMetadata()
+                                                                title = song.title,
+                                                                song = song.toMediaMetadata(),
+                                                                context = context
                                                             )
                                                         )
                                                     }
@@ -666,14 +670,20 @@ fun ArtistScreen(
                                                             coroutineScope.launch(Dispatchers.IO) {
                                                                 YouTube.queue(listOf(item.id))
                                                                     .onSuccess { updatedSongs ->
-                                                                        updatedSongs.firstOrNull()?.let { updatedSong ->
-                                                                            val albumId = updatedSong.album?.id
-                                                                            if (!albumId.isNullOrEmpty()) {
-                                                                                withContext(Dispatchers.Main) {
-                                                                                    navController.navigate("album/${albumId}")
+                                                                        updatedSongs.firstOrNull()
+                                                                            ?.let { updatedSong ->
+                                                                                val albumId =
+                                                                                    updatedSong.album?.id
+                                                                                if (!albumId.isNullOrEmpty()) {
+                                                                                    withContext(
+                                                                                        Dispatchers.Main
+                                                                                    ) {
+                                                                                        navController.navigate(
+                                                                                            "album/${albumId}"
+                                                                                        )
+                                                                                    }
                                                                                 }
                                                                             }
-                                                                        }
                                                                     }
                                                             }
                                                         } else {

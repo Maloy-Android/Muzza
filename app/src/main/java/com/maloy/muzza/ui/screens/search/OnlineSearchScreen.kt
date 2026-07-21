@@ -36,6 +36,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
@@ -80,6 +81,7 @@ fun OnlineSearchScreen(
     onDismiss: () -> Unit,
     viewModel: OnlineSearchSuggestionViewModel = hiltViewModel(),
 ) {
+    val context = LocalContext.current
     val menuState = LocalMenuState.current
     val database = LocalDatabase.current
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -193,8 +195,10 @@ fun OnlineSearchScreen(
                                     } else {
                                         playerConnection.playQueue(
                                             YouTubeQueue(
-                                                WatchEndpoint(videoId = item.id),
-                                                item.toMediaMetadata()
+                                                title = item.title,
+                                                endpoint = WatchEndpoint(videoId = item.id),
+                                                preloadItem = item.toMediaMetadata(),
+                                                context = context
                                             ),
                                         )
                                         onDismiss()

@@ -1,6 +1,8 @@
 package com.maloy.muzza.playback.queues
 
+import android.content.Context
 import androidx.media3.common.MediaItem
+import com.maloy.muzza.R
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.extensions.toMediaItem
@@ -9,6 +11,8 @@ import kotlinx.coroutines.Dispatchers.IO
 import kotlinx.coroutines.withContext
 
 class YouTubeQueue(
+    private val context: Context,
+    private val title: String,
     private var endpoint: WatchEndpoint,
     override val preloadItem: MediaMetadata? = null,
 ) : Queue {
@@ -21,7 +25,7 @@ class YouTubeQueue(
         endpoint = nextResult.endpoint
         continuation = nextResult.continuation
         return Queue.Status(
-            title = nextResult.title,
+            title = context.getString(R.string.radio_queue_title,title),
             items = nextResult.items.map { it.toMediaItem() },
             mediaItemIndex = nextResult.currentIndex ?: 0
         )
@@ -39,6 +43,6 @@ class YouTubeQueue(
     }
 
     companion object {
-        fun radio(song: MediaMetadata) = YouTubeQueue(WatchEndpoint(song.id), song)
+        fun radio(song: MediaMetadata,context:Context, title: String) = YouTubeQueue(context = context, title = title,WatchEndpoint(song.id), song)
     }
 }

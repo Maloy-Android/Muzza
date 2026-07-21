@@ -1532,9 +1532,11 @@ constructor(
                                 connection.allowInternalSync = true
                                 connection.playQueue(
                                     YouTubeQueue(
+                                        title = track.title,
                                         endpoint = WatchEndpoint(videoId = track.id),
                                         preloadItem = queue.firstOrNull()?.toMediaMetadata(),
-                                    ),
+                                        context = context
+                                    )
                                 )
                                 try {
                                     connection.service.queueTitle = "Listen Together" // Set default title

@@ -182,8 +182,10 @@ fun OnlineSearchResult(
                                 } else if (searchFilter == null) {
                                     playerConnection.playQueue(
                                         YouTubeQueue(
-                                            WatchEndpoint(videoId = item.id),
-                                            item.toMediaMetadata()
+                                            title = item.title,
+                                            endpoint = WatchEndpoint(videoId = item.id),
+                                            preloadItem = item.toMediaMetadata(),
+                                            context = context
                                         )
                                     )
                                 } else {

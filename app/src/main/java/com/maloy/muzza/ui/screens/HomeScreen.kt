@@ -632,12 +632,14 @@ fun HomeScreen(
                                                                                 is SongItem -> {
                                                                                     playerConnection.playQueue(
                                                                                         YouTubeQueue(
-                                                                                            randomItem.endpoint
+                                                                                            title = randomItem.title,
+                                                                                            endpoint = randomItem.endpoint
                                                                                                 ?: WatchEndpoint(
                                                                                                     videoId = randomItem.id,
                                                                                                 ),
-                                                                                            randomItem.toMediaMetadata(),
-                                                                                        ),
+                                                                                            preloadItem = randomItem.toMediaMetadata(),
+                                                                                            context = context
+                                                                                        )
                                                                                     )
                                                                                 }
 
@@ -694,12 +696,14 @@ fun HomeScreen(
                                                                                 } else {
                                                                                     playerConnection.playQueue(
                                                                                         YouTubeQueue(
-                                                                                            item.endpoint
+                                                                                            title = item.title,
+                                                                                            endpoint = item.endpoint
                                                                                                 ?: WatchEndpoint(
                                                                                                     videoId = item.id,
                                                                                                 ),
-                                                                                            item.toMediaMetadata(),
-                                                                                        ),
+                                                                                            preloadItem = item.toMediaMetadata(),
+                                                                                            context = context
+                                                                                        )
                                                                                     )
                                                                                 }
                                                                             }
@@ -838,7 +842,9 @@ fun HomeScreen(
                                             } else {
                                                 playerConnection.playQueue(
                                                     YouTubeQueue.radio(
-                                                        song!!.toMediaMetadata()
+                                                        title = song!!.song.title,
+                                                        song = song!!.toMediaMetadata(),
+                                                        context = context
                                                     )
                                                 )
                                             }
@@ -937,10 +943,12 @@ fun HomeScreen(
                                             if (mediaMetadata != null) {
                                                 playerConnection.playQueue(
                                                     YouTubeQueue(
-                                                        song.endpoint
+                                                        title = song.title,
+                                                        endpoint = song.endpoint
                                                             ?: WatchEndpoint(videoId = song.id),
-                                                        mediaMetadata,
-                                                    ),
+                                                        preloadItem = mediaMetadata,
+                                                        context = context
+                                                    )
                                                 )
                                             }
                                         }
@@ -1149,8 +1157,10 @@ fun HomeScreen(
                     val song = quickPicks!!.random()
                     playerConnection.playQueue(
                         YouTubeQueue(
-                            WatchEndpoint(videoId = song.id),
-                            song.toMediaMetadata()
+                            title = song.song.title,
+                            endpoint = WatchEndpoint(videoId = song.id),
+                            preloadItem = song.toMediaMetadata(),
+                            context = context
                         )
                     )
                 } else if (explorePage?.newReleaseAlbums?.isNotEmpty() == true) {

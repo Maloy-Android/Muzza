@@ -79,6 +79,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.painterResource
@@ -398,6 +399,7 @@ class MainActivity : ComponentActivity() {
                         .fillMaxSize()
                         .background(MaterialTheme.colorScheme.surface)
                 ) {
+                    val context = LocalContext.current
                     val focusManager = LocalFocusManager.current
                     val density = LocalDensity.current
                     val windowsInsets = WindowInsets.systemBars
@@ -656,9 +658,11 @@ class MainActivity : ComponentActivity() {
                                         }.onSuccess {
                                             playerConnection?.playQueue(
                                                 YouTubeQueue(
-                                                    WatchEndpoint(
+                                                    title = it.firstOrNull()?.title!!,
+                                                    endpoint = WatchEndpoint(
                                                         videoId = it.firstOrNull()?.id
-                                                    ), it.firstOrNull()?.toMediaMetadata()
+                                                    ), preloadItem = it.firstOrNull()?.toMediaMetadata(),
+                                                    context = context
                                                 )
                                             )
                                         }.onFailure {

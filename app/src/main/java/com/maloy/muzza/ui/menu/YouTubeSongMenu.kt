@@ -217,7 +217,13 @@ fun YouTubeSongMenu(
                 )
                 .clip(RoundedCornerShape(8.dp))
                 .clickable {
-                    playerConnection.playQueue(YouTubeQueue.radio(song.toMediaMetadata()))
+                    playerConnection.playQueue(
+                        YouTubeQueue.radio(
+                            title = song.title,
+                            song = song.toMediaMetadata(),
+                            context = context
+                        )
+                    )
                     onDismiss()
                 }
                 .padding(12.dp),

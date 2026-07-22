@@ -422,15 +422,15 @@ interface DatabaseDao {
     fun artistsByPlayTimeAsc(): Flow<List<Artist>>
 
     @Transaction
-    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt")
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL AND isProfile = 0 ORDER BY bookmarkedAt")
     fun artistsBookmarkedByCreateDateAsc(): Flow<List<Artist>>
 
     @Transaction
-    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY name")
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL AND isProfile = 0 ORDER BY name")
     fun artistsBookmarkedByNameAsc(): Flow<List<Artist>>
 
     @Transaction
-    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY songCount")
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt IS NOT NULL AND isProfile = 0 ORDER BY songCount")
     fun artistsBookmarkedBySongCountAsc(): Flow<List<Artist>>
 
     @Transaction
@@ -450,7 +450,7 @@ interface DatabaseDao {
                       GROUP BY artistId
                       ORDER BY totalPlayTime)
                      ON artist.id = artistId
-        WHERE bookmarkedAt IS NOT NULL
+        WHERE bookmarkedAt IS NOT NULL AND isProfile = 0
     """
     )
     fun artistsBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
@@ -473,6 +473,52 @@ interface DatabaseDao {
             ArtistSortType.NAME -> artistsBookmarkedByNameAsc()
             ArtistSortType.SONG_COUNT -> artistsBookmarkedBySongCountAsc()
             ArtistSortType.PLAY_TIME -> artistsBookmarkedByPlayTimeAsc()
+        }.map { artists ->
+            artists
+                .filter { it.artist.isYouTubeArtist }
+                .reversed(descending)
+        }
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt AND isProfile = 1 ORDER BY bookmarkedAt")
+    fun profilesBookmarkedByCreateDateAsc(): Flow<List<Artist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt AND isProfile = 1 ORDER BY name")
+    fun profilesBookmarkedByNameAsc(): Flow<List<Artist>>
+
+    @Transaction
+    @Query("SELECT *, (SELECT COUNT(1) FROM song_artist_map JOIN song ON song_artist_map.songId = song.id WHERE artistId = artist.id AND song.inLibrary IS NOT NULL) AS songCount FROM artist WHERE bookmarkedAt AND isProfile = 1 ORDER BY songCount")
+    fun profilesBookmarkedBySongCountAsc(): Flow<List<Artist>>
+
+    @Transaction
+    @Query(
+        """
+        SELECT artist.*,
+               (SELECT COUNT(1)
+                FROM song_artist_map
+                         JOIN song ON song_artist_map.songId = song.id
+                WHERE artistId = artist.id
+                  AND song.inLibrary IS NOT NULL) AS songCount
+        FROM artist
+                 JOIN(SELECT artistId, SUM(totalPlayTime) AS totalPlayTime
+                      FROM song_artist_map
+                               JOIN song
+                                    ON song_artist_map.songId = song.id
+                      GROUP BY artistId
+                      ORDER BY totalPlayTime)
+                     ON artist.id = artistId
+        WHERE bookmarkedAt AND isProfile = 1
+    """
+    )
+    fun profilesBookmarkedByPlayTimeAsc(): Flow<List<Artist>>
+
+    fun profilesBookmarked(sortType: ArtistSortType, descending: Boolean) =
+        when (sortType) {
+            ArtistSortType.CREATE_DATE -> profilesBookmarkedByCreateDateAsc()
+            ArtistSortType.NAME -> profilesBookmarkedByNameAsc()
+            ArtistSortType.SONG_COUNT -> profilesBookmarkedBySongCountAsc()
+            ArtistSortType.PLAY_TIME -> profilesBookmarkedByPlayTimeAsc()
         }.map { artists ->
             artists
                 .filter { it.artist.isYouTubeArtist }
@@ -987,8 +1033,7 @@ interface DatabaseDao {
             ?.map { artist ->
                 ArtistEntity(
                     id = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId(),
-                    name = artist.name,
-                    isProfile = artist.isProfile
+                    name = artist.name
                 )
             }
             ?.onEach(::insert)
@@ -1019,8 +1064,7 @@ interface DatabaseDao {
             insert(
                 ArtistEntity(
                     id = artistId,
-                    name = artist.name,
-                    isProfile = artist.isProfile
+                    name = artist.name
                 )
             )
             insert(
@@ -1051,6 +1095,8 @@ interface DatabaseDao {
     fun update(artist: ArtistEntity, artistPage: ArtistPage) {
         update(
             artist.copy(
+                id = artistPage.artist.id,
+                channelId = artistPage.artist.channelId,
                 name = artistPage.artist.title,
                 thumbnailUrl = artistPage.artist.thumbnail.resize(1080, 1080),
                 lastUpdateTime = LocalDateTime.now(),
@@ -1089,8 +1135,7 @@ interface DatabaseDao {
                 .map { artist ->
                     ArtistEntity(
                         id = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId(),
-                        name = artist.name,
-                        isProfile = artist.isProfile
+                        name = artist.name
                     )
                 }
                 .onEach(::insert)

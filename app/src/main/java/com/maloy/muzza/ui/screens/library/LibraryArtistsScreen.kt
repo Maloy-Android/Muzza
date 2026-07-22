@@ -39,7 +39,6 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -115,6 +114,7 @@ fun LibraryArtistsScreen(
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
     val filterTitle = when(filter) {
         ArtistFilter.LIKED -> stringResource(R.string.filter_liked)
+        ArtistFilter.PROFILES -> stringResource(R.string.filter_profiles)
         ArtistFilter.LIBRARY -> stringResource(R.string.filter_library)
     }
     val innerTubeCookie by rememberPreference(InnerTubeCookieKey, "")
@@ -129,6 +129,7 @@ fun LibraryArtistsScreen(
                 chips =
                 listOf(
                     ArtistFilter.LIKED to stringResource(R.string.filter_liked),
+                    ArtistFilter.PROFILES to stringResource(R.string.filter_profiles),
                     ArtistFilter.LIBRARY to stringResource(R.string.filter_library),
                 ),
                 currentValue = filter,
@@ -141,14 +142,18 @@ fun LibraryArtistsScreen(
     }
 
     LaunchedEffect(Unit) {
-        if (filter == ArtistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context))
+        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
             withContext(Dispatchers.IO) {
-                viewModel.sync()
+                when (filter) {
+                    ArtistFilter.LIKED -> viewModel.syncArtists()
+                    ArtistFilter.PROFILES -> viewModel.syncProfiles()
+                    else -> filter
+                }
+            }
         }
     }
 
     val artists by viewModel.allArtists.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
@@ -264,7 +269,7 @@ fun LibraryArtistsScreen(
         modifier = Modifier
             .fillMaxSize()
             .pullToRefresh(
-                enabled = filter == ArtistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context),
+                enabled = filter != ArtistFilter.LIBRARY && ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
                 onRefresh = viewModel::refresh

@@ -91,17 +91,20 @@ class LibraryArtistsViewModel @Inject constructor(
         .flatMapLatest { (filter, sortType, descending) ->
             when (filter) {
                 ArtistFilter.LIBRARY -> database.artists(sortType, descending)
+                ArtistFilter.PROFILES -> database.profilesBookmarked(sortType, descending)
                 ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
-    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() } }
+    fun syncArtists() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() } }
+    fun syncProfiles() { viewModelScope.launch (Dispatchers.IO) { syncUtils.syncProfilesSubscriptions() } }
 
     fun refresh() {
         viewModelScope.launch {
             try {
                 _isRefreshing.value = true
                 syncUtils.syncArtistsSubscriptions()
+                syncUtils.syncProfilesSubscriptions()
             } catch (e: Exception) {
                 e.printStackTrace()
                 _error.value = "Failed to refresh artists"
@@ -410,6 +413,7 @@ class LibraryMixViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             syncUtils.syncLikedSongs()
             syncUtils.syncArtistsSubscriptions()
+            syncUtils.syncProfilesSubscriptions()
             syncUtils.syncLikedAlbums()
             syncUtils.syncSavedPlaylists()
         }
@@ -440,6 +444,7 @@ class LibraryMixViewModel @Inject constructor(
             when (filter) {
                 ArtistFilter.LIBRARY -> database.artists(sortType, descending)
                 ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
+                ArtistFilter.PROFILES -> database.profilesBookmarked(sortType, descending)
             }
         }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)

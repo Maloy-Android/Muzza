@@ -130,11 +130,43 @@ class SyncUtils @Inject constructor(
                                     thumbnailUrl = artist.thumbnail,
                                     channelId = artist.channelId,
                                     bookmarkedAt = LocalDateTime.now(),
-                                    isProfile = artist.isProfile
+                                    isProfile = false
                                 )
                             )
                         }
                         else -> if (dbArtist.artist.bookmarkedAt == null && !artist.isProfile)
+                            update(dbArtist.artist.localToggleLike())
+                    }
+                }
+            }
+        }
+    }
+    suspend fun syncProfilesSubscriptions() {
+        YouTube.library("FEmusic_library_corpus_profiles").completed().onSuccess { page ->
+            val artists = page.items.filterIsInstance<ArtistItem>()
+            database.profilesBookmarkedByNameAsc().first()
+                .filterNot { it.artist.bookmarkedAt != null }
+                .filter {
+                    it.artist.isProfile && it.id !in artists.map(ArtistItem::id)
+                }
+                .forEach { database.update(it.artist.localToggleLike()) }
+            artists.forEach { artist ->
+                val dbArtist = database.artist(artist.id).firstOrNull()
+                database.transaction {
+                    when (dbArtist) {
+                        null -> {
+                            insert(
+                                ArtistEntity(
+                                    id = artist.id,
+                                    name = artist.title,
+                                    thumbnailUrl = artist.thumbnail,
+                                    channelId = artist.channelId,
+                                    bookmarkedAt = LocalDateTime.now(),
+                                    isProfile = true
+                                )
+                            )
+                        }
+                        else -> if (dbArtist.artist.bookmarkedAt == null && artist.isProfile)
                             update(dbArtist.artist.localToggleLike())
                     }
                 }

@@ -189,7 +189,7 @@ enum class PlaylistSortType {
 }
 
 enum class ArtistFilter {
-    LIBRARY, LIKED
+    LIBRARY, LIKED, PROFILES
 }
 
 enum class PlaylistFilter {

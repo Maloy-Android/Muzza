@@ -181,6 +181,7 @@ import java.time.LocalDateTime
 import java.util.Collections
 import javax.inject.Inject
 import kotlin.collections.buildSet
+import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
 
@@ -412,7 +413,7 @@ class MusicService : MediaLibraryService(),
                 } catch (_: Exception) {
 
                 }
-                delay(2000)
+                delay(2000.milliseconds)
             }
         }
     }
@@ -470,7 +471,7 @@ class MusicService : MediaLibraryService(),
             addAction("android.media.VOLUME_CHANGED_ACTION")
         })
         playerVolume
-            .debounce(100)
+            .debounce(100.milliseconds)
             .collectLatest(scope) { volume ->
                 when {
                     volume == 0f && player.isPlaying && dataStore.get(
@@ -544,13 +545,13 @@ class MusicService : MediaLibraryService(),
 
         connectivityManager = getSystemService()!!
 
-        playerVolume.debounce(1000).collect(scope) { volume ->
+        playerVolume.debounce(1000.milliseconds).collect(scope) { volume ->
             dataStore.edit { settings ->
                 settings[PlayerVolumeKey] = volume
             }
         }
 
-        currentSong.debounce(1000).collect(scope) {
+        currentSong.debounce(1000.milliseconds).collect(scope) {
             updateNotification()
         }
 
@@ -624,7 +625,7 @@ class MusicService : MediaLibraryService(),
 
         dataStore.data
             .map { it[DiscordTokenKey] to (it[EnableDiscordRPCKey] ?: true) }
-            .debounce(300)
+            .debounce(300.milliseconds)
             .distinctUntilChanged()
             .collect(scope) { (key, enabled) ->
                 if (discordRpc?.isRpcRunning() == true) {
@@ -661,14 +662,14 @@ class MusicService : MediaLibraryService(),
 
         dataStore.data
             .map { it[DiscordUseDetailsKey] ?: false }
-            .debounce(1000)
+            .debounce(1000.milliseconds)
             .distinctUntilChanged()
             .collect(scope) { useDetails ->
                 if (player.playbackState == Player.STATE_READY && player.playWhenReady) {
                     currentSong.value?.let { song ->
                         discordUpdateJob?.cancel()
                         discordUpdateJob = scope.launch {
-                            delay(1000)
+                            delay(1000.milliseconds)
                             discordRpc?.updateSong(
                                 song,
                                 player.currentPosition,
@@ -733,7 +734,7 @@ class MusicService : MediaLibraryService(),
                                 && dataStore.get(PersistentQueueKey, true)
                             ) {
                                 scope.launch {
-                                    delay(1000)
+                                    delay(1000.milliseconds)
                                     player.play()
                                 }
                             }
@@ -1154,7 +1155,7 @@ class MusicService : MediaLibraryService(),
             lastPlaybackSpeed = playbackParameters.speed
             discordUpdateJob?.cancel()
             discordUpdateJob = scope.launch {
-                delay(1000)
+                delay(1000.milliseconds)
                 if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                     currentSong.value?.let { song ->
                         discordRpc?.updateSong(song, player.currentPosition, playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
@@ -1333,11 +1334,7 @@ class MusicService : MediaLibraryService(),
                     PlaybackException.ERROR_CODE_IO_BAD_HTTP_STATUS
                 )
             }
-            val nonNullPlayback =
-                requireNotNull(playbackData) {
-                    getString(R.string.error_unknown)
-                }
-            val format = nonNullPlayback.format
+            val format = playbackData.format
             database.query {
                 upsert(
                     FormatEntity(
@@ -1348,8 +1345,8 @@ class MusicService : MediaLibraryService(),
                         bitrate = format.bitrate,
                         sampleRate = format.audioSampleRate,
                         contentLength = format.contentLength!!,
-                        loudnessDb = nonNullPlayback.audioConfig?.loudnessDb,
-                        perceptualLoudnessDb = nonNullPlayback.audioConfig?.perceptualLoudnessDb,
+                        loudnessDb = playbackData.audioConfig?.loudnessDb,
+                        perceptualLoudnessDb = playbackData.audioConfig?.perceptualLoudnessDb,
                         playbackUrl = playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl
                     )
                 )
@@ -1359,7 +1356,7 @@ class MusicService : MediaLibraryService(),
 
             songUrlCache[mediaId] =
                 streamUrl to System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
-            nonNullPlayback.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.let {
+            playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.let {
                 playbackUrlCache[cacheKey(mediaId)] = it
             }
             return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
@@ -1484,11 +1481,7 @@ class MusicService : MediaLibraryService(),
             super.onDestroy()
             return
         }
-        try {
-            unregisterReceiver(screenStateReceiver)
-        } catch (e: Exception) {
-            // Ignore
-        }
+        unregisterReceiver(screenStateReceiver)
         volumeReceiver?.let { unregisterReceiver(it) }
         volumeReceiver = null
         if (dataStore.get(PersistentQueueKey, true)) {
@@ -1556,7 +1549,7 @@ class MusicService : MediaLibraryService(),
         val targetMediaId = player.currentMediaItem?.mediaId
 
         crossfadeTriggerJob = scope.launch {
-            delay(delayMs)
+            delay(delayMs.milliseconds)
             if (isActive && player.isPlaying && player.currentMediaItem?.mediaId == targetMediaId) {
                 startCrossfade()
             }
@@ -1682,7 +1675,7 @@ class MusicService : MediaLibraryService(),
                 if (!isActive) break
 
                 while (!player.isPlaying && isActive) {
-                    delay(50)
+                    delay(50.milliseconds)
                 }
 
                 val progress = i / steps.toFloat()
@@ -1697,7 +1690,7 @@ class MusicService : MediaLibraryService(),
                     break
                 }
 
-                delay(stepTime)
+                delay(stepTime.milliseconds)
             }
 
             try {
@@ -1777,15 +1770,11 @@ class MusicService : MediaLibraryService(),
                     .setContentIntent(pending)
                     .setOngoing(true)
                     .build()
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                startForeground(
-                    NOTIFICATION_ID,
-                    notification,
-                    ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
-                )
-            } else {
-                startForeground(NOTIFICATION_ID, notification)
-            }
+            startForeground(
+                NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_MEDIA_PLAYBACK,
+            )
             true
         } catch (e: ForegroundServiceStartNotAllowedException) {
             Timber.tag(TAG).w(e, "Foreground service start not allowed; stopping service to avoid ANR")

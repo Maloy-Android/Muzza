@@ -389,6 +389,7 @@ fun ArtistScreen(
                                                                 name = it.title,
                                                                 channelId = it.channelId,
                                                                 thumbnailUrl = it.thumbnail,
+                                                                isProfile = it.isProfile
                                                             ).toggleLike().localToggleLike()
                                                         )
                                                     }

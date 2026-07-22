@@ -947,7 +947,8 @@ interface DatabaseDao {
             insert(
                 ArtistEntity(
                     id = artistId,
-                    name = artist.name
+                    name = artist.name,
+                    isProfile = artist.isProfile
                 )
             )
             insert(
@@ -986,7 +987,8 @@ interface DatabaseDao {
             ?.map { artist ->
                 ArtistEntity(
                     id = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId(),
-                    name = artist.name
+                    name = artist.name,
+                    isProfile = artist.isProfile
                 )
             }
             ?.onEach(::insert)
@@ -1017,7 +1019,8 @@ interface DatabaseDao {
             insert(
                 ArtistEntity(
                     id = artistId,
-                    name = artist.name
+                    name = artist.name,
+                    isProfile = artist.isProfile
                 )
             )
             insert(
@@ -1050,7 +1053,8 @@ interface DatabaseDao {
             artist.copy(
                 name = artistPage.artist.title,
                 thumbnailUrl = artistPage.artist.thumbnail.resize(1080, 1080),
-                lastUpdateTime = LocalDateTime.now()
+                lastUpdateTime = LocalDateTime.now(),
+                isProfile = artistPage.artist.isProfile
             )
         )
     }
@@ -1085,7 +1089,8 @@ interface DatabaseDao {
                 .map { artist ->
                     ArtistEntity(
                         id = artist.id ?: artistByName(artist.name)?.id ?: ArtistEntity.generateArtistId(),
-                        name = artist.name
+                        name = artist.name,
+                        isProfile = artist.isProfile
                     )
                 }
                 .onEach(::insert)

@@ -440,10 +440,11 @@ fun SongGridItem(
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
         val menuState = LocalMenuState.current
         val isLocalSong = song.song.isLocal
+        val thumbnailUrlWithResize = if (isLocalSong) song.song.thumbnailUrl else song.song.thumbnailUrl?.resize(144, 144)
         ItemThumbnail(
             videoThumbnailSize = videoThumbnailSize && !isLocalSong,
             isLocalSong = isLocalSong,
-            thumbnailUrl = song.song.thumbnailUrl?.resize(144, 144),
+            thumbnailUrl = thumbnailUrlWithResize,
             isActive = isActive,
             isPlaying = isPlaying,
             shape = RoundedCornerShape(ThumbnailCornerRadius),

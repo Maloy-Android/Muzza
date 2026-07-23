@@ -339,8 +339,7 @@ fun SongListItem(
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
-    trailingContent: @Composable RowScope.() -> Unit = {},
-    contentScale: ContentScale = ContentScale.Fit,
+    trailingContent: @Composable RowScope.() -> Unit = {}
 ) {
     val listenTogetherManager = LocalListenTogetherManager.current
     val listenTogetherRoleState = listenTogetherManager?.role?.collectAsState(initial = RoomRole.GUEST)
@@ -349,6 +348,9 @@ fun SongListItem(
     val (swipeSongToDismiss) = rememberPreference(SwipeSongToDismissKey, defaultValue = true)
 
     val (twoLineLabel) = rememberPreference(TwoLineSongItemLabelKey, defaultValue = false)
+
+    val isLocalSong = song.song.isLocal
+    val thumbnailUrlWithResize = if (isLocalSong) song.song.thumbnailUrl else song.song.thumbnailUrl?.resize(200,200)
 
     val content: @Composable () -> Unit = {
         Box(
@@ -362,41 +364,18 @@ fun SongListItem(
                 ),
                 badges = badges,
                 thumbnailContent = {
-                    if (song.song.isLocal) {
-                        song.song.let {
-                            AsyncLocalImage(
-                                image = song.song.thumbnailUrl,
-                                contentDescription = null,
-                                contentScale = contentScale,
-                                modifier = Modifier
-                                    .size(ListThumbnailSize)
-                                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                            )
-                            PlayingIndicatorBox(
-                                isActive = isActive,
-                                playWhenReady = isPlaying,
-                                color = Color.White,
-                                modifier = Modifier
-                                    .size(ListThumbnailSize)
-                                    .background(
-                                        color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                        shape = RoundedCornerShape(ThumbnailCornerRadius)
-                                    )
-                            )
-                        }
-                    } else {
-                        ItemThumbnail(
-                            thumbnailUrl = song.song.thumbnailUrl?.resize(200, 200),
-                            videoThumbnailSize = false,
-                            albumIndex = albumIndex,
-                            isActive = isActive,
-                            isPlaying = isPlaying,
-                            shape = RoundedCornerShape(ThumbnailCornerRadius),
-                            modifier = Modifier
-                                .size(ListThumbnailSize)
-                                .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                        )
-                    }
+                    ItemThumbnail(
+                        thumbnailUrl = thumbnailUrlWithResize,
+                        isLocalSong = isLocalSong,
+                        videoThumbnailSize = false,
+                        albumIndex = albumIndex,
+                        isActive = isActive,
+                        isPlaying = isPlaying,
+                        shape = RoundedCornerShape(ThumbnailCornerRadius),
+                        modifier = Modifier
+                            .size(ListThumbnailSize)
+                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
+                    )
                 },
                 trailingContent = trailingContent,
                 modifier = modifier,
@@ -449,8 +428,7 @@ fun SongGridItem(
     isPlaying: Boolean = false,
     fillMaxWidth: Boolean = false,
     videoThumbnailSize: Boolean = false,
-    thumbnailRatio: Float = if (song.song.isVideoSong && videoThumbnailRatio) 16f / 9 else 1f,
-    contentScale: ContentScale = ContentScale.Fit,
+    thumbnailRatio: Float = if (song.song.isVideoSong && videoThumbnailRatio) 16f / 9 else 1f
 ) = GridItem(
     title = song.song.title,
     subtitle = joinByBullet(
@@ -461,40 +439,18 @@ fun SongGridItem(
     thumbnailContent = {
         val playerConnection = LocalPlayerConnection.current ?: return@GridItem
         val menuState = LocalMenuState.current
-        if (song.song.isLocal) {
-            song.song.let {
-                AsyncLocalImage(
-                    image = song.song.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = contentScale,
-                    modifier = Modifier
-                        .size(GridThumbnailHeight)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                )
-                PlayingIndicatorBox(
-                    isActive = isActive,
-                    playWhenReady = isPlaying,
-                    color = Color.White,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                            shape = RoundedCornerShape(ThumbnailCornerRadius)
-                        )
-                )
-            }
-        } else {
-            ItemThumbnail(
-                videoThumbnailSize = videoThumbnailSize,
-                thumbnailUrl = song.song.thumbnailUrl?.resize(144, 144),
-                isActive = isActive,
-                isPlaying = isPlaying,
-                shape = RoundedCornerShape(ThumbnailCornerRadius),
-                modifier = Modifier
-                    .size(GridThumbnailHeight)
-                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
-            )
-        }
+        val isLocalSong = song.song.isLocal
+        ItemThumbnail(
+            videoThumbnailSize = videoThumbnailSize && !isLocalSong,
+            isLocalSong = isLocalSong,
+            thumbnailUrl = song.song.thumbnailUrl?.resize(144, 144),
+            isActive = isActive,
+            isPlaying = isPlaying,
+            shape = RoundedCornerShape(ThumbnailCornerRadius),
+            modifier = Modifier
+                .size(GridThumbnailHeight)
+                .clip(RoundedCornerShape(ThumbnailCornerRadius))
+        )
         ItemsPlayButton(
             visible = !isActive && (!song.song.isVideoSong || !song.song.isLocal) && song.song.albumId != null,
             onClick = {
@@ -1141,8 +1097,7 @@ fun MediaMetadataListItem(
     isActive: Boolean = false,
     isPlaying: Boolean = false,
     isTwoLineLabel: Boolean = false,
-    trailingContent: @Composable RowScope.() -> Unit = {},
-    contentScale: ContentScale = ContentScale.Fit
+    trailingContent: @Composable RowScope.() -> Unit = {}
 ) = ListItem(
     title = mediaMetadata.title,
     subtitle = joinByBullet(
@@ -1151,41 +1106,15 @@ fun MediaMetadataListItem(
     ),
     badges = badges,
     thumbnailContent = {
-        Box {
-            if (mediaMetadata.isLocal) {
-                mediaMetadata.let {
-                    AsyncLocalImage(
-                        image = mediaMetadata.thumbnailUrl,
-                        contentDescription = null,
-                        contentScale = contentScale,
-                        modifier = Modifier
-                            .size(ListThumbnailSize)
-                            .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                    )
-                    PlayingIndicatorBox(
-                        isActive = isActive,
-                        playWhenReady = isPlaying,
-                        color = Color.White,
-                        modifier = Modifier
-                            .size(ListThumbnailSize)
-                            .align(alignment = Alignment.Center)
-                            .background(
-                                color = Color.Black.copy(alpha = ActiveBoxAlpha),
-                                shape = RoundedCornerShape(ThumbnailCornerRadius)
-                            )
-                    )
-                }
-            } else {
-                ItemThumbnail(
-                    thumbnailUrl = mediaMetadata.thumbnailUrl,
-                    videoThumbnailSize = false,
-                    isActive = isActive,
-                    isPlaying = isPlaying,
-                    shape = RoundedCornerShape(ThumbnailCornerRadius),
-                    modifier = Modifier.size(ListThumbnailSize)
-                )
-            }
-        }
+        ItemThumbnail(
+            thumbnailUrl = mediaMetadata.thumbnailUrl,
+            isLocalSong = mediaMetadata.isLocal,
+            videoThumbnailSize = false,
+            isActive = isActive,
+            isPlaying = isPlaying,
+            shape = RoundedCornerShape(ThumbnailCornerRadius),
+            modifier = Modifier.size(ListThumbnailSize)
+        )
     },
     trailingContent = trailingContent,
     modifier = modifier,
@@ -1392,7 +1321,8 @@ fun CommunityPlaylistCard(
                                         playerConnection?.playQueue(
                                             YouTubeQueue(
                                                 title = song.title,
-                                                endpoint = song.endpoint ?: WatchEndpoint(videoId = song.id),
+                                                endpoint = song.endpoint
+                                                    ?: WatchEndpoint(videoId = song.id),
                                                 preloadItem = song.toMediaMetadata(),
                                                 context = context
                                             )
@@ -2060,7 +1990,8 @@ fun YouTubeGridItem(
 
 @Composable
 fun ItemThumbnail(
-    thumbnailUrl: Any?,
+    thumbnailUrl: String?,
+    isLocalSong: Boolean = false,
     isActive: Boolean,
     isPlaying: Boolean,
     shape: Shape,
@@ -2084,8 +2015,9 @@ fun ItemThumbnail(
                 )
             }
         } else if (!videoThumbnailSize) {
-            AsyncImage(
-                model = thumbnailUrl,
+            AsyncThumbnail(
+                thumbnailUrl = thumbnailUrl,
+                isLocalImageThumbnail = isLocalSong,
                 contentDescription = null,
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -2094,8 +2026,9 @@ fun ItemThumbnail(
                     .aspectRatio(1f)
             )
         } else {
-            AsyncImage(
-                model = thumbnailUrl,
+            AsyncThumbnail(
+                thumbnailUrl = thumbnailUrl,
+                isLocalImageThumbnail = isLocalSong,
                 contentDescription = null,
                 modifier = Modifier
                     .fillMaxWidth()

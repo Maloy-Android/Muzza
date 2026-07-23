@@ -54,7 +54,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
-import coil.compose.AsyncImage
 import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -65,7 +64,7 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.ui.component.AsyncLocalImage
+import com.maloy.muzza.ui.component.AsyncThumbnail
 import com.maloy.muzza.utils.rememberEnumPreference
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
@@ -339,27 +338,16 @@ fun MiniMediaInfo(
         modifier = modifier
     ) {
         Box(modifier = Modifier.padding(6.dp)) {
-            if (mediaMetadata.isLocal) {
-                AsyncLocalImage(
-                    image = mediaMetadata.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = contentScale,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                )
-            } else {
-                AsyncImage(
-                    model = mediaMetadata.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .aspectRatio(1f)
-                        .clip(RoundedCornerShape(ThumbnailCornerRadius))
-                )
-            }
+            AsyncThumbnail(
+                thumbnailUrl = mediaMetadata.thumbnailUrl,
+                isLocalImageThumbnail = mediaMetadata.isLocal,
+                contentDescription = null,
+                contentScale = contentScale,
+                modifier = Modifier
+                    .size(48.dp)
+                    .aspectRatio(1f)
+                    .clip(RoundedCornerShape(ThumbnailCornerRadius))
+            )
             androidx.compose.animation.AnimatedVisibility(
                 visible = error != null,
                 enter = fadeIn(),

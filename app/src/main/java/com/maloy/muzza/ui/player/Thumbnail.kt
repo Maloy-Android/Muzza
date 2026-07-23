@@ -50,7 +50,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player.STATE_ENDED
-import coil.compose.AsyncImage
 import com.maloy.muzza.LocalListenTogetherManager
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.constants.PlayerHorizontalPadding
@@ -61,7 +60,7 @@ import com.maloy.muzza.constants.SwipeThumbnailKey
 import com.maloy.muzza.constants.ThumbnailCornerRadiusV2Key
 import com.maloy.muzza.extensions.togglePlayPause
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.ui.component.AsyncLocalImage
+import com.maloy.muzza.ui.component.AsyncThumbnail
 import com.maloy.muzza.ui.component.Lyrics
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -187,21 +186,13 @@ fun Thumbnail(
                             }
                         })
 
-                    if (metadata.isLocal) {
-                        AsyncLocalImage(
-                            image = metadata.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = coverModifier
-                        )
-                    } else {
-                        AsyncImage(
-                            model = metadata.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = coverModifier
-                        )
-                    }
+                    AsyncThumbnail(
+                        thumbnailUrl = metadata.thumbnailUrl,
+                        isLocalImageThumbnail = mediaMetadata.isLocal,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = coverModifier
+                    )
                 }
 
                 Box(
@@ -233,13 +224,18 @@ fun Thumbnail(
                                                 playerConnection.player.seekToPreviousMediaItem()
                                                 offsetX.snapTo(0f)
                                             }
+
                                             offsetX.value < -threshold && lockedNextMetadata != null -> {
                                                 offsetX.animateTo(-itemWidth, tween(300))
                                                 playerConnection.player.seekToNext()
                                                 offsetX.snapTo(0f)
                                             }
+
                                             else -> {
-                                                offsetX.animateTo(0f, spring(stiffness = Spring.StiffnessLow))
+                                                offsetX.animateTo(
+                                                    0f,
+                                                    spring(stiffness = Spring.StiffnessLow)
+                                                )
                                             }
                                         }
                                     }

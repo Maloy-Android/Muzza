@@ -119,7 +119,7 @@ import com.maloy.muzza.extensions.toggleRepeatMode
 import com.maloy.muzza.extensions.toggleShuffleMode
 import com.maloy.muzza.listentogether.RoomRole
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.ui.component.AsyncLocalImage
+import com.maloy.muzza.ui.component.AsyncThumbnail
 import com.maloy.muzza.ui.component.BottomSheet
 import com.maloy.muzza.ui.component.BottomSheetState
 import com.maloy.muzza.ui.component.ListDialog
@@ -437,29 +437,19 @@ fun BottomSheetPlayer(
                                     .clip(RoundedCornerShape(13.dp))
                                     .background(MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                if (!mediaMetadata.isLocal && !currentSongThumbnail.isNullOrEmpty()) {
-                                    AsyncImage(
-                                        model = currentSongThumbnail,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(RoundedCornerShape(13.dp))
-                                            .clickable(enabled = mediaMetadata.album != null) {
-                                                navController.navigate("album/${mediaMetadata.album!!.id}")
-                                                state.collapseSoft()
-                                            }
-                                    )
-                                } else {
-                                    AsyncLocalImage(
-                                        image = mediaMetadata.thumbnailUrl,
-                                        contentDescription = null,
-                                        contentScale = ContentScale.Crop,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(RoundedCornerShape(13.dp))
-                                    )
-                                }
+                                AsyncThumbnail(
+                                    thumbnailUrl = currentSongThumbnail,
+                                    isLocalImageThumbnail = mediaMetadata.isLocal,
+                                    contentDescription = null,
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(RoundedCornerShape(13.dp))
+                                        .clickable(enabled = mediaMetadata.album != null) {
+                                            navController.navigate("album/${mediaMetadata.album!!.id}")
+                                            state.collapseSoft()
+                                        }
+                                )
                             }
                         }
                     }
@@ -918,25 +908,15 @@ fun BottomSheetPlayer(
             }
         }
         if (playerBackground == PlayerBackgroundStyle.BLUR) {
-            if (mediaMetadata?.isLocal == true) {
-                AsyncLocalImage(
-                    image = mediaMetadata?.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(100.dp)
-                )
-            } else {
-                AsyncImage(
-                    model = mediaMetadata?.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(100.dp)
-                )
-            }
+            AsyncThumbnail(
+                thumbnailUrl = mediaMetadata?.thumbnailUrl,
+                isLocalImageThumbnail = mediaMetadata?.isLocal == true,
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(100.dp)
+            )
         } else if (playerBackground == PlayerBackgroundStyle.GRADIENT && gradientColors.size >= 2) {
             Box(
                 modifier = Modifier
@@ -957,43 +937,18 @@ fun BottomSheetPlayer(
                     repeatMode = RepeatMode.Restart
                 ), label = ""
             )
-            if (mediaMetadata?.isLocal == true) {
-                AsyncLocalImage(
-                    image = mediaMetadata?.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(100.dp)
-                        .alpha(0.8f)
-                        .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
-                        .rotate(rotation)
-                )
-            } else {
-                val infiniteTransition = rememberInfiniteTransition(label = "")
-                val rotation by infiniteTransition.animateFloat(
-                    initialValue = 0f,
-                    targetValue = 360f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(
-                            durationMillis = 100000,
-                            easing = FastOutSlowInEasing
-                        ),
-                        repeatMode = RepeatMode.Restart
-                    ), label = ""
-                )
-                AsyncImage(
-                    model = mediaMetadata?.thumbnailUrl,
-                    contentDescription = null,
-                    contentScale = ContentScale.FillBounds,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .blur(100.dp)
-                        .alpha(0.8f)
-                        .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
-                        .rotate(rotation)
-                )
-            }
+            AsyncThumbnail(
+                thumbnailUrl = mediaMetadata?.thumbnailUrl,
+                isLocalImageThumbnail = mediaMetadata?.isLocal == true,
+                contentDescription = null,
+                contentScale = ContentScale.FillBounds,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .blur(100.dp)
+                    .alpha(0.8f)
+                    .background(if (useBlackBackground) Color.Black.copy(alpha = 0.5f) else Color.Transparent)
+                    .rotate(rotation)
+            )
 
             if (showLyrics) {
                 Box(

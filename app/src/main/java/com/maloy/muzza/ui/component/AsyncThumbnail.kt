@@ -14,13 +14,14 @@ import coil.compose.AsyncImage
 
 
 @Composable
-fun AsyncLocalImage(
-    image: String?,
+fun AsyncThumbnail(
+    isLocalImageThumbnail: Boolean = true,
+    thumbnailUrl: String?,
     modifier: Modifier = Modifier,
     contentScale: ContentScale = ContentScale.Fit,
     contentDescription: String? = null,
 ) {
-    if (image.isNullOrEmpty()) {
+    if (thumbnailUrl.isNullOrEmpty() && isLocalImageThumbnail) {
         Icon(
             Icons.Rounded.MusicNote,
             contentDescription = null,
@@ -30,7 +31,7 @@ fun AsyncLocalImage(
         )
     } else {
         AsyncImage(
-            model = image,
+            model = thumbnailUrl,
             contentDescription = contentDescription,
             contentScale = contentScale,
             modifier = modifier

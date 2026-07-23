@@ -23,7 +23,6 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import coil.compose.AsyncImage
 import com.maloy.muzza.R
 import com.maloy.muzza.models.MediaMetadata
 
@@ -144,7 +143,11 @@ fun LyricsImageCard(
                 .size(cardSizeDp)
                 .clip(RoundedCornerShape(cardCornerRadius))
                 .background(backgroundGradient)
-                .border(1.dp, mainTextColor.copy(alpha = 0.09f), RoundedCornerShape(cardCornerRadius)),
+                .border(
+                    1.dp,
+                    mainTextColor.copy(alpha = 0.09f),
+                    RoundedCornerShape(cardCornerRadius)
+                ),
             contentAlignment = Alignment.Center
         ) {
             Column(
@@ -159,35 +162,20 @@ fun LyricsImageCard(
                         .fillMaxWidth()
                         .padding(bottom = 12.dp)
                 ) {
-                    if (!mediaMetadata.isLocal) {
-                        AsyncImage(
-                            model = mediaMetadata.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(coverArtSize)
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(
-                                    1.dp,
-                                    mainTextColor.copy(alpha = 0.16f),
-                                    RoundedCornerShape(12.dp)
-                                )
-                        )
-                    } else {
-                        AsyncLocalImage(
-                            image = mediaMetadata.thumbnailUrl,
-                            contentDescription = null,
-                            contentScale = ContentScale.Crop,
-                            modifier = Modifier
-                                .size(coverArtSize)
-                                .clip(RoundedCornerShape(12.dp))
-                                .border(
-                                    1.dp,
-                                    mainTextColor.copy(alpha = 0.16f),
-                                    RoundedCornerShape(12.dp)
-                                )
-                        )
-                    }
+                    AsyncThumbnail(
+                        thumbnailUrl = mediaMetadata.thumbnailUrl,
+                        isLocalImageThumbnail = mediaMetadata.isLocal,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(coverArtSize)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                1.dp,
+                                mainTextColor.copy(alpha = 0.16f),
+                                RoundedCornerShape(12.dp)
+                            )
+                    )
                     Spacer(modifier = Modifier.width(16.dp))
                     Column(
                         verticalArrangement = Arrangement.Center,

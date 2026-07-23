@@ -193,12 +193,12 @@ fun PlayerSettings(
             onValueSelected = onSongDurationTimeSkipChange,
             valueText = {
                 when (it) {
-                    SongDurationTimeSkip.FIVE -> stringResource(R.string.seek_value_5)
-                    SongDurationTimeSkip.TEN -> stringResource(R.string.seek_value_10)
-                    SongDurationTimeSkip.FIFTEEN -> stringResource(R.string.seek_value_15)
-                    SongDurationTimeSkip.TWENTY -> stringResource(R.string.seek_value_20)
-                    SongDurationTimeSkip.TWENTYFIVE -> stringResource(R.string.seek_value_25)
-                    SongDurationTimeSkip.THIRTY -> stringResource(R.string.seek_value_30)
+                    SongDurationTimeSkip.FIVE -> stringResource(R.string.seek_value_seconds, 5)
+                    SongDurationTimeSkip.TEN -> stringResource(R.string.seek_value_seconds, 10)
+                    SongDurationTimeSkip.FIFTEEN -> stringResource(R.string.seek_value_seconds, 15)
+                    SongDurationTimeSkip.TWENTY -> stringResource(R.string.seek_value_seconds, 20)
+                    SongDurationTimeSkip.TWENTYFIVE -> stringResource(R.string.seek_value_seconds, 25)
+                    SongDurationTimeSkip.THIRTY -> stringResource(R.string.seek_value_seconds, 30)
                 }
             }
         )

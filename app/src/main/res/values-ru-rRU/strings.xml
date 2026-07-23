@@ -313,12 +313,7 @@
     <string name="error_unknown">Неизвестная ошибка</string>
 
     <string name="seek_value">Значение перемотки</string>
-    <string name="seek_value_5">5 секунд</string>
-    <string name="seek_value_10">10 секунд</string>
-    <string name="seek_value_15">15 секунд</string>
-    <string name="seek_value_20">20 секунд</string>
-    <string name="seek_value_25">25 секунд</string>
-    <string name="seek_value_30">30 секунд</string>
+    <string name="seek_value_seconds">%s секунд</string>
 
     <!-- Player action -->
     <string name="action_like">Поставить «Нравится»</string>

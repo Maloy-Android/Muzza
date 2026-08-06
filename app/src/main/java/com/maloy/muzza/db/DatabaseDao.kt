@@ -508,7 +508,7 @@ interface DatabaseDao {
                       GROUP BY artistId
                       ORDER BY totalPlayTime)
                      ON artist.id = artistId
-        WHERE bookmarkedAt AND isProfile = 1
+        WHERE bookmarkedAt IS NOT NULL AND isProfile = 1
     """
     )
     fun profilesBookmarkedByPlayTimeAsc(): Flow<List<Artist>>

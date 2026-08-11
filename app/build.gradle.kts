@@ -88,8 +88,8 @@ android {
         applicationId = "com.maloy.muzza"
         minSdk = 24
         targetSdk = 36
-        versionCode = 48
-        versionName = "0.7.6"
+        versionCode = 49
+        versionName = "0.7.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildTypes {

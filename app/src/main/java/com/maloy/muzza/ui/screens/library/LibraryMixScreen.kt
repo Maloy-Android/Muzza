@@ -816,7 +816,7 @@ fun LibraryMixScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = stringResource(R.string.your_artists),
+                                text = stringResource(R.string.your_artists_and_profiles),
                                 style = MaterialTheme.typography.titleLarge,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary,

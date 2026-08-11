@@ -117,7 +117,7 @@
     <string name="library_playlists_empty_witch_chip">Списки відтворення з вкладки \"%s\" відображатимуться туть</string>
     <string name="library_artists_empty_witch_chip">Виконавці з вкадки \"%s\" будуть відображатися тут</string>
     <string name="also_in_your_library">Ще у вас у Бібліотеки</string>
-    <string name="your_artists">Ваші виконавці</string>
+    <string name="your_artists_and_profiles">Ваші виконавці та профiлi</string>
 
     <!-- Playlist -->
     <string name="liked_songs">Улюблені треки</string>

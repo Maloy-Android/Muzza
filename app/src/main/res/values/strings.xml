@@ -115,7 +115,7 @@
     <string name="library_playlists_empty_witch_chip">Playlists from chip \"%s\" will up show here</string>
     <string name="library_artists_empty_witch_chip">Artists from chip \"%s\" will up show here</string>
     <string name="also_in_your_library">Also in your Library</string>
-    <string name="your_artists">Your artists</string>
+    <string name="your_artists_and_profiles">Your artists and profiles</string>
 
     <!-- Artist screen -->
     <string name="from_your_library">From your library</string>

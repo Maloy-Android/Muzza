@@ -506,7 +506,7 @@ fun LibraryArtistsScreen(
                             }
                         }
                     )
-                } else Text(stringResource(R.string.your_artists)) },
+                } else Text(stringResource(R.string.your_artists_and_profiles)) },
             navigationIcon = {
                 com.maloy.muzza.ui.component.IconButton(
                     onClick = {

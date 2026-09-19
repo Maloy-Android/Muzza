@@ -636,7 +636,7 @@ fun Queue(
                                         val index = mutableQueueWindows.indexOfFirst { it.uid == window.uid }
                                         if (index != -1) {
                                             mutableQueueWindows.removeAt(index)
-                                            playerConnection.player.removeMediaItem(index)
+                                            playerConnection.player.removeMediaItem(window.firstPeriodIndex)
                                         }
                                     }
                                 ) {

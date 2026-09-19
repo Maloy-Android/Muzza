@@ -1059,6 +1059,7 @@ fun HomeScreen(
                 val isMixesForYou = section.endpoint?.browseId?.startsWith("FEmusic_mixed_for_you")
                 val isCharts = section.endpoint?.browseId?.startsWith("FEmusic_charts")
                 val isLibrary = section.endpoint?.browseId?.startsWith("FEmusic_library")
+                val isListenAgain = section.endpoint?.browseId?.startsWith("FEmusic_listen_again")
                 item {
                     NavigationTitle(
                         title = section.title,
@@ -1086,7 +1087,7 @@ fun HomeScreen(
                                     endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate("artist/${endpoint.browseId}")
                                     endpoint.params != null && (isNewReleaseAlbums == true) -> navController.navigate("new_release")
                                     endpoint.params != null && (isLibrary == true) -> navController.navigate("library")
-                                    endpoint.params != null && (isMixesForYou == true || isCharts == true) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
+                                    endpoint.params != null && (isMixesForYou == true || isCharts == true || isListenAgain == true) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
                                     endpoint.params != null && (isYouTubePlaylists) -> navController.navigate("mood_and_genres")
                                     else ->  navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
                                 }

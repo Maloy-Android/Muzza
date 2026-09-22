@@ -1682,7 +1682,7 @@ fun YouTubeListItem(
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
-        val playlist by database.playlist(item.id).collectAsState(initial = null)
+        val playlist by database.playlistByBrowseId(item.id).collectAsState(initial = null)
 
         if (item.explicit || item is SongItem && song?.song?.explicit == true) {
             Icon.Explicit()
@@ -1804,7 +1804,7 @@ fun YouTubeGridItem(
         val database = LocalDatabase.current
         val song by database.song(item.id).collectAsState(initial = null)
         val album by database.album(item.id).collectAsState(initial = null)
-        val playlist by database.playlist(item.id).collectAsState(initial = null)
+        val playlist by database.playlistByBrowseId(item.id).collectAsState(initial = null)
 
         if (item.explicit || item is SongItem && song?.song?.explicit == true) {
             Icon.Explicit()

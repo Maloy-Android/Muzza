@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -47,6 +48,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -86,6 +88,7 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.menu.ArtistMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.switchFilter
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -200,6 +203,12 @@ fun LibraryArtistsScreen(
         }
     }
 
+    val filterOrder = listOf(
+        ArtistFilter.LIKED,
+        ArtistFilter.PROFILES,
+        ArtistFilter.LIBRARY,
+    )
+
     LaunchedEffect(isSearching) {
         if (isSearching) {
             focusRequester.requestFocus()
@@ -268,6 +277,21 @@ fun LibraryArtistsScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                var totalDrag = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { totalDrag = 0f },
+                    onHorizontalDrag = { _, dragAmount -> totalDrag += dragAmount },
+                    onDragEnd = {
+                        val threshold = 100f
+                        when {
+                            totalDrag > threshold -> switchFilter(filter, filterOrder, -1) { filter = it }
+                            totalDrag < -threshold -> switchFilter(filter, filterOrder, 1) { filter = it }
+                        }
+                        totalDrag = 0f
+                    }
+                )
+            }
             .pullToRefresh(
                 enabled = filter != ArtistFilter.LIBRARY && ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,

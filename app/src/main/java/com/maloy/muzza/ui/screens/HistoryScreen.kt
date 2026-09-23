@@ -4,6 +4,7 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
@@ -49,6 +50,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -66,6 +68,7 @@ import com.maloy.muzza.LocalPlayerAwareWindowInsets
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.HistorySource
+import com.maloy.muzza.constants.HistorySourceKey
 import com.maloy.muzza.constants.InnerTubeCookieKey
 import com.maloy.muzza.constants.YtmSyncKey
 import com.maloy.muzza.db.entities.EventWithSong
@@ -86,7 +89,9 @@ import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.switchFilter
 import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.DateAgo
@@ -109,7 +114,7 @@ fun HistoryScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val historyPage by viewModel.historyPage.collectAsState()
-    val historySource by viewModel.historySource.collectAsState()
+    var historySource by rememberEnumPreference(HistorySourceKey, HistorySource.LOCAL)
 
     val (ytmSync) = rememberPreference(YtmSyncKey, true)
 
@@ -189,6 +194,11 @@ fun HistoryScreen(
         }
     }
 
+    val filterOrder = listOf(
+        HistorySource.LOCAL,
+        HistorySource.REMOTE
+    )
+
     LaunchedEffect(filteredEventsMap) {
         selection.fastForEachReversed { eventId ->
             if (filteredEventIndex[eventId] == null) {
@@ -210,6 +220,32 @@ fun HistoryScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                var totalDrag = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { totalDrag = 0f },
+                    onHorizontalDrag = { _, dragAmount -> if (ytmSync && isLoggedIn && isInternetAvailable(context)) totalDrag += dragAmount },
+                    onDragEnd = {
+                        if (ytmSync && isLoggedIn && isInternetAvailable(context)) {
+                            val threshold = 100f
+                            when {
+                                totalDrag > threshold -> switchFilter(
+                                    historySource,
+                                    filterOrder,
+                                    -1
+                                ) { historySource = it }
+
+                                totalDrag < -threshold -> switchFilter(
+                                    historySource,
+                                    filterOrder,
+                                    1
+                                ) { historySource = it }
+                            }
+                            totalDrag = 0f
+                        }
+                    }
+                )
+            }
             .pullToRefresh(
                 state = pullRefreshState,
                 isRefreshing = isRefreshing,
@@ -263,7 +299,7 @@ fun HistoryScreen(
                                 HistorySource.REMOTE to stringResource(R.string.remote_history),
                             ),
                             currentValue = historySource,
-                            onValueUpdate = { viewModel.historySource.value = it }
+                            onValueUpdate = { historySource = it }
                         )
                     }
                 }

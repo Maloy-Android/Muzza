@@ -288,6 +288,12 @@ enum class SearchSource {
     }
 }
 
+val HistorySourceKey = stringPreferencesKey("historySourceType")
+
+enum class HistorySource {
+    LOCAL, REMOTE
+}
+
 val VisitorDataKey = stringPreferencesKey("visitorData")
 val InnerTubeCookieKey = stringPreferencesKey("innerTubeCookie")
 val AccountNameKey = stringPreferencesKey("accountName")

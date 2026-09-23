@@ -3,6 +3,7 @@ package com.maloy.muzza.ui.screens.library
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -53,6 +54,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
@@ -103,6 +105,7 @@ import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.TextFieldDialog
 import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.switchFilter
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -233,6 +236,12 @@ fun LibraryPlaylistsScreen(
                         ?.contains(searchQueryStr, ignoreCase = true) == true
         }
     }
+
+    val filterOrder = listOf(
+        PlaylistFilter.LIKED,
+        PlaylistFilter.LOCAL,
+        PlaylistFilter.DOWNLOADED
+    )
 
     LaunchedEffect(isSearching) {
         if (isSearching) {
@@ -378,6 +387,21 @@ fun LibraryPlaylistsScreen(
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
+            .pointerInput(Unit) {
+                var totalDrag = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { totalDrag = 0f },
+                    onHorizontalDrag = { _, dragAmount -> totalDrag += dragAmount },
+                    onDragEnd = {
+                        val threshold = 100f
+                        when {
+                            totalDrag > threshold -> switchFilter(filter, filterOrder, -1) { filter = it }
+                            totalDrag < -threshold -> switchFilter(filter, filterOrder, 1) { filter = it }
+                        }
+                        totalDrag = 0f
+                    }
+                )
+            }
             .pullToRefresh(
                 enabled = filter == PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context),
                 state = pullRefreshState,

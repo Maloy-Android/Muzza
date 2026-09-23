@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.pages.HistoryPage
-import com.maloy.muzza.constants.HistorySource
 import com.maloy.muzza.db.MusicDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +25,6 @@ class HistoryViewModel @Inject constructor(
     private val today = LocalDate.now()
     private val thisMonday = today.with(DayOfWeek.MONDAY)
     private val lastMonday = thisMonday.minusDays(7)
-    var historySource = MutableStateFlow(HistorySource.LOCAL)
     val historyPage = MutableStateFlow<HistoryPage?>(null)
 
     private val _isRefreshing = MutableStateFlow(false)

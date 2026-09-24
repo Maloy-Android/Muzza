@@ -227,7 +227,7 @@ fun LibraryPlaylistsScreen(
     )
     val focusRequester = remember { FocusRequester() }
     val searchQueryStr = searchQuery.text.trim()
-    val filteredPlaylists = if (searchQueryStr.isEmpty()) {
+    val filteredPlaylists = if (!isSearching) {
         playlists
     } else {
         playlists?.filter { playlists ->

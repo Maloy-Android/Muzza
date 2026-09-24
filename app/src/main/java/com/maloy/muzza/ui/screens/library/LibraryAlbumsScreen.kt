@@ -198,7 +198,7 @@ fun LibraryAlbumsScreen(
     )
     val focusRequester = remember { FocusRequester() }
     val searchQueryStr = searchQuery.text.trim()
-    val filteredAlbums = if (searchQueryStr.isEmpty()) {
+    val filteredAlbums = if (!isSearching) {
         albums
     } else {
         albums?.filter { albums ->

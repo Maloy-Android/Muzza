@@ -221,7 +221,7 @@ fun AutoPlaylistLocalScreen(
     }
 
     val searchQueryStr = searchQuery.text.trim()
-    val filteredSongs = if (searchQueryStr.isEmpty()) {
+    val filteredSongs = if (!isSearching) {
         localSongs
     } else {
         localSongs.filter { song ->

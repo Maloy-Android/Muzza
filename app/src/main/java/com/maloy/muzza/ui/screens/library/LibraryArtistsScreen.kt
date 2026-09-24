@@ -195,7 +195,7 @@ fun LibraryArtistsScreen(
     )
     val focusRequester = remember { FocusRequester() }
     val searchQueryStr = searchQuery.text.trim()
-    val filteredArtists = if (searchQueryStr.isEmpty()) {
+    val filteredArtists = if (!isSearching) {
         artists
     } else {
         artists?.filter { artists ->

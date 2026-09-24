@@ -210,7 +210,7 @@ fun OnlinePlaylistScreen(
     val filteredSongs = remember(songs, query, hideExplicit) {
         songs.mapIndexed { index, song -> index to song }
             .filter { (_, song) ->
-                (!hideExplicit || !song.explicit) && (query.text.isEmpty() ||
+                (!hideExplicit || !song.explicit) && (!isSearching ||
                         song.title.contains(query.text, ignoreCase = true) ||
                         song.artists.any { it.name.contains(query.text, ignoreCase = true) })
             }

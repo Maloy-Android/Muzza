@@ -247,7 +247,7 @@ fun CachePlaylistScreen(
     }
 
     val searchQueryStr = searchQuery.text.trim()
-    val filteredSongs = if (searchQueryStr.isEmpty()) {
+    val filteredSongs = if (!isSearching) {
         cachedSongs
     } else {
         cachedSongs.filter { song ->

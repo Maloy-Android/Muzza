@@ -163,7 +163,7 @@ fun HistoryScreen(
 
     val eventsMap by viewModel.events.collectAsState()
     val filteredEventsMap = remember(eventsMap, query) {
-        if (query.text.isEmpty()) eventsMap
+        if (!isSearching) eventsMap
         else eventsMap
             .mapValues { (_, songs) ->
                 songs.filter { song ->
@@ -180,7 +180,7 @@ fun HistoryScreen(
     }
 
     val filteredRemoteContent = remember(historyPage, query) {
-        if (query.text.isEmpty()) {
+        if (!isSearching) {
             historyPage?.sections
         } else {
             historyPage?.sections?.map { section ->

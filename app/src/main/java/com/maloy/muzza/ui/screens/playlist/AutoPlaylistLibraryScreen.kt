@@ -244,7 +244,7 @@ fun AutoPlaylistLibraryScreen(
     }
 
     val searchQueryStr = searchQuery.text.trim()
-    val filteredSongs = if (searchQueryStr.isEmpty()) {
+    val filteredSongs = if (!isSearching) {
         librarySongs
     } else {
         librarySongs.filter { song ->

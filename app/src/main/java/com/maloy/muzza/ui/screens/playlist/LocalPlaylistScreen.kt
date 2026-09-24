@@ -217,7 +217,7 @@ fun LocalPlaylistScreen(
         }
     )
     val filteredSongs = remember(songs, query) {
-        if (query.text.isEmpty()) songs
+        if (!isSearching) songs
         else songs.filter { song ->
             song.song.title.contains(query.text, ignoreCase = true) ||
                     song.song.artists.fastAny { it.name.contains(query.text, ignoreCase = true) }

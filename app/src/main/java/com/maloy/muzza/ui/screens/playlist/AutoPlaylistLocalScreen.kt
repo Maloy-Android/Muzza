@@ -605,13 +605,13 @@ fun AutoPlaylistLocalScreen(
                 },
                 actions = {
                     Checkbox(
-                        checked = selection.size == localSongs.size && selection.isNotEmpty(),
+                        checked = selection.size == filteredSongs.size && selection.isNotEmpty(),
                         onCheckedChange = {
-                            if (selection.size == localSongs.size) {
+                            if (selection.size == filteredSongs.size) {
                                 selection.clear()
                             } else {
                                 selection.clear()
-                                selection.addAll(localSongs.map { it.id })
+                                selection.addAll(filteredSongs.map { it.id })
                             }
                         }
                     )

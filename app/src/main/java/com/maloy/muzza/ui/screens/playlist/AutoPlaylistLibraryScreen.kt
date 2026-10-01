@@ -658,13 +658,13 @@ fun AutoPlaylistLibraryScreen(
                 },
                 actions = {
                     Checkbox(
-                        checked = selection.size == librarySongs.size && selection.isNotEmpty(),
+                        checked = selection.size == filteredSongs.size && selection.isNotEmpty(),
                         onCheckedChange = {
-                            if (selection.size == librarySongs.size) {
+                            if (selection.size == filteredSongs.size) {
                                 selection.clear()
                             } else {
                                 selection.clear()
-                                selection.addAll(librarySongs.map { it.id })
+                                selection.addAll(filteredSongs.map { it.id })
                             }
                         }
                     )

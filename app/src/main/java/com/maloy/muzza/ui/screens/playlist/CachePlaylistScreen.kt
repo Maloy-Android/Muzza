@@ -655,13 +655,13 @@ fun CachePlaylistScreen(
                 },
                 actions = {
                     Checkbox(
-                        checked = selection.size == cachedSongs.size && selection.isNotEmpty(),
+                        checked = selection.size == filteredSongs.size && selection.isNotEmpty(),
                         onCheckedChange = {
-                            if (selection.size == cachedSongs.size) {
+                            if (selection.size == filteredSongs.size) {
                                 selection.clear()
                             } else {
                                 selection.clear()
-                                selection.addAll(cachedSongs.map { it.id })
+                                selection.addAll(filteredSongs.map { it.id })
                             }
                         }
                     )

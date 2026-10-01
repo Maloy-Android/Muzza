@@ -15,6 +15,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,9 +54,11 @@ import com.maloy.muzza.ui.component.EmptyPlaceholder
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
+import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.viewmodels.StatsViewModel
@@ -77,6 +81,7 @@ fun StatsScreen(
     val mostPlayedSongs by viewModel.mostPlayedSongs.collectAsState()
     val mostPlayedArtists by viewModel.mostPlayedArtists.collectAsState()
     val mostPlayedAlbums by viewModel.mostPlayedAlbums.collectAsState()
+    val mostPlayedPlaylists by viewModel.mostPlayedPlaylists.collectAsState()
     val lazylistState = rememberLazyListState()
 
     val coroutineScope = rememberCoroutineScope()
@@ -280,10 +285,55 @@ fun StatsScreen(
                         }
                     }
                 }
+                if (mostPlayedPlaylists.isNotEmpty()) {
+                    item(key = "mostPlayedPlaylists") {
+                        NavigationTitle(
+                            title = stringResource(R.string.most_played_playlists),
+                            modifier = Modifier.animateItem()
+                        )
+
+                        LazyRow(
+                            modifier = Modifier.animateItem()
+                        ) {
+                            items(
+                                items = mostPlayedPlaylists,
+                                key = { it.id }
+                            ) { playlist ->
+                                PlaylistGridItem(
+                                    playlist = playlist,
+                                    isActive = playlist.id == mediaMetadata?.playlist?.id,
+                                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                                    isPlaying = isPlaying,
+                                    coroutineScope = coroutineScope,
+                                    navController = navController,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = {
+                                                navController.navigate("local_playlist/${playlist.id}")
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    PlaylistMenu(
+                                                        playlist = playlist,
+                                                        navController = navController,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss
+                                                    )
+                                                }
+                                            }
+                                        )
+                                        .animateItem()
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
 
-        if (mostPlayedSongs.isNotEmpty() && mostPlayedArtists.isNotEmpty() && mostPlayedAlbums.isNotEmpty()) {
+        if (mostPlayedSongs.isNotEmpty() && mostPlayedArtists.isNotEmpty() && mostPlayedAlbums.isNotEmpty() && mostPlayedPlaylists.isNotEmpty()) {
             Indicator(
                 isRefreshing = isRefreshing,
                 state = pullRefreshState,

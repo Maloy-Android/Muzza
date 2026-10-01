@@ -75,6 +75,7 @@
     <string name="most_played_songs">Найпопулярніші пісні</string>
     <string name="most_played_artists">Найпопулярніші виконавці</string>
     <string name="most_played_albums">Найпопулярніші альбоми</string>
+    <string name="most_played_playlists">Найпопулярніші плейлисти</string>
 
     <!-- Search -->
     <string name="search">Пошук</string>

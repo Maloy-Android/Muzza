@@ -6,6 +6,7 @@ import com.maloy.innertube.models.Album
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.ArtistItem
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 
@@ -52,6 +53,17 @@ data class SpeedDialItem(
                 shuffleEndpoint = null,
                 radioEndpoint = null,
                 isProfile = isProfile,
+            )
+            "PLAYLIST" -> PlaylistItem(
+                id = id,
+                title = title,
+                thumbnail = thumbnailUrl ?: "",
+                author = subtitle?.let { Artist(name = it, id = null) },
+                authorAvatarUrl = null,
+                songCountText = null,
+                playEndpoint = null,
+                shuffleEndpoint = null,
+                radioEndpoint = null
             )
             else -> throw IllegalArgumentException("Unknown type: $type")
         }

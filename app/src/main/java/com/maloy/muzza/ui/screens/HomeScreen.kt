@@ -37,6 +37,8 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -116,6 +118,7 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.NoInternetBottomSheet
+import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.RandomizeGridItem
 import com.maloy.muzza.ui.component.SongGridItem
 import com.maloy.muzza.ui.component.SongListItem
@@ -127,6 +130,7 @@ import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.AlbumMenu
 import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubeArtistMenu
@@ -141,7 +145,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Calendar
 import kotlin.math.min
-import kotlin.random.Random
 
 @SuppressLint("SuspiciousIndentation")
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
@@ -318,7 +321,36 @@ fun HomeScreen(
                     ),
             )
 
-            is Playlist -> {}
+            is Playlist -> {
+                PlaylistGridItem(
+                    playlist = it,
+                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                    isActive = it.id == mediaMetadata?.playlist?.id,
+                    isPlaying = isPlaying,
+                    coroutineScope = coroutineScope,
+                    navController = navController,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .combinedClickable(
+                            onClick = {
+                                navController.navigate("local_playlist/${it.id}")
+                            },
+                            onLongClick = {
+                                haptic.performHapticFeedback(
+                                    HapticFeedbackType.LongPress,
+                                )
+                                menuState.show {
+                                    PlaylistMenu(
+                                        playlist = it,
+                                        navController = navController,
+                                        coroutineScope = scope,
+                                        onDismiss = menuState::dismiss
+                                    )
+                                }
+                            }
+                        )
+                )
+            }
         }
     }
 
@@ -655,7 +687,9 @@ fun HomeScreen(
                                                                                     )
                                                                                 }
 
-                                                                                else -> {}
+                                                                                is PlaylistItem -> {
+                                                                                    navController.navigate("online_playlist/${randomItem.id}")
+                                                                                }
                                                                             }
                                                                         }
                                                                     }
@@ -681,6 +715,7 @@ fun HomeScreen(
                                                         isActive =
                                                             item.id in listOf(
                                                                 mediaMetadata?.album?.id,
+                                                                mediaMetadata?.playlist?.id,
                                                                 mediaMetadata?.id
                                                             ),
                                                         isPlaying = isPlaying,
@@ -715,13 +750,15 @@ fun HomeScreen(
                                                                             )
                                                                         }
 
+                                                                        is PlaylistItem -> {
+                                                                            navController.navigate("online_playlist/${item.id}")
+                                                                        }
+
                                                                         is ArtistItem -> {
                                                                             navController.navigate(
                                                                                 "artist/${item.id}"
                                                                             )
                                                                         }
-
-                                                                        else -> {}
                                                                     }
                                                                 }, onLongClick = {
                                                                     haptic.performHapticFeedback(
@@ -752,7 +789,14 @@ fun HomeScreen(
                                                                                 )
                                                                             }
 
-                                                                            else -> {}
+                                                                            is PlaylistItem -> {
+                                                                                YouTubePlaylistMenu(
+                                                                                    playlist = item,
+                                                                                    coroutineScope = scope,
+                                                                                    navController = navController,
+                                                                                    onDismiss = menuState::dismiss
+                                                                                )
+                                                                            }
                                                                         }
                                                                     }
                                                                 })
@@ -1206,7 +1250,9 @@ fun HomeScreen(
                                         )
                                     }
 
-                                    else -> {}
+                                    is PlaylistItem -> {
+                                        navController.navigate("online_playlist/${randomItem.id}")
+                                    }
                                 }
                             }
                         }

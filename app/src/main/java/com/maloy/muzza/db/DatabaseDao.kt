@@ -342,6 +342,29 @@ interface DatabaseDao {
     fun mostPlayedAlbums(fromTimeStamp: Long, limit: Int = 6, offset: Int = 0): Flow<List<Album>>
 
     @Transaction
+    @Query(
+        """
+SELECT playlist.*, 
+       (SELECT COUNT(*) FROM playlist_song_map WHERE playlistId = playlist.id) AS songCount
+FROM playlist
+    WHERE id IN (
+        SELECT playlist_song_map.playlistId
+        FROM event
+                 JOIN
+             song ON event.songId = song.id
+                 JOIN
+             playlist_song_map ON playlist_song_map.songId = song.id
+        WHERE event.timestamp > :fromTimeStamp
+        GROUP BY playlist_song_map.playlistId
+        HAVING playlist_song_map.playlistId IS NOT NULL
+        ORDER BY sum(event.playTime) DESC
+        LIMIT :limit OFFSET :offset
+    )
+    """
+    )
+    fun mostPlayedPlaylists(fromTimeStamp: Long, limit: Int = 6, offset: Int = 0): Flow<List<Playlist>>
+
+    @Transaction
     @Query("SELECT * FROM song WHERE id = :songId")
     fun song(songId: String?): Flow<Song?>
 

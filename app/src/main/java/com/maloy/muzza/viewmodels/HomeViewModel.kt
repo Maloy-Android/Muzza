@@ -18,6 +18,7 @@ import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Album
 import com.maloy.muzza.db.entities.Artist
 import com.maloy.muzza.db.entities.LocalItem
+import com.maloy.muzza.db.entities.Playlist
 import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.SimilarRecommendation
 import com.maloy.muzza.models.data.CommunityPlaylistItem
@@ -114,6 +115,22 @@ class HomeViewModel @Inject constructor(
                                 },
                                 year = item.album.year,
                                 thumbnail = item.thumbnailUrl ?: "",
+                                radioEndpoint = null
+                            )
+                            is Playlist -> PlaylistItem(
+                                id = item.playlist.browseId!!,
+                                title = item.playlist.name,
+                                thumbnail = item.playlist.thumbnailUrl ?: "",
+                                author = item.playlist.let {
+                                    com.maloy.innertube.models.Artist(
+                                        id = it.playlistAuthorsId,
+                                        name = it.playlistAuthorName.orEmpty()
+                                    )
+                                },
+                                authorAvatarUrl = null,
+                                songCountText = null,
+                                playEndpoint = null,
+                                shuffleEndpoint = null,
                                 radioEndpoint = null
                             )
                             else -> null
@@ -249,6 +266,19 @@ class HomeViewModel @Inject constructor(
                             radioEndpoint = null,
                             thumbnail = item.thumbnailUrl ?: "",
                         ))
+                        is Playlist -> otherSources.add(PlaylistItem(
+                            id = item.id,
+                            title = item.title,
+                            thumbnail = item.thumbnailUrl ?: "",
+                            author = null,
+                            authorAvatarUrl = item.playlist.playlistAuthorAvatarUrl,
+                            songCountText = item.playlist.remoteSongCount
+                                ?.toString(),
+                            playEndpoint = WatchEndpoint(item.playlist.playEndpointParams),
+                            shuffleEndpoint = WatchEndpoint(item.playlist.shuffleEndpointParams),
+                            radioEndpoint = WatchEndpoint(item.playlist.radioEndpointParams)
+                        ))
+
                         else -> {}
                     }
                 }
@@ -326,9 +356,11 @@ class HomeViewModel @Inject constructor(
             .first().shuffled().take(10)
         val keepListeningAlbums = database.mostPlayedAlbums(fromTimeStamp, limit = 8, offset = 2)
             .first().filter { it.album.thumbnailUrl != null }.shuffled().take(5)
+        val keepListeningPlaylists = database.mostPlayedPlaylists(fromTimeStamp, limit = 8, offset = 2)
+            .first().filter { it.playlist.thumbnailUrl != null }.shuffled().take(5)
         val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp)
             .first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
-        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningArtists).shuffled()
+        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningPlaylists +  keepListeningArtists).shuffled()
 
         allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
             .filter { it is Song || it is Album }

@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.constants.StatPeriod
 import com.maloy.muzza.db.MusicDatabase
+import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -24,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class StatsViewModel @Inject constructor(
     val database: MusicDatabase,
+    val syncUtils: SyncUtils,
 ) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
@@ -44,6 +46,10 @@ class StatsViewModel @Inject constructor(
 
     val mostPlayedAlbums = statPeriod.flatMapLatest { period ->
         database.mostPlayedAlbums(period.toTimeMillis())
+    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+
+    val mostPlayedPlaylists = statPeriod.flatMapLatest { period ->
+        database.mostPlayedPlaylists(period.toTimeMillis())
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun load() {
@@ -81,6 +87,21 @@ class StatsViewModel @Inject constructor(
                         }
                     }
                 }
+            }
+        }
+        viewModelScope.launch {
+            mostPlayedPlaylists.collect { playlists ->
+                playlists.filter { it.songCount == 0 }
+                    .forEach { playlist ->
+                        runCatching {
+                            syncUtils.syncPlaylist(playlist.id, playlist.playlist.id)
+                        }.onFailure { e ->
+                            reportException(e)
+                            if (e.message?.contains("NOT_FOUND") == true) {
+                                database.query { delete(playlist.playlist) }
+                            }
+                        }
+                    }
             }
         }
     }

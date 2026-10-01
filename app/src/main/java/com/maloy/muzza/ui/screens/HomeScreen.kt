@@ -1054,8 +1054,10 @@ fun HomeScreen(
 
             homePage?.sections?.forEach { section ->
                 val hasOnlyVideos = section.items.all { it is SongItem && it.isVideoSong }
-                val isYouTubePlaylists = section.items.all { it is PlaylistItem && it.id.startsWith("RDCLAK5") }
-                val isNewReleaseAlbums = section.endpoint?.browseId?.startsWith("FEmusic_new_releases")
+                val isYouTubePlaylists =
+                    section.items.all { it is PlaylistItem && it.id.startsWith("RDCLAK5") }
+                val isNewReleaseAlbums =
+                    section.endpoint?.browseId?.startsWith("FEmusic_new_releases")
                 val isMixesForYou = section.endpoint?.browseId?.startsWith("FEmusic_mixed_for_you")
                 val isCharts = section.endpoint?.browseId?.startsWith("FEmusic_charts")
                 val isLibrary = section.endpoint?.browseId?.startsWith("FEmusic_library")
@@ -1084,12 +1086,27 @@ fun HomeScreen(
                         onClick = section.endpoint?.let { endpoint ->
                             {
                                 when {
-                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate("artist/${endpoint.browseId}")
-                                    endpoint.params != null && (isNewReleaseAlbums == true) -> navController.navigate("new_release")
-                                    endpoint.params != null && (isLibrary == true) -> navController.navigate("library")
-                                    endpoint.params != null && (isMixesForYou == true || isCharts == true || isListenAgain == true) -> navController.navigate("browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}")
-                                    endpoint.params != null && (isYouTubePlaylists) -> navController.navigate("mood_and_genres")
-                                    else ->  navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
+                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate(
+                                        "artist/${endpoint.browseId}"
+                                    )
+
+                                    endpoint.params != null && (isNewReleaseAlbums == true) -> navController.navigate(
+                                        "new_release"
+                                    )
+
+                                    endpoint.params != null && (isLibrary == true) -> navController.navigate(
+                                        "library"
+                                    )
+
+                                    endpoint.params != null && (isMixesForYou == true || isCharts == true || isListenAgain == true) -> navController.navigate(
+                                        "browse/${endpoint.browseId}?params=${endpoint.params}?title=${section.title}"
+                                    )
+
+                                    endpoint.params != null && (isYouTubePlaylists) -> navController.navigate(
+                                        "mood_and_genres"
+                                    )
+
+                                    else -> navController.navigate("youtube_browse/${endpoint.browseId}?params=${endpoint.params}")
                                 }
                             }
                         },
@@ -1150,20 +1167,49 @@ fun HomeScreen(
         }
 
         HideOnScrollFAB(
-            visible = !quickPicks.isNullOrEmpty() || explorePage?.newReleaseAlbums?.isNotEmpty() == true,
+            visible = speedDialItems.isNotEmpty() || explorePage?.newReleaseAlbums?.isNotEmpty() == true,
             lazyListState = lazylistState,
             icon = (R.drawable.casino),
             onClick = {
-                if (Random.nextBoolean() && !quickPicks.isNullOrEmpty()) {
-                    val song = quickPicks!!.random()
-                    playerConnection.playQueue(
-                        YouTubeQueue(
-                            title = song.song.title,
-                            endpoint = WatchEndpoint(videoId = song.id),
-                            preloadItem = song.toMediaMetadata(),
-                            context = context
-                        )
-                    )
+                if (isRandomizing) {
+                    randomizeJob?.cancel()
+                } else if (!isListenTogetherGuest) {
+                    randomizeJob =
+                        scope.launch {
+                            val randomItem =
+                                viewModel.getRandomItem()
+                            if (randomItem != null) {
+                                when (randomItem) {
+                                    is SongItem -> {
+                                        playerConnection.playQueue(
+                                            YouTubeQueue(
+                                                title = randomItem.title,
+                                                endpoint = randomItem.endpoint
+                                                    ?: WatchEndpoint(
+                                                        videoId = randomItem.id,
+                                                    ),
+                                                preloadItem = randomItem.toMediaMetadata(),
+                                                context = context
+                                            )
+                                        )
+                                    }
+
+                                    is AlbumItem -> {
+                                        navController.navigate(
+                                            "album/${randomItem.id}",
+                                        )
+                                    }
+
+                                    is ArtistItem -> {
+                                        navController.navigate(
+                                            "artist/${randomItem.id}",
+                                        )
+                                    }
+
+                                    else -> {}
+                                }
+                            }
+                        }
                 } else if (explorePage?.newReleaseAlbums?.isNotEmpty() == true) {
                     val album = explorePage?.newReleaseAlbums!!.random()
                     playerConnection.playQueue(

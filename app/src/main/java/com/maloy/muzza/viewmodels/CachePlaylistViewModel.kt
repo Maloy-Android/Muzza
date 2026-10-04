@@ -56,7 +56,7 @@ class CachePlaylistViewModel @Inject constructor(
                             }
 
                         SongSortType.PLAY_TIME ->
-                            songs.sortedBy { it.song.totalPlayTime }
+                            songs.sortedBy { it.song.totalPlayTime }.reversed()
                     }.reversed(!descending)
                 }
         }.stateIn(

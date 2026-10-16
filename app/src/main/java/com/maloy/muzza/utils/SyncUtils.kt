@@ -111,7 +111,7 @@ class SyncUtils @Inject constructor(
     }
     suspend fun syncArtistsSubscriptions() {
         YouTube.library("FEmusic_library_corpus_artists").completed().onSuccess { page ->
-            val artists = page.items.filterIsInstance<ArtistItem>()
+            val artists = page.items.filterIsInstance<ArtistItem>().reversed()
             database.artistsBookmarkedByNameAsc().first()
                 .filterNot { it.artist.bookmarkedAt != null }
                 .filter {
@@ -143,7 +143,7 @@ class SyncUtils @Inject constructor(
     }
     suspend fun syncProfilesSubscriptions() {
         YouTube.library("FEmusic_library_user_profile_channels_list").completed().onSuccess { page ->
-            val artists = page.items.filterIsInstance<ArtistItem>()
+            val artists = page.items.filterIsInstance<ArtistItem>().reversed()
             database.profilesBookmarkedByNameAsc().first()
                 .filterNot { it.artist.bookmarkedAt != null }
                 .filter {

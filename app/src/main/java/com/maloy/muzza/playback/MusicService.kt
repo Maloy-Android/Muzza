@@ -215,6 +215,8 @@ class MusicService : MediaLibraryService(),
 
     private var currentQueue: Queue = EmptyQueue
     var queueTitle: String? = null
+    private val _isLoadingMore = MutableStateFlow(false)
+    val isLoadingMore = _isLoadingMore.asStateFlow()
 
     private var consecutivePlaybackErr = 0
 
@@ -1803,6 +1805,25 @@ class MusicService : MediaLibraryService(),
         if (nextIndex == C.INDEX_UNSET) return false
         val next = player.getMediaItemAt(nextIndex).mediaMetadata
         return current.albumTitle != null && current.albumTitle == next.albumTitle
+    }
+
+    fun loadMoreQueue() {
+        if (_isLoadingMore.value) return
+        if (!dataStore.get(AutoLoadMoreKey, true)) return
+        if (!currentQueue.hasNextPage()) return
+
+        _isLoadingMore.value = true
+        scope.launch(SilentHandler) {
+            try {
+                val mediaItems =
+                    currentQueue.nextPage().filterExplicit(dataStore.get(HideExplicitKey, false))
+                if (player.playbackState != STATE_IDLE && mediaItems.isNotEmpty()) {
+                    player.addMediaItems(mediaItems.drop(1))
+                }
+            } finally {
+                _isLoadingMore.value = false
+            }
+        }
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo) = mediaSession

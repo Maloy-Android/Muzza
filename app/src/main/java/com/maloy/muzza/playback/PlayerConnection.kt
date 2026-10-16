@@ -44,6 +44,7 @@ class PlayerConnection(
     scope: CoroutineScope,
 ) : Player.Listener {
     val service = binder.service
+    val isLoadingMore = service.isLoadingMore
 
     val player: ExoPlayer
         get() = service.player
@@ -286,6 +287,10 @@ class PlayerConnection(
     fun toggleReplayMode() {
         player.repeatMode = if (player.repeatMode == Player.REPEAT_MODE_ONE)
             REPEAT_MODE_OFF else Player.REPEAT_MODE_ONE
+    }
+
+    fun loadMoreQueue() {
+        service.loadMoreQueue()
     }
 
     fun dispose() {

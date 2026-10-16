@@ -1172,40 +1172,103 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         )
     }
 
-    suspend fun next(endpoint: WatchEndpoint, continuation: String? = null): Result<NextResult> = runCatching {
-        val response = innerTube.next(WEB_REMIX, endpoint.videoId, endpoint.playlistId, endpoint.playlistSetVideoId, endpoint.index, endpoint.params, continuation).body<NextResponse>()
-        val title = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.header?.musicQueueHeaderRenderer?.subtitle?.runs?.firstOrNull()?.text
-        val playlistPanelRenderer = response.continuationContents?.playlistPanelContinuation
-            ?: response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs[0].tabRenderer.content?.musicQueueRenderer?.content?.playlistPanelRenderer!!
-        val items = playlistPanelRenderer.contents.mapNotNull { content ->
-            content.playlistPanelVideoRenderer
-                ?.let(NextPage::fromPlaylistPanelVideoRenderer)
-                ?.let { it to content.playlistPanelVideoRenderer.selected }
+    suspend fun next(
+        endpoint: WatchEndpoint,
+        continuation: String? = null,
+    ): Result<NextResult> =
+        runCatching {
+            val response =
+                innerTube
+                    .next(
+                        WEB_REMIX,
+                        endpoint.videoId,
+                        endpoint.playlistId,
+                        endpoint.playlistSetVideoId,
+                        endpoint.index,
+                        endpoint.params,
+                        continuation,
+                    ).body<NextResponse>()
+
+            val watchNextTabs =
+                response.contents.singleColumnMusicWatchNextResultsRenderer
+                    .tabbedRenderer
+                    .watchNextTabbedResultsRenderer
+                    .tabs
+            val lyricsBrowseEndpoint =
+                watchNextTabs.firstNotNullOfOrNull { tab ->
+                    tab.tabRenderer.endpoint
+                        ?.browseEndpoint
+                        ?.takeIf { it.browseId.startsWith("MPLYt") }
+                }
+            val relatedBrowseEndpoint =
+                watchNextTabs.firstNotNullOfOrNull { tab ->
+                    tab.tabRenderer.endpoint
+                        ?.browseEndpoint
+                        ?.takeIf { it.browseId.startsWith("MPTRt") }
+                }
+            val playlistPanelRenderer =
+                response.continuationContents?.playlistPanelContinuation
+                    ?: response.contents.singleColumnMusicWatchNextResultsRenderer
+                        .tabbedRenderer
+                        .watchNextTabbedResultsRenderer
+                        .tabs[0]
+                        .tabRenderer
+                        .content
+                        ?.musicQueueRenderer
+                        ?.content
+                        ?.playlistPanelRenderer!!
+            val title =
+                response.contents.singleColumnMusicWatchNextResultsRenderer
+                    .tabbedRenderer
+                    .watchNextTabbedResultsRenderer
+                    .tabs[0]
+                    .tabRenderer
+                    .content
+                    ?.musicQueueRenderer
+                    ?.header
+                    ?.musicQueueHeaderRenderer
+                    ?.subtitle
+                    ?.runs
+                    ?.firstOrNull()
+                    ?.text
+            val items =
+                playlistPanelRenderer.contents.mapNotNull { content ->
+                    content.playlistPanelVideoRenderer
+                        ?.let(NextPage::fromPlaylistPanelVideoRenderer)
+                        ?.let { it to content.playlistPanelVideoRenderer.selected }
+                }
+            val songs = items.map { it.first }
+            val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
+
+            playlistPanelRenderer.contents
+                .lastOrNull()
+                ?.automixPreviewVideoRenderer
+                ?.content
+                ?.automixPlaylistVideoRenderer
+                ?.navigationEndpoint
+                ?.watchPlaylistEndpoint
+                ?.let { watchPlaylistEndpoint ->
+                    return@runCatching next(watchPlaylistEndpoint).getOrThrow().let { result ->
+                        result.copy(
+                            title = title,
+                            items = songs + result.items,
+                            lyricsEndpoint = lyricsBrowseEndpoint,
+                            relatedEndpoint = relatedBrowseEndpoint,
+                            currentIndex = currentIndex,
+                            endpoint = watchPlaylistEndpoint,
+                        )
+                    }
+                }
+            NextResult(
+                title = title,
+                items = songs,
+                currentIndex = currentIndex,
+                lyricsEndpoint = lyricsBrowseEndpoint,
+                relatedEndpoint = relatedBrowseEndpoint,
+                continuation = playlistPanelRenderer.continuations?.getContinuation(),
+                endpoint = endpoint
+            )
         }
-        val songs = items.map { it.first }
-        val currentIndex = items.indexOfFirst { it.second }.takeIf { it != -1 }
-        playlistPanelRenderer.contents.lastOrNull()?.automixPreviewVideoRenderer?.content?.automixPlaylistVideoRenderer?.navigationEndpoint?.watchPlaylistEndpoint?.let { watchPlaylistEndpoint ->
-            return@runCatching next(watchPlaylistEndpoint).getOrThrow().let { result ->
-                result.copy(
-                    title = title,
-                    items = songs + result.items,
-                    lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
-                    relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
-                    currentIndex = currentIndex,
-                    endpoint = watchPlaylistEndpoint
-                )
-            }
-        }
-        NextResult(
-            title = title,
-            items = songs,
-            currentIndex = currentIndex,
-            lyricsEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(1)?.tabRenderer?.endpoint?.browseEndpoint,
-            relatedEndpoint = response.contents.singleColumnMusicWatchNextResultsRenderer.tabbedRenderer.watchNextTabbedResultsRenderer.tabs.getOrNull(2)?.tabRenderer?.endpoint?.browseEndpoint,
-            continuation = playlistPanelRenderer.continuations?.getContinuation(),
-            endpoint = endpoint
-        )
-    }
 
     suspend fun lyrics(endpoint: BrowseEndpoint): Result<String?> = runCatching {
         val response =

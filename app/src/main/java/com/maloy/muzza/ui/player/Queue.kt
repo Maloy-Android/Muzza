@@ -57,6 +57,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -102,14 +103,18 @@ import com.maloy.muzza.ui.component.LocalMenuState
 import com.maloy.muzza.ui.component.MediaMetadataListItem
 import com.maloy.muzza.ui.component.PlayerSliderTrack
 import com.maloy.muzza.ui.component.SwipeToSongBoxWitchMediaMetadata
+import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
+import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.menu.MediaMetadataMenu
 import com.maloy.muzza.ui.menu.QueueSelectionMenu
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.joinByBullet
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import me.saket.squiggles.SquigglySlider
@@ -127,6 +132,7 @@ fun Queue(
     modifier: Modifier = Modifier,
     onBackgroundColor: Color,
 ) {
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     val menuState = LocalMenuState.current
     val listenTogetherManager = LocalListenTogetherManager.current
@@ -136,6 +142,7 @@ fun Queue(
 
     val playerConnection = LocalPlayerConnection.current ?: return
     val isPlaying by playerConnection.isPlaying.collectAsState()
+    val isLoadingMore by playerConnection.isLoadingMore.collectAsState()
 
     val currentWindowIndex by playerConnection.currentWindowIndex.collectAsState()
     var lockQueue by rememberPreference(LockQueueKey, defaultValue = false)
@@ -287,8 +294,7 @@ fun Queue(
                 modifier = Modifier
                     .fillMaxSize()
                     .windowInsetsPadding(
-                        WindowInsets.systemBars
-                            .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                        WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
                     )
             ) {
                 if (playerStyle == PlayerStyle.NEW) {
@@ -299,8 +305,7 @@ fun Queue(
                             .fillMaxWidth()
                             .padding(horizontal = 30.dp)
                             .windowInsetsPadding(
-                                WindowInsets.systemBars
-                                    .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
+                                WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal),
                             ),
                     ) {
                         TextButton(
@@ -344,8 +349,7 @@ fun Queue(
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                     } else {
                                         onBackgroundColor.copy(alpha = 0.1f)
-                                    },
-                                    shape = RoundedCornerShape(24.dp)
+                                    }, shape = RoundedCornerShape(24.dp)
                                 )
                         ) {
                             if (sleepTimerEnabled) {
@@ -398,8 +402,7 @@ fun Queue(
                                         MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                     } else {
                                         onBackgroundColor.copy(alpha = 0.1f)
-                                    },
-                                    shape = RoundedCornerShape(24.dp)
+                                    }, shape = RoundedCornerShape(24.dp)
                                 )
                         ) {
                             Box(
@@ -516,6 +519,18 @@ fun Queue(
             }
         }
 
+        LaunchedEffect(lazyListState) {
+            snapshotFlow {
+                val info = lazyListState.layoutInfo
+                val lastVisible = info.visibleItemsInfo.lastOrNull()?.index ?: 0
+                lastVisible to info.totalItemsCount
+            }.distinctUntilChanged().collect { (lastVisible, total) ->
+                    if (total > 0 && lastVisible >= total - 3 && (mediaMetadata?.isLocal != true && isInternetAvailable(context))) {
+                        playerConnection.loadMoreQueue()
+                    }
+            }
+        }
+
         Box(
             modifier =
                 Modifier
@@ -600,31 +615,28 @@ fun Queue(
                                 },
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .combinedClickable(
-                                        onClick = {
-                                            if (inSelectMode) {
-                                                onCheckedChange(window.uid.hashCode() !in selection)
-                                            } else {
-                                                coroutineScope.launch(Dispatchers.Main) {
-                                                    if (index == currentWindowIndex) {
-                                                        playerConnection.player.togglePlayPause()
-                                                    } else {
-                                                        playerConnection.player.seekToDefaultPosition(
-                                                            window.firstPeriodIndex
-                                                        )
-                                                        playerConnection.player.playWhenReady = true
-                                                    }
+                                    .combinedClickable(onClick = {
+                                        if (inSelectMode) {
+                                            onCheckedChange(window.uid.hashCode() !in selection)
+                                        } else {
+                                            coroutineScope.launch(Dispatchers.Main) {
+                                                if (index == currentWindowIndex) {
+                                                    playerConnection.player.togglePlayPause()
+                                                } else {
+                                                    playerConnection.player.seekToDefaultPosition(
+                                                        window.firstPeriodIndex
+                                                    )
+                                                    playerConnection.player.playWhenReady = true
                                                 }
                                             }
-                                        },
-                                        onLongClick = {
-                                            if (!inSelectMode) {
-                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                                inSelectMode = true
-                                                onCheckedChange(true)
-                                            }
                                         }
-                                    )
+                                    }, onLongClick = {
+                                        if (!inSelectMode) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            inSelectMode = true
+                                            onCheckedChange(true)
+                                        }
+                                    })
                             )
                         }
 
@@ -648,6 +660,15 @@ fun Queue(
                         }
                     }
                 }
+                if (isLoadingMore) {
+                    item(key = "loading") {
+                        ShimmerHost {
+                            repeat(5) {
+                                ListItemPlaceHolder()
+                            }
+                        }
+                    }
+                }
             }
 
             LazyColumnScrollbar(
@@ -660,8 +681,7 @@ fun Queue(
                         MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.95f)
                     )
                     .windowInsetsPadding(
-                        WindowInsets.systemBars
-                            .only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
+                        WindowInsets.systemBars.only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal)
                     )
             ) {
                 Row(
@@ -739,10 +759,8 @@ fun Queue(
                 .background(MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f))
                 .fillMaxWidth()
                 .height(
-                    ListItemHeight +
-                            WindowInsets.systemBars
-                                .asPaddingValues()
-                                .calculateBottomPadding()
+                    ListItemHeight + WindowInsets.systemBars.asPaddingValues()
+                        .calculateBottomPadding()
                 )
                 .align(Alignment.BottomCenter)
                 .clickable {
@@ -750,8 +768,7 @@ fun Queue(
                     state.collapseSoft()
                 }
                 .windowInsetsPadding(
-                    WindowInsets.systemBars
-                        .only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
+                    WindowInsets.systemBars.only(WindowInsetsSides.Bottom + WindowInsetsSides.Horizontal)
                 )
                 .padding(12.dp)
         ) {

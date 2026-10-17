@@ -1,0 +1,326 @@
+package com.maloy.muzza.ui.screens
+
+import android.annotation.SuppressLint
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.LocalPlayerConnection
+import com.maloy.muzza.R
+import com.maloy.muzza.constants.LibraryViewType
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.platform.LocalContext
+import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.muzza.constants.ClipViewTypeKey
+import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.models.toMediaMetadata
+import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.playback.queues.YouTubeQueue
+import com.maloy.muzza.ui.component.HideOnScrollFAB
+import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
+import com.maloy.muzza.ui.component.LocalMenuState
+import com.maloy.muzza.ui.component.YouTubeGridItem
+import com.maloy.muzza.ui.component.YouTubeListItem
+import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
+import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
+import com.maloy.muzza.ui.component.shimmer.ShimmerHost
+import com.maloy.muzza.ui.menu.YouTubeSongMenu
+import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.rememberEnumPreference
+import com.maloy.muzza.viewmodels.NewClipsViewModel
+import kotlin.collections.isNotEmpty
+import kotlin.collections.map
+
+@SuppressLint("UnusedBoxWithConstraintsScope")
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun NewClipScreen(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+    viewModel: NewClipsViewModel = hiltViewModel(),
+) {
+    val context = LocalContext.current
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val menuState = LocalMenuState.current
+    val haptic = LocalHapticFeedback.current
+
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+    val lazyGridState = rememberLazyGridState()
+    val gridChecker by remember {
+        derivedStateOf {
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
+
+    val lazyListState = rememberLazyListState()
+
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
+
+    var viewType by rememberEnumPreference(ClipViewTypeKey, LibraryViewType.GRID)
+
+    val newClips by viewModel.newClips.collectAsState()
+
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
+    ) {
+        when (viewType) {
+            LibraryViewType.LIST -> {
+                LazyColumn(
+                    state = lazyListState,
+                    contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                ) {
+                    items(
+                        items = newClips,
+                        key = { it.id }
+                    ) { clip ->
+                        YouTubeListItem(
+                            item = clip,
+                            isActive = mediaMetadata?.id == clip.id,
+                            isPlaying = isPlaying,
+                            trailingContent = {
+                                androidx.compose.material3.IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            YouTubeSongMenu(
+                                                song = clip,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        playerConnection.playQueue(
+                                            YouTubeQueue(
+                                                title = clip.title,
+                                                endpoint = clip.endpoint
+                                                    ?: WatchEndpoint(
+                                                        videoId = clip.id,
+                                                    ),
+                                                preloadItem = clip.toMediaMetadata(),
+                                                context = context
+                                            )
+                                        )
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            YouTubeSongMenu(
+                                                song = clip,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                )
+                        )
+                    }
+                    if (newClips.isEmpty()) {
+                        item(key = "loading") {
+                            ShimmerHost {
+                                repeat(8) {
+                                    ListItemPlaceHolder()
+                                }
+                            }
+                        }
+                    }
+                }
+                LazyColumnScrollbar(
+                    visible = lazyChecker,
+                    state = lazyListState
+                )
+                newClips.let { songs ->
+                    HideOnScrollFAB(
+                        visible = songs.isNotEmpty(),
+                        lazyListState = lazyListState,
+                        icon = R.drawable.play,
+                        onClick = {
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = context.getString(R.string.new_clips),
+                                    items = songs.map { it.toMediaItem() }
+                                )
+                            )
+                        }
+                    )
+                }
+            }
+
+            LibraryViewType.GRID -> {
+                LazyVerticalGrid(
+                    state = lazyGridState,
+                    columns = GridCells.Fixed(1),
+                    contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                ) {
+                    items(
+                        items = newClips,
+                        key = { it.id }
+                    ) { clip ->
+                        YouTubeGridItem(
+                            item = clip,
+                            isActive = mediaMetadata?.id == clip.id,
+                            isPlaying = isPlaying,
+                            videoThumbnailSize = true,
+                            fillMaxWidth = true,
+                            navController = navController,
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        playerConnection.playQueue(
+                                            YouTubeQueue(
+                                                title = clip.title,
+                                                endpoint = clip.endpoint
+                                                    ?: WatchEndpoint(
+                                                        videoId = clip.id,
+                                                    ),
+                                                preloadItem = clip.toMediaMetadata(),
+                                                context = context
+                                            )
+                                        )
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            YouTubeSongMenu(
+                                                song = clip,
+                                                navController = navController,
+                                                onDismiss = menuState::dismiss
+                                            )
+                                        }
+                                    }
+                                )
+                        )
+                    }
+                    if (newClips.isEmpty()) {
+                        items(8) {
+                            ShimmerHost {
+                                GridItemPlaceHolder(videoThumbnail = true)
+                            }
+                        }
+                    }
+                }
+                LazyVerticalGridScrollbar(
+                    visible = gridChecker,
+                    state = lazyGridState
+                )
+                newClips.let { songs ->
+                    HideOnScrollFAB(
+                        visible = songs.isNotEmpty(),
+                        lazyListState = lazyGridState,
+                        icon = R.drawable.play,
+                        onClick = {
+                            playerConnection.playQueue(
+                                ListQueue(
+                                    title = context.getString(R.string.new_clips),
+                                    items = songs.map { it.toMediaItem() }
+                                )
+                            )
+                        }
+                    )
+                }
+            }
+        }
+
+        if (newClips.isNotEmpty()) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
+        }
+    }
+
+    CenterAlignedTopAppBar(
+        title = { Text(stringResource(R.string.new_clips)) },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    painterResource(R.drawable.arrow_back),
+                    contentDescription = null
+                )
+            }
+        },
+        actions = {
+            if (newClips.isNotEmpty()) {
+                androidx.compose.material3.IconButton(
+                    onClick = {
+                        viewType = viewType.toggle()
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            when (viewType) {
+                                LibraryViewType.LIST -> R.drawable.list
+                                LibraryViewType.GRID -> R.drawable.grid_view
+                            }
+                        ),
+                        contentDescription = null
+                    )
+                }
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
+}

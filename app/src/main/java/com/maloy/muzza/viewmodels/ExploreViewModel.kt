@@ -52,7 +52,8 @@ class ExploreViewModel @Inject constructor(
                                 else if (album.artists.orEmpty().any { it.id in artists }) 1
                                 else 2
                             }
-                            .filterExplicit(context.dataStore.get(HideExplicitKey, false))
+                            .filterExplicit(context.dataStore.get(HideExplicitKey, false)),
+                        newClips = page.newClips
                     )
             }.onFailure {
                 reportException(it)

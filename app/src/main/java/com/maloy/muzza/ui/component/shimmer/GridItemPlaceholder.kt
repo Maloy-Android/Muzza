@@ -17,25 +17,38 @@ fun GridItemPlaceHolder(
     modifier: Modifier = Modifier,
     thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
     fillMaxWidth: Boolean = false,
+    videoThumbnail: Boolean = false,
 ) {
     Column(
-        modifier = if (fillMaxWidth) {
-            modifier
+        modifier = when {
+            videoThumbnail -> modifier
                 .padding(12.dp)
                 .fillMaxWidth()
-        } else {
-            modifier
+                .fillMaxHeight(0.5f)
+
+            fillMaxWidth -> modifier
+                .padding(12.dp)
+                .fillMaxWidth()
+
+            else -> modifier
                 .padding(12.dp)
                 .width(GridThumbnailHeight)
         }
     ) {
         Spacer(
-            modifier = if (fillMaxWidth) {
-                Modifier.fillMaxWidth()
-            } else {
-                Modifier.height(GridThumbnailHeight)
+            modifier = when {
+                videoThumbnail -> Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(16f / 9f)
+
+                fillMaxWidth -> Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(1f)
+
+                else -> Modifier
+                    .height(GridThumbnailHeight)
+                    .aspectRatio(1f)
             }
-                .aspectRatio(1f)
                 .clip(thumbnailShape)
                 .background(MaterialTheme.colorScheme.onSurface)
         )

@@ -50,6 +50,7 @@ import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
 import com.maloy.innertube.pages.NewPipeExtractor
 import com.maloy.innertube.pages.NewReleaseAlbumPage
+import com.maloy.innertube.pages.NewClipsPage
 import com.maloy.innertube.pages.NextPage
 import com.maloy.innertube.pages.NextResult
 import com.maloy.innertube.pages.PlaylistContinuationPage
@@ -852,6 +853,11 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             }?.musicCarouselShelfRenderer?.contents
                 ?.mapNotNull { it.musicTwoRowItemRenderer }
                 ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer).orEmpty(),
+            newClips = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.find {
+                it.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint?.browseId == "FEmusic_new_releases_videos"
+            }?.musicCarouselShelfRenderer?.contents
+                ?.mapNotNull { it.musicTwoRowItemRenderer }
+                ?.mapNotNull(NewClipsPage::fromMusicTwoRowItemRenderer).orEmpty(),
             moodAndGenres = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.find {
                 it.musicCarouselShelfRenderer?.header?.musicCarouselShelfBasicHeaderRenderer?.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint?.browseId == "FEmusic_moods_and_genres"
             }?.musicCarouselShelfRenderer?.contents
@@ -866,6 +872,14 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items
             ?.mapNotNull { it.musicTwoRowItemRenderer }
             ?.mapNotNull(NewReleaseAlbumPage::fromMusicTwoRowItemRenderer)
+            .orEmpty()
+    }
+
+    suspend fun newClips(): Result<List<SongItem>> = runCatching {
+        val response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_new_releases_videos").body<BrowseResponse>()
+        response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()?.gridRenderer?.items
+            ?.mapNotNull { it.musicTwoRowItemRenderer }
+            ?.mapNotNull(NewClipsPage::fromMusicTwoRowItemRenderer)
             .orEmpty()
     }
 

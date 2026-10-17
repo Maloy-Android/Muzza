@@ -137,6 +137,7 @@ val ArtistSongSortDescendingKey = booleanPreferencesKey("artistSongSortDescendin
 
 val ArtistFilterKey = stringPreferencesKey("artistFilter")
 val ArtistViewTypeKey = stringPreferencesKey("artistViewType")
+val ClipViewTypeKey = stringPreferencesKey("clipViewType")
 val AlbumFilterKey = stringPreferencesKey("albumFilter")
 val PlaylistFilterKey = stringPreferencesKey("playlistFilter")
 val AlbumViewTypeKey = stringPreferencesKey("albumViewType")

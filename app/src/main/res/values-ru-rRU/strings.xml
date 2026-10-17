@@ -56,6 +56,7 @@
     <string name="keep_listening">Продолжайте слушать</string>
     <string name="similar_to">Похожие на</string>
     <string name="new_release_albums">Новые релизы альбомов</string>
+    <string name="new_clips">Новые клипы</string>
     <string name="not_internet">Нет подключения к интернету</string>
     <string name="internet_required">Похоже, у вас нет подключения к интернету. Пожалуйста, проверьте свою сеть.</string>
 

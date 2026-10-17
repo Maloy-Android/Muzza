@@ -83,6 +83,9 @@ fun NavGraphBuilder.navigationBuilder(
     composable("new_release") {
         NewReleaseScreen(navController, scrollBehavior)
     }
+    composable("new_clips") {
+        NewClipScreen(navController, scrollBehavior)
+    }
     composable(route = "settings/appearance/theme") {
         ThemeScreen(navController)
     }

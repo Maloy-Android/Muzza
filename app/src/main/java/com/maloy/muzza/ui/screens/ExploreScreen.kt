@@ -54,6 +54,7 @@ import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
+import com.maloy.muzza.ui.component.shimmer.VideoGridItemPlaceHolder
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.viewmodels.ExploreViewModel
@@ -261,6 +262,11 @@ fun ExploreScreen(
                     Row {
                         repeat(2) {
                             GridItemPlaceHolder()
+                        }
+                    }
+                    Row {
+                        repeat(2) {
+                            VideoGridItemPlaceHolder()
                         }
                     }
                     TextPlaceholder(

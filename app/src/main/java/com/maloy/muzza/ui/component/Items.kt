@@ -672,7 +672,11 @@ fun AlbumGridItem(
     fillMaxWidth: Boolean = false,
 ) = GridItem(
     title = album.album.title,
-    subtitle = album.artists.joinToString { it.name },
+    subtitle = joinByBullet(
+        album.artists.joinToString { it.name },
+        pluralStringResource(R.plurals.n_song, album.album.songCount, album.album.songCount),
+        album.album.year?.toString()
+    ),
     badges = badges,
     thumbnailContent = {
         val database = LocalDatabase.current

@@ -147,17 +147,21 @@ fun NewClipScreen(
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {
-                                        playerConnection.playQueue(
-                                            YouTubeQueue(
-                                                title = clip.title,
-                                                endpoint = clip.endpoint
-                                                    ?: WatchEndpoint(
-                                                        videoId = clip.id,
-                                                    ),
-                                                preloadItem = clip.toMediaMetadata(),
-                                                context = context
+                                        if (mediaMetadata?.id == clip.id) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    title = clip.title,
+                                                    endpoint = clip.endpoint
+                                                        ?: WatchEndpoint(
+                                                            videoId = clip.id,
+                                                        ),
+                                                    preloadItem = clip.toMediaMetadata(),
+                                                    context = context
+                                                )
                                             )
-                                        )
+                                        }
                                     },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
@@ -223,17 +227,21 @@ fun NewClipScreen(
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {
-                                        playerConnection.playQueue(
-                                            YouTubeQueue(
-                                                title = clip.title,
-                                                endpoint = clip.endpoint
-                                                    ?: WatchEndpoint(
-                                                        videoId = clip.id,
-                                                    ),
-                                                preloadItem = clip.toMediaMetadata(),
-                                                context = context
+                                        if (mediaMetadata?.id == clip.id) {
+                                            playerConnection.togglePlayPause()
+                                        } else {
+                                            playerConnection.playQueue(
+                                                YouTubeQueue(
+                                                    title = clip.title,
+                                                    endpoint = clip.endpoint
+                                                        ?: WatchEndpoint(
+                                                            videoId = clip.id,
+                                                        ),
+                                                    preloadItem = clip.toMediaMetadata(),
+                                                    context = context
+                                                )
                                             )
-                                        )
+                                        }
                                     },
                                     onLongClick = {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)

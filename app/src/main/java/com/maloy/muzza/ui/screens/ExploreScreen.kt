@@ -187,17 +187,21 @@ fun ExploreScreen(
                                 Modifier
                                     .combinedClickable(
                                         onClick = {
-                                            playerConnection.playQueue(
-                                                YouTubeQueue(
-                                                    title = newClips.title,
-                                                    endpoint = newClips.endpoint
-                                                        ?: WatchEndpoint(
-                                                            videoId = newClips.id,
-                                                        ),
-                                                    preloadItem = newClips.toMediaMetadata(),
-                                                    context = context
+                                            if (mediaMetadata?.id == newClips.id) {
+                                                playerConnection.togglePlayPause()
+                                            } else {
+                                                playerConnection.playQueue(
+                                                    YouTubeQueue(
+                                                        title = newClips.title,
+                                                        endpoint = newClips.endpoint
+                                                            ?: WatchEndpoint(
+                                                                videoId = newClips.id,
+                                                            ),
+                                                        preloadItem = newClips.toMediaMetadata(),
+                                                        context = context
+                                                    )
                                                 )
-                                            )
+                                            }
                                         },
                                         onLongClick = {
                                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)

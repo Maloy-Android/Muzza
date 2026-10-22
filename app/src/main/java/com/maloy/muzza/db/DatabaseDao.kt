@@ -57,6 +57,8 @@ import java.time.LocalDateTime
 
 @Dao
 interface DatabaseDao {
+    @Query("SELECT * FROM song WHERE id = :songId LIMIT 1")
+    suspend fun songEntity(songId: String): SongEntity?
     @Transaction
     @Query("SELECT * FROM song WHERE inLibrary IS NOT NULL ORDER BY rowId")
     fun songsByRowIdAsc(): Flow<List<Song>>

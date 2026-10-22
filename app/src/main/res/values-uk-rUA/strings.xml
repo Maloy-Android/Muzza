@@ -459,30 +459,9 @@
     <string name="configure_supported_links">Налаштування підтримуваних посилань</string>
     <string name="intent_supported_links_not_found">Не вдалося знайти Налаштування підтримуваних посилань, будь ласка, налаштуйте їх вручну</string>
 
-    <string name="stream_sources">Джерела потоку</string>
-    <string name="stream_source_order">Порядок джерел</string>
-    <string name="stream_source_web_clients">Веб-клієнти</string>
-    <string name="stream_source_native_clients">Нативні клієнти</string>
-    <string name="stream_source_creator_clients">Клієнти для авторів</string>
-    <string name="stream_source_web_remix">WEB_REMIX</string>
-    <string name="stream_source_web_remix_desc">Основний клієнт. З авторизацією; охоплює більшість треків.</string>
-    <string name="stream_source_tvhtml5">TVHTML5</string>
-    <string name="stream_source_tvhtml5_desc">ТВ-клієнт. Надійний резервний варіант.</string>
-    <string name="stream_source_visionos">visionOS</string>
-    <string name="stream_source_visionos_desc">Apple Vision. Без обмежень; дуже надійний.</string>
-    <string name="stream_source_android_vr">Android VR</string>
-    <string name="stream_source_android_vr_desc">VR-клієнти Android (усі версії).</string>
-    <string name="stream_source_ios">iOS / iPadOS</string>
-    <string name="stream_source_ios_desc">Клієнти Apple iOS та iPadOS. Вимкнено за замовчуванням; обмеження трафіку після ~1 МіБ.</string>
-    <string name="stream_source_web_creator">WEB_CREATOR</string>
-    <string name="stream_source_web_creator_desc">Веб-клієнт для авторів.</string>
-    <string name="stream_source_android_creator">ANDROID_CREATOR</string>
-    <string name="stream_source_android_creator_desc">Android-клієнт для авторів. Вимкнено за замовчуванням; потрібен DroidGuard.</string>
-
     <string name="player_and_audio">Плеєр та аудіо</string>
     <string name="audio_quality">Якість аудіо</string>
     <string name="audio_quality_auto">Авто</string>
-    <string name="audio_quality_max">Максимальна</string>
     <string name="audio_quality_high">Висока</string>
     <string name="audio_quality_low">Низька</string>
     <string name="queue">Черга</string>
@@ -494,7 +473,6 @@
     <string name="audio_normalization">Нормалізація аудіо</string>
     <string name="play_song_when_bluetooth_device_connected">Продовжити відтворення при підключенні bluetooth пристрою</string>
     <string name="stop_playing_when_song_sound_minimum_volume">Зупиняти відтворення при мінімальному значенні гучності</string>
-    <string name="adding_played_songs_to_ytm_history">Додавати програні пісні в історію YouTube-Music</string>
     <string name="auto_skip_next_on_error">Автоперехід до наступної пісні при помилці</string>
     <string name="auto_skip_next_on_error_desc">Забезпечити безперервне відтворення</string>
     <string name="stop_music_on_task_clear">Зупиняти музику при очищенні завдань</string>

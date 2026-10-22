@@ -1,12 +1,13 @@
 package com.maloy.innertube
 
-import com.maloy.innertube.models.Context
 import com.maloy.innertube.models.YouTubeClient
-import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.body.*
+import com.maloy.innertube.models.response.PlayerResponse
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.innertube.utils.sha1
+import com.metrolist.innertubex.InnerTube as InnerTubeX
 import io.ktor.client.*
+import io.ktor.client.call.body
 import io.ktor.client.engine.okhttp.*
 import io.ktor.client.plugins.*
 import io.ktor.client.plugins.compression.*
@@ -17,23 +18,37 @@ import io.ktor.serialization.kotlinx.json.*
 import io.ktor.util.encodeBase64
 import kotlinx.serialization.json.Json
 import java.net.Proxy
-import java.util.*
 
 /**
  * Provide access to InnerTube endpoints.
  * For making HTTP requests, not parsing response.
  */
-class InnerTube {
-    private var httpClient = createClient()
+class InnerTube(
+    client: HttpClient? = null,
+) {
+
+    private var configuredProxy: Proxy? = null
+    private var configuredProxyAuth: String? = null
+    private var httpClient = client ?: createClient()
+    private var innerTubeX = InnerTubeX(httpClient)
+
+
+    private var transportGeneration = 0L
+    class ExtractionTransport internal constructor(
+        val innerTube: InnerTubeX,
+        val httpClient: HttpClient,
+        val generation: Long,
+    )
 
     private companion object {
         const val PLAYBACK_TELEMETRY_VER = "2"
     }
 
-    var locale = YouTubeLocale(
-        gl = Locale.getDefault().country,
-        hl = Locale.getDefault().toLanguageTag()
-    )
+    var locale: com.metrolist.innertubex.models.YouTubeLocale
+        get() = innerTubeX.locale
+        set(value) {
+            innerTubeX.locale = value
+        }
     var visitorData: String? = null
     var dataSyncId: String? = null
     var cookie: String? = null
@@ -43,16 +58,53 @@ class InnerTube {
         }
     private var cookieMap = emptyMap<String, String>()
 
-    var proxy: Proxy? = null
+    var proxy: Proxy?
+        get() = configuredProxy
         set(value) {
-            field = value
-            httpClient.close()
-            httpClient = createClient()
+            if (configuredProxy == value) return
+            configuredProxy = value
+            recreateTransport()
         }
 
-    var proxyAuth: String? = null
+    var proxyAuth: String?
+        get() = configuredProxyAuth
+        set(value) {
+            if (configuredProxyAuth == value) return
+            configuredProxyAuth = value
+            if (configuredProxy != null) recreateTransport()
+        }
 
     var useLoginForBrowse: Boolean = false
+
+    @Synchronized
+    fun extractionTransport(): ExtractionTransport =
+        ExtractionTransport(
+            innerTube = innerTubeX,
+            httpClient = httpClient,
+            generation = transportGeneration,
+        )
+
+
+    @Synchronized
+    private fun recreateTransport() {
+        val session = innerTubeX.sessionSnapshot()
+        innerTubeX.close()
+        httpClient.close()
+        httpClient = createClient()
+        innerTubeX =
+            InnerTubeX(httpClient).also { replacement ->
+                replacement.locale = session.locale
+                replacement.replaceSession(
+                    cookie = session.cookie,
+                    visitorData = session.visitorData,
+                    dataSyncId = session.dataSyncId,
+                    authUser = session.authUser,
+                    useLoginForBrowse = session.useLoginForBrowse,
+                )
+                replacement.regionOverrideActive = session.regionOverrideActive
+            }
+        transportGeneration++
+    }
 
     private fun createClient() = HttpClient(OkHttp) {
         expectSuccess = true
@@ -84,7 +136,9 @@ class InnerTube {
         }
 
         defaultRequest {
-            url(YouTubeClient.API_URL_YOUTUBE_MUSIC)
+            url("https://music.youtube.com/youtubei/v1/")
+            header("Accept", "application/json")
+            header("Cache-Control", "no-cache")
         }
     }
 
@@ -243,15 +297,7 @@ class InnerTube {
         ytClient(client, setLogin = true)
         setBody(
             PlayerBody(
-                context = client.toContext(locale, visitorData, dataSyncId).let {
-                    if (client.isEmbedded) {
-                        it.copy(
-                            thirdParty = Context.ThirdParty(
-                                embedUrl = "https://www.youtube.com/watch?v=${videoId}"
-                            )
-                        )
-                    } else it
-                },
+                context = client.toContext(locale, visitorData, dataSyncId),
                 videoId = videoId,
                 playlistId = playlistId,
                 playbackContext = if (client.useSignatureTimestamp && signatureTimestamp != null) {

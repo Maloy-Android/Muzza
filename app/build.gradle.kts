@@ -12,22 +12,12 @@ import org.gradle.process.ExecOperations
 import java.net.URL
 import javax.inject.Inject
 
-val isFullBuild: Boolean by rootProject.extra
-
 plugins {
     id("com.android.application")
-    kotlin("android")
-    kotlin("kapt")
     alias(libs.plugins.hilt)
     alias(libs.plugins.kotlin.ksp)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
-}
-
-if (isFullBuild && System.getenv("PULL_REQUEST") == null) {
-    apply(plugin = "com.google.gms.google-services")
-    apply(plugin = "com.google.firebase.crashlytics")
-    apply(plugin = "com.google.firebase.firebase-perf")
 }
 
 abstract class GenerateProtoTask : DefaultTask() {
@@ -82,12 +72,11 @@ abstract class GenerateProtoTask : DefaultTask() {
 
 android {
     namespace = "com.maloy.muzza"
-    compileSdk = 36
-    buildToolsVersion = "35.0.0"
+    compileSdk = 37
+    buildToolsVersion = "36.0.0"
     defaultConfig {
         applicationId = "com.maloy.muzza"
         minSdk = 24
-        targetSdk = 36
         versionCode = 49
         versionName = "0.7.7"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
@@ -139,13 +128,6 @@ android {
         isCoreLibraryDesugaringEnabled = true
         sourceCompatibility = JavaVersion.VERSION_21
         targetCompatibility = JavaVersion.VERSION_21
-    }
-    kotlin {
-        jvmToolchain(21)
-    }
-    kotlinOptions {
-        freeCompilerArgs = freeCompilerArgs + "-Xcontext-receivers"
-        jvmTarget = "21"
     }
     testOptions {
         unitTests.isIncludeAndroidResources = true
@@ -279,7 +261,7 @@ dependencies {
     implementation(libs.apache.lang3)
 
     implementation(libs.hilt)
-    kapt(libs.hilt.compiler)
+    ksp(libs.hilt.compiler)
 
     implementation(projects.innertube)
     implementation(projects.kugou)
@@ -302,7 +284,6 @@ dependencies {
     "fullImplementation"(libs.opencc4j)
 
     implementation(libs.timber)
-    implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.okhttp)
     implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.json)

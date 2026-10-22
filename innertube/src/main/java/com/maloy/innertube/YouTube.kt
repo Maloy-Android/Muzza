@@ -19,8 +19,6 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.YouTubeClient
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.getContinuation
 import com.maloy.innertube.models.getItems
@@ -48,7 +46,6 @@ import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.LibraryContinuationPage
 import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
-import com.maloy.innertube.pages.NewPipeExtractor
 import com.maloy.innertube.pages.NewReleaseAlbumPage
 import com.maloy.innertube.pages.NewClipsPage
 import com.maloy.innertube.pages.NextPage
@@ -61,6 +58,8 @@ import com.maloy.innertube.pages.SearchResult
 import com.maloy.innertube.pages.SearchSuggestionPage
 import com.maloy.innertube.pages.SearchSummary
 import com.maloy.innertube.pages.SearchSummaryPage
+import com.metrolist.innertubex.models.YouTubeClient.Companion.WEB
+import com.metrolist.innertubex.models.YouTubeClient.Companion.WEB_REMIX
 import io.ktor.client.call.body
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.runBlocking
@@ -70,6 +69,7 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import java.net.Proxy
+import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 
 /**
@@ -79,7 +79,7 @@ import kotlin.random.Random
 object YouTube {
     private val innerTube = InnerTube()
 
-    var locale: YouTubeLocale
+    var locale: com.metrolist.innertubex.models.YouTubeLocale
         get() = innerTube.locale
         set(value) {
             innerTube.locale = value
@@ -114,6 +114,8 @@ object YouTube {
         set(value) {
             innerTube.useLoginForBrowse = value
         }
+
+    fun extractionTransport(): InnerTube.ExtractionTransport = innerTube.extractionTransport()
 
     suspend fun searchSuggestions(query: String): Result<SearchSuggestions> =
         runCatching {
@@ -1081,49 +1083,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     }
                 }
         )
-    }
-
-    fun getNewPipeStreamUrls(videoId: String): List<Pair<Int, String>> {
-        return NewPipeExtractor.newPipePlayer(videoId)
-    }
-
-    suspend fun newPipePlayer(
-        videoId: String,
-        tempRes: PlayerResponse,
-    ): PlayerResponse? {
-        if (tempRes.playabilityStatus.status != "OK") {
-            return null
-        }
-
-        val streamsList = getNewPipeStreamUrls(videoId)
-        if (streamsList.isEmpty()) return null
-
-        val decodedSigResponse = tempRes.copy(
-            streamingData = tempRes.streamingData?.copy(
-                formats = tempRes.streamingData.formats?.map { format ->
-                    format.copy(
-                        url = streamsList.find { it.first == format.itag }?.second ?: format.url,
-                    )
-                },
-                adaptiveFormats = tempRes.streamingData.adaptiveFormats.map { adaptiveFormat ->
-                    adaptiveFormat.copy(
-                        url = streamsList.find { it.first == adaptiveFormat.itag }?.second ?: adaptiveFormat.url,
-                    )
-                },
-            ),
-        )
-
-        val urlList = (
-                decodedSigResponse.streamingData?.adaptiveFormats?.mapNotNull { it.url }?.toMutableList() ?: mutableListOf()
-                ).apply {
-                decodedSigResponse.streamingData?.formats?.mapNotNull { it.url }?.let { addAll(it) }
-            }
-
-        return if (urlList.isNotEmpty()) {
-            decodedSigResponse
-        } else {
-            null
-        }
     }
 
     suspend fun player(

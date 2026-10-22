@@ -23,8 +23,9 @@ import com.maloy.muzza.db.entities.SongEntity
 import com.maloy.muzza.di.DownloadCache
 import com.maloy.muzza.di.PlayerCache
 import com.maloy.muzza.models.MediaMetadata
-import com.maloy.muzza.utils.YTPlayerUtils
+import com.maloy.muzza.utils.InnerTubeXPlayer
 import com.maloy.muzza.utils.enumPreference
+import com.metrolist.innertubex.extraction.ContentHints
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
@@ -75,11 +76,18 @@ class DownloadUtil @Inject constructor(
             return@Factory dataSpec.withUri(it.first.toUri())
         }
 
+
         val playbackData = runBlocking(Dispatchers.IO) {
-            YTPlayerUtils.playerResponseForPlayback(
+            val song = database.songEntity(mediaId)
+            InnerTubeXPlayer.playerResponseForPlayback(
                 mediaId,
                 audioQuality = audioQuality,
                 connectivityManager = connectivityManager,
+                contentHints = ContentHints(
+                    isExplicit = song?.explicit,
+                    isUploaded = null,
+                ),
+                allowBoundedRange = false,
             )
         }.getOrThrow()
         val format = playbackData.format

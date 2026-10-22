@@ -71,7 +71,6 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.MainActivity
 import com.maloy.muzza.R
-import com.maloy.muzza.constants.AddingPlayedSongsToYTMHistoryKey
 import com.maloy.muzza.constants.AudioNormalizationKey
 import com.maloy.muzza.constants.AudioOffload
 import com.maloy.muzza.constants.AudioQuality
@@ -99,13 +98,6 @@ import com.maloy.muzza.constants.ShowLyricsKey
 import com.maloy.muzza.constants.SkipSilenceKey
 import com.maloy.muzza.constants.StopMusicOnTaskClearKey
 import com.maloy.muzza.constants.StopPlayingSongWhenMinimumVolumeKey
-import com.maloy.muzza.constants.StreamSourceAndroidCreatorKey
-import com.maloy.muzza.constants.StreamSourceAndroidVRKey
-import com.maloy.muzza.constants.StreamSourceIOSKey
-import com.maloy.muzza.constants.StreamSourceTVHTML5Key
-import com.maloy.muzza.constants.StreamSourceVisionOSKey
-import com.maloy.muzza.constants.StreamSourceWebCreatorKey
-import com.maloy.muzza.constants.StreamSourceWebRemixKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Event
 import com.maloy.muzza.db.entities.FormatEntity
@@ -135,12 +127,14 @@ import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.playback.queues.filterExplicit
 import com.maloy.muzza.utils.CoilBitmapLoader
 import com.maloy.muzza.utils.DiscordRPC
-import com.maloy.muzza.utils.YTPlayerUtils
+import com.maloy.muzza.utils.InnerTubeXPlayer
+import com.maloy.muzza.utils.InnerTubeXPlayer.playerResponseForPlayback
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.enumPreference
 import com.maloy.muzza.utils.get
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.reportException
+import com.metrolist.innertubex.extraction.ContentHints
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -178,9 +172,7 @@ import java.net.SocketTimeoutException
 import java.net.URL
 import java.net.UnknownHostException
 import java.time.LocalDateTime
-import java.util.Collections
 import javax.inject.Inject
-import kotlin.collections.buildSet
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
 
@@ -371,15 +363,21 @@ class MusicService : MediaLibraryService(),
                     }
                 }
 
-                if (dataStore.get(AddingPlayedSongsToYTMHistoryKey, true) && !isLocal) {
+                if (dataStore.get(PauseListenHistoryKey, false) && !isLocal) {
                     withContext(Dispatchers.IO) {
-                        val playbackUrl = playbackUrlCache[cacheKey(songId)]
-                            ?: YTPlayerUtils
-                                .playerResponseForMetadata(songId, null)
-                                .getOrNull()
-                                ?.playbackTracking
-                                ?.videostatsPlaybackUrl
-                                ?.baseUrl
+                        val song = database.songEntity(mediaItem.mediaId)
+                        val playbackUrl = playerResponseForPlayback(
+                            videoId = songId,
+                            audioQuality = audioQuality,
+                            connectivityManager = connectivityManager,
+                            contentHints = ContentHints(
+                                isExplicit = song?.explicit,
+                                isUploaded = false
+                            ),
+                        ).getOrNull()
+                            ?.playbackTracking
+                            ?.videostatsPlaybackUrl
+                            ?.baseUrl
 
                         if (playbackUrl != null) {
                             YouTube.registerPlayback(null, playbackUrl).onFailure {
@@ -418,21 +416,6 @@ class MusicService : MediaLibraryService(),
         }
     }
 
-    private val sessionKey
-        get() = YouTube.dataSyncId.takeIf { !it.isNullOrBlank() }
-            ?: YouTube.visitorData.takeIf { !it.isNullOrBlank() }
-            ?: ""
-
-    private fun cacheKey(mediaId: String) = "${sessionKey}:$mediaId"
-
-    private val playbackUrlCache = Collections.synchronizedMap(
-        object : LinkedHashMap<String, String>(0, 0.75f, true) {
-            override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, String>): Boolean {
-                return size > 500
-            }
-        }
-    )
-
     inner class MusicBinder : Binder() {
         val service: MusicService
             get() = this@MusicService
@@ -451,11 +434,17 @@ class MusicService : MediaLibraryService(),
                         }
                     }
                 }
+
                 Intent.ACTION_SCREEN_ON -> {
                     if (player.isPlaying) {
                         scope.launch {
                             currentSong.value?.let { song ->
-                                discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                                discordRpc?.updateSong(
+                                    song,
+                                    player.currentPosition,
+                                    player.playbackParameters.speed,
+                                    dataStore.get(DiscordUseDetailsKey, false)
+                                )
                             }
                         }
                     }
@@ -638,7 +627,12 @@ class MusicService : MediaLibraryService(),
                         val mediaId = player.currentMetadata?.id
                         if (mediaId != null) {
                             database.song(mediaId).first()?.let { song ->
-                                discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                                discordRpc?.updateSong(
+                                    song,
+                                    player.currentPosition,
+                                    player.playbackParameters.speed,
+                                    dataStore.get(DiscordUseDetailsKey, false)
+                                )
                             }
                         }
                     }
@@ -765,23 +759,6 @@ class MusicService : MediaLibraryService(),
         if (!ensureStartedAsForegroundOrStop()) {
             return
         }
-
-        scope.launch {
-            dataStore.data
-                .map { prefs ->
-                    buildSet {
-                        if (prefs[StreamSourceWebRemixKey] == false) add("WEB_REMIX")
-                        if (prefs[StreamSourceTVHTML5Key] == false) add("TVHTML5")
-                        if (prefs[StreamSourceAndroidVRKey] == false) add("ANDROID_VR")
-                        if (prefs[StreamSourceIOSKey] != true) add("IOS")
-                        if (prefs[StreamSourceVisionOSKey] == false) add("VISIONOS")
-                        if (prefs[StreamSourceWebCreatorKey] == false) add("WEB_CREATOR")
-                        if (prefs[StreamSourceAndroidCreatorKey] != true) add("ANDROID_CREATOR")
-                    }
-                }
-                .distinctUntilChanged()
-                .collect { YTPlayerUtils.disabledStreamClients = it }
-        }
     }
 
     private fun createExoPlayer(): ExoPlayer {
@@ -876,16 +853,24 @@ class MusicService : MediaLibraryService(),
 
     private suspend fun recoverSong(
         mediaId: String,
-        playbackData: YTPlayerUtils.PlaybackData? = null
+        playbackData: InnerTubeXPlayer.PlaybackData? = null,
     ) {
         val song = database.song(mediaId).first()
+        val songEntity = database.songEntity(mediaId)
         val mediaMetadata = withContext(Dispatchers.Main) {
             player.findNextMediaItemById(mediaId)?.metadata
         } ?: return
         val duration = song?.song?.duration?.takeIf { it != -1 }
             ?: mediaMetadata.duration.takeIf { it != -1 }
-            ?: (playbackData?.videoDetails ?: YTPlayerUtils.playerResponseForMetadata(mediaId)
-                .getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
+            ?: (playbackData?.videoDetails ?: playerResponseForPlayback(
+                videoId = mediaId,
+                audioQuality = audioQuality,
+                connectivityManager = connectivityManager,
+                contentHints = ContentHints(
+                    isExplicit = songEntity?.explicit,
+                    isUploaded = null,
+                ),
+            ).getOrNull()?.videoDetails)?.lengthSeconds?.toInt()
             ?: -1
         database.query {
             if (song == null) insert(mediaMetadata.copy(duration = duration))
@@ -1132,17 +1117,30 @@ class MusicService : MediaLibraryService(),
         if (events.containsAny(EVENT_TIMELINE_CHANGED, EVENT_POSITION_DISCONTINUITY)) {
             currentMediaMetadata.value = player.currentMetadata
         }
-        if (!player.isPlaying && !events.containsAny(EVENT_POSITION_DISCONTINUITY, Player.EVENT_MEDIA_ITEM_TRANSITION)) {
-                scope.launch {
-                    discordRpc?.close()
-                }
+        if (!player.isPlaying && !events.containsAny(
+                EVENT_POSITION_DISCONTINUITY,
+                Player.EVENT_MEDIA_ITEM_TRANSITION
+            )
+        ) {
+            scope.launch {
+                discordRpc?.close()
+            }
         }
-        if (events.containsAny(Player.EVENT_MEDIA_ITEM_TRANSITION, Player.EVENT_IS_PLAYING_CHANGED) && player.isPlaying) {
+        if (events.containsAny(
+                Player.EVENT_MEDIA_ITEM_TRANSITION,
+                Player.EVENT_IS_PLAYING_CHANGED
+            ) && player.isPlaying
+        ) {
             val mediaId = player.currentMetadata?.id
             if (mediaId != null) {
                 scope.launch {
                     database.song(mediaId).first()?.let { song ->
-                        discordRpc?.updateSong(song, player.currentPosition, player.playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                        discordRpc?.updateSong(
+                            song,
+                            player.currentPosition,
+                            player.playbackParameters.speed,
+                            dataStore.get(DiscordUseDetailsKey, false)
+                        )
                     }
                 }
             }
@@ -1158,13 +1156,17 @@ class MusicService : MediaLibraryService(),
                 delay(1000.milliseconds)
                 if (player.playWhenReady && player.playbackState == Player.STATE_READY) {
                     currentSong.value?.let { song ->
-                        discordRpc?.updateSong(song, player.currentPosition, playbackParameters.speed, dataStore.get(DiscordUseDetailsKey, false))
+                        discordRpc?.updateSong(
+                            song,
+                            player.currentPosition,
+                            playbackParameters.speed,
+                            dataStore.get(DiscordUseDetailsKey, false)
+                        )
                     }
                 }
             }
         }
     }
-
 
 
     override fun onShuffleModeEnabledChanged(shuffleModeEnabled: Boolean) {
@@ -1292,8 +1294,8 @@ class MusicService : MediaLibraryService(),
             }
 
             val playbackData = runBlocking(Dispatchers.IO) {
-                YTPlayerUtils.playerResponseForPlayback(
-                    mediaId,
+                playerResponseForPlayback(
+                    videoId = mediaId,
                     audioQuality = audioQuality,
                     connectivityManager = connectivityManager,
                 )
@@ -1356,10 +1358,8 @@ class MusicService : MediaLibraryService(),
 
             songUrlCache[mediaId] =
                 streamUrl to System.currentTimeMillis() + (playbackData.streamExpiresInSeconds * 1000L)
-            playbackData.playbackTracking?.videostatsPlaybackUrl?.baseUrl?.let {
-                playbackUrlCache[cacheKey(mediaId)] = it
-            }
-            return@Factory dataSpec.withUri(streamUrl.toUri()).subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
+            return@Factory dataSpec.withUri(streamUrl.toUri())
+                .subrange(dataSpec.uriPositionOffset, CHUNK_LENGTH)
         }
     }
 
@@ -1390,7 +1390,11 @@ class MusicService : MediaLibraryService(),
             eventTime.timeline.getWindow(eventTime.windowIndex, Timeline.Window()).mediaItem
 
         if (isCrossfading) {
-            if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(PauseListenHistoryKey, false)) {
+            if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(
+                    PauseListenHistoryKey,
+                    false
+                )
+            ) {
                 if (!trackedSongs.contains(mediaItem.mediaId)) {
                     database.query {
                         incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
@@ -1410,7 +1414,11 @@ class MusicService : MediaLibraryService(),
             return
         }
 
-        if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(PauseListenHistoryKey, false)) {
+        if (playbackStats.totalPlayTimeMs >= 30000 && !dataStore.get(
+                PauseListenHistoryKey,
+                false
+            )
+        ) {
             database.query {
                 incrementTotalPlayTime(mediaItem.mediaId, playbackStats.totalPlayTimeMs)
                 try {
@@ -1426,18 +1434,24 @@ class MusicService : MediaLibraryService(),
             }
         }
         if (playbackStats.totalPlayTimeMs >= 30000 && dataStore.get(
-                AddingPlayedSongsToYTMHistoryKey, true
+                PauseListenHistoryKey,
+                false
             )
         ) {
             scope.launch(Dispatchers.IO) {
-                val playbackUrl =
-                    playbackUrlCache[cacheKey(mediaItem.mediaId)]
-                        ?: YTPlayerUtils
-                            .playerResponseForMetadata(mediaItem.mediaId, null)
-                            .getOrNull()
-                            ?.playbackTracking
-                            ?.videostatsPlaybackUrl
-                            ?.baseUrl
+                val song = database.songEntity(mediaItem.mediaId)
+                val playbackUrl = playerResponseForPlayback(
+                    videoId = mediaItem.mediaId,
+                    audioQuality = audioQuality,
+                    connectivityManager = connectivityManager,
+                    contentHints = ContentHints(
+                        isExplicit = song?.explicit,
+                        isUploaded = false
+                    ),
+                ).getOrNull()
+                    ?.playbackTracking
+                    ?.videostatsPlaybackUrl
+                    ?.baseUrl
                 if (playbackUrl == null) {
                     Timber.tag(TAG)
                         .w("No playback tracking URL available for $mediaItem.mediaId, skipping YouTube history registration")
@@ -1777,7 +1791,8 @@ class MusicService : MediaLibraryService(),
             )
             true
         } catch (e: ForegroundServiceStartNotAllowedException) {
-            Timber.tag(TAG).w(e, "Foreground service start not allowed; stopping service to avoid ANR")
+            Timber.tag(TAG)
+                .w(e, "Foreground service start not allowed; stopping service to avoid ANR")
             stopSelf()
             false
         } catch (e: Exception) {

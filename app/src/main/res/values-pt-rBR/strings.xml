@@ -365,7 +365,6 @@
 <string name="queue">Fila</string>
 <string name="persistent_queue_desc">Restaurar sua última fila ao iniciar o app</string>
 <string name="auto_load_more">Tocar mais músicas automaticamente</string>
-<string name="adding_played_songs_to_ytm_history">Adicionar músicas tocadas ao histórico do YouTube Music</string>
 <string name="auto_skip_next_on_error">Pular automaticamente para a próxima música quando um erro ocorre</string>
 <string name="auto_skip_next_on_error_desc">Garanta uma experiência de reprodução contínua</string>
 <string name="stop_music_on_task_clear">Parar música ao remover dos apps recentes</string>

@@ -11,7 +11,7 @@ import coil.ImageLoaderFactory
 import coil.disk.DiskCache
 import coil.request.CachePolicy
 import com.maloy.innertube.YouTube
-import com.maloy.innertube.models.YouTubeLocale
+import com.metrolist.innertubex.models.YouTubeLocale
 import com.maloy.kugou.KuGou
 import com.maloy.muzza.constants.ContentCountryKey
 import com.maloy.muzza.constants.ContentLanguageKey
@@ -28,6 +28,7 @@ import com.maloy.muzza.constants.SYSTEM_DEFAULT
 import com.maloy.muzza.constants.VisitorDataKey
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.extensions.toInetSocketAddress
+import com.maloy.muzza.utils.InnerTubeXPlayer
 import com.maloy.muzza.utils.cipher.CipherDeobfuscator
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
@@ -54,6 +55,8 @@ class App : Application(), ImageLoaderFactory {
         Timber.plant(Timber.DebugTree())
 
         CipherDeobfuscator.initialize(this)
+
+        InnerTubeXPlayer.initialize(this)
 
         val locale = Locale.getDefault()
         val languageTag = locale.toLanguageTag().replace("-Hant", "")

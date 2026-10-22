@@ -74,19 +74,10 @@ val ProxyUsernameKey = stringPreferencesKey("proxyUsername")
 val ProxyPasswordKey = stringPreferencesKey("proxyPassword")
 val YtmSyncKey = booleanPreferencesKey("ytmSync")
 
-
-val StreamSourceWebRemixKey = booleanPreferencesKey("streamSourceWebRemix")
-val StreamSourceTVHTML5Key = booleanPreferencesKey("streamSourceTVHTML5")
-val StreamSourceAndroidVRKey = booleanPreferencesKey("streamSourceAndroidVR")
-val StreamSourceVisionOSKey = booleanPreferencesKey("streamSourceVisionOS")
-val StreamSourceIOSKey = booleanPreferencesKey("streamSourceIOS")
-val StreamSourceWebCreatorKey = booleanPreferencesKey("streamSourceWebCreator")
-val StreamSourceAndroidCreatorKey = booleanPreferencesKey("streamSourceAndroidCreator")
-
 val AudioQualityKey = stringPreferencesKey("audioQuality")
 
 enum class AudioQuality {
-    AUTO, MAX, HIGH, LOW
+    AUTO, HIGH, LOW
 }
 
 val AudioOffload = booleanPreferencesKey("enableOffload")
@@ -96,7 +87,6 @@ val SkipSilenceKey = booleanPreferencesKey("skipSilence")
 val AudioNormalizationKey = booleanPreferencesKey("audioNormalization")
 val AutoPlaySongWhenBluetoothDeviceConnectedKey = booleanPreferencesKey("autoPlaySongWhenBluetoothDeviceConnected")
 val StopPlayingSongWhenMinimumVolumeKey = booleanPreferencesKey("stopPlayingSongWhenMinimumVolume")
-val AddingPlayedSongsToYTMHistoryKey = booleanPreferencesKey("addingPlayedSongsToYTMHistory")
 val AutoSkipNextOnErrorKey = booleanPreferencesKey("autoSkipNextOnError")
 val AutoLoadMoreKey = booleanPreferencesKey("autoLoadMore")
 val StopMusicOnTaskClearKey = booleanPreferencesKey("stopMusicOnTaskClear")

@@ -1,8 +1,8 @@
 [versions]
-androidGradlePlugin = "8.11.2"
+androidGradlePlugin = "9.3.3"
 annotation = "1.9.1"
 json = "20250517"
-kotlin = "2.1.0"
+kotlin = "2.4.21"
 compose = "1.8.3"
 lazycolumnscrollbar = "2.2.0"
 lifecycle = "2.9.1"
@@ -10,10 +10,10 @@ material3 = "1.4.0"
 materialKolor = "3.0.1"
 media3 = "1.7.1"
 room = "2.7.2"
-extractor = "3cd3341"
-hilt = "2.56.2"
+innertubex = "v0.10.0"
+hilt = "2.60.1"
 ktor = "3.1.2"
-ksp = "2.1.0-1.0.29"
+ksp = "2.3.12"
 kotlinVersion = "2.0.20"
 cardview = "1.0.0"
 protobuf = "4.34.1"
@@ -97,7 +97,7 @@ firebase-perf-plugin = { module = "com.google.firebase:perf-plugin", version = "
 
 mlkit-language-id = { group = "com.google.mlkit", name = "language-id", version = "17.0.6" }
 mlkit-translate = { group = "com.google.mlkit", name = "translate", version = "17.0.3" }
-extractor = { module = "com.github.MetrolistGroup:MetrolistExtractor", version.ref = "extractor" }
+innertubex = { module = "com.github.MetrolistGroup.innertubex:innertubex", version.ref = "innertubex" }
 cardview = { group = "androidx.cardview", name = "cardview", version.ref = "cardview" }
 
 protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.ref = "protobuf" }

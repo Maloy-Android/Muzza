@@ -1,11 +1,10 @@
 package com.maloy.innertube.models.body
 
-import com.maloy.innertube.models.Context
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class NextBody(
-    val context: Context,
+    val context: com.metrolist.innertubex.models.Context,
     val videoId: String?,
     val playlistId: String?,
     val playlistSetVideoId: String?,

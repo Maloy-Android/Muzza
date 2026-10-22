@@ -118,14 +118,6 @@ fun PlayerSettings(
             title = stringResource(R.string.player)
         )
 
-        PreferenceEntry(
-            icon = { Icon(painterResource(R.drawable.play),null) },
-            title = { Text(stringResource(R.string.stream_sources)) },
-            onClick = {
-                navController.navigate("settings/player/stream_sources")
-            }
-        )
-
         EnumListPreference(
             title = { Text(stringResource(R.string.audio_quality)) },
             icon = { Icon(painterResource(R.drawable.graphic_eq), null) },
@@ -134,7 +126,6 @@ fun PlayerSettings(
             valueText = {
                 when (it) {
                     AudioQuality.AUTO -> stringResource(R.string.audio_quality_auto)
-                    AudioQuality.MAX -> stringResource(R.string.audio_quality_max)
                     AudioQuality.HIGH -> stringResource(R.string.audio_quality_high)
                     AudioQuality.LOW -> stringResource(R.string.audio_quality_low)
                 }

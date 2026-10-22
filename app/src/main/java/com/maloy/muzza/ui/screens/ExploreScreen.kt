@@ -268,6 +268,13 @@ fun ExploreScreen(
                             GridItemPlaceHolder()
                         }
                     }
+                    TextPlaceholder(
+                        height = 36.dp,
+                        modifier =
+                            Modifier
+                                .padding(vertical = 12.dp, horizontal = 12.dp)
+                                .width(250.dp)
+                    )
                     Row {
                         repeat(2) {
                             VideoGridItemPlaceHolder()

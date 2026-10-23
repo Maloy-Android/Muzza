@@ -77,6 +77,7 @@ import com.maloy.muzza.listentogether.ConnectionState
 import com.maloy.muzza.listentogether.ListenTogetherEvent
 import com.maloy.muzza.listentogether.ListenTogetherServers
 import com.maloy.muzza.listentogether.RoomRole
+import com.maloy.muzza.listentogether.users
 import com.maloy.muzza.ui.component.PreferenceEntry
 import com.maloy.muzza.ui.component.PreferenceGroupTitle
 import com.maloy.muzza.ui.component.SwitchPreference

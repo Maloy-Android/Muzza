@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package listentogether;
 
-option go_package = "github.com/nyxiereal/metroserver/proto";
+option go_package = "github.com/MetrolistGroup/metroserver/proto";
 option java_package = "com.maloy.muzza.listentogether.proto";
 option java_outer_classname = "Listentogether";
 option java_multiple_files = false;
@@ -44,6 +44,7 @@ message RoomState {
   int64 last_update = 7;
   float volume = 8;
   repeated TrackInfo queue = 9;
+  uint64 revision = 10;
 }
 
 // Client -> Server messages
@@ -56,6 +57,8 @@ message JoinRoomPayload {
   string room_code = 1;
   string username = 2;
 }
+
+message LeaveRoomPayload {}
 
 message ApproveJoinPayload {
   string user_id = 1;
@@ -76,6 +79,13 @@ message PlaybackActionPayload {
   string queue_title = 7;
   float volume = 8;
   int64 server_time = 9;
+  uint64 revision = 10;
+  int64 captured_at_server_time = 11;
+}
+
+message PingPayload {
+  int64 client_time = 1;
+  uint64 sequence = 2;
 }
 
 message BufferReadyPayload {
@@ -172,6 +182,14 @@ message SyncStatePayload {
   int64 last_update = 4;
   repeated TrackInfo queue = 5;
   float volume = 6;
+  uint64 revision = 7;
+}
+
+message PongPayload {
+  int64 client_time = 1;
+  int64 server_receive_time = 2;
+  int64 server_send_time = 3;
+  uint64 sequence = 4;
 }
 
 message ReconnectedPayload {

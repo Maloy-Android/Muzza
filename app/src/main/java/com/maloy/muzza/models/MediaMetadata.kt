@@ -25,7 +25,8 @@ data class MediaMetadata(
     val isVideoSong: Boolean = false,
     val author: String? = null,
     val suggestedBy: String? = null,
-    val isProfile: Boolean = false
+    val isProfile: Boolean = false,
+    val isFromCache: Boolean = false,
 ) : Serializable {
     data class Artist(
         val id: String?,
@@ -53,7 +54,8 @@ data class MediaMetadata(
         isLocal = isLocal,
         localPath = localPath,
         isVideoSong = isVideoSong,
-        explicit = explicit
+        explicit = explicit,
+        isFromCache = isFromCache
     )
 }
 
@@ -84,7 +86,8 @@ fun Song.toMediaMetadata() = MediaMetadata(
     isLocal = song.isLocal,
     localPath = song.localPath,
     isVideoSong = song.isVideoSong,
-    explicit = song.explicit
+    explicit = song.explicit,
+    isFromCache = song.isFromCache
 )
 
 fun SongItem.toMediaMetadata() = MediaMetadata(
@@ -108,7 +111,8 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
     explicit = explicit,
     setVideoId = setVideoId,
     isVideoSong = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV,
-    suggestedBy = null
+    suggestedBy = null,
+    isFromCache = isFromCache
 )
 
 fun Playlist.toMediaMetadata() = MediaMetadata(

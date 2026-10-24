@@ -531,7 +531,7 @@ fun SongMenu(
                     title = R.string.remove_from_cache
                 ) {
                     onDismiss()
-                    cacheViewModel.removeSongFromCache(song.id)
+                    cacheViewModel.removeSongFromCache(song.song.id)
                 }
                 item {
                     HorizontalDivider()

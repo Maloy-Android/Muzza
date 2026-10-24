@@ -32,7 +32,8 @@ data class SongItem(
     override val explicit: Boolean = false,
     val endpoint: WatchEndpoint? = null,
     val historyRemoveToken: String? = null,
-    val musicVideoType: String? = null
+    val musicVideoType: String? = null,
+    val isFromCache: Boolean = false,
 ) : YTItem() {
     val isVideoSong: Boolean
         get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV

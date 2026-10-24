@@ -34,6 +34,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material.icons.rounded.SdCard
+import androidx.compose.material.icons.rounded.Sync
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -336,6 +337,9 @@ fun SongListItem(
                 .collectAsState(initial = null)
             Icon.Download(download?.state)
         }
+        if (song.song.isFromCache) {
+            Icon.Cached()
+        }
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
@@ -422,6 +426,9 @@ fun SongGridItem(
             val download by LocalDownloadUtil.current.getDownload(song.id)
                 .collectAsState(initial = null)
             Icon.Download(download?.state)
+        }
+        if (song.song.isFromCache) {
+            Icon.Cached()
         }
     },
     isActive: Boolean = false,
@@ -1095,6 +1102,9 @@ fun MediaMetadataListItem(
         if (song?.song?.isLocal == true) {
             Icon.LocalSong()
         }
+        if (song?.song?.isFromCache == true) {
+            Icon.Cached()
+        }
         val download by LocalDownloadUtil.current.getDownload(song?.id)
             .collectAsState(initial = null)
         Icon.Download(download?.state)
@@ -1704,6 +1714,9 @@ fun YouTubeListItem(
             val downloads by LocalDownloadUtil.current.downloads.collectAsState()
             Icon.Download(downloads[item.id]?.state)
         }
+        if (item is SongItem && song?.song?.isFromCache == true) {
+            Icon.Cached()
+        }
     },
     isActive: Boolean = false,
     isPlaying: Boolean = false,
@@ -1825,6 +1838,9 @@ fun YouTubeGridItem(
         if (item is SongItem) {
             val downloads by LocalDownloadUtil.current.downloads.collectAsState()
             Icon.Download(downloads[item.id]?.state)
+        }
+        if (item is SongItem && song?.song?.isFromCache == true) {
+            Icon.Cached()
         }
     },
     thumbnailRatio: Float = if (item is SongItem && item.isVideoSong) 16f / 9 else 1f,
@@ -2229,6 +2245,17 @@ private object Icon {
     fun LocalSong() {
         Icon(
             imageVector = Icons.Rounded.SdCard,
+            contentDescription = null,
+            modifier = Modifier
+                .size(18.dp)
+                .padding(end = 2.dp)
+        )
+    }
+
+    @Composable
+    fun Cached() {
+        Icon (
+            imageVector = Icons.Rounded.Sync,
             contentDescription = null,
             modifier = Modifier
                 .size(18.dp)

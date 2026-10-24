@@ -37,11 +37,11 @@ import com.maloy.muzza.constants.likedMusicDescriptionKey
 import com.maloy.muzza.constants.likedMusicThumbnailKey
 import com.maloy.muzza.constants.likedMusicTitleKey
 import com.maloy.muzza.db.MusicDatabase
-import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.di.DownloadCache
 import com.maloy.muzza.di.PlayerCache
 import com.maloy.muzza.extensions.toEnum
 import com.maloy.muzza.playback.DownloadUtil
+import com.maloy.muzza.utils.CacheUtils
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
@@ -52,7 +52,6 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -68,6 +67,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import javax.inject.Inject
 import kotlin.collections.filter
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class LibraryArtistsViewModel @Inject constructor(
@@ -296,13 +296,12 @@ class LibraryMixViewModel @Inject constructor(
     database: MusicDatabase,
     downloadUtil: DownloadUtil,
     private val syncUtils: SyncUtils,
+    private val cacheUtils: CacheUtils,
     @PlayerCache private val playerCache: SimpleCache,
     @DownloadCache private val downloadCache: SimpleCache,
     @ApplicationContext private val context: Context,
 ) : ViewModel() {
-    private val _cachedSongs = MutableStateFlow<List<Song>>(emptyList())
     private val _playlistInfo = MutableStateFlow<LikedMusicPlaylistFragments?>(null)
-    val cachedSongs: StateFlow<List<Song>> = _cachedSongs
 
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
@@ -361,11 +360,7 @@ class LibraryMixViewModel @Inject constructor(
                     }
                 }
 
-                _cachedSongs.value = completeSongs
-                    .filter { it.song.dateDownload != null }
-                    .sortedByDescending { it.song.dateDownload }
-
-                delay(1000)
+                delay(1000.milliseconds)
             }
         }
         viewModelScope.launch(Dispatchers.IO) {
@@ -416,6 +411,7 @@ class LibraryMixViewModel @Inject constructor(
             syncUtils.syncProfilesSubscriptions()
             syncUtils.syncLikedAlbums()
             syncUtils.syncSavedPlaylists()
+            cacheUtils.syncCachedSongs()
         }
     }
     fun refresh() {
@@ -468,6 +464,9 @@ class LibraryMixViewModel @Inject constructor(
     val localSongsCount = database.localSongsCount()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
+    val cachedSongsCount = database.cachedSongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
     val librarySongs = database.librarySongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
@@ -479,6 +478,9 @@ class LibraryMixViewModel @Inject constructor(
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val localSongs = database.localSongs(SongSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val cachedSongs = database.cachedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val downloadSongs =

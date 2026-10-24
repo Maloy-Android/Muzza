@@ -151,6 +151,7 @@ fun LibraryMixScreen(
     val topSongs by viewModel.topSongs.collectAsState(initial = null)
     val localSongs by viewModel.localSongs.collectAsState()
     val cachedSongs by viewModel.cachedSongs.collectAsState()
+    val cachedSongCount by viewModel.cachedSongsCount.collectAsState()
     val albums by viewModel.albums.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val librarySongs by viewModel.librarySongs.collectAsState(initial = null)
@@ -235,7 +236,7 @@ fun LibraryMixScreen(
             id = "cached",
             name = stringResource(R.string.cached)
         ),
-        songCount = cachedSongs.size,
+        songCount = cachedSongCount ?: 0,
         songThumbnails = emptyList()
     )
 

@@ -22,7 +22,8 @@ import java.time.LocalDateTime
     ]
 )
 data class SongEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey
+    val id: String,
     val title: String,
     val duration: Int = -1,
     val thumbnailUrl: String? = null,
@@ -41,7 +42,9 @@ data class SongEntity(
     @ColumnInfo(name = "isVideoSong", defaultValue = "false")
     val isVideoSong: Boolean = false,
     @ColumnInfo(name = "explicit", defaultValue = "false")
-    val explicit: Boolean = false
+    val explicit: Boolean = false,
+    @ColumnInfo(name = "isFromCache", defaultValue = "false")
+    val isFromCache: Boolean = false
 ) {
 
     val isLocalSong: Boolean

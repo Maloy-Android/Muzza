@@ -155,6 +155,38 @@ interface DatabaseDao {
             SongSortType.PLAY_TIME -> localSongsByPlayTimeAsc()
         }.map { it.reversed(descending) }
 
+    @Query("SELECT COUNT(1) FROM song WHERE isFromCache")
+    fun cachedSongsCount(): Flow<Int>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isFromCache ORDER BY rowId")
+    fun cachedSongsByRowIdAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isFromCache ORDER BY rowId")
+    fun cachedSongsByCreateDateAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isFromCache ORDER BY title")
+    fun cachedSongsByNameAsc(): Flow<List<Song>>
+
+    @Transaction
+    @Query("SELECT * FROM song WHERE isFromCache ORDER BY totalPlayTime")
+    fun cachedSongsByPlayTimeAsc(): Flow<List<Song>>
+
+    fun cachedSongs(sortType: SongSortType, descending: Boolean) =
+        when (sortType) {
+            SongSortType.CREATE_DATE -> cachedSongsByCreateDateAsc()
+            SongSortType.NAME -> cachedSongsByNameAsc()
+            SongSortType.ARTIST -> cachedSongsByRowIdAsc().map { songs ->
+                songs.sortedBy { song ->
+                    song.artists.joinToString(separator = "") { it.name }
+                }
+            }
+
+            SongSortType.PLAY_TIME -> cachedSongsByPlayTimeAsc()
+        }.map { it.reversed(descending) }
+
     @Transaction
     @Query("SELECT * FROM song WHERE inLibrary ORDER BY rowId")
     fun librarySongsByRowIdAsc(): Flow<List<Song>>

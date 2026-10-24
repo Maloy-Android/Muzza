@@ -23,6 +23,7 @@ import com.maloy.muzza.db.entities.Song
 import com.maloy.muzza.models.SimilarRecommendation
 import com.maloy.muzza.models.data.CommunityPlaylistItem
 import com.maloy.muzza.models.data.DailyDiscoverItem
+import com.maloy.muzza.utils.CacheUtils
 import com.maloy.muzza.utils.SyncUtils
 import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.get
@@ -46,6 +47,7 @@ import kotlin.random.Random
 class HomeViewModel @Inject constructor(
     @ApplicationContext val context: Context,
     private val syncUtils: SyncUtils,
+    private val cacheUtils: CacheUtils,
     val database: MusicDatabase,
 ) : ViewModel() {
     val isRefreshing = MutableStateFlow(false)
@@ -552,5 +554,6 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() }
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() }
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() }
+        viewModelScope.launch(Dispatchers.IO) { cacheUtils.syncCachedSongs() }
     }
 }

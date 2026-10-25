@@ -31,6 +31,7 @@ data class ArtistPage(
     val subscriberCountText: String?,
     val monthlyListenerCount: String? = null,
     val descriptionRuns: List<Run>? = null,
+    val banner: String?,
     ) {
     fun filterExplicit(enabled: Boolean) =
         if (enabled) {

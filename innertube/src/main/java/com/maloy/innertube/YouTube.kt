@@ -19,7 +19,6 @@ import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.YouTubeClient
-import com.maloy.innertube.models.YouTubeLocale
 import com.maloy.innertube.models.getContinuation
 import com.maloy.innertube.models.getItems
 import com.maloy.innertube.models.oddElements
@@ -69,7 +68,6 @@ import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonArray
 import kotlinx.serialization.json.jsonPrimitive
 import java.net.Proxy
-import kotlin.coroutines.cancellation.CancellationException
 import kotlin.random.Random
 
 /**
@@ -478,7 +476,7 @@ val response = innerTube.browse(WEB_REMIX, browseId).body<BrowseResponse>()
                 ?: response.header.musicImmersiveHeaderRenderer?.subscriptionButton?.subscribeButtonRenderer
                     ?.shortSubscriberCountText?.runs?.firstOrNull()?.text,
             monthlyListenerCount = response.header.musicImmersiveHeaderRenderer?.monthlyListenerCount?.runs?.firstOrNull()?.text,
-
+            banner = response.background?.thumbnail?.thumbnails?.lastOrNull()?.url ?: response.header.musicVisualHeaderRenderer?.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
         )
     }
 

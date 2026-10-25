@@ -26,6 +26,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -34,6 +35,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -59,6 +61,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.layout.ContentScale
@@ -69,7 +72,9 @@ import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -82,8 +87,10 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
+import com.maloy.innertube.models.Run
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.innertube.pages.ArtistPage
 import com.maloy.innertube.utils.parseCookieString
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerAwareWindowInsets
@@ -279,199 +286,84 @@ fun ArtistScreen(
                 }
             } else {
                 item(key = "header") {
-                    Box {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .aspectRatio(1f)
-                                .offset {
-                                    IntOffset(x = 0, y = headerOffset)
-                                }) {
-                            AsyncImage(
-                                model = artistPage.artist.thumbnail.resize(1200, 1200),
-                                contentDescription = null,
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .align(Alignment.TopCenter)
-                                    .fadingEdge(
-                                        bottom = 200.dp,
-                                    ),
-                                contentScale = ContentScale.Crop
-                            )
-                        }
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(
-                                    top = LocalResources.current.displayMetrics.widthPixels.let { screenWidth ->
-                                        with(density) {
-                                            ((screenWidth / 1.2f) - 144).toDp()
-                                        }
-                                    })) {
-                            Column(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(horizontal = 16.dp)
-                            ) {
-                                Text(
-                                    text = artistPage.artist.title,
-                                    style = MaterialTheme.typography.headlineLarge,
-                                    fontWeight = FontWeight.Bold,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
-                                    fontSize = 32.sp,
-                                )
-                                if (!description.isNullOrEmpty() || (!subscriberCount.isNullOrEmpty()) || (!monthlyListeners.isNullOrEmpty())) {
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 16.dp)
-                                            .animateItem()
-                                    ) {
-                                        if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
-                                            Text(
-                                                text = stringResource(R.string.about_artist),
-                                                style = MaterialTheme.typography.titleMedium,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.padding(bottom = 8.dp)
+                    if (artistPage.artist.isProfile) {
+                        ArtistProfileHeader(
+                            title = artistPage.artist.title,
+                            thumbnailUrl = artistPage.artist.thumbnail,
+                            isSubscribed = libraryArtist?.artist?.bookmarkedAt != null,
+                            bannerUrl = artistPage.banner,
+                            onToggleSubscription = {
+                                database.transaction {
+                                    val artist = libraryArtist?.artist
+                                    if (artist != null) {
+                                        update(artist.toggleLike())
+                                        update(artist.localToggleLike())
+                                    } else {
+                                        artistPage.artist.let {
+                                            insert(
+                                                ArtistEntity(
+                                                    id = it.id,
+                                                    name = it.title,
+                                                    channelId = it.channelId,
+                                                    thumbnailUrl = it.thumbnail,
+                                                    isProfile = it.isProfile
+                                                ).toggleLike().localToggleLike()
                                             )
-                                        }
-
-                                        if (!subscriberCount.isNullOrEmpty()) {
-                                            Text(
-                                                text = subscriberCount,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(bottom = 4.dp)
-                                            )
-                                        }
-
-                                        if (!monthlyListeners.isNullOrEmpty()) {
-                                            Text(
-                                                text = monthlyListeners,
-                                                style = MaterialTheme.typography.bodyMedium,
-                                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                                modifier = Modifier.padding(bottom = if (!description.isNullOrEmpty()) 8.dp else 0.dp)
-                                            )
-                                        }
-
-                                        if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
-                                            ExpandableText(
-                                                modifier = Modifier,
-                                                text = description.orEmpty(),
-                                                runs = descriptionRuns?.map {
-                                                    LinkSegment(
-                                                        text = it.text,
-                                                        url = it.navigationEndpoint?.urlEndpoint?.url
-                                                    )
-                                                },
-                                                collapsedMaxLines = 3
-                                            )
-                                        }
-                                    }
-                                }
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    OutlinedButton(
-                                        onClick = {
-                                            database.transaction {
-                                                val artist = libraryArtist?.artist
-                                                if (artist != null) {
-                                                    update(artist.toggleLike())
-                                                    update(artist.localToggleLike())
-                                                } else {
-                                                    artistPage.artist.let {
-                                                        insert(
-                                                            ArtistEntity(
-                                                                id = it.id,
-                                                                name = it.title,
-                                                                channelId = it.channelId,
-                                                                thumbnailUrl = it.thumbnail,
-                                                                isProfile = it.isProfile
-                                                            ).toggleLike().localToggleLike()
-                                                        )
-                                                    }
-                                                }
-                                            }
-                                        },
-                                        colors = ButtonDefaults.outlinedButtonColors(
-                                            containerColor = if (libraryArtist?.artist?.bookmarkedAt != null) MaterialTheme.colorScheme.surface
-                                            else Color.Transparent
-                                        ),
-                                        shape = RoundedCornerShape(50),
-                                        modifier = Modifier.height(40.dp)
-                                    ) {
-                                        val isSubscribed =
-                                            libraryArtist?.artist?.bookmarkedAt != null
-                                        Text(
-                                            text = stringResource(if (isSubscribed) R.string.subscribed else R.string.subscribe),
-                                            fontSize = 14.sp,
-                                            color = if (!isSubscribed) MaterialTheme.colorScheme.error else LocalContentColor.current
-                                        )
-                                    }
-
-                                    Spacer(modifier = Modifier.weight(1f))
-
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        if (!artistPage.artist.isProfile) {
-                                            OutlinedButton(
-                                                onClick = {
-                                                    playerConnection.playQueue(
-                                                        YouTubeArtistRadio(
-                                                            artistId = artistPage.artist.id,
-                                                            context = context,
-                                                            shuffleEndpointEnabled = false
-                                                        )
-                                                    )
-                                                },
-                                                shape = RoundedCornerShape(50),
-                                                modifier = Modifier.height(40.dp)
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.radio),
-                                                    contentDescription = null,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(8.dp))
-                                                Text(
-                                                    text = stringResource(R.string.radio),
-                                                    fontSize = 14.sp
-                                                )
-                                            }
-                                            IconButton(
-                                                onClick = {
-                                                    playerConnection.playQueue(
-                                                        YouTubeArtistRadio(
-                                                            artistId = artistPage.artist.id,
-                                                            context = context,
-                                                            shuffleEndpointEnabled = true
-                                                        )
-                                                    )
-                                                }, modifier = Modifier
-                                                    .size(48.dp)
-                                                    .background(
-                                                        MaterialTheme.colorScheme.primary,
-                                                        RoundedCornerShape(24.dp)
-                                                    )
-                                            ) {
-                                                Icon(
-                                                    painter = painterResource(R.drawable.shuffle),
-                                                    contentDescription = null,
-                                                    tint = MaterialTheme.colorScheme.onPrimary,
-                                                    modifier = Modifier.size(20.dp)
-                                                )
-                                            }
                                         }
                                     }
                                 }
                             }
-                        }
-                        Spacer(modifier = Modifier.height(16.dp))
+                        )
+                    } else {
+                        ArtistBannerHeader(
+                            artistPage = artistPage,
+                            description = description,
+                            descriptionRuns = descriptionRuns,
+                            subscriberCount = subscriberCount,
+                            monthlyListeners = monthlyListeners,
+                            isSubscribed = libraryArtist?.artist?.bookmarkedAt != null,
+                            onToggleSubscription = {
+                                database.transaction {
+                                    val artist = libraryArtist?.artist
+                                    if (artist != null) {
+                                        update(artist.toggleLike())
+                                        update(artist.localToggleLike())
+                                    } else {
+                                        artistPage.artist.let {
+                                            insert(
+                                                ArtistEntity(
+                                                    id = it.id,
+                                                    name = it.title,
+                                                    channelId = it.channelId,
+                                                    thumbnailUrl = it.thumbnail,
+                                                    isProfile = it.isProfile
+                                                ).toggleLike().localToggleLike()
+                                            )
+                                        }
+                                    }
+                                }
+                            },
+                            onRadioClick = {
+                                playerConnection.playQueue(
+                                    YouTubeArtistRadio(
+                                        artistId = artistPage.artist.id,
+                                        context = context,
+                                        shuffleEndpointEnabled = false
+                                    )
+                                )
+                            },
+                            onShuffleClick = {
+                                playerConnection.playQueue(
+                                    YouTubeArtistRadio(
+                                        artistId = artistPage.artist.id,
+                                        context = context,
+                                        shuffleEndpointEnabled = true
+                                    )
+                                )
+                            },
+                            density = density,
+                            headerOffset = headerOffset
+                        )
                     }
                 }
                 if ((!isLoggedIn && librarySongs.isNotEmpty()) && artistPage.artist.isProfile) {
@@ -821,5 +713,250 @@ fun ArtistScreen(
                 .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
                 .align(Alignment.BottomCenter)
         )
+    }
+}
+
+@Composable
+private fun ArtistProfileHeader(
+    title: String,
+    thumbnailUrl: String?,
+    bannerUrl: String?,
+    isSubscribed: Boolean,
+    onToggleSubscription: () -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .wrapContentHeight()
+    ) {
+        if (!bannerUrl.isNullOrEmpty()) {
+            AsyncImage(
+                model = bannerUrl.resize(1200, 1200),
+                contentDescription = null,
+                modifier = Modifier
+                    .matchParentSize(),
+                contentScale = ContentScale.Crop
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = 8.dp,
+                    bottom = 24.dp
+                ),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            AsyncImage(
+                model = thumbnailUrl?.resize(600, 600),
+                contentDescription = null,
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = title,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(horizontal = 24.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedButton(
+                onClick = onToggleSubscription,
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = if (isSubscribed) MaterialTheme.colorScheme.surface
+                    else if (!bannerUrl.isNullOrEmpty()) Color.White else Color.Transparent
+                ),
+                shape = RoundedCornerShape(50),
+                modifier = Modifier.height(40.dp)
+            ) {
+                Text(
+                    text = stringResource(if (isSubscribed) R.string.subscribed else R.string.subscribe),
+                    fontSize = 14.sp,
+                    color = if (!isSubscribed) Color.Red
+                    else LocalContentColor.current
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ArtistBannerHeader(
+    artistPage: ArtistPage,
+    description: String?,
+    descriptionRuns: List<Run>?,
+    subscriberCount: String?,
+    monthlyListeners: String?,
+    isSubscribed: Boolean,
+    onToggleSubscription: () -> Unit,
+    onRadioClick: () -> Unit,
+    onShuffleClick: () -> Unit,
+    density: Density,
+    headerOffset: Int,
+) {
+    Box {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .aspectRatio(1f)
+                .offset {
+                    IntOffset(x = 0, y = headerOffset)
+                }) {
+            AsyncImage(
+                model = artistPage.artist.thumbnail.resize(1200, 1200),
+                contentDescription = null,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .fadingEdge(
+                        bottom = 200.dp,
+                    ),
+                contentScale = ContentScale.Crop
+            )
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    top = LocalResources.current.displayMetrics.widthPixels.let { screenWidth ->
+                        with(density) {
+                            ((screenWidth / 1.2f) - 144).toDp()
+                        }
+                    })) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp)
+            ) {
+                Text(
+                    text = artistPage.artist.title,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    fontSize = 32.sp,
+                )
+                if (!description.isNullOrEmpty() || (!subscriberCount.isNullOrEmpty()) || (!monthlyListeners.isNullOrEmpty())) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp)
+                    ) {
+                        if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
+                            Text(
+                                text = stringResource(R.string.about_artist),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+
+                        if (!subscriberCount.isNullOrEmpty()) {
+                            Text(
+                                text = subscriberCount,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+
+                        if (!monthlyListeners.isNullOrEmpty()) {
+                            Text(
+                                text = monthlyListeners,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = if (!description.isNullOrEmpty()) 8.dp else 0.dp)
+                            )
+                        }
+
+                        if (!description.isNullOrEmpty() || !descriptionRuns.isNullOrEmpty()) {
+                            ExpandableText(
+                                modifier = Modifier,
+                                text = description.orEmpty(),
+                                runs = descriptionRuns?.map {
+                                    LinkSegment(
+                                        text = it.text,
+                                        url = it.navigationEndpoint?.urlEndpoint?.url
+                                    )
+                                },
+                                collapsedMaxLines = 3
+                            )
+                        }
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    OutlinedButton(
+                        onClick = onToggleSubscription,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = if (isSubscribed) MaterialTheme.colorScheme.surface
+                            else Color.Transparent
+                        ),
+                        shape = RoundedCornerShape(50),
+                        modifier = Modifier.height(40.dp)
+                    ) {
+                        Text(
+                            text = stringResource(if (isSubscribed) R.string.subscribed else R.string.subscribe),
+                            fontSize = 14.sp,
+                            color = if (!isSubscribed) MaterialTheme.colorScheme.error else LocalContentColor.current
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.weight(1f))
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (!artistPage.artist.isProfile) {
+                            OutlinedButton(
+                                onClick = onRadioClick,
+                                shape = RoundedCornerShape(50),
+                                modifier = Modifier.height(40.dp)
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.radio),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = stringResource(R.string.radio),
+                                    fontSize = 14.sp
+                                )
+                            }
+                            IconButton(
+                                onClick = onShuffleClick, modifier = Modifier
+                                    .size(48.dp)
+                                    .background(
+                                        MaterialTheme.colorScheme.primary,
+                                        RoundedCornerShape(24.dp)
+                                    )
+                            ) {
+                                Icon(
+                                    painter = painterResource(R.drawable.shuffle),
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(16.dp))
     }
 }

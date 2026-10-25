@@ -17,6 +17,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Cached
 import androidx.compose.material.icons.rounded.CloudOff
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -67,11 +70,14 @@ import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.utils.rememberVoiceInput
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
@@ -86,6 +92,9 @@ fun CachePlaylistScreen(
     val menuState = LocalMenuState.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val haptic = LocalHapticFeedback.current
+
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
 
     val isPlaying by playerConnection.isPlaying.collectAsState()
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -246,6 +255,13 @@ fun CachePlaylistScreen(
         }
     }
 
+    LaunchedEffect(Unit) {
+        withContext(Dispatchers.IO) {
+            viewModel.syncCachedSongs()
+        }
+    }
+
+
     val searchQueryStr = searchQuery.text.trim()
     val filteredSongs = if (!isSearching) {
         cachedSongs
@@ -257,8 +273,15 @@ fun CachePlaylistScreen(
         }
     }
 
-    Box(
-        modifier = Modifier.fillMaxSize(),
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pullToRefresh(
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
     ) {
         LazyColumn(
             state = lazyListState,
@@ -593,7 +616,11 @@ fun CachePlaylistScreen(
                                             playerConnection.playQueue(
                                                 ListQueue(
                                                     title = cachedPlaylist.playlist.name,
-                                                    items = cachedSongs.map { it.toMediaItemWithPlaylist(cachedPlaylist.playlist.id) },
+                                                    items = cachedSongs.map {
+                                                        it.toMediaItemWithPlaylist(
+                                                            cachedPlaylist.playlist.id
+                                                        )
+                                                    },
                                                     startIndex = cachedSongs.indexOfFirst { it.song.id == songWrapper.id }
                                                 )
                                             )
@@ -612,6 +639,15 @@ fun CachePlaylistScreen(
                     }
                 }
             }
+        }
+        if (!filteredSongs.isEmpty() && isInternetAvailable(context) && !isSearching) {
+            PullToRefreshDefaults.Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
         }
         LazyColumnScrollbar(
             visible = lazyChecker,

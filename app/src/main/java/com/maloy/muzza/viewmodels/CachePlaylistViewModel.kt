@@ -25,15 +25,19 @@ class CachePlaylistViewModel @Inject constructor(
     private val cacheUtils: CacheUtils,
     @ApplicationContext context: Context
 ) : ViewModel() {
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
     @OptIn(ExperimentalCoroutinesApi::class)
     val cachedSongs = context.dataStore.data.map {
         it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
             ?: true)
     }.distinctUntilChanged().flatMapLatest { (sortType, descending) ->
-        database.cachedSongs(SongSortType.CREATE_DATE, true).flowOn(Dispatchers.IO)
+        database.cachedSongsByCreateDateAsc().flowOn(Dispatchers.IO)
             .map { songs ->
                 when (sortType) {
-                    SongSortType.CREATE_DATE -> songs.sortedBy { it.song.isFromCache }
+                    SongSortType.CREATE_DATE -> songs.sortedByDescending { it.song.isFromCache }
 
                     SongSortType.NAME -> songs.sortedBy { it.song.title }
 
@@ -43,7 +47,7 @@ class CachePlaylistViewModel @Inject constructor(
 
                     SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
                         .reversed()
-                }.reversed(!descending)
+                }.reversed(descending)
             }
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList()
@@ -52,6 +56,29 @@ class CachePlaylistViewModel @Inject constructor(
     fun removeSongFromCache(songId: String) {
         viewModelScope.launch(Dispatchers.IO) {
             cacheUtils.removeSongFromCache(songId)
+        }
+    }
+
+    fun syncCachedSongs() {
+        viewModelScope.launch(Dispatchers.IO) { cacheUtils.syncCachedSongs() }
+    }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                viewModelScope.launch(
+                    Dispatchers.IO
+                ) {
+                    cacheUtils.syncCachedSongs()
+                }
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh playlist"
+            } finally {
+                _isRefreshing.value = false
+            }
         }
     }
 }

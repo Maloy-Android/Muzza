@@ -40,7 +40,7 @@ class CacheUtils @Inject constructor(
                 if (it.song.dateDownload == null) {
                     update(it.song.copy(dateDownload = LocalDateTime.now()))
                 }
-                update(it.song.copy(isFromCache = true))
+                update(it.song.copy(isFromCache = true, ))
             }
 
             currentlyCached

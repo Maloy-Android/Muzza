@@ -84,8 +84,6 @@
 -keep class com.maloy.muzza.listentogether.proto.** { *; }
 -keepclassmembers class com.maloy.muzza.listentogether.proto.** { *; }
 
-## Rules for NewPipeExtractor
--keep class org.schabi.newpipe.extractor.timeago.patterns.** { *; }
 -keep class org.mozilla.javascript.** { *; }
 -keep class org.mozilla.javascript.engine.** { *; }
 -dontwarn org.mozilla.javascript.JavaToJSONConverters

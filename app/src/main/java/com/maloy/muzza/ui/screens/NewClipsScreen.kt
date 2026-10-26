@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens
 
 import android.annotation.SuppressLint
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -40,7 +41,17 @@ import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
 import com.maloy.muzza.constants.LibraryViewType
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.Checkbox
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.toMutableStateList
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.util.fastForEachReversed
+import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.muzza.constants.ClipViewTypeKey
 import com.maloy.muzza.extensions.toMediaItem
@@ -58,6 +69,7 @@ import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
+import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.viewmodels.NewClipsViewModel
@@ -88,6 +100,8 @@ fun NewClipScreen(
 
     val lazyListState = rememberLazyListState()
 
+    val backStackEntry by navController.currentBackStackEntryAsState()
+
     val lazyChecker by remember {
         derivedStateOf {
             lazyListState.firstVisibleItemIndex > 0
@@ -100,6 +114,32 @@ fun NewClipScreen(
 
     val isRefreshing by viewModel.isRefreshing.collectAsState()
     val pullRefreshState = rememberPullToRefreshState()
+
+    var inSelectMode by rememberSaveable { mutableStateOf(false) }
+    val selection = rememberSaveable(
+        saver = listSaver<MutableList<String>, String>(
+            save = { it.toList() },
+            restore = { it.toMutableStateList() }
+        )
+    ) { mutableStateListOf() }
+    val onExitSelectionMode = {
+        inSelectMode = false
+        selection.clear()
+    }
+    if (inSelectMode) {
+        BackHandler(onBack = onExitSelectionMode)
+    }
+
+    LaunchedEffect(inSelectMode) {
+        backStackEntry?.savedStateHandle?.set("inSelectMode", inSelectMode)
+    }
+    LaunchedEffect(newClips) {
+        selection.fastForEachReversed { songId ->
+            if (newClips.find { it.id == songId } == null) {
+                selection.remove(songId)
+            }
+        }
+    }
 
 
     BoxWithConstraints(
@@ -122,32 +162,49 @@ fun NewClipScreen(
                         items = newClips,
                         key = { it.id }
                     ) { clip ->
+                        val onCheckedChange: (Boolean) -> Unit = {
+                            if (it) {
+                                selection.add(clip.id)
+                            } else {
+                                selection.remove(clip.id)
+                            }
+                        }
                         YouTubeListItem(
                             item = clip,
                             isActive = mediaMetadata?.id == clip.id,
+                            isSwipeable = !inSelectMode,
                             isPlaying = isPlaying,
                             trailingContent = {
-                                androidx.compose.material3.IconButton(
-                                    onClick = {
-                                        menuState.show {
-                                            YouTubeSongMenu(
-                                                song = clip,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
-                                        }
-                                    }
-                                ) {
-                                    Icon(
-                                        painter = painterResource(R.drawable.more_vert),
-                                        contentDescription = null
+                                if (inSelectMode) {
+                                    Checkbox(
+                                        checked = clip.id in selection,
+                                        onCheckedChange = onCheckedChange
                                     )
+                                } else {
+                                    androidx.compose.material3.IconButton(
+                                        onClick = {
+                                            menuState.show {
+                                                YouTubeSongMenu(
+                                                    song = clip,
+                                                    navController = navController,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(
+                                            painter = painterResource(R.drawable.more_vert),
+                                            contentDescription = null
+                                        )
+                                    }
                                 }
                             },
                             modifier = Modifier
                                 .combinedClickable(
                                     onClick = {
-                                        if (mediaMetadata?.id == clip.id) {
+                                        if (inSelectMode) {
+                                            onCheckedChange(clip.id !in selection)
+                                        } else if (mediaMetadata?.id == clip.id) {
                                             playerConnection.togglePlayPause()
                                         } else {
                                             playerConnection.playQueue(
@@ -164,13 +221,10 @@ fun NewClipScreen(
                                         }
                                     },
                                     onLongClick = {
-                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        menuState.show {
-                                            YouTubeSongMenu(
-                                                song = clip,
-                                                navController = navController,
-                                                onDismiss = menuState::dismiss
-                                            )
+                                        if (!inSelectMode) {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            inSelectMode = true
+                                            onCheckedChange(true)
                                         }
                                     }
                                 )
@@ -192,7 +246,7 @@ fun NewClipScreen(
                 )
                 newClips.let { songs ->
                     HideOnScrollFAB(
-                        visible = songs.isNotEmpty(),
+                        visible = songs.isNotEmpty() && !inSelectMode,
                         lazyListState = lazyListState,
                         icon = R.drawable.play,
                         onClick = {
@@ -297,38 +351,87 @@ fun NewClipScreen(
         }
     }
 
-    CenterAlignedTopAppBar(
-        title = { Text(stringResource(R.string.new_clips)) },
-        navigationIcon = {
-            IconButton(
-                onClick = navController::navigateUp,
-                onLongClick = navController::backToMain
-            ) {
-                Icon(
-                    painterResource(R.drawable.arrow_back),
-                    contentDescription = null
+    if (inSelectMode) {
+        CenterAlignedTopAppBar(
+            title = {
+                Text(pluralStringResource(R.plurals.n_selected, selection.size, selection.size))
+            },
+            navigationIcon = {
+                androidx.compose.material3.IconButton(onClick = onExitSelectionMode) {
+                    Icon(
+                        painter = painterResource(R.drawable.close),
+                        contentDescription = null,
+                    )
+                }
+            },
+            actions = {
+                Checkbox(
+                    checked = selection.size == newClips.size && selection.isNotEmpty(),
+                    onCheckedChange = {
+                        if (selection.size == newClips.size) {
+                            selection.clear()
+                        } else {
+                            selection.clear()
+                            selection.addAll(newClips.map { it.id })
+                        }
+                    }
                 )
-            }
-        },
-        actions = {
-            if (newClips.isNotEmpty()) {
                 androidx.compose.material3.IconButton(
+                    enabled = selection.isNotEmpty(),
                     onClick = {
-                        viewType = viewType.toggle()
+                        menuState.show {
+                            YouTubeSongSelectionMenu(
+                                navController = navController,
+                                selection = selection.mapNotNull { songId ->
+                                    newClips.find { it.id == songId }
+                                },
+                                onDismiss = menuState::dismiss,
+                                onExitSelectionMode = onExitSelectionMode
+                            )
+                        }
                     }
                 ) {
                     Icon(
-                        painter = painterResource(
-                            when (viewType) {
-                                LibraryViewType.LIST -> R.drawable.list
-                                LibraryViewType.GRID -> R.drawable.grid_view
-                            }
-                        ),
+                        painterResource(R.drawable.more_vert),
                         contentDescription = null
                     )
                 }
             }
-        },
-        scrollBehavior = scrollBehavior
-    )
+        )
+    } else {
+        CenterAlignedTopAppBar(
+            title = { Text(stringResource(R.string.new_clips)) },
+            navigationIcon = {
+                IconButton(
+                    onClick = navController::navigateUp,
+                    onLongClick = navController::backToMain
+                ) {
+                    Icon(
+                        painterResource(R.drawable.arrow_back),
+                        contentDescription = null
+                    )
+                }
+            },
+            actions = {
+                if (newClips.isNotEmpty()) {
+                    androidx.compose.material3.IconButton(
+                        onClick = {
+                            viewType = viewType.toggle()
+                        }
+                    ) {
+                        Icon(
+                            painter = painterResource(
+                                when (viewType) {
+                                    LibraryViewType.LIST -> R.drawable.list
+                                    LibraryViewType.GRID -> R.drawable.grid_view
+                                }
+                            ),
+                            contentDescription = null
+                        )
+                    }
+                }
+            },
+            scrollBehavior = scrollBehavior
+        )
+    }
 }

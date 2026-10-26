@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -587,30 +588,34 @@ fun OnlinePlaylistScreen(
                                                 else -> {
                                                     Button(
                                                         onClick = {
-                                                            viewModel.viewModelScope.launch(
-                                                                Dispatchers.IO
-                                                            ) {
-                                                                syncUtils.syncPlaylist(
-                                                                    playlist.id,
-                                                                    dbPlaylist!!.id
-                                                                )
-                                                            }
-
-                                                            songs.forEach { song ->
-                                                                val downloadRequest =
-                                                                    DownloadRequest.Builder(
-                                                                        song.id,
-                                                                        song.id.toUri()
+                                                            if (isInternetAvailable(context)) {
+                                                                viewModel.viewModelScope.launch(
+                                                                    Dispatchers.IO
+                                                                ) {
+                                                                    syncUtils.syncPlaylist(
+                                                                        playlist.id,
+                                                                        dbPlaylist!!.id
                                                                     )
-                                                                        .setCustomCacheKey(song.id)
-                                                                        .setData(song.title.toByteArray())
-                                                                        .build()
-                                                                DownloadService.sendAddDownload(
-                                                                    context,
-                                                                    ExoDownloadService::class.java,
-                                                                    downloadRequest,
-                                                                    false
-                                                                )
+                                                                }
+
+                                                                songs.forEach { song ->
+                                                                    val downloadRequest =
+                                                                        DownloadRequest.Builder(
+                                                                            song.id,
+                                                                            song.id.toUri()
+                                                                        )
+                                                                            .setCustomCacheKey(song.id)
+                                                                            .setData(song.title.toByteArray())
+                                                                            .build()
+                                                                    DownloadService.sendAddDownload(
+                                                                        context,
+                                                                        ExoDownloadService::class.java,
+                                                                        downloadRequest,
+                                                                        false
+                                                                    )
+                                                                }
+                                                            } else {
+                                                                Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                                                             }
                                                         },
                                                         modifier = Modifier
@@ -619,7 +624,7 @@ fun OnlinePlaylistScreen(
                                                             .clip(RoundedCornerShape(12.dp))
                                                     ) {
                                                         Icon(
-                                                            painterResource(R.drawable.download),
+                                                            painterResource(if (isInternetAvailable(context)) R.drawable.download else R.drawable.download_off),
                                                             contentDescription = null
                                                         )
                                                     }

@@ -4,6 +4,7 @@ package com.maloy.muzza.ui.screens
 
 import android.annotation.SuppressLint
 import android.content.Intent
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -444,20 +445,25 @@ fun AlbumScreen(
                                     else -> {
                                         Button(
                                             onClick = {
-                                                albumWithSongs.songs.forEach { song ->
-                                                    val downloadRequest = DownloadRequest.Builder(
-                                                        song.id,
-                                                        song.id.toUri()
-                                                    )
-                                                        .setCustomCacheKey(song.id)
-                                                        .setData(song.song.title.toByteArray())
-                                                        .build()
-                                                    DownloadService.sendAddDownload(
-                                                        context,
-                                                        ExoDownloadService::class.java,
-                                                        downloadRequest,
-                                                        false
-                                                    )
+                                                if (isInternetAvailable(context)) {
+                                                    albumWithSongs.songs.forEach { song ->
+                                                        val downloadRequest =
+                                                            DownloadRequest.Builder(
+                                                                song.id,
+                                                                song.id.toUri()
+                                                            )
+                                                                .setCustomCacheKey(song.id)
+                                                                .setData(song.song.title.toByteArray())
+                                                                .build()
+                                                        DownloadService.sendAddDownload(
+                                                            context,
+                                                            ExoDownloadService::class.java,
+                                                            downloadRequest,
+                                                            false
+                                                        )
+                                                    }
+                                                } else {
+                                                    Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                                                 }
                                             },
                                             modifier = Modifier
@@ -467,7 +473,7 @@ fun AlbumScreen(
                                                 .background(MaterialTheme.colorScheme.background)
                                         ) {
                                             Icon(
-                                                painter = painterResource(R.drawable.download),
+                                                painter = painterResource(if (isInternetAvailable(context)) R.drawable.download else R.drawable.download_off),
                                                 contentDescription = null
                                             )
                                         }

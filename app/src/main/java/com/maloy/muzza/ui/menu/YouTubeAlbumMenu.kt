@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -70,6 +71,7 @@ import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListMenuDivider
 import com.maloy.muzza.ui.component.YouTubeListItem
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.reportException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -435,18 +437,23 @@ fun YouTubeAlbumMenu(
         }
         DownloadListMenu(
             state = downloadState,
+            downloadAvailable = isInternetAvailable(context),
             onDownload = {
-                album?.songs?.forEach { song ->
-                    val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
-                        .setCustomCacheKey(song.id)
-                        .setData(song.song.title.toByteArray())
-                        .build()
-                    DownloadService.sendAddDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false
-                    )
+                if (isInternetAvailable(context)) {
+                    album?.songs?.forEach { song ->
+                        val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                            .setCustomCacheKey(song.id)
+                            .setData(song.song.title.toByteArray())
+                            .build()
+                        DownloadService.sendAddDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
+                        )
+                    }
+                } else {
+                    Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                 }
             },
             onRemoveDownload = {

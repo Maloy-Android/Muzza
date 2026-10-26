@@ -108,6 +108,7 @@ fun LazyListScope.DownloadListMenu(
     @Download.State state: Int?,
     onRemoveDownload: () -> Unit,
     onDownload: () -> Unit,
+    downloadAvailable: Boolean = true
 ) {
     when (state) {
         Download.STATE_COMPLETED -> {
@@ -131,7 +132,7 @@ fun LazyListScope.DownloadListMenu(
         }
         else -> {
             ListMenuItem(
-                icon = R.drawable.download,
+                icon = if (downloadAvailable) R.drawable.download else R.drawable.download_off,
                 title = R.string.download,
                 onClick = onDownload
             )

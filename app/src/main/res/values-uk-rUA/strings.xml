@@ -633,4 +633,8 @@
     <string name="user_name">Ім\'я користувача</string>
     <string name="listen_together_cannot_edit_username_in_room">Не можна змінити ім\'я користувача, перебуваючи в кімнаті</string>
     <string name="error_username_empty">Потрібно вказати ім\'я користувача.</string>
+
+
+    <string name="download_warning">Увімкніть підключення до Інтернету для завантаження</string>
+
 </resources>

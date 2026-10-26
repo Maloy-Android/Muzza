@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Build
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -503,18 +504,23 @@ fun AutoPlaylistMenu(
             }
             DownloadListMenu(
                 state = downloadState,
+                downloadAvailable = isInternetAvailable(context),
                 onDownload = {
-                    songs.forEach { song ->
-                        val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
-                            .setCustomCacheKey(song.id)
-                            .setData(song.song.title.toByteArray())
-                            .build()
-                        DownloadService.sendAddDownload(
-                            context,
-                            ExoDownloadService::class.java,
-                            downloadRequest,
-                            false
-                        )
+                    if (isInternetAvailable(context)) {
+                        songs.forEach { song ->
+                            val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                                .setCustomCacheKey(song.id)
+                                .setData(song.song.title.toByteArray())
+                                .build()
+                            DownloadService.sendAddDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false
+                            )
+                        }
+                    } else {
+                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                     }
                 },
                 onRemoveDownload = {

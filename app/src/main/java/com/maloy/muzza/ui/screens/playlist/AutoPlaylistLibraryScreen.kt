@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.playlist
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -67,6 +68,7 @@ import com.maloy.muzza.ui.menu.AutoPlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
 import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
 import com.maloy.muzza.utils.rememberEnumPreference
 import com.maloy.muzza.utils.rememberPreference
@@ -386,21 +388,25 @@ fun AutoPlaylistLibraryScreen(
                                         else -> {
                                             Button(
                                                 onClick = {
-                                                    librarySongs.forEach { song ->
-                                                        val downloadRequest =
-                                                            DownloadRequest.Builder(
-                                                                song.song.id,
-                                                                song.song.id.toUri()
+                                                    if (isInternetAvailable(context)) {
+                                                        librarySongs.forEach { song ->
+                                                            val downloadRequest =
+                                                                DownloadRequest.Builder(
+                                                                    song.song.id,
+                                                                    song.song.id.toUri()
+                                                                )
+                                                                    .setCustomCacheKey(song.song.id)
+                                                                    .setData(song.song.title.toByteArray())
+                                                                    .build()
+                                                            DownloadService.sendAddDownload(
+                                                                context,
+                                                                ExoDownloadService::class.java,
+                                                                downloadRequest,
+                                                                false
                                                             )
-                                                                .setCustomCacheKey(song.song.id)
-                                                                .setData(song.song.title.toByteArray())
-                                                                .build()
-                                                        DownloadService.sendAddDownload(
-                                                            context,
-                                                            ExoDownloadService::class.java,
-                                                            downloadRequest,
-                                                            false
-                                                        )
+                                                        }
+                                                    } else {
+                                                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                                                     }
                                                 },
                                                 modifier = Modifier
@@ -409,7 +415,7 @@ fun AutoPlaylistLibraryScreen(
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.download),
+                                                    painter = painterResource(if (isInternetAvailable(context)) R.drawable.download else R.drawable.download_off),
                                                     contentDescription = null
                                                 )
                                             }

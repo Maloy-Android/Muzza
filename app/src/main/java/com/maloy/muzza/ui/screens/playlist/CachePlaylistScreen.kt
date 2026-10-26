@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.screens.playlist
 
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -413,21 +414,25 @@ fun CachePlaylistScreen(
                                         else -> {
                                             Button(
                                                 onClick = {
-                                                    cachedSongs.forEach { song ->
-                                                        val downloadRequest =
-                                                            DownloadRequest.Builder(
-                                                                song.song.id,
-                                                                song.song.id.toUri()
+                                                    if (isInternetAvailable(context)) {
+                                                        cachedSongs.forEach { song ->
+                                                            val downloadRequest =
+                                                                DownloadRequest.Builder(
+                                                                    song.song.id,
+                                                                    song.song.id.toUri()
+                                                                )
+                                                                    .setCustomCacheKey(song.song.id)
+                                                                    .setData(song.song.title.toByteArray())
+                                                                    .build()
+                                                            DownloadService.sendAddDownload(
+                                                                context,
+                                                                ExoDownloadService::class.java,
+                                                                downloadRequest,
+                                                                false
                                                             )
-                                                                .setCustomCacheKey(song.song.id)
-                                                                .setData(song.song.title.toByteArray())
-                                                                .build()
-                                                        DownloadService.sendAddDownload(
-                                                            context,
-                                                            ExoDownloadService::class.java,
-                                                            downloadRequest,
-                                                            false
-                                                        )
+                                                        }
+                                                    } else {
+                                                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                                                     }
                                                 },
                                                 modifier = Modifier
@@ -436,7 +441,7 @@ fun CachePlaylistScreen(
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.download),
+                                                    painter = painterResource(if (isInternetAvailable(context)) R.drawable.download else R.drawable.download_off),
                                                     contentDescription = null
                                                 )
                                             }

@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -1126,22 +1127,27 @@ fun LocalPlaylistHeader(
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(4.dp)
-                                .clip(RoundedCornerShape(12.dp)), onClick = {
-                                songs.forEach { song ->
-                                    val downloadRequest = DownloadRequest.Builder(
-                                        song.song.id, song.song.id.toUri()
-                                    ).setCustomCacheKey(song.song.id)
-                                        .setData(song.song.song.title.toByteArray()).build()
-                                    DownloadService.sendAddDownload(
-                                        context,
-                                        ExoDownloadService::class.java,
-                                        downloadRequest,
-                                        false
-                                    )
+                                .clip(RoundedCornerShape(12.dp)),
+                            onClick = {
+                                if (isInternetAvailable(context)) {
+                                    songs.forEach { song ->
+                                        val downloadRequest = DownloadRequest.Builder(
+                                            song.song.id, song.song.id.toUri()
+                                        ).setCustomCacheKey(song.song.id)
+                                            .setData(song.song.song.title.toByteArray()).build()
+                                        DownloadService.sendAddDownload(
+                                            context,
+                                            ExoDownloadService::class.java,
+                                            downloadRequest,
+                                            false
+                                        )
+                                    }
+                                } else {
+                                    Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                                 }
                             }) {
                             Icon(
-                                painter = painterResource(R.drawable.download),
+                                painter = painterResource(if (isInternetAvailable(context)) R.drawable.download else R.drawable.download_off),
                                 contentDescription = null
                             )
                         }

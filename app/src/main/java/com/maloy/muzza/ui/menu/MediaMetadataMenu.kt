@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.menu
 
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -64,6 +65,7 @@ import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.ListDialog
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.MediaMetadataListItem
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.rememberPreference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -404,21 +406,26 @@ fun MediaMetadataMenu(
             }
             DownloadListMenu(
                 state = download?.state,
+                downloadAvailable = isInternetAvailable(context),
                 onDownload = {
-                    database.transaction {
-                        insert(mediaMetadata)
+                    if (isInternetAvailable(context)) {
+                        database.transaction {
+                            insert(mediaMetadata)
+                        }
+                        val downloadRequest =
+                            DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
+                                .setCustomCacheKey(mediaMetadata.id)
+                                .setData(mediaMetadata.title.toByteArray())
+                                .build()
+                        DownloadService.sendAddDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
+                        )
+                    } else {
+                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                     }
-                    val downloadRequest =
-                        DownloadRequest.Builder(mediaMetadata.id, mediaMetadata.id.toUri())
-                            .setCustomCacheKey(mediaMetadata.id)
-                            .setData(mediaMetadata.title.toByteArray())
-                            .build()
-                    DownloadService.sendAddDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false
-                    )
                 },
                 onRemoveDownload = {
                     DownloadService.sendRemoveDownload(

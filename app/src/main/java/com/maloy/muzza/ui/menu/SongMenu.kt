@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -77,6 +78,7 @@ import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -539,17 +541,22 @@ fun SongMenu(
             }
             DownloadListMenu(
                 state = download?.state,
+                downloadAvailable = isInternetAvailable(context),
                 onDownload = {
-                    val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
-                        .setCustomCacheKey(song.id)
-                        .setData(song.song.title.toByteArray())
-                        .build()
-                    DownloadService.sendAddDownload(
-                        context,
-                        ExoDownloadService::class.java,
-                        downloadRequest,
-                        false
-                    )
+                    if (isInternetAvailable(context)) {
+                        val downloadRequest = DownloadRequest.Builder(song.id, song.id.toUri())
+                            .setCustomCacheKey(song.id)
+                            .setData(song.song.title.toByteArray())
+                            .build()
+                        DownloadService.sendAddDownload(
+                            context,
+                            ExoDownloadService::class.java,
+                            downloadRequest,
+                            false
+                        )
+                    } else {
+                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
+                    }
                 },
                 onRemoveDownload = {
                     DownloadService.sendRemoveDownload(

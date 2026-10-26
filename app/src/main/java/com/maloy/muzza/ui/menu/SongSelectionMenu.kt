@@ -1,5 +1,6 @@
 package com.maloy.muzza.ui.menu
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -38,6 +39,7 @@ import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.DownloadListMenu
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
+import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.viewmodels.CachePlaylistViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
@@ -195,20 +197,25 @@ fun SongSelectionMenu(
         if (showDownloadButton) {
             DownloadListMenu(
                 state = downloadState,
+                downloadAvailable = isInternetAvailable(context),
                 onDownload = {
-                    selection.forEach { song ->
-                        val downloadRequest =
-                            DownloadRequest
-                                .Builder(song.id, song.id.toUri())
-                                .setCustomCacheKey(song.id)
-                                .setData(song.song.title.toByteArray())
-                                .build()
-                        DownloadService.sendAddDownload(
-                            context,
-                            ExoDownloadService::class.java,
-                            downloadRequest,
-                            false,
-                        )
+                    if (isInternetAvailable(context)) {
+                        selection.forEach { song ->
+                            val downloadRequest =
+                                DownloadRequest
+                                    .Builder(song.id, song.id.toUri())
+                                    .setCustomCacheKey(song.id)
+                                    .setData(song.song.title.toByteArray())
+                                    .build()
+                            DownloadService.sendAddDownload(
+                                context,
+                                ExoDownloadService::class.java,
+                                downloadRequest,
+                                false,
+                            )
+                        }
+                    } else {
+                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                     }
                 },
                 onRemoveDownload = {

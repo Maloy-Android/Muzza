@@ -1,6 +1,7 @@
 package com.maloy.muzza.ui.screens.playlist
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -157,7 +158,9 @@ import kotlinx.coroutines.withContext
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
 
-@SuppressLint("UnusedBoxWithConstraintsScope", "SuspiciousIndentation")
+@SuppressLint("UnusedBoxWithConstraintsScope", "SuspiciousIndentation",
+    "LocalContextGetResourceValueCall"
+)
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun AutoPlaylistLikedScreen(
@@ -614,21 +617,25 @@ fun AutoPlaylistLikedScreen(
                                         else -> {
                                             Button(
                                                 onClick = {
-                                                    songs.forEach { song ->
-                                                        val downloadRequest =
-                                                            DownloadRequest.Builder(
-                                                                song.song.id,
-                                                                song.song.id.toUri()
+                                                    if (isInternetAvailable(context)) {
+                                                        songs.forEach { song ->
+                                                            val downloadRequest =
+                                                                DownloadRequest.Builder(
+                                                                    song.song.id,
+                                                                    song.song.id.toUri()
+                                                                )
+                                                                    .setCustomCacheKey(song.song.id)
+                                                                    .setData(song.song.title.toByteArray())
+                                                                    .build()
+                                                            DownloadService.sendAddDownload(
+                                                                context,
+                                                                ExoDownloadService::class.java,
+                                                                downloadRequest,
+                                                                false
                                                             )
-                                                                .setCustomCacheKey(song.song.id)
-                                                                .setData(song.song.title.toByteArray())
-                                                                .build()
-                                                        DownloadService.sendAddDownload(
-                                                            context,
-                                                            ExoDownloadService::class.java,
-                                                            downloadRequest,
-                                                            false
-                                                        )
+                                                        }
+                                                    } else {
+                                                        Toast.makeText(context, R.string.download_warning,Toast.LENGTH_LONG).show()
                                                     }
                                                 },
                                                 modifier = Modifier
@@ -637,7 +644,7 @@ fun AutoPlaylistLikedScreen(
                                                     .clip(RoundedCornerShape(12.dp))
                                             ) {
                                                 Icon(
-                                                    painter = painterResource(R.drawable.download),
+                                                    painter = painterResource(if (isInternetAvailable(context)) R.drawable.download else R.drawable.download_off),
                                                     contentDescription = null
                                                 )
                                             }

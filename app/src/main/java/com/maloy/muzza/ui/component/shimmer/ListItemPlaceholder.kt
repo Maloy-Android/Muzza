@@ -20,7 +20,7 @@ fun ListItemPlaceHolder(
     modifier: Modifier = Modifier,
     thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
     artistThumbnailShape: Shape = CircleShape,
-    isArtistList: Boolean = true
+    isArtistList: Boolean = false
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,

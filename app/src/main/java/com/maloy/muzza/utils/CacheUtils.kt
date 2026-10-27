@@ -40,19 +40,19 @@ class CacheUtils @Inject constructor(
                 if (it.song.dateDownload == null) {
                     update(it.song.copy(dateDownload = LocalDateTime.now()))
                 }
-                update(it.song.copy(isFromCache = true, ))
+                update(it.song.copy(isFromCache = true, dateDownload = LocalDateTime.now()))
             }
 
             currentlyCached
                 .filter { it.song.id !in completeIds }
-                .forEach { update(it.song.copy(isFromCache = false)) }
+                .forEach { update(it.song.copy(isFromCache = false, dateDownload = null)) }
         }
     }
     suspend fun removeSongFromCache(songId: String) {
         playerCache.removeResource(songId)
         val song = database.song(songId).firstOrNull()
         if (song != null) {
-            database.update(song.song.copy(isFromCache = false))
+            database.update(song.song.copy(isFromCache = false, dateDownload = null))
         }
     }
 }

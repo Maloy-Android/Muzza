@@ -164,23 +164,23 @@ interface DatabaseDao {
     @Query("SELECT COUNT(1) FROM song WHERE isFromCache")
     fun cachedSongsCount(): Flow<Int>
 
-    @Query("SELECT COUNT(1) FROM song WHERE isFromCache AND NOT explicit")
+    @Query("SELECT COUNT(1) FROM song WHERE dateDownload AND NOT explicit")
     fun cachedSongCountExplicit(): Flow<Int>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isFromCache ORDER BY rowId")
+    @Query("SELECT * FROM song WHERE dateDownload ORDER BY rowId")
     fun cachedSongsByRowIdAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isFromCache ORDER BY rowId")
+    @Query("SELECT * FROM song WHERE dateDownload ORDER BY rowId")
     fun cachedSongsByCreateDateAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isFromCache ORDER BY title")
+    @Query("SELECT * FROM song WHERE dateDownload ORDER BY title")
     fun cachedSongsByNameAsc(): Flow<List<Song>>
 
     @Transaction
-    @Query("SELECT * FROM song WHERE isFromCache ORDER BY totalPlayTime")
+    @Query("SELECT * FROM song WHERE dateDownload ORDER BY totalPlayTime")
     fun cachedSongsByPlayTimeAsc(): Flow<List<Song>>
 
     fun cachedSongs(sortType: SongSortType, descending: Boolean) =

@@ -44,7 +44,7 @@ class CachePlaylistViewModel @Inject constructor(
                     .filter { song -> !hideExplicit || !song.song.explicit}
                     .let { filtered ->
                         when (sortType) {
-                            SongSortType.CREATE_DATE -> filtered.sortedByDescending { it.song.isFromCache }
+                            SongSortType.CREATE_DATE -> filtered.sortedByDescending { it.song.dateDownload }
 
                             SongSortType.NAME -> filtered.sortedBy { it.song.title }
 

@@ -270,7 +270,7 @@ fun OnlineSearchResult(
                     item(key = "loading") {
                         ShimmerHost {
                             repeat(3) {
-                                ListItemPlaceHolder()
+                                ListItemPlaceHolder(isArtistList = searchFilter == FILTER_ARTIST || searchFilter == FILTER_PROFILE)
                             }
                         }
                     }
@@ -291,7 +291,7 @@ fun OnlineSearchResult(
                 item {
                     ShimmerHost {
                         repeat(8) {
-                            ListItemPlaceHolder()
+                            ListItemPlaceHolder(isArtistList = searchFilter == FILTER_ARTIST || searchFilter == FILTER_PROFILE)
                         }
                     }
                 }

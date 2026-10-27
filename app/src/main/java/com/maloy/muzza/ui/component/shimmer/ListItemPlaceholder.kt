@@ -2,6 +2,7 @@ package com.maloy.muzza.ui.component.shimmer
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -18,6 +19,8 @@ import com.maloy.muzza.constants.ThumbnailCornerRadius
 fun ListItemPlaceHolder(
     modifier: Modifier = Modifier,
     thumbnailShape: Shape = RoundedCornerShape(ThumbnailCornerRadius),
+    artistThumbnailShape: Shape = CircleShape,
+    isArtistList: Boolean = true
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -29,7 +32,7 @@ fun ListItemPlaceHolder(
             modifier = Modifier
                 .padding(6.dp)
                 .size(ListThumbnailSize)
-                .clip(thumbnailShape)
+                .clip(if (isArtistList) artistThumbnailShape else thumbnailShape)
                 .background(MaterialTheme.colorScheme.onSurface)
         )
 

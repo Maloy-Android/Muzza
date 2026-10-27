@@ -91,17 +91,19 @@ class StatsViewModel @Inject constructor(
         }
         viewModelScope.launch {
             mostPlayedPlaylists.collect { playlists ->
-                playlists.filter { it.songCount == 0 }
-                    .forEach { playlist ->
-                        runCatching {
-                            syncUtils.syncPlaylist(playlist.id, playlist.playlist.id)
-                        }.onFailure { e ->
-                            reportException(e)
-                            if (e.message?.contains("NOT_FOUND") == true) {
-                                database.query { delete(playlist.playlist) }
+                playlists.distinctBy { it.playlist.browseId }.let { correctedPlaylists ->
+                    correctedPlaylists.filter { it.songCount == 0 }
+                        .forEach { playlist ->
+                            runCatching {
+                                syncUtils.syncPlaylist(playlist.id, playlist.playlist.id)
+                            }.onFailure { e ->
+                                reportException(e)
+                                if (e.message?.contains("NOT_FOUND") == true) {
+                                    database.query { delete(playlist.playlist) }
+                                }
                             }
                         }
-                    }
+                }
             }
         }
     }

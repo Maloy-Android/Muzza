@@ -143,7 +143,16 @@ data class ArtistPage(
                                 listOf(Artist(name = it.text, id = null))
                             } ?: emptyList()
                         },
-                        album = null,
+                        album = renderer.menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
+                            ?.firstOrNull {
+                                it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+                            }
+                            ?.let { item ->
+                                Album(
+                                    name = "",
+                                    id = item.navigationEndpoint.browseEndpoint?.browseId ?: return null
+                                )
+                            },
                         duration = null,
                         musicVideoType = renderer.musicVideoType,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()

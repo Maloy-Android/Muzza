@@ -83,7 +83,6 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import coil.compose.AsyncImage
-import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
@@ -131,9 +130,6 @@ import com.maloy.muzza.ui.utils.resize
 import com.maloy.muzza.utils.rememberPreference
 import com.maloy.muzza.viewmodels.ArtistViewModel
 import com.valentinilk.shimmer.shimmer
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlin.collections.contains
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -560,25 +556,9 @@ fun ArtistScreen(
                                                     is PlaylistItem -> navController.navigate("online_playlist/${item.id}")
                                                     is SongItem -> {
                                                         if (!item.isVideoSong) {
-                                                            coroutineScope.launch(Dispatchers.IO) {
-                                                                YouTube.queue(listOf(item.id))
-                                                                    .onSuccess { updatedSongs ->
-                                                                        updatedSongs.firstOrNull()
-                                                                            ?.let { updatedSong ->
-                                                                                val albumId =
-                                                                                    updatedSong.album?.id
-                                                                                if (!albumId.isNullOrEmpty()) {
-                                                                                    withContext(
-                                                                                        Dispatchers.Main
-                                                                                    ) {
-                                                                                        navController.navigate(
-                                                                                            "album/${albumId}"
-                                                                                        )
-                                                                                    }
-                                                                                }
-                                                                            }
-                                                                    }
-                                                            }
+                                                            navController.navigate(
+                                                                "album/${item.album?.id}"
+                                                            )
                                                         } else {
                                                             if (mediaMetadata?.id == item.id) {
                                                                 playerConnection.togglePlayPause()

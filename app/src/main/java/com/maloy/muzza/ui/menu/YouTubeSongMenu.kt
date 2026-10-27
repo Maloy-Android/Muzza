@@ -454,28 +454,18 @@ fun YouTubeSongMenu(
                 HorizontalDivider()
             }
         }
-        if (!song.isVideoSong) {
-            ListMenuItem(
-                icon = R.drawable.album,
-                title = R.string.view_album
-            ) {
-                coroutineScope.launch(Dispatchers.IO) {
-                    YouTube.queue(listOf(song.id))
-                        .onSuccess { updatedSongs ->
-                            updatedSongs.firstOrNull()?.let { updatedSong ->
-                                val albumId = updatedSong.album?.id
-                                if (!albumId.isNullOrEmpty()) {
-                                    withContext(Dispatchers.Main) {
-                                        navController.navigate("album/${albumId}")
-                                    }
-                                }
-                            }
-                        }
+        song.album?.id.let { albumId ->
+            if (!song.isVideoSong) {
+                ListMenuItem(
+                    icon = R.drawable.album,
+                    title = R.string.view_album
+                ) {
+                    navController.navigate("album/${albumId}")
+                    onDismiss()
                 }
-                onDismiss()
-            }
-            item {
-                HorizontalDivider()
+                item {
+                    HorizontalDivider()
+                }
             }
         }
         ListMenuItem(

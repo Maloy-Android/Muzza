@@ -54,12 +54,16 @@ data class SearchSummaryPage(
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?: return null,
-                        album = subtitle.getOrNull(2)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
-                            Album(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                            )
-                        },
+                        album = renderer.menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
+                            ?.firstOrNull {
+                                it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+                            }
+                            ?.let { item ->
+                                Album(
+                                    name = "",
+                                    id = item.navigationEndpoint.browseEndpoint?.browseId ?: return null
+                                )
+                            },
                         duration = subtitle.lastOrNull()?.firstOrNull()?.text?.parseTime(),
                         thumbnail = renderer.thumbnail.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         musicVideoType = null,
@@ -153,12 +157,16 @@ data class SearchSummaryPage(
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?: return null,
-                        album = listRun.getOrNull(1)?.firstOrNull()?.takeIf { it.navigationEndpoint?.browseEndpoint != null }?.let {
-                            Album(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId!!
-                            )
-                        },
+                        album = renderer.menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
+                            ?.firstOrNull {
+                                it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+                            }
+                            ?.let { item ->
+                                Album(
+                                    name = "",
+                                    id = item.navigationEndpoint.browseEndpoint?.browseId ?: return null
+                                )
+                            },
                         duration = secondaryLine.lastOrNull()?.firstOrNull()?.text?.parseTime(),
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         musicVideoType = renderer.musicVideoType,

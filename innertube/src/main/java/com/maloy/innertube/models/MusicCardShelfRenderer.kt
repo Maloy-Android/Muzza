@@ -12,6 +12,7 @@ data class MusicCardShelfRenderer(
     val buttons: List<Button>,
     val onTap: NavigationEndpoint,
     val subtitleBadges: List<Badges>?,
+    val menu: Menu?,
 ) {
     @Serializable
     data class Header(

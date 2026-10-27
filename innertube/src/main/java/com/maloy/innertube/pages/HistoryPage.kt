@@ -5,17 +5,34 @@ import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
 import com.maloy.innertube.models.MusicShelfRenderer
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.models.getItems
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.utils.parseTime
+import kotlin.collections.ifEmpty
+
+data class HistorySection(
+    val title: String,
+    val songs: List<SongItem>
+)
 
 data class HistoryPage(
     val sections: List<HistorySection>?,
 ) {
-    data class HistorySection(
-        val title: String,
-        val songs: List<SongItem>
-    )
+    fun filterExplicit(enabled: Boolean) =
+        if (enabled) {
+            HistoryPage(
+                sections?.mapNotNull {
+                    HistorySection(
+                        title = it.title,
+                        songs = it.songs.filterExplicit().ifEmpty {
+                            return@mapNotNull null
+                        }
+                    )
+                }
+            )
+        } else this
+
     companion object {
         fun fromMusicShelfRenderer(renderer: MusicShelfRenderer): HistorySection {
             return HistorySection(
@@ -25,12 +42,14 @@ data class HistoryPage(
                 }!!
             )
         }
+
         private fun fromMusicResponsiveListItemRenderer(renderer: MusicResponsiveListItemRenderer): SongItem? {
             return SongItem(
-                id = renderer.playlistItemData?.videoId ?: renderer.navigationEndpoint?.watchEndpoint?.videoId
-                        ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId
-                        ?: renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.navigationEndpoint?.watchEndpoint?.videoId
-                        ?: return null,
+                id = renderer.playlistItemData?.videoId
+                    ?: renderer.navigationEndpoint?.watchEndpoint?.videoId
+                    ?: renderer.overlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchEndpoint?.videoId
+                    ?: renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.navigationEndpoint?.watchEndpoint?.videoId
+                    ?: return null,
                 title = renderer.flexColumns.firstOrNull()
                     ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
                     ?.text ?: return null,
@@ -53,7 +72,8 @@ data class HistoryPage(
                     },
                 duration = renderer.fixedColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer
                     ?.text?.runs?.firstOrNull()?.text?.parseTime(),
-                thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
+                thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl()
+                    ?: return null,
                 explicit = renderer.badges?.find {
                     it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                 } != null,

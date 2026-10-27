@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
+import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
@@ -49,29 +50,28 @@ class OnlinePlaylistViewModel @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val playlistSongs = context.dataStore.data
         .map { preferences ->
-            Pair(
+            Triple(
                 preferences[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
-                (preferences[SongSortDescendingKey] ?: true)
+                preferences[SongSortDescendingKey] ?: true,
+                preferences[HideExplicitKey] ?: false
             )
         }
         .distinctUntilChanged()
-        .flatMapLatest { (sortType, descending) ->
+        .flatMapLatest { (sortType, descending, hideExplicit) ->
             _playlistSongs.map { songs ->
-                when (sortType) {
-                 SongSortType.CREATE_DATE ->
-                     songs.sortedBy { descending }
-
-                 SongSortType.NAME ->
-                     songs.sortedBy { it.title }
-
-                 SongSortType.ARTIST ->
-                     songs.sortedBy { song ->
-                         song.artists.joinToString(separator = "") { it.name }
-                     }
-
-                 SongSortType.PLAY_TIME ->
-                     songs.sortedByDescending { it.duration }
-             }.reversed(!descending)
+                songs
+                    .filter { song -> !hideExplicit || !song.explicit }
+                    .sortedWith(
+                        when (sortType) {
+                            SongSortType.CREATE_DATE -> compareBy { descending }
+                            SongSortType.NAME -> compareBy { it.title }
+                            SongSortType.ARTIST -> compareBy { song ->
+                                song.artists.joinToString(separator = "") { it.name }
+                            }
+                            SongSortType.PLAY_TIME -> compareByDescending { it.duration }
+                        }
+                    )
+                    .reversed(!descending)
             }
         }
         .stateIn(

@@ -46,7 +46,7 @@ class ArtistItemsViewModel @Inject constructor(
                 )
             ).onSuccess { artistItemsPage ->
                 itemsPage.value = ItemsPage(
-                    items = artistItemsPage.items.distinctBy { it.id },
+                    items = artistItemsPage.items.distinctBy { it.id }.filterExplicit(context.dataStore.get(HideExplicitKey, false)),
                     continuation = artistItemsPage.continuation
                 )
             }.onFailure {

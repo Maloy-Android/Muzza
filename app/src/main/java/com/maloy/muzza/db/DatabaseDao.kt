@@ -120,8 +120,14 @@ interface DatabaseDao {
     @Query("SELECT COUNT(1) FROM song WHERE liked")
     fun likedSongsCount(): Flow<Int>
 
+    @Query("SELECT COUNT(1) FROM song WHERE liked AND NOT explicit")
+    fun likedSongCountExplicit(): Flow<Int>
+
     @Query("SELECT COUNT(1) FROM song WHERE inLibrary")
     fun librarySongsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(1) FROM song where inLibrary AND NOT explicit")
+    fun librarySongCountExplicit(): Flow<Int>
 
     @Query("SELECT COUNT(1) FROM song WHERE isLocal")
     fun localSongsCount(): Flow<Int>
@@ -157,6 +163,9 @@ interface DatabaseDao {
 
     @Query("SELECT COUNT(1) FROM song WHERE isFromCache")
     fun cachedSongsCount(): Flow<Int>
+
+    @Query("SELECT COUNT(1) FROM song WHERE isFromCache AND NOT explicit")
+    fun cachedSongCountExplicit(): Flow<Int>
 
     @Transaction
     @Query("SELECT * FROM song WHERE isFromCache ORDER BY rowId")

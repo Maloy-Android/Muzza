@@ -1,12 +1,18 @@
 package com.maloy.muzza.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.muzza.utils.reportException
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YTItem
+import com.maloy.innertube.models.filterExplicit
+import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.utils.dataStore
+import com.maloy.muzza.utils.get
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -15,7 +21,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class BrowseViewModel @Inject constructor(
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val browseId: String? = savedStateHandle.get<String>("browseId")
 
@@ -35,7 +42,7 @@ class BrowseViewModel @Inject constructor(
                 YouTube.browse(browseId, params).onSuccess { result ->
                     title.value = navTitle
                     val allItems = result.items.flatMap { it.items }
-                    items.value = allItems
+                    items.value = allItems.filterExplicit(context.dataStore.get(HideExplicitKey, false))
                 }.onFailure {
                     reportException(it)
                 }

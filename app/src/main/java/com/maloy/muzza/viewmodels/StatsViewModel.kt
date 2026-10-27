@@ -1,18 +1,24 @@
 package com.maloy.muzza.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
+import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.StatPeriod
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.utils.SyncUtils
+import com.maloy.muzza.utils.dataStore
 import com.maloy.muzza.utils.reportException
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
@@ -26,6 +32,7 @@ import javax.inject.Inject
 class StatsViewModel @Inject constructor(
     val database: MusicDatabase,
     val syncUtils: SyncUtils,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
@@ -33,9 +40,18 @@ class StatsViewModel @Inject constructor(
     val isRefreshing = _isRefreshing.asStateFlow()
     val statPeriod = MutableStateFlow(StatPeriod.ALL)
 
-    val mostPlayedSongs = statPeriod.flatMapLatest { period ->
-        database.mostPlayedSongs(period.toTimeMillis())
-    }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val mostPlayedSongs = combine(
+        statPeriod,
+        context.dataStore.data
+            .map { it[HideExplicitKey] ?: false }
+            .distinctUntilChanged()
+    ) { period, hideExplicit -> period to hideExplicit }
+        .flatMapLatest { (period, hideExplicit) ->
+            database.mostPlayedSongs(period.toTimeMillis()).map { songs ->
+                if (hideExplicit) songs.filter { !it.song.explicit } else songs
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     val mostPlayedArtists = statPeriod.flatMapLatest { period ->
         database.mostPlayedArtists(period.toTimeMillis()).map { artists ->

@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.exoplayer.offline.Download
+import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
@@ -35,17 +36,21 @@ class AutoPlaylistDownloadedViewModel @Inject constructor(
     val downloadedSongs =
         context.dataStore.data
             .map {
-                it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
-                    ?: true)
+                Triple(
+                    it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
+                    it[SongSortDescendingKey] ?: true,
+                    it[HideExplicitKey] ?: false,
+                )
             }
             .distinctUntilChanged()
-            .flatMapLatest { (sortType, descending) ->
+            .flatMapLatest { (sortType, descending, hideExplicit) ->
                 downloadUtil.downloads.flatMapLatest { downloads ->
                     database.allSongs()
                         .flowOn(Dispatchers.IO)
                         .map { songs ->
                             songs.filter {
-                                downloads[it.id]?.state == Download.STATE_COMPLETED
+                                downloads[it.id]?.state == Download.STATE_COMPLETED &&
+                                        (!hideExplicit || !it.song.explicit)
                             }
                         }
                         .map { songs ->

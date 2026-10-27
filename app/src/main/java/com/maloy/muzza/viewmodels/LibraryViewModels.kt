@@ -24,6 +24,8 @@ import com.maloy.muzza.constants.ArtistSongSortTypeKey
 import com.maloy.muzza.constants.ArtistSortDescendingKey
 import com.maloy.muzza.constants.ArtistSortType
 import com.maloy.muzza.constants.ArtistSortTypeKey
+import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.constants.MyTopFilter
 import com.maloy.muzza.constants.PlaylistFilter
 import com.maloy.muzza.constants.PlaylistFilterKey
 import com.maloy.muzza.constants.PlaylistSortDescendingKey
@@ -455,16 +457,43 @@ class LibraryMixViewModel @Inject constructor(
     // relation-joined song lists just to call .size on them. This lets the cards show the
     // correct numbers immediately (instead of "0 songs" until the whole list loads) and avoids
     // heavy work on every library change.
-    val likedSongsCount = database.likedSongsCount()
+    val likedSongsCount = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            if (hideExplicit) {
+                database.likedSongCountExplicit()
+            } else {
+                database.likedSongsCount()
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val librarySongsCount = database.librarySongsCount()
+    val librarySongsCount = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            if (hideExplicit) {
+                database.librarySongCountExplicit()
+            } else {
+                database.librarySongsCount()
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val localSongsCount = database.localSongsCount()
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
-    val cachedSongsCount = database.cachedSongsCount()
+    val cachedSongsCount = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            if (hideExplicit) {
+                database.cachedSongCountExplicit()
+            } else {
+                database.cachedSongsCount()
+            }
+        }
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
 
     val librarySongs = database.librarySongs(SongSortType.CREATE_DATE, true)
@@ -482,12 +511,8 @@ class LibraryMixViewModel @Inject constructor(
 
     val cachedSongs = database.cachedSongs(SongSortType.CREATE_DATE, true)
         .stateIn(viewModelScope, SharingStarted.Lazily, null)
-
-    val downloadSongs =
+    val downloadSongs = combine(
         downloadUtil.downloads
-            // Collapse the constant DownloadManager progress churn down to only the set of
-            // completed ids; the query below then re-runs only when a download actually
-            // completes, not on every progress tick.
             .map { downloads ->
                 downloads.filterValues { it.state == Download.STATE_COMPLETED }.keys
             }
@@ -496,11 +521,23 @@ class LibraryMixViewModel @Inject constructor(
                 if (completedIds.isEmpty()) {
                     flowOf(emptyList())
                 } else {
-                    // Fetch only the completed songs by id instead of loading the entire
-                    // song table and filtering in memory.
                     database.songsByIdsFlow(completedIds.toList())
                         .flowOn(Dispatchers.IO)
                 }
-            }
-    val topSongs = database.mostPlayedSongs(0, 100)
+            },
+        context.dataStore.data
+            .map { it[HideExplicitKey] ?: false }
+            .distinctUntilChanged()
+    ) { songs, hideExplicit ->
+        if (hideExplicit) songs.filter { !it.song.explicit } else songs
+    }
+
+    val topSongs = combine(
+        database.mostPlayedSongs(MyTopFilter.ALL_TIME.toTimeMillis(), 50),
+        context.dataStore.data
+            .map { it[HideExplicitKey] ?: false }
+            .distinctUntilChanged()
+    ) { songs, hideExplicit ->
+        if (hideExplicit) songs.filter { !it.song.explicit } else songs
+    }
 }

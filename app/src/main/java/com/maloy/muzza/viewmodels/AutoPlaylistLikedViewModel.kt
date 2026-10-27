@@ -3,6 +3,7 @@ package com.maloy.muzza.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
@@ -19,6 +20,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -40,26 +42,35 @@ class AutoPlaylistLikedViewModel  @Inject constructor(
     @OptIn(ExperimentalCoroutinesApi::class)
     val likedSongs =
         context.dataStore.data
-            .map {
-                it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
-                    ?: true)
+            .map { prefs ->
+                val sortType = prefs[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE)
+                val descending = prefs[SongSortDescendingKey] ?: true
+                val hideExplicit = prefs[HideExplicitKey] ?: false
+                Triple(sortType, descending, hideExplicit)
             }
             .distinctUntilChanged()
-            .flatMapLatest { (sortType, descending) ->
+            .flatMapLatest { (sortType, descending, hideExplicit) ->
                 database.likedSongsByCreateDateAsc()
                     .flowOn(Dispatchers.IO)
                     .map { songs ->
-                        when (sortType) {
-                            SongSortType.CREATE_DATE -> songs.sortedBy { it.song.liked }
-                            SongSortType.NAME -> songs.sortedBy { it.song.title }
-                            SongSortType.ARTIST -> songs.sortedBy { song ->
-                                song.artists.joinToString(separator = "") { it.name }
+                        songs
+                            .filter { song ->
+                                !hideExplicit || !song.song.explicit
                             }
-
-                            SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                        }.reversed(descending)
+                            .sortedWith(
+                                when (sortType) {
+                                    SongSortType.CREATE_DATE -> compareBy { it.song.liked }
+                                    SongSortType.NAME -> compareBy { it.song.title }
+                                    SongSortType.ARTIST -> compareBy { song ->
+                                        song.artists.joinToString(separator = "") { it.name }
+                                    }
+                                    SongSortType.PLAY_TIME -> compareBy { it.song.totalPlayTime }
+                                }
+                            )
+                            .let { if (descending) it.reversed() else it }
                     }
-            }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+            }
+            .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun syncLikedSongs() {
         viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedSongs() }

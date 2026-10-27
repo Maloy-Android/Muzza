@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.PlaylistSongSortDescendingKey
 import com.maloy.muzza.constants.PlaylistSongSortType
 import com.maloy.muzza.constants.PlaylistSongSortTypeKey
@@ -43,20 +44,28 @@ class LocalPlaylistViewModel @Inject constructor(
         database.playlistSongs(playlistId),
         context.dataStore.data
             .map {
-                it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM) to (it[PlaylistSongSortDescendingKey] ?: true)
+                Triple(
+                    it[PlaylistSongSortTypeKey].toEnum(PlaylistSongSortType.CUSTOM),
+                    it[PlaylistSongSortDescendingKey] ?: true,
+                    it[HideExplicitKey] ?: false
+                )
             }
             .distinctUntilChanged()
-    ) { songs, (sortType, sortDescending) ->
-        when (sortType) {
-            PlaylistSongSortType.CUSTOM -> songs
-            PlaylistSongSortType.CREATE_DATE -> songs.sortedBy { sortDescending }
-            PlaylistSongSortType.NAME -> songs.sortedBy { it.song.song.title.lowercase() }
-            PlaylistSongSortType.ARTIST -> songs.sortedBy { song ->
-                song.song.artists.joinToString { it.name }.lowercase()
+    ) { songs, (sortType, sortDescending, hideExplicit) ->
+        songs
+            .filter { song -> !hideExplicit || !song.song.song.explicit }
+            .let { filtered ->
+                when (sortType) {
+                    PlaylistSongSortType.CUSTOM -> filtered
+                    PlaylistSongSortType.CREATE_DATE -> filtered.sortedBy { sortDescending }
+                    PlaylistSongSortType.NAME -> filtered.sortedBy { it.song.song.title.lowercase() }
+                    PlaylistSongSortType.ARTIST -> filtered.sortedBy { song ->
+                        song.song.artists.joinToString { it.name }.lowercase()
+                    }
+                    PlaylistSongSortType.PLAY_TIME -> filtered.sortedBy { it.song.song.totalPlayTime }
+                }
             }
-
-            PlaylistSongSortType.PLAY_TIME -> songs.sortedBy { it.song.song.totalPlayTime }
-        }.reversed(!sortDescending && sortType != PlaylistSongSortType.CUSTOM)
+            .reversed(!sortDescending && sortType != PlaylistSongSortType.CUSTOM)
     }.stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
     fun refresh() {

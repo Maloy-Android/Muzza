@@ -7,6 +7,7 @@ import com.maloy.muzza.db.MusicDatabase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import javax.inject.Inject
+import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.constants.SongSortDescendingKey
 import com.maloy.muzza.constants.SongSortType
 import com.maloy.muzza.constants.SongSortTypeKey
@@ -31,23 +32,31 @@ class CachePlaylistViewModel @Inject constructor(
     val isRefreshing = _isRefreshing.asStateFlow()
     @OptIn(ExperimentalCoroutinesApi::class)
     val cachedSongs = context.dataStore.data.map {
-        it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE) to (it[SongSortDescendingKey]
-            ?: true)
-    }.distinctUntilChanged().flatMapLatest { (sortType, descending) ->
+        Triple(
+            it[SongSortTypeKey].toEnum(SongSortType.CREATE_DATE),
+            it[SongSortDescendingKey] ?: true,
+            it[HideExplicitKey] ?: false
+        )
+    }.distinctUntilChanged().flatMapLatest { (sortType, descending, hideExplicit) ->
         database.cachedSongsByCreateDateAsc().flowOn(Dispatchers.IO)
             .map { songs ->
-                when (sortType) {
-                    SongSortType.CREATE_DATE -> songs.sortedByDescending { it.song.isFromCache }
+                songs
+                    .filter { song -> !hideExplicit || !song.song.explicit}
+                    .let { filtered ->
+                        when (sortType) {
+                            SongSortType.CREATE_DATE -> filtered.sortedByDescending { it.song.isFromCache }
 
-                    SongSortType.NAME -> songs.sortedBy { it.song.title }
+                            SongSortType.NAME -> filtered.sortedBy { it.song.title }
 
-                    SongSortType.ARTIST -> songs.sortedBy { song ->
-                        song.artists.joinToString(separator = "") { it.name }
+                            SongSortType.ARTIST -> filtered.sortedBy { song ->
+                                song.artists.joinToString(separator = "") { it.name }
+                            }
+
+                            SongSortType.PLAY_TIME -> filtered.sortedBy { it.song.totalPlayTime }
+                                .reversed()
+                        }
                     }
-
-                    SongSortType.PLAY_TIME -> songs.sortedBy { it.song.totalPlayTime }
-                        .reversed()
-                }.reversed(descending)
+                    .reversed(descending)
             }
     }.stateIn(
         scope = viewModelScope, started = SharingStarted.Lazily, initialValue = emptyList()

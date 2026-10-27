@@ -761,6 +761,7 @@ private fun ArtistProfileHeader(
             Text(
                 text = title,
                 style = MaterialTheme.typography.headlineMedium,
+                color = if (!bannerUrl.isNullOrEmpty()) Color.White else MaterialTheme.colorScheme.surfaceVariant,
                 fontWeight = FontWeight.Bold,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,

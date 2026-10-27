@@ -15,9 +15,6 @@ dependencies {
     implementation(libs.ktor.client.encoding)
     implementation(libs.brotli)
     testImplementation(libs.junit)
-    implementation("com.github.MetrolistGroup:MetrolistExtractor:6305155") {
-        exclude(group = "com.google.protobuf")
-    }
     if (providers.gradleProperty("useMavenLocalInnerTubeX").isPresent) {
         api("com.github.MetrolistGroup:innertubex:${libs.versions.innertubex.get()}")
     } else {

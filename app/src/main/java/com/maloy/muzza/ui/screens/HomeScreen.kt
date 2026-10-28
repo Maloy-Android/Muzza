@@ -1115,7 +1115,7 @@ fun HomeScreen(
                         onClick = section.endpoint?.let { endpoint ->
                             {
                                 when {
-                                    endpoint.params != null && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate(
+                                    endpoint.browseId.isNotEmpty() && (endpoint.isArtistEndpoint || endpoint.isProfile) -> navController.navigate(
                                         "artist/${endpoint.browseId}"
                                     )
 

@@ -51,7 +51,9 @@ data class HomePage(
                         ?: return null,
                     label = renderer.header.musicCarouselShelfBasicHeaderRenderer.strapline?.runs?.firstOrNull()?.text,
                     thumbnail = renderer.header.musicCarouselShelfBasicHeaderRenderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl(),
-                    endpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint,
+                    endpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.title.runs.firstOrNull { it.navigationEndpoint?.browseEndpoint?.browseId != null }
+                        ?.navigationEndpoint?.browseEndpoint
+                        ?: renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint,
                     items = renderer.contents.mapNotNull {
                         it.musicTwoRowItemRenderer?.let { renderer ->
                             fromMusicTwoRowItemRenderer(

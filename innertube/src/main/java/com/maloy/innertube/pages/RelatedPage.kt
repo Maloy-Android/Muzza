@@ -61,7 +61,16 @@ data class RelatedPage(
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?:return null,
-                        album = null,
+                        album = renderer.menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
+                            ?.firstOrNull {
+                                it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+                            }
+                            ?.let { item ->
+                                Album(
+                                    name = "",
+                                    id = item.navigationEndpoint.browseEndpoint?.browseId ?: return null
+                                )
+                            },
                         duration = null,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,

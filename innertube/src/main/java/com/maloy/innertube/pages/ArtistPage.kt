@@ -187,10 +187,12 @@ data class ArtistPage(
                         id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL")
                             ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        author = Artist(
-                            name = renderer.subtitle?.runs?.getOrNull(2)?.text ?: return null,
-                            id = null
-                        ),
+                        author = renderer.subtitle?.runs?.getOrNull(2)?.let {
+                            Artist(
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            )
+                        },
                         songCountText = null,
                         thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                             ?: return null,

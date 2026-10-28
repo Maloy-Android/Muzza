@@ -1,7 +1,6 @@
 package com.maloy.muzza.ui.menu
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -56,7 +55,6 @@ import com.maloy.muzza.extensions.toMediaItemWithPlaylist
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.playback.queues.ListQueuePlaylist
 import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
-import kotlinx.coroutines.withContext
 
 @Composable
 fun YouTubePlaylistMenu(
@@ -454,27 +452,17 @@ fun YouTubePlaylistMenu(
         item {
             HorizontalDivider()
         }
-        ListMenuItem(
-            icon = R.drawable.artist,
-            title =  R.string.view_playlist_creator
-        ) {
-            coroutineScope.launch {
-                withContext(Dispatchers.IO) {
-                    YouTube.playlist(playlist.id).completed()
-                        .getOrNull()?.playlist?.author?.id.orEmpty()
-                }.let { authorId ->
-                    if (authorId.isNotEmpty()) {
-                        navController.navigate("artist/${authorId}")
-                        onDismiss()
-                    } else {
-                        Toast.makeText(context, R.string.unknown_playlist_creator_error,Toast.LENGTH_LONG).show()
-                        onDismiss()
-                    }
-                }
+        playlist.author?.id.let { authorId ->
+            ListMenuItem(
+                icon = R.drawable.artist,
+                title = R.string.view_playlist_creator
+            ) {
+                navController.navigate("artist/${authorId}")
+                onDismiss()
             }
-        }
-        item {
-            HorizontalDivider()
+            item {
+                HorizontalDivider()
+            }
         }
         ListMenuItem(
             icon = R.drawable.youtube_music, title = R.string.listen_youtube_music

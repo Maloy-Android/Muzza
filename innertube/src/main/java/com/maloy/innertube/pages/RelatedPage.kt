@@ -11,6 +11,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.oddElements
 import com.maloy.innertube.utils.parseTime
+import kotlin.collections.ifEmpty
 
 data class RelatedPage(
     val songs: List<SongItem>,
@@ -52,15 +53,24 @@ data class RelatedPage(
         fun fromMusicTwoRowItemRenderer(renderer: MusicTwoRowItemRenderer): YTItem? {
             return when {
                 renderer.isSong -> {
+                    val subtitleRuns = renderer.subtitle?.runs?.oddElements() ?: return null
                     SongItem(
                         id = renderer.navigationEndpoint.watchEndpoint?.videoId ?: return null,
                         title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                        artists = renderer.subtitle?.runs?.oddElements()?.drop(0)?.map {
+                        artists = subtitleRuns.filter { run ->
+                            run.navigationEndpoint?.browseEndpoint?.browseId?.startsWith("UC") == true || (run.navigationEndpoint?.browseEndpoint != null && !run.navigationEndpoint.browseEndpoint.browseId.startsWith(
+                                "MPREb_"
+                            ))
+                        }.map { run ->
                             Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                name = run.text,
+                                id = run.navigationEndpoint?.browseEndpoint?.browseId
                             )
-                        } ?:return null,
+                        }.ifEmpty {
+                            subtitleRuns.firstOrNull()?.let { run ->
+                                listOf(Artist(name = run.text, id = null))
+                            } ?: emptyList()
+                        },
                         album = renderer.menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
                             ?.firstOrNull {
                                 it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
@@ -86,7 +96,7 @@ data class RelatedPage(
                         ?.musicPlayButtonRenderer?.playNavigationEndpoint
                         ?.watchPlaylistEndpoint?.playlistId ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    artists = renderer.subtitle?.runs?.oddElements()?.drop(0)?.map {
+                    artists = renderer.subtitle?.runs?.oddElements()?.drop(1)?.map {
                         Artist(
                             name = it.text,
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
@@ -104,13 +114,13 @@ data class RelatedPage(
                     id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL")
                         ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    author = renderer.subtitle?.runs?.getOrNull(1)?.let {
+                    author = renderer.subtitle?.runs?.getOrNull(2)?.let {
                         Artist(
                             name = it.text,
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     },
-                    songCountText = renderer.subtitle?.runs?.getOrNull(4)?.text,
+                    songCountText = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
                     playEndpoint = renderer.thumbnailOverlay?.musicItemThumbnailOverlayRenderer?.content?.musicPlayButtonRenderer?.playNavigationEndpoint?.watchPlaylistEndpoint

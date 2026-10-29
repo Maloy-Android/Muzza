@@ -453,7 +453,7 @@ fun YouTubePlaylistMenu(
         item {
             HorizontalDivider()
         }
-        if (isMixPlaylist && isYouTubePlaylist) {
+        if (!isMixPlaylist && !isYouTubePlaylist) {
             ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_playlist_creator

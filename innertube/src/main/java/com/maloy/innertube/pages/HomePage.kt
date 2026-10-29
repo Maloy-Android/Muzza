@@ -11,6 +11,7 @@ import com.maloy.innertube.models.MusicTwoRowItemRenderer
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.models.oddElements
@@ -43,6 +44,7 @@ data class HomePage(
         val endpoint: BrowseEndpoint?,
         val items: List<YTItem>,
         val sectionType: SectionType,
+        val watchEndpoint: WatchEndpoint?,
     ) {
         companion object {
             fun fromMusicCarouselShelfRenderer(renderer: MusicCarouselShelfRenderer): Section? {
@@ -54,6 +56,9 @@ data class HomePage(
                     endpoint = renderer.header.musicCarouselShelfBasicHeaderRenderer.title.runs.firstOrNull { it.navigationEndpoint?.browseEndpoint?.browseId != null }
                         ?.navigationEndpoint?.browseEndpoint
                         ?: renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint,
+                    watchEndpoint = (renderer.header.musicCarouselShelfBasicHeaderRenderer.title.runs.firstOrNull { it.navigationEndpoint?.watchEndpoint != null }
+                        ?.navigationEndpoint?.watchEndpoint
+                        ?: renderer.header.musicCarouselShelfBasicHeaderRenderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.watchEndpoint),
                     items = renderer.contents.mapNotNull {
                         it.musicTwoRowItemRenderer?.let { renderer ->
                             fromMusicTwoRowItemRenderer(

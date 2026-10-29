@@ -14,7 +14,9 @@ class YouTubeQueue(
     private val context: Context,
     private val title: String,
     private var endpoint: WatchEndpoint,
+    private var radioQueue: Boolean = true,
     override val preloadItem: MediaMetadata? = null,
+    private val initialItems: List<MediaMetadata> = emptyList()
 ) : Queue {
     private var continuation: String? = null
 
@@ -25,8 +27,8 @@ class YouTubeQueue(
         endpoint = nextResult.endpoint
         continuation = nextResult.continuation
         return Queue.Status(
-            title = context.getString(R.string.radio_queue_title,title),
-            items = nextResult.items.map { it.toMediaItem() },
+            title = if (radioQueue) context.getString(R.string.radio_queue_title,title) else title,
+            items = if (radioQueue) nextResult.items.map { it.toMediaItem() } else (initialItems.map { it.toMediaItem(context) } + nextResult.items.map { it.toMediaItem() }).distinctBy { it.mediaId },
             mediaItemIndex = nextResult.currentIndex ?: 0
         )
     }
@@ -43,6 +45,6 @@ class YouTubeQueue(
     }
 
     companion object {
-        fun radio(song: MediaMetadata,context:Context, title: String) = YouTubeQueue(context = context, title = title,WatchEndpoint(song.id), song)
+        fun radio(song: MediaMetadata,context:Context, title: String) = YouTubeQueue(context = context, title = title,WatchEndpoint(song.id), true, song)
     }
 }

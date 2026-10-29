@@ -1139,6 +1139,24 @@ fun HomeScreen(
                                 }
                             }
                         },
+                        onPlayAllClickEnable = section.watchEndpoint != null,
+                        onPlayAllClick = {
+                            val initialSongs = section.items
+                                .filterIsInstance<SongItem>()
+                                .map { it.toMediaMetadata() }
+                            section.watchEndpoint.let { watchEndpoint ->
+                                playerConnection.playQueue(
+                                    YouTubeQueue(
+                                        title = section.title,
+                                        endpoint = WatchEndpoint(watchEndpoint?.videoId),
+                                        preloadItem = null,
+                                        initialItems = initialSongs,
+                                        context = context,
+                                        radioQueue = false
+                                    )
+                                )
+                            }
+                        },
                         modifier = Modifier.animateItem()
                     )
                 }

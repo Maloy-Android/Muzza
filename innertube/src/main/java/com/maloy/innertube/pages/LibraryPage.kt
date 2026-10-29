@@ -105,14 +105,12 @@ data class LibraryPage(
                                 id = it.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         } ?: emptyList(),
-                    album = renderer.menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
-                        ?.firstOrNull {
-                            it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
-                        }
-                        ?.let { item ->
+                    album = renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()
+                        ?.let {
                             Album(
-                                name = "",
-                                id = item.navigationEndpoint.browseEndpoint?.browseId ?: return null
+                                name = it.text,
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                    ?: return null
                             )
                         },
                     duration = renderer.fixedColumns?.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.text?.parseTime(),

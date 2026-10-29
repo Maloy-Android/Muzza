@@ -106,7 +106,7 @@ data class ArtistItemsPage(
                     author = renderer.subtitle?.runs?.firstOrNull()?.let {
                         Artist(
                             name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                         )
                     },
                     songCountText = renderer.subtitle?.runs?.getOrNull(4)?.text,

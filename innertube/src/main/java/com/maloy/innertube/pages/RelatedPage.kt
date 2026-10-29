@@ -107,7 +107,7 @@ data class RelatedPage(
                     author = renderer.subtitle?.runs?.getOrNull(1)?.let {
                         Artist(
                             name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                         )
                     },
                     songCountText = renderer.subtitle?.runs?.getOrNull(4)?.text,

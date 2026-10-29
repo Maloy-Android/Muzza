@@ -234,9 +234,9 @@ data class SearchSummaryPage(
                         author = secondaryLine.getOrNull(1)?.firstOrNull()?.let {
                             Artist(
                                 name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
                             )
-                        } ?: return null,
+                        },
                         songCountText = null,
                         thumbnail = renderer.thumbnail?.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
                         playEndpoint = renderer.overlay?.musicItemThumbnailOverlayRenderer?.content

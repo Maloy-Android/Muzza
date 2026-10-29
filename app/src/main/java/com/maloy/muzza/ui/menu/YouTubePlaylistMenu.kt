@@ -73,6 +73,7 @@ fun YouTubePlaylistMenu(
     val dbPlaylist by database.playlistByBrowseId(playlist.id).collectAsState(initial = null)
 
     val isMixPlaylist = playlist.id.startsWith("RDTMAK5uy")
+    val isYouTubePlaylist = playlist.id.startsWith("RDCLAK5uy")
     
     var showChoosePlaylistDialog by rememberSaveable {
         mutableStateOf(false)
@@ -452,12 +453,12 @@ fun YouTubePlaylistMenu(
         item {
             HorizontalDivider()
         }
-        playlist.author?.id.let { authorId ->
+        if (isMixPlaylist && isYouTubePlaylist) {
             ListMenuItem(
                 icon = R.drawable.artist,
                 title = R.string.view_playlist_creator
             ) {
-                navController.navigate("artist/${authorId}")
+                navController.navigate("artist/${playlist.author?.id}")
                 onDismiss()
             }
             item {

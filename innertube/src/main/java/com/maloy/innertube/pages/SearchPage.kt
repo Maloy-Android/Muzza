@@ -108,7 +108,7 @@ object SearchPage {
                     author = secondaryLine.firstOrNull()?.firstOrNull()?.let {
                         Artist(
                             name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId ?: return null
+                            id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     },
                     songCountText = null,

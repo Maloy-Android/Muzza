@@ -3,6 +3,7 @@ package com.maloy.muzza.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.google.protobuf.duration
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.PlaylistItem
@@ -272,13 +273,17 @@ class HomeViewModel @Inject constructor(
                             id = item.id,
                             title = item.title,
                             thumbnail = item.thumbnailUrl ?: "",
-                            author = null,
-                            authorAvatarUrl = item.playlist.playlistAuthorAvatarUrl,
-                            songCountText = item.playlist.remoteSongCount
-                                ?.toString(),
-                            playEndpoint = WatchEndpoint(item.playlist.playEndpointParams),
-                            shuffleEndpoint = WatchEndpoint(item.playlist.shuffleEndpointParams),
-                            radioEndpoint = WatchEndpoint(item.playlist.radioEndpointParams)
+                            author = item.playlist.let {
+                                com.maloy.innertube.models.Artist(
+                                    id = it.playlistAuthorsId,
+                                    name = it.playlistAuthorName.orEmpty()
+                                )
+                            },
+                            authorAvatarUrl = null,
+                            songCountText = null,
+                            playEndpoint = null,
+                            shuffleEndpoint = null,
+                            radioEndpoint = null
                         ))
 
                         else -> {}

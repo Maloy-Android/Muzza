@@ -103,13 +103,13 @@ data class ArtistItemsPage(
                     id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL")
                         ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    author = renderer.subtitle?.runs?.firstOrNull()?.let {
+                    author = renderer.subtitle?.runs?.getOrNull(2)?.let {
                         Artist(
                             name = it.text,
                             id = it.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     },
-                    songCountText = renderer.subtitle?.runs?.getOrNull(4)?.text,
+                    songCountText = null,
                     thumbnail = renderer.thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl()
                         ?: return null,
                     playEndpoint = renderer.thumbnailOverlay

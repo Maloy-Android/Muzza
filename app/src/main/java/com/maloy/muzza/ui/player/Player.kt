@@ -184,8 +184,10 @@ fun BottomSheetPlayer(
     }
     val dbPlaylistValue by dbPlaylist
     val queueTitle by playerConnection.queueTitle.collectAsState()
-    val queueTitleParams = if (queueTitle?.endsWith("\"") == true) queueTitle else "\"${queueTitle}\""
-    val queueTitleText = if (queueTitle.isNullOrEmpty()) stringResource(R.string.your_queue_title) else queueTitleParams
+    val queueTitleParams =
+        if (queueTitle?.endsWith("\"") == true) queueTitle else "\"${queueTitle}\""
+    val queueTitleText =
+        if (queueTitle.isNullOrEmpty()) stringResource(R.string.your_queue_title) else queueTitleParams
     val currentSong by playerConnection.currentSong.collectAsState(initial = null)
     val firstArtistThumbnail = mediaMetadata?.artists?.first()?.thumbnailUrl
     val currentSongThumbnail = mediaMetadata?.thumbnailUrl
@@ -408,53 +410,52 @@ fun BottomSheetPlayer(
                     .fillMaxWidth()
                     .padding(horizontal = PlayerHorizontalPadding)
             ) {
-                Row {
-                    if (!firstArtistThumbnail.isNullOrEmpty() && mediaMetadata.artists.size == 1 && !showLyrics) {
+                if (!firstArtistThumbnail.isNullOrEmpty() && mediaMetadata.artists.size == 1 && !showLyrics) {
+                    Box(
+                        modifier = Modifier
+                            .size(52.dp)
+                            .clip(RoundedCornerShape(26.dp))
+                            .background(MaterialTheme.colorScheme.surfaceVariant)
+                    ) {
+                        AsyncImage(
+                            model = firstArtistThumbnail,
+                            contentDescription = null,
+                            contentScale = ContentScale.Crop,
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .clip(RoundedCornerShape(26.dp))
+                                .clickable(enabled = mediaMetadata.artists.first().id != null && !mediaMetadata.isLocal) {
+                                    navController.navigate("artist/${mediaMetadata.artists.first().id}")
+                                    state.collapseSoft()
+                                }
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                } else {
+                    if (showLyrics) {
                         Box(
                             modifier = Modifier
                                 .size(52.dp)
-                                .clip(RoundedCornerShape(26.dp))
+                                .clip(RoundedCornerShape(13.dp))
                                 .background(MaterialTheme.colorScheme.surfaceVariant)
                         ) {
-                            AsyncImage(
-                                model = firstArtistThumbnail,
+                            AsyncThumbnail(
+                                thumbnailUrl = currentSongThumbnail,
+                                isLocalImageThumbnail = mediaMetadata.isLocal,
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .clip(RoundedCornerShape(26.dp))
-                                    .clickable(enabled = mediaMetadata.artists.first().id != null && !mediaMetadata.isLocal) {
-                                        navController.navigate("artist/${mediaMetadata.artists.first().id}")
+                                    .clip(RoundedCornerShape(13.dp))
+                                    .clickable(enabled = mediaMetadata.album != null) {
+                                        navController.navigate("album/${mediaMetadata.album!!.id}")
                                         state.collapseSoft()
                                     }
                             )
                         }
-                    } else {
-                        if (showLyrics) {
-                            Box(
-                                modifier = Modifier
-                                    .size(52.dp)
-                                    .clip(RoundedCornerShape(13.dp))
-                                    .background(MaterialTheme.colorScheme.surfaceVariant)
-                            ) {
-                                AsyncThumbnail(
-                                    thumbnailUrl = currentSongThumbnail,
-                                    isLocalImageThumbnail = mediaMetadata.isLocal,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(RoundedCornerShape(13.dp))
-                                        .clickable(enabled = mediaMetadata.album != null) {
-                                            navController.navigate("album/${mediaMetadata.album!!.id}")
-                                            state.collapseSoft()
-                                        }
-                                )
-                            }
-                        }
+                        Spacer(modifier = Modifier.width(12.dp))
                     }
                 }
-                Spacer(modifier = Modifier.width(12.dp))
                 Box(
                     modifier = Modifier
                         .weight(1f)

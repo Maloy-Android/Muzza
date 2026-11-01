@@ -10,9 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +33,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -102,6 +105,7 @@ fun MoodAndGenresScreen(
                                 row.forEach {
                                     MoodAndGenresButton(
                                         title = it.title,
+                                        stripeColor = it.stripeColor,
                                         onClick = {
                                             navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
                                         },
@@ -151,6 +155,7 @@ fun MoodAndGenresScreen(
 @Composable
 fun MoodAndGenresButton(
     title: String,
+    stripeColor: Long,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -161,13 +166,21 @@ fun MoodAndGenresButton(
             .clip(RoundedCornerShape(6.dp))
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp)
     ) {
+        Box(
+            modifier = Modifier
+                .align(Alignment.CenterStart)
+                .width(4.dp)
+                .fillMaxHeight()
+                .background(Color(stripeColor))
+        )
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier
+                .padding(start = 4.dp + 8.dp, end = 12.dp)
         )
     }
 }

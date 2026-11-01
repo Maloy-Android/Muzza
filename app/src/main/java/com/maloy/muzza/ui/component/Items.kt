@@ -118,7 +118,6 @@ import com.maloy.muzza.models.data.CommunityPlaylistItem
 import com.maloy.muzza.models.data.DailyDiscoverItem
 import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
-import com.maloy.muzza.playback.queues.ListQueuePlaylist
 import com.maloy.muzza.playback.queues.YouTubePlaylistRadio
 import com.maloy.muzza.playback.queues.YouTubeQueue
 import com.maloy.muzza.ui.menu.AlbumMenu
@@ -1937,13 +1936,20 @@ fun YouTubeGridItem(
             visible = (item is PlaylistItem || item is SongItem && (!item.isVideoSong && item.album?.id != null)) && !isActive,
             onClick = {
                 if (item is PlaylistItem) {
-                    val listQueuePlaylist = ListQueuePlaylist(
-                        playlistId = item.id,
-                        playlistTitle = item.title,
-                        coroutineScope = coroutineScope,
-                        playerConnection = playerConnection
-                    )
-                    listQueuePlaylist.play()
+                    coroutineScope.launch {
+                        withContext(Dispatchers.IO) {
+                            YouTube.playlist(item.id).completed()
+                                .getOrNull()?.songs.orEmpty()
+                        }
+                            .let { songs ->
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = item.title,
+                                        items = songs.map { it.toMediaItemWithPlaylist(item.id) }
+                                    )
+                                )
+                            }
+                    }
                 } else if (item is SongItem) {
                     playerConnection.playQueue(
                         YouTubeQueue(

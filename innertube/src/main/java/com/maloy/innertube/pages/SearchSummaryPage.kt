@@ -231,10 +231,10 @@ data class SearchSummaryPage(
                         title = renderer.flexColumns.firstOrNull()
                             ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
                             ?.firstOrNull()?.text ?: return null,
-                        author = secondaryLine.getOrNull(1)?.firstOrNull()?.let {
+                        author = secondaryLine.getOrNull(1)?.firstOrNull()?.let { runs ->
                             Artist(
-                                name = it.text,
-                                id = it.navigationEndpoint?.browseEndpoint?.browseId
+                                name = secondaryLine.firstOrNull()?.joinToString(separator = "") { it.text } ?: return null,
+                                id = runs.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         },
                         songCountText = null,

@@ -105,10 +105,10 @@ object SearchPage {
                     title = renderer.flexColumns.firstOrNull()
                         ?.musicResponsiveListItemFlexColumnRenderer?.text?.runs
                         ?.firstOrNull()?.text ?: return null,
-                    author = secondaryLine.firstOrNull()?.firstOrNull()?.let {
+                    author = secondaryLine.firstOrNull()?.firstOrNull()?.let { runs ->
                         Artist(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            name = secondaryLine.firstOrNull()?.joinToString(separator = "") { it.text } ?: return null,
+                            id = runs.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     },
                     songCountText = null,

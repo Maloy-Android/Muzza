@@ -114,10 +114,10 @@ data class RelatedPage(
                     id = renderer.navigationEndpoint.browseEndpoint?.browseId?.removePrefix("VL")
                         ?: return null,
                     title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-                    author = renderer.subtitle?.runs?.getOrNull(2)?.let {
+                    author = renderer.subtitle?.runs?.getOrNull(2)?.let { runs ->
                         Artist(
-                            name = it.text,
-                            id = it.navigationEndpoint?.browseEndpoint?.browseId
+                            name = renderer.subtitle.runs.joinToString(separator = "") { it.text },
+                            id = runs.navigationEndpoint?.browseEndpoint?.browseId
                         )
                     },
                     songCountText = null,

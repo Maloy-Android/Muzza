@@ -233,7 +233,7 @@ data class SearchSummaryPage(
                             ?.firstOrNull()?.text ?: return null,
                         author = secondaryLine.getOrNull(1)?.firstOrNull()?.let { runs ->
                             Artist(
-                                name = secondaryLine.firstOrNull()?.joinToString(separator = "") { it.text } ?: return null,
+                                name = secondaryLine.getOrNull(1)?.joinToString(separator = "") { it.text } ?: return null,
                                 id = runs.navigationEndpoint?.browseEndpoint?.browseId
                             )
                         },

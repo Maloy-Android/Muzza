@@ -1090,7 +1090,6 @@ class MusicService : MediaLibraryService(),
         if (playbackState == STATE_IDLE) {
             currentQueue = EmptyQueue
             player.shuffleModeEnabled = false
-            queueTitle = null
         }
         scheduleCrossfade()
     }

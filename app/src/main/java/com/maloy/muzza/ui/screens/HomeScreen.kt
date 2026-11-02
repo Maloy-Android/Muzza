@@ -693,10 +693,7 @@ fun HomeScreen(
                                                 ) {
                                                     SpeedDialGridItem(
                                                         item = item,
-                                                        videoThumbnailSize = when (item) {
-                                                            is SongItem -> item.isVideoSong
-                                                            else -> false
-                                                        },
+                                                        videoThumbnailSize = false,
                                                         isActive =
                                                             item.id in listOf(
                                                                 mediaMetadata?.album?.id,

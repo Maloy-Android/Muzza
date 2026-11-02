@@ -110,7 +110,7 @@ fun SongItem.toMediaMetadata() = MediaMetadata(
     },
     explicit = explicit,
     setVideoId = setVideoId,
-    isVideoSong = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV,
+    isVideoSong = (musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV) || isVideoSongChange,
     suggestedBy = null,
     isFromCache = isFromCache
 )

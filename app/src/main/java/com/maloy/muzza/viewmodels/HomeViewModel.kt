@@ -3,7 +3,6 @@ package com.maloy.muzza.viewmodels
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.protobuf.duration
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.PlaylistItem
@@ -104,7 +103,8 @@ class HomeViewModel @Inject constructor(
                                     )
                                 },
                                 thumbnail = item.thumbnailUrl ?: "",
-                                explicit = item.song.explicit
+                                explicit = item.song.explicit,
+                                isVideoSongChange = item.song.isVideoSong
                             )
                             is Album -> AlbumItem(
                                 browseId = item.id,
@@ -166,7 +166,8 @@ class HomeViewModel @Inject constructor(
                                 )
                             },
                             thumbnail = song.thumbnailUrl ?: "",
-                            explicit = song.song.explicit
+                            explicit = song.song.explicit,
+                            isVideoSongChange = song.song.isVideoSong
                         )
                     }
                     filled.addAll(available.take(needed))
@@ -225,7 +226,8 @@ class HomeViewModel @Inject constructor(
                             )
                         },
                         thumbnail = song.thumbnailUrl ?: "",
-                        explicit = song.song.explicit
+                        explicit = song.song.explicit,
+                        isVideoSongChange = song.song.isVideoSong
                     )
                 })
             }
@@ -251,7 +253,8 @@ class HomeViewModel @Inject constructor(
                                         )
                                     },
                                     thumbnail = item.thumbnailUrl ?: "",
-                                    explicit = item.song.explicit
+                                    explicit = item.song.explicit,
+                                    isVideoSongChange = item.song.isVideoSong
                                 ))
                             }
                         }

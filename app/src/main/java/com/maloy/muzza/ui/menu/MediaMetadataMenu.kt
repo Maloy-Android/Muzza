@@ -480,7 +480,7 @@ fun MediaMetadataMenu(
                 }
             }
         }
-        if (!mediaMetadata.isLocal && mediaMetadata.album != null) {
+        if (!mediaMetadata.isLocal && mediaMetadata.album != null && !mediaMetadata.isVideoSong) {
             item {
                 HorizontalDivider()
             }

@@ -34,9 +34,10 @@ data class SongItem(
     val historyRemoveToken: String? = null,
     val musicVideoType: String? = null,
     val isFromCache: Boolean = false,
+    val isVideoSongChange: Boolean = false,
 ) : YTItem() {
     val isVideoSong: Boolean
-        get() = musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV
+        get() =(musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV) || isVideoSongChange
 
     override val shareLink: String
         get() = "https://music.youtube.com/watch?v=$id"

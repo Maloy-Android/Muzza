@@ -66,7 +66,7 @@ data class SearchSummaryPage(
                             },
                         duration = subtitle.lastOrNull()?.firstOrNull()?.text?.parseTime(),
                         thumbnail = renderer.thumbnail.musicThumbnailRenderer?.getThumbnailUrl() ?: return null,
-                        musicVideoType = null,
+                        musicVideoType = renderer.musicVideoType,
                         explicit = renderer.subtitleBadges?.find {
                             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
                         } != null

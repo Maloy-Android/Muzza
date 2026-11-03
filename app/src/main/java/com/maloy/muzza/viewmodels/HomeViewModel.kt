@@ -215,107 +215,18 @@ class HomeViewModel @Inject constructor(
             isRandomizing.value = true
             kotlinx.coroutines.delay(1000)
 
-            val userSongs = mutableListOf<YTItem>()
-            val otherSources = mutableListOf<YTItem>()
+            val all = speedDialItems.value.distinctBy { it.id }
+            if (all.isEmpty()) return null
 
-            quickPicks.value?.let { songs ->
-                userSongs.addAll(songs.filter { !it.song.isLocal }.map { song ->
-                    SongItem(
-                        id = song.id,
-                        title = song.title,
-                        artists = song.artists.map { artist ->
-                            com.maloy.innertube.models.Artist(
-                                name = artist.name,
-                                id = artist.id
-                            )
-                        },
-                        album = song.album.let { album ->
-                            com.maloy.innertube.models.Album(
-                                name = album?.title ?: "",
-                                id = album?.id ?: ""
-                            )
-                        },
-                        thumbnail = song.thumbnailUrl ?: "",
-                        explicit = song.song.explicit,
-                        isVideoSongChange = song.song.isVideoSong
-                    )
-                })
-            }
+            val userSongs = all.filterIsInstance<SongItem>().filter { !it.isVideoSongChange }
+            val others = all.filter { it !is SongItem }
 
-            keepListening.value?.let { items ->
-                items.forEach { item ->
-                    when (item) {
-                        is Song -> {
-                            if (!item.song.isLocal) {
-                                userSongs.add(SongItem(
-                                    id = item.id,
-                                    title = item.title,
-                                    artists = item.artists.map { artist ->
-                                        com.maloy.innertube.models.Artist(
-                                            name = artist.name,
-                                            id = artist.id
-                                        )
-                                    },
-                                    album = item.album.let { album ->
-                                        com.maloy.innertube.models.Album(
-                                            name = album?.title ?: "",
-                                            id = album?.id ?: ""
-                                        )
-                                    },
-                                    thumbnail = item.thumbnailUrl ?: "",
-                                    explicit = item.song.explicit,
-                                    isVideoSongChange = item.song.isVideoSong
-                                ))
-                            }
-                        }
-                        is Album -> otherSources.add(AlbumItem(
-                            browseId = item.id,
-                            playlistId = item.album.playlistId ?: "",
-                            title = item.title,
-                            artists = item.artists.map { artist ->
-                                com.maloy.innertube.models.Artist(
-                                    name = artist.name,
-                                    id = artist.id
-                                )
-                            },
-                            year = item.album.year,
-                            radioEndpoint = null,
-                            thumbnail = item.thumbnailUrl ?: "",
-                        ))
-                        is Playlist -> otherSources.add(PlaylistItem(
-                            id = item.id,
-                            title = item.title,
-                            thumbnail = item.thumbnailUrl ?: "",
-                            author = item.playlist.let {
-                                com.maloy.innertube.models.Artist(
-                                    id = it.playlistAuthorsId,
-                                    name = it.playlistAuthorName.orEmpty()
-                                )
-                            },
-                            authorAvatarUrl = null,
-                            songCountText = null,
-                            playEndpoint = null,
-                            shuffleEndpoint = null,
-                            radioEndpoint = null
-                        ))
-                        else -> {}
-                    }
-                }
-            }
+            val pickFromUser = userSongs.isNotEmpty() &&
+                    (others.isEmpty() || Random.nextFloat() < 0.8f)
 
-            homePage.value?.sections?.flatMap { it.items }?.let { homeItems ->
-                otherSources.addAll(homeItems)
-            }
-
-            otherSources.addAll(allYtItems.value)
-
-            val item = if (userSongs.isNotEmpty() && (otherSources.isEmpty() || Random.nextFloat() < 0.8f)) {
-                userSongs.distinctBy { it.id }.shuffled().firstOrNull()
-            } else {
-                otherSources.distinctBy { it.id }.shuffled().firstOrNull()
-            } ?: userSongs.firstOrNull() ?: otherSources.firstOrNull()
-
-            return item
+            return (if (pickFromUser) userSongs else others.ifEmpty { all })
+                .shuffled()
+                .firstOrNull()
         } finally {
             isRandomizing.value = false
         }

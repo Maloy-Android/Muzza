@@ -522,16 +522,18 @@ fun YouTubePlaylistMenu(
         item {
             HorizontalDivider()
         }
-        if (!isMixPlaylist && !isYouTubePlaylist) {
-            ListMenuItem(
-                icon = R.drawable.artist,
-                title = R.string.view_playlist_creator
-            ) {
-                navController.navigate("artist/${playlist.author?.id}")
-                onDismiss()
-            }
-            item {
-                HorizontalDivider()
+        playlist.author?.id.let { author ->
+            if (!isMixPlaylist && !isYouTubePlaylist) {
+                ListMenuItem(
+                    icon = R.drawable.artist,
+                    title = R.string.view_playlist_creator
+                ) {
+                    navController.navigate("artist/${author}")
+                    onDismiss()
+                }
+                item {
+                    HorizontalDivider()
+                }
             }
         }
         ListMenuItem(

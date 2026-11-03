@@ -432,7 +432,10 @@ fun ArtistScreen(
                 artistPage.sections.fastForEach { section ->
                     val browseId = section.moreEndpoint?.browseId
                     val displayItems = expandedSections[browseId] ?: section.items
-                    val firstItem = displayItems.firstOrNull() as? SongItem
+                    val allItems = displayItems.filterIsInstance<SongItem>()
+                    val firstItem = allItems.firstOrNull()
+                    val isAllVideoItems = allItems.isNotEmpty() && allItems.all { it.isVideoSong }
+                    val isMplaUc = section.moreEndpoint?.browseId?.startsWith("MPLAUC") == true
                     if (displayItems.isNotEmpty()) {
                         item {
                             NavigationTitle(
@@ -440,7 +443,7 @@ fun ArtistScreen(
                                 onClick = section.moreEndpoint?.let {
                                     { navController.navigate("artist/${viewModel.artistId}/items" + "?browseId=${it.browseId}" + "&params=${it.params}" + "&title=${section.title}") }
                                 },
-                                onPlayAllClickEnable = firstItem != null && !firstItem.isVideoSong && section.moreEndpoint?.browseId?.startsWith("MPLAUC") != true,
+                                onPlayAllClickEnable = firstItem != null && !isAllVideoItems && !isMplaUc,
                                 onPlayAllClick = {
                                     playerConnection.playQueue(
                                         ListQueue(
@@ -453,7 +456,7 @@ fun ArtistScreen(
                             )
                         }
                     }
-                    if (firstItem != null && !firstItem.isVideoSong && section.moreEndpoint?.browseId?.startsWith("MPLAUC") != true) {
+                    if (firstItem != null && !isAllVideoItems && !isMplaUc) {
                         item {
                             LazyHorizontalGrid(
                                 state = topArtistSongsLazyGridState,

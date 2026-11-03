@@ -72,12 +72,22 @@ class HomeViewModel @Inject constructor(
     val speedDialItems: StateFlow<List<YTItem>> =
         combine(
             database.speedDialDao.getAll(),
+            homePage,
             keepListening,
             quickPicks
-        ) { pinned, keepListening, quick ->
+        ) { pinned, home, keepListening, quick ->
             val pinnedItems = pinned.map { it.toYTItem() }
             val filled = pinnedItems.toMutableList()
             val targetSize = 27
+
+            home?.sections?.flatMap { it.items }?.let { homeItems ->
+                val needed = targetSize - filled.size
+                if (needed > 0) {
+                    val available = homeItems
+                        .filter { item -> filled.none { p -> p.id == item.id } }
+                    filled.addAll(available.take(needed))
+                }
+            }
 
             if (filled.size < targetSize) {
                 keepListening?.let { k ->
@@ -288,11 +298,15 @@ class HomeViewModel @Inject constructor(
                             shuffleEndpoint = null,
                             radioEndpoint = null
                         ))
-
                         else -> {}
                     }
                 }
             }
+
+            homePage.value?.sections?.flatMap { it.items }?.let { homeItems ->
+                otherSources.addAll(homeItems)
+            }
+
             otherSources.addAll(allYtItems.value)
 
             val item = if (userSongs.isNotEmpty() && (otherSources.isEmpty() || Random.nextFloat() < 0.8f)) {
@@ -350,11 +364,7 @@ class HomeViewModel @Inject constructor(
         dailyDiscover.value = items.toList().distinctBy { it.recommendation.id }.shuffled()
     }
 
-    suspend fun load() {
-        isLoading.value = true
-
-        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
-
+    private suspend fun loadLocalData() {
         quickPicks.value = database.quickPicks()
             .first().shuffled().take(20)
 
@@ -370,10 +380,17 @@ class HomeViewModel @Inject constructor(
             .first().filter { it.playlist.thumbnailUrl != null }.shuffled().take(5)
         val keepListeningArtists = database.mostPlayedArtists(fromTimeStamp)
             .first().filter { it.artist.isYouTubeArtist && it.artist.thumbnailUrl != null }.shuffled().take(5)
-        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningPlaylists +  keepListeningArtists).shuffled()
+        keepListening.value = (keepListeningSongs + keepListeningAlbums + keepListeningPlaylists + keepListeningArtists).shuffled()
 
         allLocalItems.value = (quickPicks.value.orEmpty() + forgottenFavorites.value.orEmpty() + keepListening.value.orEmpty())
             .filter { it is Song || it is Album }
+    }
+
+    suspend fun load() {
+        isLoading.value = true
+        val hideExplicit = context.dataStore.get(HideExplicitKey, false)
+        loadLocalData()
+        val fromTimeStamp = System.currentTimeMillis() - 86400000 * 7 * 2
 
         val artistRecommendations =
             database.mostPlayedArtists(fromTimeStamp, limit = 10).first()
@@ -539,18 +556,27 @@ class HomeViewModel @Inject constructor(
             homePage.value = previousHomePage.value
             previousHomePage.value = null
             selectedChip.value = null
+            viewModelScope.launch(Dispatchers.IO) {
+                loadLocalData()
+            }
             return
         }
         if (selectedChip.value == null) {
             previousHomePage.value = homePage.value
         }
         viewModelScope.launch(Dispatchers.IO) {
+            loadLocalData()
+
             val nextSections = YouTube.home(params = chip.endpoint?.params).getOrNull() ?: return@launch
             homePage.value = nextSections.copy(
                 chips = homePage.value?.chips,
                 sections = nextSections.sections
             )
             selectedChip.value = chip
+
+            allYtItems.value = similarRecommendations.value?.flatMap { it.items }.orEmpty() +
+                    homePage.value?.sections?.flatMap { it.items }.orEmpty() +
+                    explorePage.value?.newReleaseAlbums.orEmpty()
         }
     }
 

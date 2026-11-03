@@ -18,8 +18,8 @@ class CacheUtils @Inject constructor(
     @DownloadCache private val downloadCache: SimpleCache,
 ) {
     suspend fun syncCachedSongs() {
-        val cachedIds = playerCache.keys.map { it }.toSet()
-        val downloadedIds = downloadCache.keys.map { it }.toSet()
+        val cachedIds = playerCache.keys.toSet()
+        val downloadedIds = downloadCache.keys.toSet()
         val pureCacheIds = cachedIds.subtract(downloadedIds)
 
         val songs = if (pureCacheIds.isNotEmpty()) {
@@ -37,10 +37,9 @@ class CacheUtils @Inject constructor(
 
         database.transaction {
             completeSongs.forEach {
-                if (it.song.dateDownload == null) {
-                    update(it.song.copy(dateDownload = LocalDateTime.now()))
+                if (!it.song.isFromCache) {
+                    update(it.song.copy(isFromCache = true, dateDownload = LocalDateTime.now()))
                 }
-                update(it.song.copy(isFromCache = true, dateDownload = LocalDateTime.now()))
             }
 
             currentlyCached

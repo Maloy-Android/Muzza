@@ -851,6 +851,21 @@ class MainActivity : ComponentActivity() {
                                             DropdownMenuItem(
                                                 leadingIcon = {
                                                     Icon(
+                                                        painterResource(R.drawable.group),
+                                                        contentDescription = null
+                                                    )
+                                                },
+                                                text = {
+                                                    Text(stringResource(R.string.listen_together))
+                                                },
+                                                onClick = {
+                                                    showOptionsDropdown = false
+                                                    navController.navigate("settings/account/listen_together")
+                                                }
+                                            )
+                                            DropdownMenuItem(
+                                                leadingIcon = {
+                                                    Icon(
                                                         painterResource(R.drawable.settings),
                                                         contentDescription = null
                                                     )

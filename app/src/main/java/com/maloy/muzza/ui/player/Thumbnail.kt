@@ -81,7 +81,7 @@ fun Thumbnail(
     val listenTogetherManager = LocalListenTogetherManager.current
     val isGuest = listenTogetherManager?.isInRoom == true && !listenTogetherManager.isHost
 
-    val error: PlaybackException? by playerConnection.error.collectAsState()
+    val error: PlaybackException? by playerConnection.finalError.collectAsState()
     var showLyrics by rememberPreference(ShowLyricsKey, false)
     val swipeThumbnail by rememberPreference(SwipeThumbnailKey, true)
     val thumbnailCornerRadiusV2 by rememberPreference(ThumbnailCornerRadiusV2Key, 3)
@@ -259,14 +259,6 @@ fun Thumbnail(
             if (showSeekEffect) {
                 delay(1000)
                 showSeekEffect = false
-            }
-        }
-
-        var hasHandledError by remember { mutableStateOf(false) }
-        LaunchedEffect(error) {
-            if (error != null && !hasHandledError) {
-                hasHandledError = true
-                playerConnection.player.prepare()
             }
         }
         AnimatedVisibility(

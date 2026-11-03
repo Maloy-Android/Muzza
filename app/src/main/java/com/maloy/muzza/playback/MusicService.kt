@@ -212,6 +212,13 @@ class MusicService : MediaLibraryService(),
 
     private var consecutivePlaybackErr = 0
 
+    private var consecutiveRetryCount = 0
+    private var retryMediaId: String? = null
+    private val maxRetryAttempts = 2
+
+    private val _finalPlaybackError = MutableStateFlow<PlaybackException?>(null)
+    val finalPlaybackError = _finalPlaybackError.asStateFlow()
+
     val currentMediaMetadata = MutableStateFlow<MediaMetadata?>(null)
     private val currentSong = currentMediaMetadata.flatMapLatest { mediaMetadata ->
         database.song(mediaMetadata?.id)
@@ -1057,6 +1064,10 @@ class MusicService : MediaLibraryService(),
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
 
+        consecutiveRetryCount = 0
+        retryMediaId = null
+        _finalPlaybackError.value = null
+
         if (!isCrossfading) {
             trackedSongs.clear()
         }
@@ -1190,14 +1201,42 @@ class MusicService : MediaLibraryService(),
     }
 
     override fun onPlayerError(error: PlaybackException) {
+        val currentId = player.currentMediaItem?.mediaId
+
+        if (currentId != retryMediaId) {
+            retryMediaId = currentId
+            consecutiveRetryCount = 0
+        }
+
+        if (consecutiveRetryCount < maxRetryAttempts) {
+            consecutiveRetryCount++
+            Timber.tag(TAG).w(
+                "Playback error (attempt $consecutiveRetryCount/$maxRetryAttempts) for $currentId: ${error.message}"
+            )
+            scope.launch {
+                delay(500.milliseconds)
+                if (isActive && player.currentMediaItem?.mediaId == currentId) {
+                    player.prepare()
+                    if (player.playWhenReady) player.play()
+                }
+            }
+            return
+        }
+
+        Timber.tag(TAG).e(error, "Playback failed after $maxRetryAttempts attempts for $currentId")
+
         if (dataStore.get(AutoSkipNextOnErrorKey, false) &&
             isInternetAvailable(this) &&
             player.hasNextMediaItem()
         ) {
+            consecutiveRetryCount = 0
+            retryMediaId = null
             player.seekToNext()
             player.prepare()
             player.playWhenReady = true
             discordUpdateJob?.cancel()
+        } else {
+            _finalPlaybackError.value = error
         }
     }
 
@@ -1837,6 +1876,15 @@ class MusicService : MediaLibraryService(),
             } finally {
                 _isLoadingMore.value = false
             }
+        }
+    }
+
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+        super.onIsPlayingChanged(isPlaying)
+        if (isPlaying) {
+            consecutiveRetryCount = 0
+            retryMediaId = null
+            _finalPlaybackError.value = null
         }
     }
 

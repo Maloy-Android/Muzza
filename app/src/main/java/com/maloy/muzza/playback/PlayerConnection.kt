@@ -95,6 +95,14 @@ class PlayerConnection(
 
     val error = MutableStateFlow<PlaybackException?>(null)
 
+    val finalError = MutableStateFlow<PlaybackException?>(null)
+
+    init {
+        scope.launch {
+            service.finalPlaybackError.collect { finalError.value = it }
+        }
+    }
+
     val isMuted = service.isMuted
     fun setMuted(muted: Boolean) {
         service.setMuted(muted)
@@ -109,6 +117,7 @@ class PlayerConnection(
     var onSkipNext: (() -> Unit)? = null
     private var attachedPlayer: Player? = null
     private var playerCollectionJob: kotlinx.coroutines.Job? = null
+    private var finalErrorJob: kotlinx.coroutines.Job? = null
 
     init {
         playerCollectionJob = scope.launch {
@@ -297,6 +306,8 @@ class PlayerConnection(
         instance = null
         playerCollectionJob?.cancel()
         playerCollectionJob = null
+        finalErrorJob?.cancel()
+        finalErrorJob = null
         attachedPlayer?.removeListener(this)
         attachedPlayer = null
     }

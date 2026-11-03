@@ -347,6 +347,8 @@
     <string name="settings">Настройки</string>
     <string name="appearance">Внешний вид</string>
     <string name="theme">Темы и цвета</string>
+    <string name="theme_mode">Тематический режим</string>
+    <string name="color_palette">Цветовая палитра</string>
     <string name="theme_description">Кастомизиция тем и цветов приложения</string>
     <string name="proxy">ПРОКСИ</string>
     <string name="enable_dynamic_theme">Включить динамическую тему</string>
@@ -611,6 +613,7 @@
     <string name="listen_together_auto_approval_suggestions">Автоподтверждение предложенных песен</string>
     <string name="listen_together_auto_approval_suggestions_desc">Автоматически подтверждать и ставить в очередь предложенные гостями песни</string>
     <string name="listen_together_sync_volume">Синхронизировать громкость с ведущим</string>
+    <string name="listen_together_sync_volume_desc">Уровень громкости гостей будет соответствовать уровню громкости хоста</string>
     <string name="listen_together_connected">Подключено</string>
     <string name="listen_together_connecting">Подключение…</string>
     <string name="listen_together_reconnecting">Переподключение…</string>
@@ -645,6 +648,6 @@
     <string name="listen_together_cannot_edit_username_in_room">Нельзя изменить имя пользователя, находясь в комнате</string>
     <string name="error_username_empty">Требуется указать имя пользователя.</string>
 
-    <string name="download_warning">Включите подключение к Интернету для загрузки</string>
+    <string name="download_warning">Выполните подключение к Интернету для загрузки</string>
 
 </resources>

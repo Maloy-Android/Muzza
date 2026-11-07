@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.filterExplicit
 import com.maloy.innertube.pages.ExplorePage
+import com.maloy.innertube.pages.NewRelasesPage
 import com.maloy.muzza.constants.HideExplicitKey
 import com.maloy.muzza.db.MusicDatabase
 import com.maloy.muzza.db.entities.Artist
@@ -31,6 +32,7 @@ class ExploreViewModel @Inject constructor(
     private val _error = MutableStateFlow<String?>(null)
     val error = _error.asStateFlow()
     val explorePage = MutableStateFlow<ExplorePage?>(null)
+    val newMixesPlaylists = MutableStateFlow<NewRelasesPage?>(null)
 
     private suspend fun load() {
         YouTube.explore().onSuccess { page ->
@@ -58,6 +60,14 @@ class ExploreViewModel @Inject constructor(
             }.onFailure {
                 reportException(it)
             }
+        YouTube.newReleasesMixesPlaylists().onSuccess { page ->
+            newMixesPlaylists.value =
+            page.copy(
+                newMixesPlaylists = page.newMixesPlaylists
+            )
+        }.onFailure {
+            reportException(it)
+        }
     }
 
     fun refresh() {

@@ -47,6 +47,8 @@ import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.MoodAndGenres
 import com.maloy.innertube.pages.NewReleaseAlbumPage
 import com.maloy.innertube.pages.NewClipsPage
+import com.maloy.innertube.pages.NewMixesPlaylistsPage
+import com.maloy.innertube.pages.NewRelasesPage
 import com.maloy.innertube.pages.NextPage
 import com.maloy.innertube.pages.NextResult
 import com.maloy.innertube.pages.PlaylistContinuationPage
@@ -863,6 +865,21 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             }?.musicCarouselShelfRenderer?.contents
                 ?.mapNotNull { it.musicNavigationButtonRenderer }
                 ?.mapNotNull(MoodAndGenres.Companion::fromMusicNavigationButtonRenderer)
+                .orEmpty()
+        )
+    }
+
+    suspend fun newReleasesMixesPlaylists(): Result<NewRelasesPage> = runCatching {
+        val response = innerTube.browse(WEB_REMIX, browseId = "FEmusic_new_releases").body<BrowseResponse>()
+        NewRelasesPage(
+            newMixesPlaylists = response.contents
+                ?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer?.contents
+                .orEmpty()
+                .firstNotNullOfOrNull { section -> section.gridRenderer }
+                ?.items
+                ?.mapNotNull { it.musicTwoRowItemRenderer }
+                ?.mapNotNull(NewMixesPlaylistsPage::fromMusicTwoRowItemRenderer)
                 .orEmpty()
         )
     }

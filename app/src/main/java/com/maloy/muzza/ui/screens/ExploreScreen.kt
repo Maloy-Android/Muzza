@@ -31,6 +31,7 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -56,6 +57,7 @@ import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.component.shimmer.VideoGridItemPlaceHolder
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
+import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.viewmodels.ExploreViewModel
 
@@ -74,6 +76,8 @@ fun ExploreScreen(
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
 
     val explorePage by viewModel.explorePage.collectAsState()
+    val newMixesPlaylists by viewModel.newMixesPlaylists.collectAsState()
+    val scope = rememberCoroutineScope()
 
     val scrollState = rememberScrollState()
 
@@ -98,6 +102,50 @@ fun ExploreScreen(
                     LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding(),
                 )
             )
+            newMixesPlaylists?.newMixesPlaylists?.let { newMixesPlaylists ->
+                NavigationTitle(
+                    title = stringResource(R.string.new_title),
+                )
+
+                LazyRow(
+                    contentPadding =
+                        WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues()
+                ) {
+                    items(
+                        items = newMixesPlaylists,
+                        key = { it.id },
+                    ) { playlist ->
+                        YouTubeGridItem(
+                            item = playlist,
+                            isActive = mediaMetadata?.playlist?.id == playlist.id,
+                            isPlaying = isPlaying,
+                            navController = navController,
+                            modifier =
+                                Modifier
+                                    .combinedClickable(
+                                        onClick = {
+                                            navController.navigate("online_playlist/${playlist.id}")
+                                        },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                YouTubePlaylistMenu(
+                                                    playlist = playlist,
+                                                    navController = navController,
+                                                    coroutineScope = scope,
+                                                    onDismiss = menuState::dismiss,
+                                                )
+                                            }
+                                        },
+                                    )
+                                    .animateItem()
+                        )
+                    }
+                }
+            }
+
             explorePage?.newReleaseAlbums?.let { newReleaseAlbums ->
                 NavigationTitle(
                     title = stringResource(R.string.new_release_albums),
@@ -255,8 +303,20 @@ fun ExploreScreen(
                 )
             }
 
-            if (explorePage == null) {
+            if (explorePage == null || newMixesPlaylists == null) {
                 ShimmerHost {
+                    TextPlaceholder(
+                        height = 36.dp,
+                        modifier =
+                            Modifier
+                                .padding(vertical = 12.dp, horizontal = 12.dp)
+                                .width(250.dp)
+                    )
+                    Row {
+                        repeat(2) {
+                            GridItemPlaceHolder()
+                        }
+                    }
                     TextPlaceholder(
                         height = 36.dp,
                         modifier =

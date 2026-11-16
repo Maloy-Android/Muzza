@@ -99,210 +99,10 @@ fun ExploreScreen(
         ) {
             Spacer(
                 Modifier.height(
-                    LocalPlayerAwareWindowInsets.current.asPaddingValues().calculateTopPadding(),
+                    LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                        .calculateTopPadding(),
                 )
             )
-            newMixesPlaylists?.newMixesPlaylists?.let { newMixesPlaylists ->
-                NavigationTitle(
-                    title = stringResource(R.string.new_title),
-                )
-
-                LazyRow(
-                    contentPadding =
-                        WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues()
-                ) {
-                    items(
-                        items = newMixesPlaylists,
-                        key = { it.id },
-                    ) { playlist ->
-                        YouTubeGridItem(
-                            item = playlist,
-                            isActive = mediaMetadata?.playlist?.id == playlist.id,
-                            isPlaying = isPlaying,
-                            navController = navController,
-                            modifier =
-                                Modifier
-                                    .combinedClickable(
-                                        onClick = {
-                                            navController.navigate("online_playlist/${playlist.id}")
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubePlaylistMenu(
-                                                    playlist = playlist,
-                                                    navController = navController,
-                                                    coroutineScope = scope,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem()
-                        )
-                    }
-                }
-            }
-
-            explorePage?.newReleaseAlbums?.let { newReleaseAlbums ->
-                NavigationTitle(
-                    title = stringResource(R.string.new_release_albums),
-                    onClick = {
-                        navController.navigate("new_release")
-                    },
-                )
-
-                LazyRow(
-                    contentPadding =
-                        WindowInsets.systemBars
-                            .only(WindowInsetsSides.Horizontal)
-                            .asPaddingValues()
-                ) {
-                    items(
-                        items = newReleaseAlbums,
-                        key = { it.id },
-                    ) { album ->
-                        YouTubeGridItem(
-                            item = album,
-                            isActive = mediaMetadata?.album?.id == album.id,
-                            isPlaying = isPlaying,
-                            navController = navController,
-                            modifier =
-                                Modifier
-                                    .combinedClickable(
-                                        onClick = {
-                                            navController.navigate("album/${album.id}")
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubeAlbumMenu(
-                                                    albumItem = album,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem()
-                        )
-                    }
-                }
-            }
-
-
-            explorePage?.newClips?.let { newClips ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    NavigationTitle(
-                        title = stringResource(R.string.new_clips),
-                        onClick = {
-                            navController.navigate("new_clips")
-                        },
-                        onPlayAllClick = {
-                            playerConnection.playQueue(
-                                ListQueue(
-                                    title = context.getString(R.string.new_clips),
-                                    items = newClips.map { it.toMediaItem() }
-                                )
-                            )
-                        },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-
-                LazyRow(
-                    contentPadding = WindowInsets.systemBars
-                        .only(WindowInsetsSides.Horizontal)
-                        .asPaddingValues(),
-                    modifier = Modifier
-                ) {
-                    items(
-                        items = newClips,
-                        key = { it.id },
-                    ) { newClips ->
-                        YouTubeGridItem(
-                            item = newClips,
-                            isActive = mediaMetadata?.id == newClips.id,
-                            videoThumbnailSize = true,
-                            isPlaying = isPlaying,
-                            navController = navController,
-                            modifier =
-                                Modifier
-                                    .combinedClickable(
-                                        onClick = {
-                                            if (mediaMetadata?.id == newClips.id) {
-                                                playerConnection.togglePlayPause()
-                                            } else {
-                                                playerConnection.playQueue(
-                                                    YouTubeQueue(
-                                                        title = newClips.title,
-                                                        endpoint = newClips.endpoint
-                                                            ?: WatchEndpoint(
-                                                                videoId = newClips.id,
-                                                            ),
-                                                        preloadItem = newClips.toMediaMetadata(),
-                                                        context = context
-                                                    )
-                                                )
-                                            }
-                                        },
-                                        onLongClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                            menuState.show {
-                                                YouTubeSongMenu(
-                                                    song = newClips,
-                                                    navController = navController,
-                                                    onDismiss = menuState::dismiss,
-                                                )
-                                            }
-                                        },
-                                    )
-                                    .animateItem()
-                        )
-                    }
-                }
-            }
-
-            explorePage?.moodAndGenres?.let { moodAndGenres ->
-                NavigationTitle(
-                    title = stringResource(R.string.mood_and_genres),
-                    onClick = {
-                        navController.navigate("mood_and_genres")
-                    },
-                )
-
-                LazyHorizontalGrid(
-                    rows = GridCells.Fixed(4),
-                    contentPadding = PaddingValues(6.dp),
-                    modifier = Modifier.height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp),
-                ) {
-                    items(moodAndGenres) {
-                        MoodAndGenresButton(
-                            title = it.title,
-                            stripeColor = it.stripeColor,
-                            onClick = {
-                                navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
-                            },
-                            modifier =
-                                Modifier
-                                    .padding(6.dp)
-                                    .width(180.dp)
-                        )
-                    }
-                }
-                Spacer(
-                    Modifier.height(
-                        LocalPlayerAwareWindowInsets.current.asPaddingValues()
-                            .calculateBottomPadding()
-                    )
-                )
-            }
-
             if (explorePage == null || newMixesPlaylists == null) {
                 ShimmerHost {
                     TextPlaceholder(
@@ -361,6 +161,207 @@ fun ExploreScreen(
                             }
                         }
                     }
+                }
+            } else {
+                newMixesPlaylists?.newMixesPlaylists?.let { newMixesPlaylists ->
+                    NavigationTitle(
+                        title = stringResource(R.string.new_title),
+                    )
+
+                    LazyRow(
+                        contentPadding =
+                            WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues()
+                    ) {
+                        items(
+                            items = newMixesPlaylists,
+                            key = { it.id },
+                        ) { playlist ->
+                            YouTubeGridItem(
+                                item = playlist,
+                                isActive = mediaMetadata?.playlist?.id == playlist.id,
+                                isPlaying = isPlaying,
+                                navController = navController,
+                                modifier =
+                                    Modifier
+                                        .combinedClickable(
+                                            onClick = {
+                                                navController.navigate("online_playlist/${playlist.id}")
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    YouTubePlaylistMenu(
+                                                        playlist = playlist,
+                                                        navController = navController,
+                                                        coroutineScope = scope,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem()
+                            )
+                        }
+                    }
+                }
+
+                explorePage?.newReleaseAlbums?.let { newReleaseAlbums ->
+                    NavigationTitle(
+                        title = stringResource(R.string.new_release_albums),
+                        onClick = {
+                            navController.navigate("new_release")
+                        },
+                    )
+
+                    LazyRow(
+                        contentPadding =
+                            WindowInsets.systemBars
+                                .only(WindowInsetsSides.Horizontal)
+                                .asPaddingValues()
+                    ) {
+                        items(
+                            items = newReleaseAlbums,
+                            key = { it.id },
+                        ) { album ->
+                            YouTubeGridItem(
+                                item = album,
+                                isActive = mediaMetadata?.album?.id == album.id,
+                                isPlaying = isPlaying,
+                                navController = navController,
+                                modifier =
+                                    Modifier
+                                        .combinedClickable(
+                                            onClick = {
+                                                navController.navigate("album/${album.id}")
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    YouTubeAlbumMenu(
+                                                        albumItem = album,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem()
+                            )
+                        }
+                    }
+                }
+
+
+                explorePage?.newClips?.let { newClips ->
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        NavigationTitle(
+                            title = stringResource(R.string.new_clips),
+                            onClick = {
+                                navController.navigate("new_clips")
+                            },
+                            onPlayAllClick = {
+                                playerConnection.playQueue(
+                                    ListQueue(
+                                        title = context.getString(R.string.new_clips),
+                                        items = newClips.map { it.toMediaItem() }
+                                    )
+                                )
+                            },
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+
+                    LazyRow(
+                        contentPadding = WindowInsets.systemBars
+                            .only(WindowInsetsSides.Horizontal)
+                            .asPaddingValues(),
+                        modifier = Modifier
+                    ) {
+                        items(
+                            items = newClips,
+                            key = { it.id },
+                        ) { newClips ->
+                            YouTubeGridItem(
+                                item = newClips,
+                                isActive = mediaMetadata?.id == newClips.id,
+                                videoThumbnailSize = true,
+                                isPlaying = isPlaying,
+                                navController = navController,
+                                modifier =
+                                    Modifier
+                                        .combinedClickable(
+                                            onClick = {
+                                                if (mediaMetadata?.id == newClips.id) {
+                                                    playerConnection.togglePlayPause()
+                                                } else {
+                                                    playerConnection.playQueue(
+                                                        YouTubeQueue(
+                                                            title = newClips.title,
+                                                            endpoint = newClips.endpoint
+                                                                ?: WatchEndpoint(
+                                                                    videoId = newClips.id,
+                                                                ),
+                                                            preloadItem = newClips.toMediaMetadata(),
+                                                            context = context
+                                                        )
+                                                    )
+                                                }
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    YouTubeSongMenu(
+                                                        song = newClips,
+                                                        navController = navController,
+                                                        onDismiss = menuState::dismiss,
+                                                    )
+                                                }
+                                            },
+                                        )
+                                        .animateItem()
+                            )
+                        }
+                    }
+                }
+
+                explorePage?.moodAndGenres?.let { moodAndGenres ->
+                    NavigationTitle(
+                        title = stringResource(R.string.mood_and_genres),
+                        onClick = {
+                            navController.navigate("mood_and_genres")
+                        },
+                    )
+
+                    LazyHorizontalGrid(
+                        rows = GridCells.Fixed(4),
+                        contentPadding = PaddingValues(6.dp),
+                        modifier = Modifier.height((MoodAndGenresButtonHeight + 12.dp) * 4 + 12.dp),
+                    ) {
+                        items(moodAndGenres) {
+                            MoodAndGenresButton(
+                                title = it.title,
+                                stripeColor = it.stripeColor,
+                                onClick = {
+                                    navController.navigate("youtube_browse/${it.endpoint.browseId}?params=${it.endpoint.params}")
+                                },
+                                modifier =
+                                    Modifier
+                                        .padding(6.dp)
+                                        .width(180.dp)
+                            )
+                        }
+                    }
+                    Spacer(
+                        Modifier.height(
+                            LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                                .calculateBottomPadding()
+                        )
+                    )
                 }
             }
         }

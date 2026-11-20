@@ -72,7 +72,6 @@ class InnerTube(
 
     var useLoginForBrowse: Boolean = false
 
-    @Synchronized
     fun extractionTransport(): ExtractionTransport =
         ExtractionTransport(
             innerTube = innerTubeX,
@@ -81,7 +80,6 @@ class InnerTube(
         )
 
 
-    @Synchronized
     private fun recreateTransport() {
         val session = innerTubeX.sessionSnapshot()
         innerTubeX.close()
@@ -117,7 +115,7 @@ class InnerTube(
                 cookie?.let { cookie ->
                     append("cookie", cookie)
                     if ("SAPISID" !in cookieMap) return@let
-                    val currentTime = System.currentTimeMillis() / 1000
+                    val currentTime = kotlin.time.Clock.System.now().epochSeconds
                     val sapisidHash = sha1("$currentTime ${cookieMap["SAPISID"]} ${YouTubeClient.ORIGIN_YOUTUBE_MUSIC}")
                     append("Authorization", "SAPISIDHASH ${currentTime}_${sapisidHash}")
                 }

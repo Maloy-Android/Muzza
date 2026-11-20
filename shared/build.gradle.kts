@@ -67,7 +67,7 @@ kotlin {
             implementation(libs.coil3.network.ktor)
 
             // Coroutines
-            implementation(libs.coroutines.guava)
+            implementation(libs.coroutines.core)
 
             // DateTime
             implementation(libs.kotlinx.datetime)
@@ -82,6 +82,9 @@ kotlin {
         }
 
         androidMain.dependencies {
+            // Android-only coroutines / futures integration
+            implementation(libs.coroutines.guava)
+
             // Android Ktor engine
             implementation(libs.ktor.client.okhttp)
 
@@ -127,4 +130,22 @@ sqldelight {
         }
     }
     linkSqlite.set(true)
+}
+
+// Keep the legacy Android UI out of Native compilations until it is migrated.
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinNativeCompile>().configureEach {
+    if (name.startsWith("compileKotlinIos")) {
+        doFirst {
+            fun isAndroidOnlySource(file: java.io.File): Boolean {
+                val path = file.absolutePath.replace('\\', '/')
+                return path.contains("/shared/src/commonMain/kotlin/com/maloy/muzza/ui/") ||
+                    path.contains("/shared/src/iosMain/kotlin/com/maloy/muzza/ui/") ||
+                    path.endsWith("/shared/src/iosMain/kotlin/com/maloy/muzza/MainViewController.kt") ||
+                    path.endsWith("/shared/src/commonMain/kotlin/com/maloy/muzza/extensions/PlayerExt.kt") ||
+                    path.endsWith("/shared/src/commonMain/kotlin/com/maloy/muzza/models/MediaMetadata.kt") ||
+                    path.endsWith("/shared/src/commonMain/kotlin/com/maloy/muzza/models/PersistQueue.kt")
+            }
+            setSource(sources.files.filterNot(::isAndroidOnlySource))
+        }
+    }
 }

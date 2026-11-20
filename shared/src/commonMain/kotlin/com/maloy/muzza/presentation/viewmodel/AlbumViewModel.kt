@@ -15,6 +15,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toLocalDateTime
 
 class AlbumViewModel(
     private val repository: MusicRepository,
@@ -44,9 +45,9 @@ class AlbumViewModel(
         }
 
         // Then fetch from YouTube
-        YouTube.album(albumId).onSuccess { page ->
+        YouTube.album(albumId)?.onSuccess { page ->
             // Page data can be used to populate songs
-        }.onFailure {
+        }?.onFailure {
             error.value = it.message
         }
 

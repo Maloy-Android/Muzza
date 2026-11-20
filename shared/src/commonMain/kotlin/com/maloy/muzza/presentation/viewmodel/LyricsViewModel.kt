@@ -46,8 +46,7 @@ class LyricsViewModel(
             if (synced == null && settings.enableLrcLib) {
                 LrcLib.getLyrics(title, artist, duration)
                     .getOrNull()?.let { result ->
-                        synced = result.syncedLyrics
-                        plain = result.plainLyrics
+                        synced = result
                     }
             }
 

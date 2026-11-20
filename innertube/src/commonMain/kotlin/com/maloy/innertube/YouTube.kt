@@ -1324,7 +1324,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
 
     suspend fun queue(videoIds: List<String>? = null, playlistId: String? = null): Result<List<SongItem>> = runCatching {
         if (videoIds != null) {
-            assert(videoIds.size <= MAX_GET_QUEUE_SIZE)
+            require(videoIds.size <= MAX_GET_QUEUE_SIZE)
         }
         innerTube.getQueue(WEB_REMIX, videoIds, playlistId).body<GetQueueResponse>().queueDatas
             .mapNotNull {
@@ -1353,7 +1353,10 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             val text = group.transcriptCueGroupRenderer.cues[0].transcriptCueRenderer.cue.simpleText
                 .trim('♪')
                 .trim(' ')
-            "[%02d:%02d.%03d]$text".format(time / 60000, (time / 1000) % 60, time % 1000)
+            val minutes = (time / 60000).toString()
+            val seconds = ((time / 1000) % 60).toString().padStart(2, '0')
+            val millis = (time % 1000).toString().padStart(3, '0')
+            "[${minutes.padStart(2, '0')}:$seconds.$millis]$text"
         }!!
     }
 
@@ -1386,7 +1389,6 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     suspend fun feedback(tokens: List<String>): Result<Boolean> = runCatching {
         innerTube.feedback(WEB_REMIX, tokens).body<FeedbackResponse>().feedbackResponses.all { it.isProcessed }
     }
-    @JvmInline
     value class SearchFilter(val value: String) {
         companion object {
             val FILTER_SONG = SearchFilter("EgWKAQIIAWoKEAkQBRAKEAMQBA%3D%3D")

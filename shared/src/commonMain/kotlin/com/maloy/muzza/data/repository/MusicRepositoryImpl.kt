@@ -5,6 +5,8 @@ import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.coroutines.mapToOneOrNull
 import com.maloy.muzza.data.db.DatabaseDriverFactory
 import com.maloy.muzza.data.db.createDatabase
+import com.maloy.muzza.data.db.toDb
+import com.maloy.muzza.data.db.toModel
 import com.maloy.muzza.db.MuzzaDatabase
 import com.maloy.muzza.domain.model.AlbumEntity
 import com.maloy.muzza.domain.model.ArtistEntity

@@ -11,7 +11,7 @@ import kotlinx.coroutines.launch
 
 class ExploreViewModel : ViewModel() {
     val explorePage = MutableStateFlow<ExplorePage?>(null)
-    val moodAndGenres = MutableStateFlow<MoodAndGenres?>(null)
+    val moodAndGenres = MutableStateFlow<List<MoodAndGenres>>(emptyList())
     val isLoading = MutableStateFlow(false)
 
     init {

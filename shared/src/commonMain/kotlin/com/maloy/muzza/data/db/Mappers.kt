@@ -5,6 +5,9 @@ import com.maloy.muzza.db.Artist
 import com.maloy.muzza.db.Format
 import com.maloy.muzza.db.Playlist
 import com.maloy.muzza.db.Song
+import com.maloy.muzza.db.album.SelectBookmarked as BookmarkedAlbum
+import com.maloy.muzza.db.artist.SelectBookmarked as BookmarkedArtist
+import com.maloy.muzza.db.playlist.SelectBookmarked as BookmarkedPlaylist
 import com.maloy.muzza.domain.model.AlbumEntity
 import com.maloy.muzza.domain.model.ArtistEntity
 import com.maloy.muzza.domain.model.FormatEntity
@@ -172,4 +175,47 @@ fun FormatEntity.toDb() = Format(
     loudnessDb = loudnessDb,
     playbackUrl = playbackUrl,
     expiredAt = expiredAt,
+)
+
+fun BookmarkedAlbum.toModel() = AlbumEntity(
+    id = id,
+    playlistId = playlistId,
+    title = title,
+    year = year?.toInt(),
+    thumbnailUrl = thumbnailUrl,
+    themeColor = themeColor?.toInt(),
+    songCount = songCount.toInt(),
+    duration = duration.toInt(),
+    lastUpdateTime = LocalDateTime.parse(lastUpdateTime),
+    bookmarkedAt = bookmarkedAt.let { LocalDateTime.parse(it) },
+)
+
+fun BookmarkedArtist.toModel() = ArtistEntity(
+    id = id,
+    name = name,
+    thumbnailUrl = thumbnailUrl,
+    channelId = channelId,
+    lastUpdateTime = LocalDateTime.parse(lastUpdateTime),
+    bookmarkedAt = LocalDateTime.parse(bookmarkedAt),
+    isProfile = isProfile != 0L,
+)
+
+fun BookmarkedPlaylist.toModel() = PlaylistEntity(
+    id = id,
+    name = name,
+    browseId = browseId,
+    playlistAuthorsId = playlistAuthorsId,
+    playlistAuthorName = playlistAuthorName,
+    playlistAuthorAvatarUrl = playlistAuthorAvatarUrl,
+    createdAt = createdAt?.let { LocalDateTime.parse(it) },
+    lastUpdateTime = lastUpdateTime?.let { LocalDateTime.parse(it) },
+    isEditable = isEditable != 0L,
+    bookmarkedAt = LocalDateTime.parse(bookmarkedAt),
+    remoteSongCount = remoteSongCount?.toInt(),
+    playEndpointParams = playEndpointParams,
+    thumbnailUrl = thumbnailUrl,
+    shuffleEndpointParams = shuffleEndpointParams,
+    radioEndpointParams = radioEndpointParams,
+    description = description,
+    isLocal = isLocal != 0L,
 )

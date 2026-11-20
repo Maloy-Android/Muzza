@@ -33,6 +33,7 @@ lazycolumnscrollbar = { group = "com.github.nanihadesuka", name = "LazyColumnScr
 annotation = { module = "androidx.annotation:annotation", version.ref = "annotation" }
 guava = { group = "com.google.guava", name = "guava", version = "33.4.8-android" }
 coroutines-guava = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-guava", version = "1.10.2" }
+coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version = "1.10.2" }
 concurrent-futures = { group = "androidx.concurrent", name = "concurrent-futures-ktx", version = "1.2.0" }
 
 gradle = { group = "com.android.tools.build", name = "gradle", version.ref = "androidGradlePlugin" }
@@ -50,7 +51,7 @@ compose-ui-tooling = { group = "androidx.compose.ui", name = "ui-tooling", versi
 compose-reorderable = { module = "sh.calvin.reorderable:reorderable", version = "3.0.0" }
 compose-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended", version = "1.7.8" }
 
-viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-ktx", version.ref = "lifecycle" }
+viewmodel = { group = "androidx.lifecycle", name = "lifecycle-viewmodel", version.ref = "lifecycle" }
 viewmodel-compose = { group = "androidx.lifecycle", name = "lifecycle-viewmodel-compose", version.ref = "lifecycle" }
 
 material3 = { group = "androidx.compose.material3", name = "material3", version.ref = "material3" }

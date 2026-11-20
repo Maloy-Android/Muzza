@@ -9,6 +9,7 @@ import com.maloy.muzza.domain.model.ArtistEntity
 import com.maloy.muzza.util.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.datetime.toLocalDateTime
 
 class ArtistViewModel(
     private val repository: MusicRepository,

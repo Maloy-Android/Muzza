@@ -1,6 +1,6 @@
 package com.maloy.innertube.models
 
-import java.time.LocalDateTime
+import kotlinx.datetime.LocalDateTime
 
 data class PlaylistsFragments (
     val id: String?,

@@ -100,7 +100,6 @@ object LrcLib {
         queryLyrics(artist = artist, title = title, album = null)
     }
 
-    @JvmInline
     value class Lyrics(
         val text: String,
     ) {

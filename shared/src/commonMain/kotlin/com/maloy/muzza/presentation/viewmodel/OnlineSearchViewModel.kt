@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.YTItem
-import com.maloy.innertube.pages.SearchPage
+import com.maloy.innertube.pages.SearchResult
 import com.maloy.muzza.data.repository.MusicRepository
 import com.maloy.muzza.util.ioDispatcher
 import kotlinx.coroutines.Job
@@ -16,7 +16,7 @@ class OnlineSearchViewModel(
 ) : ViewModel() {
 
     val query = MutableStateFlow("")
-    val searchPage = MutableStateFlow<SearchPage?>(null)
+    val searchPage = MutableStateFlow<SearchResult?>(null)
     val suggestions = MutableStateFlow<List<String>>(emptyList())
     val isLoading = MutableStateFlow(false)
     val error = MutableStateFlow<String?>(null)
@@ -29,7 +29,7 @@ class OnlineSearchViewModel(
         searchJob = viewModelScope.launch(ioDispatcher) {
             isLoading.value = true
             error.value = null
-            YouTube.search(q, filter).onSuccess { searchPage.value = it }
+            YouTube.search(q, YouTube.SearchFilter(filter.orEmpty())).onSuccess { searchPage.value = it }
                 .onFailure { error.value = it.message }
             isLoading.value = false
         }

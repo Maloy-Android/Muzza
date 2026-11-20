@@ -242,7 +242,13 @@ navigation-compose = "2.9.0"    # Official KMP Navigation
 - `extensions/`, `constants/`, `models/` скопированы в `shared/commonMain`
 
 ### Next Actions
-- [ ] Убрать Android-специфичные импорты из скопированных UI файлов (`@StringRes`, `@DrawableRes`, `LocalContext`)
+- [ ] Мигрировать скопированные UI-файлы с Android API (`R`, Media3, `LocalContext`, Intent/Toast/DownloadService) на Compose Multiplatform
 - [ ] Мигрировать `extensions/` — убрать `java.*` импорты
 - [ ] Настроить `iosApp/iosApp.xcodeproj`
-- [ ] Проверить сборку `./gradlew :shared:compileKotlinAndroid`
+- [ ] Проверить сборку Android и KMP framework для iOS
+
+### Краткий статус продолжения работы
+- iOS target `:shared:compileKotlinIosSimulatorArm64` собирается успешно.
+- Android-only зависимости вынесены из `commonMain`: `kotlinx-coroutines-guava` доступен только в `androidMain`.
+- `innertube` и `lrclib` очищены от JVM-only API для iOS target.
+- В Native-компиляции временно исключён немигрированный Android UI-код; это не завершённая UI-миграция.

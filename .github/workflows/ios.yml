@@ -2,7 +2,7 @@ name: iOS Build
 
 on:
   push:
-    branches: [ main, master ]
+    branches: [ main, master, kmp ]
   workflow_dispatch:
 
 jobs:
@@ -34,49 +34,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-konan-
 
-      - name: Build Shared XCFramework
-        run: ./gradlew :shared:assembleSharedReleaseXCFramework --stacktrace
-
       - name: Select Xcode
         run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
-
-      - name: Install CocoaPods
-        run: |
-          gem install cocoapods
-          cd iosApp && pod install --repo-update || true
 
       - name: Build iOS App (Simulator)
         run: |
           xcodebuild \
-            -workspace iosApp/iosApp.xcworkspace \
-            -scheme iosApp \
-            -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
-            -configuration Debug \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            build | xcpretty || \
-          xcodebuild \
             -project iosApp/iosApp.xcodeproj \
-            -scheme iosApp \
+            -target iosApp \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             build
-
-      - name: Build iOS IPA (unsigned, for testing)
-        run: |
-          xcodebuild \
-            -project iosApp/iosApp.xcodeproj \
-            -scheme iosApp \
-            -destination 'generic/platform=iOS' \
-            -configuration Release \
-            CODE_SIGN_IDENTITY="" \
-            CODE_SIGNING_REQUIRED=NO \
-            CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM="" \
-            archive \
-            -archivePath build/Muzza.xcarchive || true
 
       - name: Upload iOS Simulator Build
         uses: actions/upload-artifact@v4
@@ -84,6 +54,5 @@ jobs:
         with:
           name: muzza-ios-simulator
           path: |
-            build/Muzza.xcarchive
             ~/Library/Developer/Xcode/DerivedData/**/Build/Products/**/*.app
           retention-days: 7

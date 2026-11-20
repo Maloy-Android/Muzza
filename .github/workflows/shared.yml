@@ -2,7 +2,7 @@ name: Shared KMP Build & Test
 
 on:
   push:
-    branches: [ main, master, dev ]
+    branches: [ main, master, dev, kmp ]
   pull_request:
     branches: [ main, master ]
   workflow_dispatch:
@@ -35,7 +35,7 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
 
       - name: Compile Shared (Android)
-        run: ./gradlew :shared:compileKotlinAndroid --stacktrace
+        run: ./gradlew :shared:compileAndroidMain --stacktrace
 
       - name: Run Shared Tests
         run: ./gradlew :shared:jvmTest --stacktrace || true

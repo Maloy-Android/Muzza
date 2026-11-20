@@ -6,6 +6,7 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.Artist
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.BrowseEndpoint
+import com.maloy.innertube.models.Continuation
 import com.maloy.innertube.models.GridRenderer
 import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.MusicResponsiveListItemRenderer
@@ -578,11 +579,12 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         }
     }
 
-    suspend fun playlist(playlistId: String): Result<PlaylistPage> = runCatching {
+    suspend fun playlist(playlistId: String, setLogin: Boolean = true): Result<PlaylistPage> = runCatching {
         val response = innerTube.browse(
             client = WEB_REMIX,
             browseId = "VL$playlistId",
-            setLogin = true
+            setLogin = setLogin,
+            useLoginForBrowseEnabled = setLogin
         ).body<BrowseResponse>()
         val base =
             response.contents?.twoColumnBrowseResultsRenderer?.tabs?.firstOrNull()?.tabRenderer?.content?.sectionListRenderer?.contents?.firstOrNull()
@@ -756,12 +758,13 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
         )
     }
 
-    suspend fun playlistContinuation(continuation: String): Result<PlaylistContinuationPage> = runCatching {
+    suspend fun playlistContinuation(continuation: String, setLogin: Boolean = true): Result<PlaylistContinuationPage> = runCatching {
         val response = innerTube.browse(
             client = WEB_REMIX,
             continuation = continuation,
             browseId = "",
-            setLogin = false
+            setLogin = setLogin,
+            useLoginForBrowseEnabled = setLogin
         ).body<BrowseResponse>()
 
         val mainContents: List<MusicShelfRenderer.Content> = response.continuationContents?.sectionListContinuation?.contents
@@ -810,15 +813,15 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     ?.getContinuation()
         }
 
-        val similarPlaylists = (response.continuationContents?.gridContinuation?.items.orEmpty()
-            .mapNotNull { it.musicTwoRowItemRenderer } +
-                response.continuationContents?.sectionListContinuation?.contents.orEmpty()
-                    .mapNotNull { it.musicCarouselShelfRenderer }
-                    .flatMap { carousel -> carousel.contents.mapNotNull { it.musicTwoRowItemRenderer } })
+        val similarPlaylists = response.continuationContents
+            ?.sectionListContinuation
+            ?.contents
+            .orEmpty()
+            .mapNotNull { it.musicCarouselShelfRenderer }
+            .flatMap { carousel -> carousel.contents.mapNotNull { it.musicTwoRowItemRenderer } }
             .mapNotNull { renderer ->
                 runCatching {
                     NewMixesPlaylistsPage.fromMusicTwoRowItemRenderer(renderer)
-                        ?: (RelatedPage.fromMusicTwoRowItemRenderer(renderer) as? PlaylistItem)
                 }.getOrNull()
             }
             .distinctBy { it.id }

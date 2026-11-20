@@ -11,7 +11,7 @@ object NewMixesPlaylistsPage{
                 "VL"
             ) ?: return null,
             title = renderer.title.runs?.firstOrNull()?.text ?: return null,
-            author = renderer.subtitle?.runs?.firstOrNull()?.let { runs ->
+            author = renderer.subtitle?.runs?.getOrNull(2)?.let { runs ->
                 Artist(
                     name = renderer.subtitle.runs.joinToString(separator = "") { it.text },
                     id = runs.navigationEndpoint?.browseEndpoint?.browseId

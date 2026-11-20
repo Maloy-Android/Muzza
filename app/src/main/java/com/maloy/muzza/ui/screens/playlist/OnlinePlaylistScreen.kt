@@ -147,6 +147,7 @@ import com.maloy.muzza.ui.component.shimmer.PlaylistAlbumItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
 import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
+import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
@@ -924,7 +925,7 @@ fun OnlinePlaylistScreen(
                                                     onLongClick = {
                                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                                         menuState.show {
-                                                            YouTubePlaylistMenuInPlaylistScreen(
+                                                            YouTubePlaylistMenu(
                                                                 navController = navController,
                                                                 playlist = playlist,
                                                                 songs = songs,

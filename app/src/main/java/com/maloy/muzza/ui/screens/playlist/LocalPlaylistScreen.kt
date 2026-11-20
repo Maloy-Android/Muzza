@@ -34,6 +34,8 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -142,12 +144,17 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
+import com.maloy.muzza.ui.component.NavigationTitle
+import com.maloy.muzza.ui.component.PlaylistGridItem
 import com.maloy.muzza.ui.component.SongListItem
 import com.maloy.muzza.ui.component.SortHeader
 import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.menu.PlaylistMenu
 import com.maloy.muzza.ui.menu.SongMenu
 import com.maloy.muzza.ui.menu.SongSelectionMenu
+import com.maloy.muzza.ui.menu.YouTubePlaylistMenu
+import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.utils.backToMain
 import com.maloy.muzza.utils.isInternetAvailable
 import com.maloy.muzza.utils.makeTimeString
@@ -190,6 +197,7 @@ fun LocalPlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
+    val similarPlaylists by viewModel.similarPlaylists.collectAsState()
 
     val playlistPlaying = mediaMetadata?.playlist?.id == playlist?.playlist?.id
 
@@ -576,7 +584,47 @@ fun LocalPlaylistScreen(
                                     inSelectMode = true
                                     onCheckedChange(true)
                                 }
-                            }))
+                            })
+                    )
+                }
+            }
+            if (similarPlaylists.isNotEmpty()) {
+                item {
+                    NavigationTitle(
+                        title = stringResource(R.string.similar_playlists),
+                    )
+                }
+                item {
+                    LazyRow {
+                        items(
+                            items = similarPlaylists,
+                            key = { it.id },
+                        ) { item ->
+                            YouTubeGridItem(
+                                item = item,
+                                isActive = mediaMetadata?.playlist?.id == item.id,
+                                isPlaying = isPlaying,
+                                navController = navController,
+                                modifier = Modifier
+                                    .combinedClickable(
+                                        onClick = { navController.navigate("online_playlist/${item.id}") },
+                                        onLongClick = {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            menuState.show {
+                                                YouTubePlaylistMenu(
+                                                    navController = navController,
+                                                    playlist = item,
+                                                    songs = emptyList(),
+                                                    coroutineScope = coroutineScope,
+                                                    onDismiss = menuState::dismiss
+                                                )
+                                            }
+                                        },
+                                    )
+                                    .animateItem(),
+                            )
+                        }
+                    }
                 }
             }
         }

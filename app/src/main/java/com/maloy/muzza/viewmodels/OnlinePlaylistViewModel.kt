@@ -114,7 +114,7 @@ class OnlinePlaylistViewModel @Inject constructor(
             songsContinuation = null
             proactiveLoadJob?.cancel()
 
-            YouTube.playlist(playlistId)
+            YouTube.playlist(playlistId, setLogin = false)
                 .onSuccess { playlistPage ->
                     playlist.value = playlistPage.playlist
                     playlistContinuation = playlistPage.continuation
@@ -143,7 +143,7 @@ class OnlinePlaylistViewModel @Inject constructor(
             songsContinuation = null
             proactiveLoadJob?.cancel()
             try {
-                YouTube.playlist(playlistId)
+                YouTube.playlist(playlistId, setLogin = false)
                     .onSuccess { playlistPage ->
                         playlist.value = playlistPage.playlist
                         playlistContinuation = playlistPage.continuation
@@ -217,7 +217,7 @@ class OnlinePlaylistViewModel @Inject constructor(
         if (similarPlaylistsJob?.isActive == true) return
 
         similarPlaylistsJob = viewModelScope.launch(Dispatchers.IO) {
-            YouTube.playlistContinuation(token)
+            YouTube.playlistContinuation(token, setLogin = false)
                 .onSuccess { page ->
                     if (page.similarPlaylists.isNotEmpty()) {
                         similarPlaylists.value = page.similarPlaylists

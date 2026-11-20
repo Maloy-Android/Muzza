@@ -1,0 +1,24 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by net.rubygrapefruit.platform.internal.NativeLibraryLoader in an unnamed module (file:/C:/Users/MaloyBegonia/.gradle/wrapper/dists/gradle-9.8.2-bin/8wepis63pzuhrlfaiy04bagwu/gradle-9.8.2/lib/native-platform-0.22-milestone-29.jar)
+WARNING: Use --enable-native-access=ALL-UNNAMED to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+e: file:///C:/Users/MaloyBegonia/Muzza/innertube/src/commonMain/kotlin/com/maloy/innertube/YouTube.kt:1354:23 Too many characters in a character literal.
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Execution failed for task ':innertube:compileKotlinJvm' (registered in build file 'innertube\build.gradle.kts').
+> A failure occurred while executing org.jetbrains.kotlin.compilerRunner.btapi.BuildToolsApiCompilationWork
+   > Kotlin compiler: TOO_MANY_CHARACTERS_IN_CHARACTER_LITERAL
+       Kotlin compiler error
+         Too many characters in a character literal.
+         Location: C:/Users/MaloyBegonia/Muzza/innertube/src/commonMain/kotlin/com/maloy/innertube/YouTube.kt:1354
+
+* Try:
+> Run with --stacktrace option to get the stack trace.
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+BUILD FAILED in 49s

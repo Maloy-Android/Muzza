@@ -1,0 +1,37 @@
+CREATE TABLE IF NOT EXISTS playlist (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    browseId TEXT,
+    playlistAuthorsId TEXT,
+    playlistAuthorName TEXT,
+    playlistAuthorAvatarUrl TEXT,
+    createdAt TEXT,
+    lastUpdateTime TEXT,
+    isEditable INTEGER NOT NULL DEFAULT 1,
+    bookmarkedAt TEXT,
+    remoteSongCount INTEGER,
+    playEndpointParams TEXT,
+    thumbnailUrl TEXT,
+    shuffleEndpointParams TEXT,
+    radioEndpointParams TEXT,
+    description TEXT,
+    isLocal INTEGER NOT NULL DEFAULT 0
+);
+
+upsert:
+INSERT OR REPLACE INTO playlist VALUES ?;
+
+selectById:
+SELECT * FROM playlist WHERE id = :id;
+
+selectAll:
+SELECT * FROM playlist ORDER BY createdAt DESC;
+
+selectBookmarked:
+SELECT * FROM playlist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt DESC;
+
+updateBookmarkedAt:
+UPDATE playlist SET bookmarkedAt = :bookmarkedAt WHERE id = :id;
+
+delete:
+DELETE FROM playlist WHERE id = :id;

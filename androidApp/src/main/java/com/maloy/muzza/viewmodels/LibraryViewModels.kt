@@ -1,0 +1,543 @@
+@file:OptIn(ExperimentalCoroutinesApi::class)
+
+package com.maloy.muzza.viewmodels
+
+import android.content.Context
+import androidx.datastore.preferences.core.edit
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.media3.datasource.cache.SimpleCache
+import androidx.media3.exoplayer.offline.Download
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.LikedMusicPlaylistFragments
+import com.maloy.muzza.constants.AlbumFilter
+import com.maloy.muzza.constants.AlbumFilterKey
+import com.maloy.muzza.constants.AlbumSortDescendingKey
+import com.maloy.muzza.constants.AlbumSortType
+import com.maloy.muzza.constants.AlbumSortTypeKey
+import com.maloy.muzza.constants.ArtistFilter
+import com.maloy.muzza.constants.ArtistFilterKey
+import com.maloy.muzza.constants.ArtistSongSortDescendingKey
+import com.maloy.muzza.constants.ArtistSongSortType
+import com.maloy.muzza.constants.ArtistSongSortTypeKey
+import com.maloy.muzza.constants.ArtistSortDescendingKey
+import com.maloy.muzza.constants.ArtistSortType
+import com.maloy.muzza.constants.ArtistSortTypeKey
+import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.muzza.constants.MyTopFilter
+import com.maloy.muzza.constants.PlaylistFilter
+import com.maloy.muzza.constants.PlaylistFilterKey
+import com.maloy.muzza.constants.PlaylistSortDescendingKey
+import com.maloy.muzza.constants.PlaylistSortType
+import com.maloy.muzza.constants.PlaylistSortTypeKey
+import com.maloy.muzza.constants.SongSortType
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
+import com.maloy.muzza.constants.likedMusicDescriptionKey
+import com.maloy.muzza.constants.likedMusicThumbnailKey
+import com.maloy.muzza.constants.likedMusicTitleKey
+import com.maloy.muzza.db.MusicDatabase
+import com.maloy.muzza.di.DownloadCache
+import com.maloy.muzza.di.PlayerCache
+import com.maloy.muzza.extensions.toEnum
+import com.maloy.muzza.playback.DownloadUtil
+import com.maloy.muzza.utils.CacheUtils
+import com.maloy.muzza.utils.SyncUtils
+import com.maloy.muzza.utils.dataStore
+import com.maloy.muzza.utils.reportException
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.distinctUntilChangedBy
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
+import java.time.Duration
+import java.time.LocalDateTime
+import javax.inject.Inject
+import kotlin.collections.filter
+import kotlin.time.Duration.Companion.milliseconds
+
+@HiltViewModel
+class LibraryArtistsViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    database: MusicDatabase,
+    private val syncUtils: SyncUtils,
+) : ViewModel() {
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    val allArtists = context.dataStore.data
+        .map {
+            Triple(
+                it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
+                it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
+                it[ArtistSortDescendingKey] ?: true
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, sortType, descending) ->
+            when (filter) {
+                ArtistFilter.LIBRARY -> database.artists(sortType, descending)
+                ArtistFilter.PROFILES -> database.profilesBookmarked(sortType, descending)
+                ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    fun syncArtists() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncArtistsSubscriptions() } }
+    fun syncProfiles() { viewModelScope.launch (Dispatchers.IO) { syncUtils.syncProfilesSubscriptions() } }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncArtistsSubscriptions()
+                syncUtils.syncProfilesSubscriptions()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh artists"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            allArtists.collect { artists ->
+                artists
+                    ?.map { it.artist }
+                    ?.filter {
+                        it.thumbnailUrl == null || Duration.between(it.lastUpdateTime, LocalDateTime.now()) > Duration.ofDays(10)
+                    }
+                    ?.forEach { artist ->
+                        YouTube.artist(artist.id).onSuccess { artistPage ->
+                            database.query {
+                                update(artist, artistPage)
+                            }
+                        }
+                    }
+            }
+        }
+    }
+}
+
+@HiltViewModel
+class LibraryAlbumsViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    database: MusicDatabase,
+    private val syncUtils: SyncUtils,
+    downloadUtil: DownloadUtil
+) : ViewModel() {
+    @OptIn(ExperimentalCoroutinesApi::class)
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    val allAlbums = context.dataStore.data
+        .map {
+            Triple(
+                it[AlbumFilterKey].toEnum(AlbumFilter.LIKED),
+                it[AlbumSortTypeKey].toEnum(AlbumSortType.CREATE_DATE),
+                it[AlbumSortDescendingKey] ?: true
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, sortType, descending) ->
+            when (filter) {
+                AlbumFilter.LIBRARY -> database.albums(sortType, descending)
+                AlbumFilter.LIKED -> database.albumsLiked(sortType, descending)
+                AlbumFilter.DOWNLOADED -> combine(
+                    database.combinedAlbums(sortType, descending),
+                    downloadUtil.downloads
+                ) { albums, downloads ->
+                    albums.filter { album ->
+                        database.albumSongs(album.id).first().all { song ->
+                            downloads[song.id]?.state == Download.STATE_COMPLETED
+                        }
+                    }
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncLikedAlbums() } }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncLikedAlbums()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh albums"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch(Dispatchers.IO) {
+            allAlbums.collect { albums ->
+                albums
+                    ?.filter {
+                        it.album.songCount == 0
+                    }
+                    ?.forEach { album ->
+                        YouTube.album(album.id)?.onSuccess { albumPage ->
+                            database.query {
+                                update(album.album, albumPage)
+                            }
+                        }?.onFailure {
+                            reportException(it)
+                            if (it.message?.contains("NOT_FOUND") == true) {
+                                database.query {
+                                    delete(album.album)
+                                }
+                            }
+                        }
+                    }
+            }
+        }
+    }
+}
+
+@HiltViewModel
+class LibraryPlaylistsViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    database: MusicDatabase,
+    private val syncUtils: SyncUtils,
+    downloadUtil: DownloadUtil
+) : ViewModel() {
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    val allPlaylists = context.dataStore.data
+        .map { preferences ->
+            Triple(
+                preferences[PlaylistFilterKey]?.toEnum(PlaylistFilter.LIKED) ?: PlaylistFilter.LIKED,
+                preferences[PlaylistSortTypeKey]?.toEnum(PlaylistSortType.CREATE_DATE) ?: PlaylistSortType.CREATE_DATE,
+                preferences[PlaylistSortDescendingKey] ?: true
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, sortType, descending) ->
+            when (filter) {
+                PlaylistFilter.LIKED -> database.playlists(sortType, descending)
+                PlaylistFilter.LOCAL -> database.localPlaylists(sortType, descending)
+                PlaylistFilter.DOWNLOADED -> combine(
+                    database.combinedPlaylists(sortType, descending),
+                    downloadUtil.downloads
+                ) { playlists, downloads ->
+                    playlists.filter { playlist ->
+                        val songs = database.playlistSongs(playlist.id).first()
+                        songs.isNotEmpty() && songs.all { song ->
+                            downloads[song.song.id]?.state == Download.STATE_COMPLETED
+                        }
+                    }
+                }
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    fun sync() { viewModelScope.launch(Dispatchers.IO) { syncUtils.syncSavedPlaylists() } }
+
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncUtils.syncSavedPlaylists()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh playlists"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+}
+
+@HiltViewModel
+class ArtistSongsViewModel @Inject constructor(
+    @ApplicationContext context: Context,
+    database: MusicDatabase,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val artistId = savedStateHandle.get<String>("artistId")!!
+    val artist = database.artist(artistId)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val songs = context.dataStore.data
+        .map {
+            it[ArtistSongSortTypeKey].toEnum(ArtistSongSortType.CREATE_DATE) to (it[ArtistSongSortDescendingKey] ?: true)
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (sortType, descending) ->
+            database.artistSongs(artistId, sortType, descending)
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+}
+
+@HiltViewModel
+class LibraryMixViewModel @Inject constructor(
+    database: MusicDatabase,
+    downloadUtil: DownloadUtil,
+    private val syncUtils: SyncUtils,
+    private val cacheUtils: CacheUtils,
+    @PlayerCache private val playerCache: SimpleCache,
+    @DownloadCache private val downloadCache: SimpleCache,
+    @ApplicationContext private val context: Context,
+) : ViewModel() {
+    private val _playlistInfo = MutableStateFlow<LikedMusicPlaylistFragments?>(null)
+
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
+    private val savedLikedMusicThumbnail = context.dataStore.data
+        .map { it[likedMusicThumbnailKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicTitle = context.dataStore.data
+        .map { it[likedMusicTitleKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicAuthorId = context.dataStore.data
+        .map { it[likedMusicAuthorIdKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicAuthorName = context.dataStore.data
+        .map { it[likedMusicAuthorNameKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicAuthorAvatarImage = context.dataStore.data
+        .map { it[likedMusicAuthorAvatarImageKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    private val savedLikedMusicDescription = context.dataStore.data
+        .map { it[likedMusicDescriptionKey] ?: "" }
+        .stateIn(viewModelScope, SharingStarted.Lazily, "")
+
+    init {
+        viewModelScope.launch {
+            while (true) {
+                val cachedIds = playerCache.keys.map { it }.toSet()
+                val downloadedIds = downloadCache.keys.map { it }.toSet()
+                val pureCacheIds = cachedIds.subtract(downloadedIds)
+
+                val songs = if (pureCacheIds.isNotEmpty()) {
+                    database.getSongsByIds(pureCacheIds.toList())
+                } else {
+                    emptyList()
+                }
+
+                val completeSongs = songs.filter {
+                    val contentLength = it.format?.contentLength
+                    contentLength != null && playerCache.isCached(it.song.id, 0, contentLength)
+                }
+
+                if (completeSongs.isNotEmpty()) {
+                    database.query {
+                        completeSongs.forEach {
+                            if (it.song.dateDownload == null) {
+                                update(it.song.copy(dateDownload = LocalDateTime.now()))
+                            }
+                        }
+                    }
+                }
+
+                delay(1000.milliseconds)
+            }
+        }
+        viewModelScope.launch(Dispatchers.IO) {
+            val currentThumbnail = savedLikedMusicThumbnail.first()
+            val currentTitle = savedLikedMusicTitle.first()
+            val currentAuthorId = savedLikedMusicAuthorId.first()
+            val currentAuthorName = savedLikedMusicAuthorName.first()
+            val currentAuthorAvatarImage = savedLikedMusicAuthorAvatarImage.first()
+            val currentDescription = savedLikedMusicDescription.first()
+
+            if (currentThumbnail.isEmpty() || currentTitle.isEmpty() || currentAuthorId.isEmpty() || currentAuthorName.isEmpty() || currentAuthorAvatarImage.isEmpty() || currentDescription.isEmpty()) {
+                try {
+                    val fragments = syncUtils.getLikedMusicPlaylistFragments()
+                    fragments?.let {
+                        _playlistInfo.value = it
+                        saveLikedMusicInfo(it.likedMusicThumbnail, it.likedMusicTitle, it.likedMusicAuthorId, it.likedMusicAuthorName, it.likedMusicAuthorAvatarImage, it.likedMusicDescription)
+                    }
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
+            } else {
+                _playlistInfo.value = LikedMusicPlaylistFragments(
+                    likedMusicThumbnail = currentThumbnail,
+                    likedMusicTitle = currentTitle,
+                    likedMusicAuthorId = currentAuthorId,
+                    likedMusicAuthorName = currentAuthorName,
+                    likedMusicAuthorAvatarImage = currentAuthorAvatarImage,
+                    likedMusicDescription = currentDescription
+                )
+            }
+        }
+    }
+
+    private suspend fun saveLikedMusicInfo(thumbnail: String?, title: String?, authorId: String?, authorName: String?, authorAvatar: String?, description: String?) {
+        context.dataStore.edit { preferences ->
+            thumbnail?.let { preferences[likedMusicThumbnailKey] = it }
+            title?.let { preferences[likedMusicTitleKey] = it }
+            authorId?.let { preferences[likedMusicAuthorIdKey] = it }
+            authorName?.let { preferences[likedMusicAuthorNameKey] = it }
+            authorAvatar?.let { preferences[likedMusicAuthorAvatarImageKey] = it }
+            description?.let { preferences[likedMusicDescriptionKey] = it }
+        }
+    }
+    val syncAllLibrary = {
+        viewModelScope.launch(Dispatchers.IO) {
+            syncUtils.syncLikedSongs()
+            syncUtils.syncArtistsSubscriptions()
+            syncUtils.syncProfilesSubscriptions()
+            syncUtils.syncLikedAlbums()
+            syncUtils.syncSavedPlaylists()
+            cacheUtils.syncCachedSongs()
+        }
+    }
+    fun refresh() {
+        viewModelScope.launch {
+            try {
+                _isRefreshing.value = true
+                syncAllLibrary
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh library"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+    val allArtists = context.dataStore.data
+        .map {
+            Triple(
+                it[ArtistFilterKey].toEnum(ArtistFilter.LIKED),
+                it[ArtistSortTypeKey].toEnum(ArtistSortType.CREATE_DATE),
+                it[ArtistSortDescendingKey] ?: true
+            )
+        }
+        .distinctUntilChanged()
+        .flatMapLatest { (filter, sortType, descending) ->
+            when (filter) {
+                ArtistFilter.LIBRARY -> database.artists(sortType, descending)
+                ArtistFilter.LIKED -> database.artistsBookmarked(sortType, descending)
+                ArtistFilter.PROFILES -> database.profilesBookmarked(sortType, descending)
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    var albums = database.combinedAlbums(AlbumSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    var playlists = database.combinedPlaylists(PlaylistSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
+    val likedSongs = database.likedSongs(SongSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    // Section counts are read straight from SQL COUNT(...) instead of materializing the full
+    // relation-joined song lists just to call .size on them. This lets the cards show the
+    // correct numbers immediately (instead of "0 songs" until the whole list loads) and avoids
+    // heavy work on every library change.
+    val likedSongsCount = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            if (hideExplicit) {
+                database.likedSongCountExplicit()
+            } else {
+                database.likedSongsCount()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val librarySongsCount = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            if (hideExplicit) {
+                database.librarySongCountExplicit()
+            } else {
+                database.librarySongsCount()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val localSongsCount = database.localSongsCount()
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val cachedSongsCount = context.dataStore.data
+        .map { it[HideExplicitKey] ?: false }
+        .distinctUntilChanged()
+        .flatMapLatest { hideExplicit ->
+            if (hideExplicit) {
+                database.cachedSongCountExplicit()
+            } else {
+                database.cachedSongsCount()
+            }
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val librarySongs = database.librarySongs(SongSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val libraryLikedLibrarySongs = database.likedOrLibrarySongs()
+        // Only emit when the actual set of songs changes, not on every metadata/date update.
+        // Prevents the (network + DB write) effect that observes this from re-firing constantly
+        // while songs are being downloaded/cached.
+        .distinctUntilChangedBy { songs -> songs.map { it.song.id } }
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val localSongs = database.localSongs(SongSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+
+    val cachedSongs = database.cachedSongs(SongSortType.CREATE_DATE, true)
+        .stateIn(viewModelScope, SharingStarted.Lazily, null)
+    val downloadSongs = combine(
+        downloadUtil.downloads
+            .map { downloads ->
+                downloads.filterValues { it.state == Download.STATE_COMPLETED }.keys
+            }
+            .distinctUntilChanged()
+            .flatMapLatest { completedIds ->
+                if (completedIds.isEmpty()) {
+                    flowOf(emptyList())
+                } else {
+                    database.songsByIdsFlow(completedIds.toList())
+                        .flowOn(Dispatchers.IO)
+                }
+            },
+        context.dataStore.data
+            .map { it[HideExplicitKey] ?: false }
+            .distinctUntilChanged()
+    ) { songs, hideExplicit ->
+        if (hideExplicit) songs.filter { !it.song.explicit } else songs
+    }
+
+    val topSongs = combine(
+        database.mostPlayedSongs(MyTopFilter.ALL_TIME.toTimeMillis(), 50),
+        context.dataStore.data
+            .map { it[HideExplicitKey] ?: false }
+            .distinctUntilChanged()
+    ) { songs, hideExplicit ->
+        if (hideExplicit) songs.filter { !it.song.explicit } else songs
+    }
+}

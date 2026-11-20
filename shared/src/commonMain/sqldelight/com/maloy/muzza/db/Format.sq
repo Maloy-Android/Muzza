@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS format (
+    id TEXT NOT NULL PRIMARY KEY,
+    itag INTEGER,
+    mimeType TEXT,
+    codecs TEXT,
+    bitrate INTEGER,
+    sampleRate INTEGER,
+    contentLength INTEGER,
+    loudnessDb REAL,
+    playbackUrl TEXT,
+    expiredAt INTEGER
+);
+
+upsert:
+INSERT OR REPLACE INTO format VALUES ?;
+
+selectById:
+SELECT * FROM format WHERE id = :id;
+
+deleteExpired:
+DELETE FROM format WHERE expiredAt < :now;
+
+delete:
+DELETE FROM format WHERE id = :id;

@@ -1,0 +1,584 @@
+package com.maloy.muzza.ui.screens.settings
+
+import android.annotation.SuppressLint
+import android.text.format.Formatter
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.CloudDownload
+import androidx.compose.material.icons.rounded.CloudOff
+import androidx.compose.material.icons.rounded.HideImage
+import androidx.compose.material.icons.rounded.Image
+import androidx.compose.material.icons.rounded.MusicNote
+import androidx.compose.material.icons.rounded.MusicOff
+import androidx.compose.material.icons.rounded.Translate
+import androidx.compose.material3.Card
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Slider
+import androidx.compose.material3.SliderDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment.Companion.CenterVertically
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
+import androidx.media3.exoplayer.offline.DownloadService
+import androidx.navigation.NavController
+import coil.annotation.ExperimentalCoilApi
+import coil.imageLoader
+import com.maloy.muzza.BuildConfig
+import com.maloy.muzza.LocalPlayerConnection
+import com.maloy.muzza.R
+import com.maloy.muzza.constants.MaxImageCacheSizeKey
+import com.maloy.muzza.constants.MaxSongCacheSizeKey
+import com.maloy.muzza.constants.SliderStyle
+import com.maloy.muzza.constants.SliderStyleKey
+import com.maloy.muzza.extensions.tryOrNull
+import com.maloy.muzza.playback.ExoDownloadService
+import com.maloy.muzza.ui.component.DefaultDialog
+import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.PlayerSliderTrack
+import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.TranslationHelper
+import com.maloy.muzza.utils.rememberEnumPreference
+import com.maloy.muzza.utils.rememberPreference
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import me.saket.squiggles.SquigglySlider
+
+@SuppressLint("PrivateResource")
+@OptIn(ExperimentalCoilApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun StorageSettings(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+) {
+    val context = LocalContext.current
+    val imageDiskCache = context.imageLoader.diskCache ?: return
+    val playerCache = LocalPlayerConnection.current?.service?.playerCache ?: return
+    val downloadCache = LocalPlayerConnection.current?.service?.downloadCache ?: return
+
+    val coroutineScope = rememberCoroutineScope()
+    val (maxImageCacheSize, onMaxImageCacheSizeChange) = rememberPreference(
+        key = MaxImageCacheSizeKey,
+        defaultValue = 512
+    )
+    val (maxSongCacheSize, onMaxSongCacheSizeChange) = rememberPreference(
+        key = MaxSongCacheSizeKey,
+        defaultValue = 1024
+    )
+
+    var imageCacheSize by remember { mutableLongStateOf(imageDiskCache.size) }
+    var playerCacheSize by remember { mutableLongStateOf(tryOrNull { playerCache.cacheSpace } ?: 0) }
+    var downloadCacheSize by remember { mutableLongStateOf(tryOrNull { downloadCache.cacheSpace } ?: 0) }
+
+    LaunchedEffect(maxImageCacheSize) {
+        if (maxImageCacheSize == 0) {
+            coroutineScope.launch(Dispatchers.IO) {
+                imageDiskCache.clear()
+            }
+        }
+    }
+    LaunchedEffect(maxSongCacheSize) {
+        if (maxSongCacheSize == 0) {
+            coroutineScope.launch(Dispatchers.IO) {
+                playerCache.keys.forEach { key ->
+                    playerCache.removeResource(key)
+                }
+            }
+        }
+    }
+    LaunchedEffect(Unit) {
+        imageCacheSize = imageDiskCache.size
+        playerCacheSize = tryOrNull { playerCache.cacheSpace } ?: 0
+        downloadCacheSize = tryOrNull { downloadCache.cacheSpace } ?: 0
+        delay(500)
+    }
+
+    var showClearAllDownloadsDialog by remember { mutableStateOf(false) }
+    var showClearSongCacheDialog by remember { mutableStateOf(false) }
+    var showClearImagesCacheDialog by remember { mutableStateOf(false) }
+    var showClearTranslationModels by remember { mutableStateOf(false) }
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text(text = stringResource(R.string.storage)) },
+                navigationIcon = {
+                    IconButton(
+                        onClick = navController::navigateUp,
+                        onLongClick = navController::backToMain
+                    ) {
+                        Icon(
+                            painterResource(R.drawable.arrow_back),
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
+                },
+                scrollBehavior = scrollBehavior,
+            )
+        },
+    ) { padding ->
+        LazyColumn(
+            modifier = Modifier
+                .padding(padding)
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+        ) {
+            item {
+                StorageCategoryHeader(
+                    title = stringResource(R.string.downloaded_songs),
+                    icon = Icons.Outlined.CloudDownload,
+                )
+                Card(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Text(
+                            text = Formatter.formatShortFileSize(context,downloadCacheSize),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        FilledTonalButton(
+                            onClick = { showClearAllDownloadsDialog = true },
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Text(text = stringResource(R.string.clear_all_downloads))
+                        }
+                    }
+                }
+            }
+
+            item {
+                StorageCategoryHeader(
+                    title = stringResource(R.string.song_cache),
+                    icon = Icons.Rounded.MusicNote,
+                )
+                CacheCard(
+                    usedSpace = if (maxSongCacheSize != 0) playerCacheSize else 0,
+                    totalSpace = maxSongCacheSize * 1024 * 1024L,
+                    selectedValue = maxSongCacheSize,
+                    onValueChange = onMaxSongCacheSizeChange,
+                    showProgress = maxSongCacheSize != -1 && maxSongCacheSize != 0,
+                    onClear = { showClearSongCacheDialog = true },
+                    clearButtonText = stringResource(R.string.clear_song_cache)
+                )
+            }
+
+            item {
+                StorageCategoryHeader(
+                    title = stringResource(R.string.image_cache),
+                    icon = Icons.Rounded.Image,
+                )
+                CacheCard(
+                    usedSpace = if (maxImageCacheSize != 0) imageCacheSize else 0,
+                    totalSpace = maxImageCacheSize * 1024 * 1024L,
+                    selectedValue = maxImageCacheSize,
+                    onValueChange = onMaxImageCacheSizeChange,
+                    showProgress = maxImageCacheSize != -1 && maxImageCacheSize != 0,
+                    onClear = { showClearImagesCacheDialog = true },
+                    clearButtonText = stringResource(R.string.clear_image_cache)
+                )
+            }
+
+            if (BuildConfig.FLAVOR != "foss") {
+                item {
+                    StorageCategoryHeader(
+                        title = stringResource(R.string.translation_models),
+                        icon = Icons.Rounded.Translate,
+                    )
+                    ModelManagementCard(
+                        onClear = { showClearTranslationModels = true }
+                    )
+                }
+            }
+        }
+    }
+    if (showClearAllDownloadsDialog) {
+        DefaultDialog(
+            onDismiss = { showClearAllDownloadsDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_all_downloads_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icon(Icons.Rounded.CloudOff,null) },
+            buttons = {
+                TextButton(
+                    onClick = { showClearAllDownloadsDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearAllDownloadsDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            downloadCache.keys.forEach { key ->
+                                DownloadService.sendRemoveDownload(
+                                    context,
+                                    ExoDownloadService::class.java,
+                                    key,
+                                    false
+                                )
+                            }
+                            downloadCache.keys.forEach { key ->
+                                downloadCache.removeResource(key)
+                            }
+                        }
+                        downloadCacheSize = 0
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+    if (showClearImagesCacheDialog) {
+        DefaultDialog(
+            onDismiss = { showClearImagesCacheDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_images_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icon(Icons.Rounded.HideImage,null) },
+            buttons = {
+                TextButton(
+                    onClick = { showClearImagesCacheDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearImagesCacheDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            imageDiskCache.clear()
+                        }
+                        imageCacheSize = 0
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+    if (showClearSongCacheDialog) {
+        DefaultDialog(
+            onDismiss = { showClearSongCacheDialog = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_song_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icon(Icons.Rounded.MusicOff,null) },
+            buttons = {
+                TextButton(
+                    onClick = { showClearSongCacheDialog = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearSongCacheDialog = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            playerCache.keys.forEach { key ->
+                                playerCache.removeResource(key)
+                            }
+                        }
+                        playerCacheSize = 0
+                    }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+    if (showClearTranslationModels) {
+        DefaultDialog(
+            onDismiss = { showClearTranslationModels = false },
+            content = {
+                Text(
+                    text = stringResource(R.string.clear_translation_models_cache_dialog),
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(horizontal = 18.dp)
+                )
+            },
+            icon = { Icon(Icons.Rounded.Translate,null) },
+            buttons = {
+                TextButton(
+                    onClick = { showClearTranslationModels = false }
+                ) {
+                    Text(text = stringResource(android.R.string.cancel))
+                }
+
+                TextButton(
+                    onClick = {
+                        showClearTranslationModels = false
+                        coroutineScope.launch(Dispatchers.IO) {
+                            TranslationHelper.clearModels()
+                            }
+                        }
+                ) {
+                    Text(text = stringResource(android.R.string.ok))
+                }
+            }
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun CacheCard(
+    usedSpace: Long,
+    totalSpace: Long,
+    selectedValue: Int,
+    onValueChange: (Int) -> Unit,
+    showProgress: Boolean,
+    onClear: () -> Unit,
+    clearButtonText: String
+) {
+    val context = LocalContext.current
+    val sliderStyle by rememberEnumPreference(SliderStyleKey, SliderStyle.DEFAULT)
+    var sliderPosition by remember { mutableStateOf<Float?>(null) }
+
+    val minValue = 1024f
+    val maxValue = 8192f
+    val currentValue = sliderPosition ?: when (selectedValue) {
+        0 -> 0f
+        -1 -> maxValue
+        else -> selectedValue.toFloat().coerceIn(minValue, maxValue)
+    }
+
+    Card(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            if (showProgress) {
+                Row(verticalAlignment = CenterVertically) {
+                    CircularProgressIndicator(
+                        progress = { calculateProgress(usedSpace, totalSpace) },
+                        modifier = Modifier.size(40.dp),
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Column {
+                        Text(
+                            text = stringResource(R.string.size_used, "${(usedSpace.toFloat() / totalSpace * 100).toInt()}%"),
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                    }
+                }
+                Spacer(modifier = Modifier.height(12.dp))
+            } else if (selectedValue == -1) {
+                Text(
+                    text = Formatter.formatShortFileSize(context,usedSpace),
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = androidx.compose.foundation.layout.Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = when {
+                        currentValue == 0f -> stringResource(R.string.off)
+                        currentValue >= maxValue -> stringResource(R.string.unlimited)
+                        else -> Formatter.formatShortFileSize(context,currentValue.toInt() * 1024 * 1024L)
+                    },
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            when (sliderStyle) {
+                SliderStyle.DEFAULT -> {
+                    Slider(
+                        value = if (currentValue == 0f) 0f else currentValue,
+                        valueRange = 0f..maxValue,
+                        onValueChange = { newValue ->
+                            sliderPosition = if (newValue == 0f) 0f else newValue.coerceAtLeast(minValue)
+                        },
+                        onValueChangeFinished = {
+                            val finalValue = sliderPosition ?: currentValue
+                            val newValue = when {
+                                finalValue >= maxValue -> -1
+                                finalValue == 0f -> 0
+                                else -> {
+                                    val stepped = ((finalValue / 1024).toInt() * 1024).coerceIn(minValue.toInt(), maxValue.toInt())
+                                    stepped
+                                }
+                            }
+                            onValueChange(newValue)
+                            sliderPosition = null
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                SliderStyle.SQUIGGLY -> {
+                    SquigglySlider(
+                        value = if (currentValue == 0f) 0f else currentValue,
+                        valueRange = 0f..maxValue,
+                        onValueChange = { newValue ->
+                            sliderPosition = if (newValue == 0f) 0f else newValue.coerceAtLeast(minValue)
+                        },
+                        onValueChangeFinished = {
+                            val finalValue = sliderPosition ?: currentValue
+                            val newValue = when {
+                                finalValue >= maxValue -> -1
+                                finalValue == 0f -> 0
+                                else -> {
+                                    val stepped = ((finalValue / 1024).toInt() * 1024).coerceIn(minValue.toInt(), maxValue.toInt())
+                                    stepped
+                                }
+                            }
+                            onValueChange(newValue)
+                            sliderPosition = null
+                        },
+                        squigglesSpec = SquigglySlider.SquigglesSpec(
+                            amplitude = 2.dp,
+                            strokeWidth = 4.dp,
+                        ),
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+
+                SliderStyle.COMPOSE -> {
+                    Slider(
+                        value = if (currentValue == 0f) 0f else currentValue,
+                        valueRange = 0f..maxValue,
+                        onValueChange = { newValue ->
+                            sliderPosition = if (newValue == 0f) 0f else newValue.coerceAtLeast(minValue)
+                        },
+                        onValueChangeFinished = {
+                            val finalValue = sliderPosition ?: currentValue
+                            val newValue = when {
+                                finalValue >= maxValue -> -1
+                                finalValue == 0f -> 0
+                                else -> {
+                                    val stepped = ((finalValue / 1024).toInt() * 1024).coerceIn(minValue.toInt(), maxValue.toInt())
+                                    stepped
+                                }
+                            }
+                            onValueChange(newValue)
+                            sliderPosition = null
+                        },
+                        thumb = { Spacer(modifier = Modifier.size(0.dp)) },
+                        track = { sliderState ->
+                            PlayerSliderTrack(
+                                sliderState = sliderState,
+                                colors = SliderDefaults.colors()
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            FilledTonalButton(
+                onClick = onClear,
+                modifier = Modifier.fillMaxWidth(),
+                shape = MaterialTheme.shapes.medium
+            ) {
+                Text(text = clearButtonText)
+            }
+        }
+    }
+}
+
+@Composable
+private fun StorageCategoryHeader(
+    title: String,
+    icon: ImageVector,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 24.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
+        verticalAlignment = CenterVertically
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(24.dp),
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Spacer(modifier = Modifier.width(16.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
+private fun ModelManagementCard(onClear: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth(),
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = stringResource(R.string.translation_models),
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            FilledTonalButton(
+                onClick = onClear,
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Text(stringResource(R.string.clear_translation_models))
+            }
+        }
+    }
+}
+
+private fun calculateProgress(used: Long, total: Long): Float {
+    return if (total <= 0) 0f else (used.toFloat() / total).coerceIn(0f, 1f)
+}

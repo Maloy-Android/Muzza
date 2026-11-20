@@ -1,0 +1,30 @@
+CREATE TABLE IF NOT EXISTS album (
+    id TEXT NOT NULL PRIMARY KEY,
+    playlistId TEXT,
+    title TEXT NOT NULL,
+    year INTEGER,
+    thumbnailUrl TEXT,
+    themeColor INTEGER,
+    songCount INTEGER NOT NULL DEFAULT 0,
+    duration INTEGER NOT NULL DEFAULT 0,
+    lastUpdateTime TEXT NOT NULL,
+    bookmarkedAt TEXT
+);
+
+upsert:
+INSERT OR REPLACE INTO album VALUES ?;
+
+selectById:
+SELECT * FROM album WHERE id = :id;
+
+selectAll:
+SELECT * FROM album ORDER BY bookmarkedAt DESC;
+
+selectBookmarked:
+SELECT * FROM album WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt DESC;
+
+updateBookmarkedAt:
+UPDATE album SET bookmarkedAt = :bookmarkedAt WHERE id = :id;
+
+delete:
+DELETE FROM album WHERE id = :id;

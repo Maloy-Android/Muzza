@@ -1,9 +1,10 @@
 [versions]
-androidGradlePlugin = "9.3.3"
+androidGradlePlugin = "9.5.1"
 annotation = "1.9.1"
 json = "20250517"
 kotlin = "2.4.21"
 compose = "1.8.3"
+composeMp = "1.13.0-rc01"
 lazycolumnscrollbar = "2.2.0"
 lifecycle = "2.9.1"
 material3 = "1.4.0"
@@ -12,13 +13,20 @@ media3 = "1.7.1"
 room = "2.7.2"
 innertubex = "v0.10.0"
 hilt = "2.60.1"
-ktor = "3.1.2"
-ksp = "2.3.12"
-kotlinVersion = "2.0.20"
+ktor = "3.6.1"
+ksp = "2.3.14"
+kotlinVersion = "2.4.21"
 cardview = "1.0.0"
 protobuf = "4.34.1"
 animationCore = "1.11.0"
 material = "1.13.0"
+# KMP additions
+koin = "4.3.0-Beta1"
+sqldelight = "2.0.2"
+multiplatformSettings = "1.3.0"
+coil3 = "3.6.3"
+navigationComposeMp = "2.9.0-alpha15"
+kotlinxDatetime = "0.8.0"
 
 [libraries]
 lazycolumnscrollbar = { group = "com.github.nanihadesuka", name = "LazyColumnScrollbar", version.ref = "lazycolumnscrollbar" }
@@ -107,9 +115,40 @@ lifecycle-process = { module = "androidx.lifecycle:lifecycle-process", version.r
 animation-core = { group = "androidx.compose.animation", name = "animation-core", version.ref = "animationCore" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 
+# KMP — Koin
+koin-core = { group = "io.insert-koin", name = "koin-core", version.ref = "koin" }
+koin-android = { group = "io.insert-koin", name = "koin-android", version.ref = "koin" }
+koin-compose = { group = "io.insert-koin", name = "koin-compose", version.ref = "koin" }
+koin-compose-viewmodel = { group = "io.insert-koin", name = "koin-compose-viewmodel", version.ref = "koin" }
+
+# KMP — SQLDelight
+sqldelight-runtime = { group = "app.cash.sqldelight", name = "runtime", version.ref = "sqldelight" }
+sqldelight-coroutines = { group = "app.cash.sqldelight", name = "coroutines-extensions", version.ref = "sqldelight" }
+sqldelight-android-driver = { group = "app.cash.sqldelight", name = "android-driver", version.ref = "sqldelight" }
+sqldelight-native-driver = { group = "app.cash.sqldelight", name = "native-driver", version.ref = "sqldelight" }
+sqldelight-primitive-adapters = { group = "app.cash.sqldelight", name = "primitive-adapters", version.ref = "sqldelight" }
+
+# KMP — multiplatform-settings
+multiplatform-settings = { group = "com.russhwolf", name = "multiplatform-settings", version.ref = "multiplatformSettings" }
+multiplatform-settings-coroutines = { group = "com.russhwolf", name = "multiplatform-settings-coroutines", version.ref = "multiplatformSettings" }
+
+# KMP — Coil 3
+coil3-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil3" }
+coil3-network-ktor = { group = "io.coil-kt.coil3", name = "coil-network-ktor3", version.ref = "coil3" }
+
+# Ktor KMP engines
+ktor-client-darwin = { group = "io.ktor", name = "ktor-client-darwin", version.ref = "ktor" }
+
+# DateTime KMP
+kotlinx-datetime = { group = "org.jetbrains.kotlinx", name = "kotlinx-datetime", version.ref = "kotlinxDatetime" }
+
 [plugins]
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 hilt = { id = "com.google.dagger.hilt.android", version.ref = "hilt" }
 kotlin-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
-jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlinVersion" }
+jetbrains-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref = "kotlin" }
+compose-multiplatform = { id = "org.jetbrains.compose", version.ref = "composeMp" }
+sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
+android-kotlin-multiplatform-library = { id = "com.android.kotlin.multiplatform.library", version.ref = "androidGradlePlugin" }

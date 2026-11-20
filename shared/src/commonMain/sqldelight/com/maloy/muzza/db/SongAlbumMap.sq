@@ -1,0 +1,15 @@
+CREATE TABLE IF NOT EXISTS songAlbumMap (
+    songId TEXT NOT NULL,
+    albumId TEXT NOT NULL,
+    idx INTEGER,
+    PRIMARY KEY (songId, albumId)
+);
+
+insert:
+INSERT OR IGNORE INTO songAlbumMap VALUES (?, ?, ?);
+
+selectByAlbum:
+SELECT * FROM songAlbumMap WHERE albumId = :albumId ORDER BY idx;
+
+deleteForSong:
+DELETE FROM songAlbumMap WHERE songId = :songId;

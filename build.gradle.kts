@@ -1,9 +1,13 @@
 @file:Suppress("DEPRECATION")
 
 plugins {
-    alias(libs.plugins.hilt) apply (false)
-    alias(libs.plugins.kotlin.ksp) apply (false)
+    alias(libs.plugins.kotlin.multiplatform) apply false
+    alias(libs.plugins.compose.multiplatform) apply false
     alias(libs.plugins.compose.compiler) apply false
+    alias(libs.plugins.kotlin.serialization) apply false
+    alias(libs.plugins.kotlin.ksp) apply false
+    alias(libs.plugins.sqldelight) apply false
+    alias(libs.plugins.hilt) apply false
     alias(libs.plugins.jetbrains.kotlin.android) apply false
 }
 

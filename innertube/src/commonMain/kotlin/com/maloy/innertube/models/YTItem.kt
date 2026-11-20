@@ -1,0 +1,99 @@
+package com.maloy.innertube.models
+
+import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
+
+sealed class YTItem {
+    abstract val id: String
+    abstract val title: String
+    abstract val thumbnail: String
+    abstract val explicit: Boolean
+    abstract val shareLink: String
+}
+
+data class Artist(
+    val name: String,
+    val id: String?,
+    val isProfile: Boolean = false
+)
+
+data class Album(
+    val name: String,
+    val id: String,
+)
+
+data class SongItem(
+    override val id: String,
+    override val title: String,
+    val artists: List<Artist>,
+    val album: Album? = null,
+    val duration: Int? = null,
+    val setVideoId: String? = null,
+    override val thumbnail: String,
+    override val explicit: Boolean = false,
+    val endpoint: WatchEndpoint? = null,
+    val historyRemoveToken: String? = null,
+    val musicVideoType: String? = null,
+    val isFromCache: Boolean = false,
+    val isVideoSongChange: Boolean = false,
+) : YTItem() {
+    val isVideoSong: Boolean
+        get() =(musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV) || isVideoSongChange
+
+    override val shareLink: String
+        get() = "https://music.youtube.com/watch?v=$id"
+}
+
+data class AlbumItem(
+    val browseId: String,
+    val playlistId: String,
+    override val id: String = browseId,
+    override val title: String,
+    val artists: List<Artist>?,
+    val year: Int? = null,
+    override val thumbnail: String,
+    override val explicit: Boolean = false,
+    val radioEndpoint: WatchEndpoint?,
+) : YTItem() {
+    override val shareLink: String
+        get() = "https://music.youtube.com/playlist?list=$playlistId"
+}
+
+data class PlaylistItem(
+    override val id: String,
+    override val title: String,
+    val author: Artist?,
+    val songCountText: String?,
+    override val thumbnail: String,
+    val playEndpoint: WatchEndpoint?,
+    val shuffleEndpoint: WatchEndpoint?,
+    val radioEndpoint: WatchEndpoint?,
+    val isEditable: Boolean = false,
+    val description: String? = null,
+    val authorAvatarUrl: String? = null,
+) : YTItem() {
+    override val explicit: Boolean
+        get() = false
+    override val shareLink: String
+        get() = "https://music.youtube.com/playlist?list=$id"
+}
+
+data class ArtistItem(
+    override val id: String,
+    override val title: String,
+    override val thumbnail: String,
+    val subscriptions: String?,
+    val channelId: String? = null,
+    val shuffleEndpoint: WatchEndpoint?,
+    val radioEndpoint: WatchEndpoint?,
+    val playEndpoint: WatchEndpoint? = null,
+    val isProfile: Boolean = false,
+) : YTItem() {
+    override val explicit: Boolean
+        get() = false
+    override val shareLink: String
+        get() = "https://music.youtube.com/channel/$id"
+}
+
+fun <T : YTItem> List<T>.filterExplicit(enabled: Boolean = true) =
+    if (enabled) filter { !it.explicit }
+    else this

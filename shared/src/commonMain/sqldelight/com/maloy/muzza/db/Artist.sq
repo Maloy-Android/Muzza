@@ -1,0 +1,27 @@
+CREATE TABLE IF NOT EXISTS artist (
+    id TEXT NOT NULL PRIMARY KEY,
+    name TEXT NOT NULL,
+    thumbnailUrl TEXT,
+    channelId TEXT,
+    lastUpdateTime TEXT NOT NULL,
+    bookmarkedAt TEXT,
+    isProfile INTEGER NOT NULL DEFAULT 0
+);
+
+upsert:
+INSERT OR REPLACE INTO artist VALUES ?;
+
+selectById:
+SELECT * FROM artist WHERE id = :id;
+
+selectAll:
+SELECT * FROM artist ORDER BY bookmarkedAt DESC;
+
+selectBookmarked:
+SELECT * FROM artist WHERE bookmarkedAt IS NOT NULL ORDER BY bookmarkedAt DESC;
+
+updateBookmarkedAt:
+UPDATE artist SET bookmarkedAt = :bookmarkedAt WHERE id = :id;
+
+delete:
+DELETE FROM artist WHERE id = :id;

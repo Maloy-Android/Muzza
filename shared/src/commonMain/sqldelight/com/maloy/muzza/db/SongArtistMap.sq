@@ -1,0 +1,17 @@
+CREATE TABLE IF NOT EXISTS songArtistMap (
+    songId TEXT NOT NULL,
+    artistId TEXT NOT NULL,
+    PRIMARY KEY (songId, artistId)
+);
+
+insert:
+INSERT OR IGNORE INTO songArtistMap VALUES (?, ?);
+
+selectArtistsBySong:
+SELECT * FROM songArtistMap WHERE songId = :songId;
+
+selectSongsByArtist:
+SELECT * FROM songArtistMap WHERE artistId = :artistId;
+
+deleteForSong:
+DELETE FROM songArtistMap WHERE songId = :songId;

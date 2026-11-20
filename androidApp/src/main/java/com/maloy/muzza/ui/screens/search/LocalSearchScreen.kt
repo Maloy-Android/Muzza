@@ -1,0 +1,410 @@
+package com.maloy.muzza.ui.screens.search
+
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.WindowInsetsSides
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.only
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBars
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.navigation.NavController
+import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.LocalPlayerConnection
+import com.maloy.muzza.R
+import com.maloy.muzza.constants.CONTENT_TYPE_LIST
+import com.maloy.muzza.db.entities.Album
+import com.maloy.muzza.db.entities.Artist
+import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.extensions.togglePlayPause
+import com.maloy.muzza.playback.queues.ListQueue
+import com.maloy.muzza.ui.component.AlbumListItem
+import com.maloy.muzza.ui.component.ArtistListItem
+import com.maloy.muzza.ui.component.ChipsRow
+import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.LocalMenuState
+import com.maloy.muzza.ui.component.PlaylistListItem
+import com.maloy.muzza.ui.component.SongListItem
+import com.maloy.muzza.ui.menu.AlbumMenu
+import com.maloy.muzza.ui.menu.ArtistMenu
+import com.maloy.muzza.ui.menu.PlaylistMenu
+import com.maloy.muzza.ui.menu.SongMenu
+import com.maloy.muzza.viewmodels.LocalFilter
+import com.maloy.muzza.viewmodels.LocalSearchViewModel
+import kotlinx.coroutines.flow.drop
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun LocalSearchScreen(
+    query: String,
+    navController: NavController,
+    onDismiss: () -> Unit,
+    isFromCache: Boolean = false,
+    viewModel: LocalSearchViewModel = hiltViewModel(),
+) {
+    val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val scope = rememberCoroutineScope()
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val menuState = LocalMenuState.current
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    val searchFilter by viewModel.filter.collectAsState()
+    val result by viewModel.result.collectAsState()
+
+    val lazyListState = rememberLazyListState()
+
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { lazyListState.firstVisibleItemScrollOffset }
+            .drop(1)
+            .collect {
+                keyboardController?.hide()
+            }
+    }
+
+    LaunchedEffect(query) {
+        viewModel.query.value = query
+    }
+
+    Column {
+        ChipsRow(
+            chips = listOf(
+                LocalFilter.ALL to stringResource(R.string.filter_all),
+                LocalFilter.SONG to stringResource(R.string.filter_songs),
+                LocalFilter.ALBUM to stringResource(R.string.filter_albums),
+                LocalFilter.ARTIST to stringResource(R.string.filter_artists),
+                LocalFilter.PLAYLIST to stringResource(R.string.filter_playlists)
+            ),
+            currentValue = searchFilter,
+            onValueUpdate = { viewModel.filter.value = it },
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+
+        LazyColumn(
+            state = lazyListState,
+            contentPadding = WindowInsets.systemBars
+                .only(WindowInsetsSides.Bottom)
+                .asPaddingValues(),
+            modifier = Modifier.weight(1f)
+        ) {
+            result.map.forEach { (filter, items) ->
+                if (result.filter == LocalFilter.ALL) {
+                    item(
+                        key = filter
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 16.dp)
+                                .clickable { viewModel.filter.value = filter }
+                                .fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    when (filter) {
+                                        LocalFilter.SONG -> R.string.filter_songs
+                                        LocalFilter.ALBUM -> R.string.filter_albums
+                                        LocalFilter.ARTIST -> R.string.filter_artists
+                                        LocalFilter.PLAYLIST -> R.string.filter_playlists
+                                        LocalFilter.ALL -> error("")
+                                    }
+                                ),
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1,
+                                modifier = Modifier.weight(1f)
+                            )
+                            Spacer(Modifier.width(1.dp))
+                            Icon(
+                                painter = painterResource(R.drawable.arrow_forward),
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
+
+                items(
+                    items = items,
+                    key = { it.id },
+                    contentType = { CONTENT_TYPE_LIST }
+                ) { item ->
+                    when (item) {
+                        is Song -> SongListItem(
+                            song = item,
+                            isActive = item.id == mediaMetadata?.id,
+                            showInLibraryIcon = true,
+                            isPlaying = isPlaying,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            SongMenu(
+                                                originalSong = item,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                },
+                                                isFromCache = isFromCache
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        if (item.id == mediaMetadata?.id) {
+                                            playerConnection.player.togglePlayPause()
+                                        } else {
+                                            val songs = result.map
+                                                .getOrDefault(LocalFilter.SONG, emptyList())
+                                                .filterIsInstance<Song>()
+                                                .map { it.toMediaItem() }
+                                            playerConnection.playQueue(
+                                                ListQueue(
+                                                    title = "${context.getString(R.string.queue_searched_songs)}: $query",
+                                                    items = songs,
+                                                    startIndex = songs.indexOfFirst { it.mediaId == item.id }
+                                                ))
+                                        }
+                                    },
+                                    onLongClick = {
+                                        menuState.show {
+                                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                            SongMenu(
+                                                originalSong = item,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                },
+                                                isFromCache = isFromCache
+                                            )
+                                        }
+                                    }
+                                )
+                                .animateItem()
+                        )
+
+                        is Album -> AlbumListItem(
+                            album = item,
+                            isActive = item.id == mediaMetadata?.album?.id,
+                            isPlaying = isPlaying,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = item,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        onDismiss()
+                                        navController.navigate("album/${item.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            AlbumMenu(
+                                                originalAlbum = item,
+                                                navController = navController,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                                .animateItem()
+                        )
+
+                        is Artist -> ArtistListItem(
+                            artist = item,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            ArtistMenu(
+                                                originalArtist = item,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        onDismiss()
+                                        navController.navigate("artist/${item.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            ArtistMenu(
+                                                originalArtist = item,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                }
+                                            )
+                                        }
+                                    }
+                                )
+                                .animateItem()
+                        )
+
+                        is Playlist -> PlaylistListItem(
+                            playlist = item,
+                            thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                            trailingContent = {
+                                IconButton(
+                                    onClick = {
+                                        menuState.show {
+                                            PlaylistMenu(
+                                                playlist = item,
+                                                coroutineScope = scope,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                },
+                                                navController = navController
+                                            )
+                                        }
+                                    }
+                                ) {
+                                    Icon(
+                                        painterResource(R.drawable.more_vert),
+                                        contentDescription = null
+                                    )
+                                }
+                            },
+                            modifier = Modifier
+                                .combinedClickable(
+                                    onClick = {
+                                        onDismiss()
+                                        navController.navigate("local_playlist/${item.id}")
+                                    },
+                                    onLongClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                        menuState.show {
+                                            PlaylistMenu(
+                                                playlist = item,
+                                                coroutineScope = scope,
+                                                onDismiss = {
+                                                    onDismiss()
+                                                    menuState.dismiss()
+                                                },
+                                                navController = navController
+                                            )
+                                        }
+                                    }
+                                )
+                                .animateItem()
+                        )
+                    }
+                }
+            }
+
+            if (result.query.isNotEmpty() && result.map.isEmpty()) {
+                item(
+                    key = "no_result"
+                ) {
+                    EmptyPlaceholder(
+                        icon = R.drawable.search,
+                        text = stringResource(R.string.no_results_found),
+                        modifier = Modifier.animateItem()
+                    )
+                }
+            }
+        }
+    }
+    Box(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+                .align(Alignment.BottomCenter)
+        )
+    }
+}

@@ -1,0 +1,315 @@
+package com.maloy.muzza.ui.menu
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import com.maloy.muzza.LocalDatabase
+import com.maloy.muzza.R
+import com.maloy.muzza.constants.ListThumbnailSize
+import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.PlaylistEntity
+import com.maloy.muzza.ui.component.DefaultDialog
+import com.maloy.muzza.ui.component.ListDialog
+import com.maloy.muzza.ui.component.ListItem
+import com.maloy.muzza.ui.component.PlaylistListItem
+import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.constants.AddToPlaylistSortDescendingKey
+import com.maloy.muzza.constants.AddToPlaylistSortTypeKey
+import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.PlaylistSortType
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
+import com.maloy.muzza.db.entities.Song
+import com.maloy.muzza.ui.component.SortHeader
+import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.rememberEnumPreference
+import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.viewmodels.PlaylistsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
+import java.text.Collator
+import java.time.LocalDateTime
+import java.util.Locale
+
+@Composable
+fun AddToPlaylistDialog(
+    navController: NavController,
+    isVisible: Boolean,
+    initialTextFieldValue: String? = null,
+    noSyncing: Boolean = false,
+    onGetSong: suspend (Playlist) -> List<String>,
+    onDismiss: () -> Unit,
+    songs: List<Song>? = null,
+    viewModel: PlaylistsViewModel = hiltViewModel()
+) {
+    val context = LocalContext.current
+    val database = LocalDatabase.current
+    val coroutineScope = rememberCoroutineScope()
+    val (sortType, onSortTypeChange) = rememberEnumPreference(
+        AddToPlaylistSortTypeKey,
+        PlaylistSortType.NAME
+    )
+    val (sortDescending, onSortDescendingChange) = rememberPreference(
+        AddToPlaylistSortDescendingKey,
+        false
+    )
+
+    val accountImageUrl by rememberPreference(likedMusicAuthorAvatarImageKey, "")
+    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
+    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
+
+    val playlists by viewModel.allPlaylists.collectAsState()
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+    var showAddPlaylistDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var syncedPlaylist: Boolean by remember {
+        mutableStateOf(false)
+    }
+
+    var showDuplicateDialog by remember {
+        mutableStateOf(false)
+    }
+    var selectedPlaylist by remember {
+        mutableStateOf<Playlist?>(null)
+    }
+    var songIds by remember {
+        mutableStateOf<List<String>?>(null)
+    }
+    var duplicates by remember {
+        mutableStateOf(emptyList<String>())
+    }
+
+    if (isVisible) {
+        ListDialog(
+            onDismiss = onDismiss
+        ) {
+            item {
+                ListItem(
+                    title = stringResource(R.string.create_playlist),
+                    thumbnailContent = {
+                        Image(
+                            imageVector = Icons.Rounded.Add,
+                            contentDescription = null,
+                            colorFilter = ColorFilter.tint(MaterialTheme.colorScheme.onBackground),
+                            modifier = Modifier.size(ListThumbnailSize)
+                        )
+                    },
+                    modifier = Modifier.clickable {
+                        showAddPlaylistDialog = true
+                    }
+                )
+            }
+
+            if (playlists.isNotEmpty()) {
+                item {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 16.dp),
+                    ) {
+                        SortHeader(
+                            sortType = sortType,
+                            sortDescending = sortDescending,
+                            onSortTypeChange = onSortTypeChange,
+                            onSortDescendingChange = onSortDescendingChange,
+                            sortTypeText = { sortType ->
+                                when (sortType) {
+                                    PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
+                                    PlaylistSortType.NAME -> R.string.sort_by_name
+                                    PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
+                                    PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
+            items(playlists) { playlist ->
+                PlaylistListItem(
+                    playlist = playlist,
+                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                    modifier = Modifier.clickable {
+                        selectedPlaylist = playlist
+                        coroutineScope.launch(Dispatchers.IO) {
+                            if (songIds == null) {
+                                songIds = onGetSong(playlist)
+                            }
+                            duplicates = database.playlistDuplicates(playlist.id, songIds!!)
+                            if (duplicates.isNotEmpty()) {
+                                showDuplicateDialog = true
+                            } else {
+                                onDismiss()
+                                database.addSongToPlaylist(playlist, songIds!!)
+                            }
+                        }
+                    }
+                )
+            }
+        }
+    }
+
+    if (showAddPlaylistDialog) {
+        TextFieldDialog(
+            icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
+            title = { Text(text = stringResource(R.string.create_playlist)) },
+            initialTextFieldValue = TextFieldValue(initialTextFieldValue?: ""),
+            onDismiss = { showAddPlaylistDialog = false },
+            onDone = { playlistName ->
+                coroutineScope.launch(Dispatchers.IO) {
+                    val browseId = if (syncedPlaylist)
+                        YouTube.createPlaylist(playlistName)
+                    else null
+
+                    database.query {
+                        insert(
+                            PlaylistEntity(
+                                name = playlistName,
+                                browseId = browseId,
+                                playlistAuthorsId = if (isLoggedIn) accountId else null,
+                                playlistAuthorName = if (isLoggedIn) accountName else null,
+                                playlistAuthorAvatarUrl = if (isLoggedIn) accountImageUrl else null,
+                                description = null,
+                                bookmarkedAt = if (syncedPlaylist) LocalDateTime.now() else null,
+                                isEditable = true,
+                                isLocal = !syncedPlaylist
+                            )
+                        )
+                    }
+                }
+            },
+            extraContent = {
+                if (isLoggedIn && isInternetAvailable(context)) {
+                Row(
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
+                ) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.sync_playlist),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(R.string.allows_for_sync_witch_youtube),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            if (isInternetAvailable(context)) {
+                                Switch(
+                                    enabled = !noSyncing,
+                                    checked = syncedPlaylist,
+                                    onCheckedChange = {
+                                        syncedPlaylist = !syncedPlaylist
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    if (showDuplicateDialog) {
+        DefaultDialog(
+            title = { Text(stringResource(R.string.duplicates)) },
+            buttons = {
+                TextButton(
+                    onClick = {
+                        showDuplicateDialog = false
+                        onDismiss()
+                        database.transaction {
+                            addSongToPlaylist(
+                                selectedPlaylist!!,
+                                songIds!!.filter {
+                                    !duplicates.contains(it)
+                                }
+                            )
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.skip_duplicates))
+                }
+
+                TextButton(
+                    onClick = {
+                        showDuplicateDialog = false
+                        onDismiss()
+                        database.transaction {
+                            addSongToPlaylist(selectedPlaylist!!, songIds!!)
+                        }
+                    }
+                ) {
+                    Text(stringResource(R.string.add_anyway))
+                }
+
+                TextButton(
+                    onClick = {
+                        showDuplicateDialog = false
+                    }
+                ) {
+                    Text(stringResource(android.R.string.cancel))
+                }
+            },
+            onDismiss = {
+                showDuplicateDialog = false
+            }
+        ) {
+            Text(
+                text = if (duplicates.size == 1) {
+                    stringResource(R.string.duplicates_description_single)
+                } else {
+                    stringResource(R.string.duplicates_description_multiple, duplicates.size)
+                },
+                textAlign = TextAlign.Start,
+                modifier = Modifier.align(Alignment.Start)
+            )
+        }
+    }
+}

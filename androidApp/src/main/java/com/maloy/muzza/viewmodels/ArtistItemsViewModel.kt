@@ -1,0 +1,97 @@
+package com.maloy.muzza.viewmodels
+
+import android.content.Context
+import androidx.lifecycle.SavedStateHandle
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.BrowseEndpoint
+import com.maloy.innertube.models.filterExplicit
+import com.maloy.muzza.constants.HideExplicitKey
+import com.maloy.innertube.pages.ItemsPage
+import com.maloy.muzza.utils.dataStore
+import com.maloy.muzza.utils.get
+import com.maloy.muzza.utils.reportException
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.launch
+import javax.inject.Inject
+
+@HiltViewModel
+class ArtistItemsViewModel @Inject constructor(
+    @ApplicationContext val context: Context,
+    savedStateHandle: SavedStateHandle,
+) : ViewModel() {
+    private val browseId = savedStateHandle.get<String>("browseId")!!
+    private val params = savedStateHandle.get<String>("params")
+
+    val itemsPage = MutableStateFlow<ItemsPage?>(null)
+    val title = savedStateHandle.get<String>("title")
+
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+    private val _error = MutableStateFlow<String?>(null)
+    val error = _error.asStateFlow()
+
+    fun load() {
+        viewModelScope.launch {
+            YouTube.artistItems(
+                BrowseEndpoint(
+                    browseId = browseId,
+                    params = params
+                )
+            ).onSuccess { artistItemsPage ->
+                itemsPage.value = ItemsPage(
+                    items = artistItemsPage.items.distinctBy { it.id }.filterExplicit(context.dataStore.get(HideExplicitKey, false)),
+                    continuation = artistItemsPage.continuation
+                )
+            }.onFailure {
+                reportException(it)
+            }
+        }
+    }
+
+    fun refresh() {
+        viewModelScope.launch(Dispatchers.IO) {
+            _isRefreshing.value = true
+            try {
+                load()
+            } catch (e: Exception) {
+                e.printStackTrace()
+                _error.value = "Failed to refresh artist items page"
+            } finally {
+                _isRefreshing.value = false
+            }
+        }
+    }
+
+    init {
+        viewModelScope.launch {
+            load()
+        }
+    }
+
+    fun loadMore() {
+        viewModelScope.launch {
+            val oldItemsPage = itemsPage.value ?: return@launch
+            val continuation = oldItemsPage.continuation ?: return@launch
+            YouTube.artistItemsContinuation(continuation)
+                .onSuccess { artistItemsContinuationPage ->
+                    itemsPage.update {
+                        ItemsPage(
+                            items = (oldItemsPage.items + artistItemsContinuationPage.items)
+                                .distinctBy { it.id }
+                                .filterExplicit(context.dataStore.get(HideExplicitKey, false)),
+                            continuation = artistItemsContinuationPage.continuation
+                        )
+                    }
+                }.onFailure {
+                    reportException(it)
+                }
+        }
+    }
+}

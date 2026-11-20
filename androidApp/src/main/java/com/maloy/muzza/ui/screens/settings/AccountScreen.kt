@@ -1,0 +1,217 @@
+package com.maloy.muzza.ui.screens.settings
+
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.ArrowBack
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import coil.compose.AsyncImage
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.R
+import com.maloy.muzza.constants.AccountChannelHandleKey
+import com.maloy.muzza.constants.AccountEmailKey
+import com.maloy.muzza.constants.AccountImageUrlKey
+import com.maloy.muzza.constants.AccountNameKey
+import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.VisitorDataKey
+import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.ui.component.IconButton
+import com.maloy.muzza.ui.component.PreferenceEntry
+import com.maloy.muzza.ui.component.PreferenceGroupTitle
+import com.maloy.muzza.ui.component.SwitchPreference
+import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.utils.rememberPreference
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun AccountSettings(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+) {
+    val (accountName, onAccountNameChange) = rememberPreference(AccountNameKey, "")
+    val (accountEmail,onAccountEmailChange) = rememberPreference(AccountEmailKey, "")
+    val (accountChannelHandle,onAccountChannelHandleChange) = rememberPreference(AccountChannelHandleKey, "")
+    val (accountImageUrl, onAccountImageChange) = rememberPreference(AccountImageUrlKey, "")
+    val (innerTubeCookie, onInnerTubeCookieChange) = rememberPreference(InnerTubeCookieKey, "")
+    val (visitorData, onVisitorDataChange) = rememberPreference(VisitorDataKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+    val (ytmSync, onYtmSyncChange) = rememberPreference(YtmSyncKey, defaultValue = true)
+
+    var showTokenEditor by remember {
+        mutableStateOf(false)
+    }
+
+    val text = if (isLoggedIn) {
+        """
+         ***INNERTUBE COOKIE*** =$innerTubeCookie
+         ***VISITOR DATA*** =$visitorData
+         ***ACCOUNT NAME*** =$accountName
+         ***ACCOUNT ImageUrl*** =$accountImageUrl
+         ***ACCOUNT EMAIL*** =$accountEmail
+         ***ACCOUNT CHANNEL HANDLE*** =$accountChannelHandle
+         """.trimIndent()
+    } else ""
+
+    if (showTokenEditor) {
+        TextFieldDialog(
+            title = { Text(stringResource(R.string.login_by_token)) },
+            icon = { Icon(painter = painterResource(R.drawable.token), null) },
+            placeholder = { Text(stringResource(R.string.token_placeholder))},
+            onDismiss = { showTokenEditor = false },
+            singleLine = false,
+            maxLines = 20,
+            isInputValid = {
+                it.isNotEmpty() && "SAPISID" in parseCookieString(it)
+            },
+            initialTextFieldValue = TextFieldValue(text),
+            onDone = { data ->
+                data.split("\n").forEach {
+                    when {
+                        it.startsWith("***INNERTUBE COOKIE*** =") -> onInnerTubeCookieChange(it.substringAfter("="))
+                        it.startsWith("***VISITOR DATA*** =") -> onVisitorDataChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT NAME*** =") -> onAccountNameChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT ImageUrl*** =") -> onAccountImageChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT EMAIL*** =") -> onAccountEmailChange(it.substringAfter("="))
+                        it.startsWith("***ACCOUNT CHANNEL HANDLE*** =") -> onAccountChannelHandleChange(it.substringAfter("="))
+                    }
+                }
+                if (innerTubeCookie.isNotEmpty()) YouTube.useLoginForBrowse = true
+            }
+        )
+    }
+
+    Column(
+        Modifier
+            .windowInsetsPadding(LocalPlayerAwareWindowInsets.current)
+            .verticalScroll(rememberScrollState())
+    ) {
+        PreferenceGroupTitle(
+            title = stringResource(R.string.account)
+        )
+        PreferenceEntry(
+            title = { Text(if (isLoggedIn) accountName else stringResource(R.string.login)) },
+            description = if (isLoggedIn) {
+                accountEmail.takeIf { it.isNotEmpty() }
+                    ?: accountChannelHandle.takeIf { it.isNotEmpty() }
+            } else {
+                null
+            },
+            icon = {
+                if (isLoggedIn && accountImageUrl.isNotEmpty()) {
+                    AsyncImage(
+                        model = accountImageUrl,
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .size(30.dp)
+                            .clip(CircleShape)
+                    )
+                } else {
+                    Icon(painterResource(R.drawable.person), null)
+                }
+            },
+            trailingContent = {
+                if (isLoggedIn) {
+                    OutlinedButton(onClick = {
+                        onAccountNameChange("")
+                        onAccountEmailChange("")
+                        onAccountChannelHandleChange("")
+                        onAccountImageChange("")
+                        onVisitorDataChange("")
+                        onInnerTubeCookieChange("")
+                        YouTube.useLoginForBrowse = false
+                    },
+                    ) {
+                        Text(stringResource(R.string.logout))
+                    }
+                }
+            },
+            onClick = { if (!isLoggedIn) navController.navigate("login") }
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.login_by_token))},
+            description = stringResource(R.string.token_adv_login_description),
+            icon = { Icon(painterResource(R.drawable.token), null) },
+            onClick = { showTokenEditor = true },
+        )
+        SwitchPreference(
+            title = { Text(stringResource(R.string.ytm_sync)) },
+            icon = { Icon(painterResource(R.drawable.cached), null) },
+            checked = ytmSync,
+            onCheckedChange = onYtmSyncChange,
+            isEnabled = isLoggedIn,
+        )
+        PreferenceGroupTitle(
+            title = stringResource(R.string.title_spotify)
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.import_from_spotify)) },
+            description = null,
+            icon = { Icon(painterResource(R.drawable.spotify), null) },
+            onClick = {
+                navController.navigate("settings/import_from_spotify/ImportFromSpotify")
+            }
+        )
+        PreferenceGroupTitle(
+            title = stringResource(R.string.title_discord)
+        )
+        PreferenceEntry(
+            title = { Text(stringResource(R.string.discord_integration)) },
+            icon = { Icon(painterResource(R.drawable.discord), null) },
+            onClick = { navController.navigate("settings/discord") }
+        )
+        PreferenceGroupTitle(
+            title = stringResource(R.string.listen_together)
+        )
+        PreferenceEntry(
+           title = { Text(stringResource(R.string.listen_together)) },
+            icon = { Icon(painterResource(R.drawable.group), null) },
+            description = stringResource(R.string.listen_together_desc),
+            onClick = {
+                navController.navigate("settings/account/listen_together")
+            }
+        )
+    }
+    CenterAlignedTopAppBar(
+        title = { Text(stringResource(R.string.account)) },
+        navigationIcon = {
+            IconButton(
+                onClick = navController::navigateUp,
+                onLongClick = navController::backToMain
+            ) {
+                Icon(
+                    Icons.AutoMirrored.Rounded.ArrowBack,
+                    contentDescription = null
+                )
+            }
+        },
+        scrollBehavior = scrollBehavior
+    )
+}

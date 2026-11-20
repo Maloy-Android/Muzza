@@ -1,0 +1,24 @@
+CREATE TABLE IF NOT EXISTS playlistSongMap (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    playlistId TEXT NOT NULL,
+    songId TEXT NOT NULL,
+    position INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS playlistSongMap_playlistId ON playlistSongMap(playlistId);
+CREATE INDEX IF NOT EXISTS playlistSongMap_songId ON playlistSongMap(songId);
+
+insert:
+INSERT INTO playlistSongMap(playlistId, songId, position) VALUES (?, ?, ?);
+
+selectByPlaylist:
+SELECT * FROM playlistSongMap WHERE playlistId = :playlistId ORDER BY position;
+
+deleteByPlaylistAndSong:
+DELETE FROM playlistSongMap WHERE playlistId = :playlistId AND songId = :songId;
+
+deleteByPlaylist:
+DELETE FROM playlistSongMap WHERE playlistId = :playlistId;
+
+countByPlaylist:
+SELECT COUNT(*) FROM playlistSongMap WHERE playlistId = :playlistId;

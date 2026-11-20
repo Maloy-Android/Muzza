@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS searchHistory (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    query TEXT NOT NULL UNIQUE
+);
+
+insert:
+INSERT OR REPLACE INTO searchHistory(query) VALUES (?);
+
+selectAll:
+SELECT * FROM searchHistory ORDER BY id DESC;
+
+delete:
+DELETE FROM searchHistory WHERE id = :id;
+
+deleteAll:
+DELETE FROM searchHistory;

@@ -1,0 +1,50 @@
+package com.maloy.muzza.playback.queues
+
+import android.content.Context
+import androidx.media3.common.MediaItem
+import com.maloy.muzza.R
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.WatchEndpoint
+import com.maloy.muzza.extensions.toMediaItem
+import com.maloy.muzza.models.MediaMetadata
+import kotlinx.coroutines.Dispatchers.IO
+import kotlinx.coroutines.withContext
+
+class YouTubeQueue(
+    private val context: Context,
+    private val title: String,
+    private var endpoint: WatchEndpoint,
+    private var radioQueue: Boolean = true,
+    override val preloadItem: MediaMetadata? = null,
+    private val initialItems: List<MediaMetadata> = emptyList()
+) : Queue {
+    private var continuation: String? = null
+
+    override suspend fun getInitialStatus(): Queue.Status {
+        val nextResult = withContext(IO) {
+            YouTube.next(endpoint, continuation).getOrThrow()
+        }
+        endpoint = nextResult.endpoint
+        continuation = nextResult.continuation
+        return Queue.Status(
+            title = if (radioQueue) context.getString(R.string.radio_queue_title,title) else title,
+            items = if (radioQueue) nextResult.items.map { it.toMediaItem() } else (initialItems.map { it.toMediaItem(context) } + nextResult.items.map { it.toMediaItem() }).distinctBy { it.mediaId },
+            mediaItemIndex = nextResult.currentIndex ?: 0
+        )
+    }
+
+    override fun hasNextPage(): Boolean = continuation != null
+
+    override suspend fun nextPage(): List<MediaItem> {
+        val nextResult = withContext(IO) {
+            YouTube.next(endpoint, continuation).getOrThrow()
+        }
+        endpoint = nextResult.endpoint
+        continuation = nextResult.continuation
+        return nextResult.items.map { it.toMediaItem() }
+    }
+
+    companion object {
+        fun radio(song: MediaMetadata,context:Context, title: String) = YouTubeQueue(context = context, title = title,WatchEndpoint(song.id), true, song)
+    }
+}

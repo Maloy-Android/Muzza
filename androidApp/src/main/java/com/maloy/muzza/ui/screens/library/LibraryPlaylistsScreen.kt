@@ -1,0 +1,735 @@
+package com.maloy.muzza.ui.screens.library
+
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.asPaddingValues
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.QueueMusic
+import androidx.compose.material.icons.rounded.Add
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
+import androidx.compose.material3.pulltorefresh.pullToRefresh
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.unit.dp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewModelScope
+import androidx.navigation.NavController
+import androidx.navigation.compose.currentBackStackEntryAsState
+import com.maloy.innertube.YouTube
+import com.maloy.innertube.utils.parseCookieString
+import com.maloy.muzza.LocalDatabase
+import com.maloy.muzza.LocalPlayerAwareWindowInsets
+import com.maloy.muzza.LocalPlayerConnection
+import com.maloy.muzza.R
+import com.maloy.muzza.constants.CONTENT_TYPE_HEADER
+import com.maloy.muzza.constants.CONTENT_TYPE_PLAYLIST
+import com.maloy.muzza.constants.GridCellSize
+import com.maloy.muzza.constants.GridCellSizeKey
+import com.maloy.muzza.constants.GridThumbnailHeight
+import com.maloy.muzza.constants.InnerTubeCookieKey
+import com.maloy.muzza.constants.LibraryViewType
+import com.maloy.muzza.constants.PlaylistFilter
+import com.maloy.muzza.constants.PlaylistFilterKey
+import com.maloy.muzza.constants.PlaylistSortDescendingKey
+import com.maloy.muzza.constants.PlaylistSortType
+import com.maloy.muzza.constants.PlaylistSortTypeKey
+import com.maloy.muzza.constants.PlaylistViewTypeKey
+import com.maloy.muzza.constants.SmallGridThumbnailHeight
+import com.maloy.muzza.constants.YtmSyncKey
+import com.maloy.muzza.constants.likedMusicAuthorAvatarImageKey
+import com.maloy.muzza.constants.likedMusicAuthorIdKey
+import com.maloy.muzza.constants.likedMusicAuthorNameKey
+import com.maloy.muzza.db.entities.Playlist
+import com.maloy.muzza.db.entities.PlaylistEntity
+import com.maloy.muzza.ui.component.ChipsRow
+import com.maloy.muzza.ui.component.EmptyPlaceholder
+import com.maloy.muzza.ui.component.HideOnScrollFAB
+import com.maloy.muzza.ui.component.LazyColumnScrollbar
+import com.maloy.muzza.ui.component.LazyVerticalGridScrollbar
+import com.maloy.muzza.ui.component.LocalMenuState
+import com.maloy.muzza.ui.component.PlaylistGridItem
+import com.maloy.muzza.ui.component.PlaylistListItem
+import com.maloy.muzza.ui.component.SortHeader
+import com.maloy.muzza.ui.component.TextFieldDialog
+import com.maloy.muzza.ui.menu.PlaylistMenu
+import com.maloy.muzza.ui.utils.backToMain
+import com.maloy.muzza.ui.utils.switchFilter
+import com.maloy.muzza.utils.isInternetAvailable
+import com.maloy.muzza.utils.rememberEnumPreference
+import com.maloy.muzza.utils.rememberPreference
+import com.maloy.muzza.utils.rememberVoiceInput
+import com.maloy.muzza.viewmodels.LibraryPlaylistsViewModel
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import java.time.LocalDateTime
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun LibraryPlaylistsScreen(
+    navController: NavController,
+    scrollBehavior: TopAppBarScrollBehavior,
+    viewModel: LibraryPlaylistsViewModel = hiltViewModel(),
+) {
+    val context = LocalContext.current
+    val menuState = LocalMenuState.current
+    val database = LocalDatabase.current
+    val haptic = LocalHapticFeedback.current
+
+    val playerConnection = LocalPlayerConnection.current ?: return
+    val isPlaying by playerConnection.isPlaying.collectAsState()
+    val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
+
+    val accountImageUrl by rememberPreference(likedMusicAuthorAvatarImageKey, "")
+    val accountName by rememberPreference(likedMusicAuthorNameKey, "")
+    val accountId by rememberPreference(likedMusicAuthorIdKey, "")
+
+    val coroutineScope = rememberCoroutineScope()
+
+    var filter by rememberEnumPreference(PlaylistFilterKey, PlaylistFilter.LIKED)
+
+    val filterTitle = when (filter) {
+        PlaylistFilter.LIKED -> stringResource(R.string.filter_liked)
+        PlaylistFilter.LOCAL -> stringResource(R.string.filter_local)
+        PlaylistFilter.DOWNLOADED -> stringResource(R.string.filter_downloaded)
+    }
+
+    val gridCellSize by rememberEnumPreference(GridCellSizeKey, GridCellSize.BIG)
+    var viewType by rememberEnumPreference(PlaylistViewTypeKey, LibraryViewType.GRID)
+    val (sortType, onSortTypeChange) = rememberEnumPreference(
+        PlaylistSortTypeKey,
+        PlaylistSortType.CREATE_DATE
+    )
+    val (sortDescending, onSortDescendingChange) = rememberPreference(
+        PlaylistSortDescendingKey,
+        true
+    )
+
+    val filterContent = @Composable {
+        Row {
+            ChipsRow(
+                chips =
+                    listOf(
+                        PlaylistFilter.LIKED to stringResource(R.string.filter_liked),
+                        PlaylistFilter.LOCAL to stringResource(R.string.filter_local),
+                        PlaylistFilter.DOWNLOADED to stringResource(R.string.filter_downloaded)
+                    ),
+                currentValue = filter,
+                onValueUpdate = {
+                    filter = it
+                },
+                modifier = Modifier.weight(1f),
+            )
+        }
+    }
+
+    val playlists by viewModel.allPlaylists.collectAsState()
+
+
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
+    val pullRefreshState = rememberPullToRefreshState()
+
+    val lazyListState = rememberLazyListState()
+    val lazyGridState = rememberLazyGridState()
+    val lazyChecker by remember {
+        derivedStateOf {
+            lazyListState.firstVisibleItemIndex > 0
+        }
+    }
+    val gridChecker by remember {
+        derivedStateOf{
+            lazyGridState.firstVisibleItemIndex > 0
+        }
+    }
+    val backStackEntry by navController.currentBackStackEntryAsState()
+    val scrollToTop =
+        backStackEntry?.savedStateHandle?.getStateFlow("scrollToTop", false)?.collectAsState()
+    val (ytmSync) = rememberPreference(YtmSyncKey, true)
+
+    val (innerTubeCookie) = rememberPreference(InnerTubeCookieKey, "")
+    val isLoggedIn = remember(innerTubeCookie) {
+        "SAPISID" in parseCookieString(innerTubeCookie)
+    }
+
+    LaunchedEffect(Unit) {
+        if (filter == PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context)) {
+            viewModel.sync()
+        }
+    }
+
+    LaunchedEffect(scrollToTop?.value) {
+        if (scrollToTop?.value == true) {
+            when (viewType) {
+                LibraryViewType.LIST -> lazyListState.animateScrollToItem(0)
+                LibraryViewType.GRID -> lazyGridState.animateScrollToItem(0)
+            }
+            backStackEntry?.savedStateHandle?.set("scrollToTop", false)
+        }
+    }
+
+    var isSearching by rememberSaveable { mutableStateOf(false) }
+    var searchQuery by remember { mutableStateOf(TextFieldValue("")) }
+    val (startVoiceInput,isVoiceInputAvailable) = rememberVoiceInput(
+        onResult = { recognizedText ->
+            searchQuery = TextFieldValue(recognizedText)
+        }
+    )
+    val focusRequester = remember { FocusRequester() }
+    val searchQueryStr = searchQuery.text.trim()
+    val filteredPlaylists = if (!isSearching) {
+        playlists
+    } else {
+        playlists?.filter { playlists ->
+            playlists.title.contains(searchQueryStr, ignoreCase = true) ||
+                    playlists.playlist.playlistAuthorName
+                        ?.contains(searchQueryStr, ignoreCase = true) == true
+        }
+    }
+
+    val filterOrder = listOf(
+        PlaylistFilter.LIKED,
+        PlaylistFilter.LOCAL,
+        PlaylistFilter.DOWNLOADED
+    )
+
+    LaunchedEffect(isSearching) {
+        if (isSearching) {
+            focusRequester.requestFocus()
+        }
+    }
+
+    val onExitSearchingMode = {
+        isSearching = false
+        searchQuery = TextFieldValue("")
+    }
+
+    if (isSearching) {
+        BackHandler(onBack = onExitSearchingMode)
+    }
+
+    var showAddPlaylistDialog by rememberSaveable {
+        mutableStateOf(false)
+    }
+
+    var syncedPlaylist: Boolean by remember {
+        mutableStateOf(false)
+    }
+
+    if (showAddPlaylistDialog) {
+        TextFieldDialog(
+            icon = { Icon(imageVector = Icons.Rounded.Add, contentDescription = null) },
+            title = { Text(text = stringResource(R.string.create_playlist)) },
+            onDismiss = { showAddPlaylistDialog = false },
+            onDone = { playlistName ->
+                viewModel.viewModelScope.launch(Dispatchers.IO) {
+                    val browseId = if (syncedPlaylist)
+                        YouTube.createPlaylist(playlistName)
+                    else null
+
+                    database.query {
+                        insert(
+                            PlaylistEntity(
+                                name = playlistName,
+                                browseId = browseId,
+                                playlistAuthorsId = if (isLoggedIn) accountId else null,
+                                playlistAuthorName = if (isLoggedIn) accountName else null,
+                                playlistAuthorAvatarUrl = if (isLoggedIn) accountImageUrl else null,
+                                description = null,
+                                bookmarkedAt = if (syncedPlaylist) LocalDateTime.now() else null,
+                                isLocal = !syncedPlaylist,
+                                isEditable = true
+                            )
+                        )
+                    }
+                }
+            },
+            extraContent = {
+                if (isLoggedIn && isInternetAvailable(context)) {
+                    Row(
+                        modifier = Modifier.padding(vertical = 16.dp, horizontal = 40.dp)
+                    ) {
+                        Column {
+                            Text(
+                                text = stringResource(R.string.sync_playlist),
+                                style = MaterialTheme.typography.titleLarge,
+                            )
+                            Text(
+                                text = stringResource(R.string.allows_for_sync_witch_youtube),
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.fillMaxWidth(0.7f)
+                            )
+                        }
+                        Row(
+                            modifier = Modifier.weight(1f),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Switch(
+                                checked = syncedPlaylist,
+                                onCheckedChange = {
+                                    syncedPlaylist = !syncedPlaylist
+                                },
+                            )
+                        }
+                    }
+                }
+            }
+        )
+    }
+
+    val headerContent = @Composable {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(start = 16.dp)
+        ) {
+            if (filteredPlaylists?.isEmpty() != true) {
+                SortHeader(
+                    sortType = sortType,
+                    sortDescending = sortDescending,
+                    onSortTypeChange = onSortTypeChange,
+                    onSortDescendingChange = onSortDescendingChange,
+                    sortTypeText = { sortType ->
+                        when (sortType) {
+                            PlaylistSortType.CREATE_DATE -> R.string.sort_by_create_date
+                            PlaylistSortType.NAME -> R.string.sort_by_name
+                            PlaylistSortType.SONG_COUNT -> R.string.sort_by_song_count
+                            PlaylistSortType.LAST_UPDATED -> R.string.sort_by_last_updated
+                        }
+                    }
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            if (filteredPlaylists?.isEmpty() != true) {
+                filteredPlaylists?.let { playlists ->
+                    Text(
+                        text = pluralStringResource(
+                            R.plurals.n_playlist,
+                            playlists.size,
+                            playlists.size
+                        ),
+                        style = MaterialTheme.typography.titleSmall,
+                        color = MaterialTheme.colorScheme.secondary
+                    )
+                }
+            }
+
+            IconButton(
+                onClick = {
+                    viewType = viewType.toggle()
+                },
+                modifier = Modifier.padding(start = 6.dp, end = 6.dp)
+            ) {
+                Icon(
+                    painter = painterResource(
+                        when (viewType) {
+                            LibraryViewType.LIST -> R.drawable.list
+                            LibraryViewType.GRID -> R.drawable.grid_view
+                        }
+                    ),
+                    contentDescription = null
+                )
+            }
+        }
+    }
+
+    BoxWithConstraints(
+        modifier = Modifier
+            .fillMaxSize()
+            .pointerInput(Unit) {
+                var totalDrag = 0f
+                detectHorizontalDragGestures(
+                    onDragStart = { totalDrag = 0f },
+                    onHorizontalDrag = { _, dragAmount -> totalDrag += dragAmount },
+                    onDragEnd = {
+                        val threshold = 100f
+                        when {
+                            totalDrag > threshold -> switchFilter(filter, filterOrder, -1) { filter = it }
+                            totalDrag < -threshold -> switchFilter(filter, filterOrder, 1) { filter = it }
+                        }
+                        totalDrag = 0f
+                    }
+                )
+            }
+            .pullToRefresh(
+                enabled = filter == PlaylistFilter.LIKED && ytmSync && isLoggedIn && isInternetAvailable(context),
+                state = pullRefreshState,
+                isRefreshing = isRefreshing,
+                onRefresh = viewModel::refresh
+            ),
+        contentAlignment = Alignment.TopStart
+    ) {
+        filteredPlaylists?.let { playlists ->
+            when (viewType) {
+                LibraryViewType.LIST -> {
+                    if (playlists.isEmpty()) {
+                        LazyVerticalGrid(
+                            state = lazyGridState,
+                            columns = GridCells.Fixed(1),
+                            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                        ) {
+                            item(
+                                key = "filter",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
+                            if (isSearching) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found)
+                                    )
+                                }
+                            } else {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.queue_music,
+                                        text = stringResource(R.string.library_playlists_empty_witch_chip,filterTitle)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        LazyColumn(
+                            state = lazyListState,
+                            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                        ) {
+                            item(
+                                key = "filter",
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
+                            item(
+                                key = "header",
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                headerContent()
+                            }
+                            items(
+                                items = playlists,
+                                key = { it.id },
+                                contentType = { CONTENT_TYPE_PLAYLIST }
+                            ) { playlist ->
+                                PlaylistListItem(
+                                    playlist = playlist,
+                                    isActive = playlist.id == mediaMetadata?.playlist?.id,
+                                    isPlaying = isPlaying,
+                                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                                    trailingContent = {
+                                        IconButton(
+                                            onClick = {
+                                                menuState.show {
+                                                    PlaylistMenu(
+                                                        playlist = playlist,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss,
+                                                        navController = navController
+                                                    )
+                                                }
+                                            }
+                                        ) {
+                                            Icon(
+                                                painter = painterResource(R.drawable.more_vert),
+                                                contentDescription = null
+                                            )
+                                        }
+                                    },
+                                    modifier =
+                                        Modifier
+                                            .fillMaxWidth()
+                                            .combinedClickable(
+                                                onClick = {
+                                                    navController.navigate("local_playlist/${playlist.id}")
+                                                },
+                                                onLongClick = {
+                                                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                    menuState.show {
+                                                        PlaylistMenu(
+                                                            playlist = playlist,
+                                                            coroutineScope = coroutineScope,
+                                                            onDismiss = menuState::dismiss,
+                                                            navController = navController
+                                                        )
+                                                    }
+                                                },
+                                            )
+                                            .animateItem(),
+                                )
+                            }
+                        }
+                        LazyColumnScrollbar(
+                            visible = lazyChecker,
+                            state = lazyListState
+                        )
+                    }
+                    HideOnScrollFAB(
+                        visible = filter == PlaylistFilter.LIKED,
+                        lazyListState = lazyListState,
+                        icon = R.drawable.add,
+                        onClick = {
+                            showAddPlaylistDialog = true
+                        }
+                    )
+                }
+
+                LibraryViewType.GRID -> {
+                    if (playlists.isEmpty()) {
+                        LazyVerticalGrid(
+                            state = lazyGridState,
+                            columns = GridCells.Fixed(1),
+                            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                        ) {
+                            item(
+                                key = "filter",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
+                            if (isSearching) {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.search,
+                                        text = stringResource(R.string.no_results_found)
+                                    )
+                                }
+                            } else {
+                                item {
+                                    EmptyPlaceholder(
+                                        icon = R.drawable.queue_music,
+                                        text = stringResource(R.string.library_playlists_empty_witch_chip,filterTitle)
+                                    )
+                                }
+                            }
+                        }
+                    } else {
+                        LazyVerticalGrid(
+                            state = lazyGridState,
+                            columns = GridCells.Adaptive(
+                                minSize = when (gridCellSize) {
+                                    GridCellSize.SMALL -> SmallGridThumbnailHeight
+                                    GridCellSize.BIG -> GridThumbnailHeight
+                                } + 24.dp
+                            ),
+                            contentPadding = LocalPlayerAwareWindowInsets.current.asPaddingValues()
+                        ) {
+                            item(
+                                key = "filter",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                filterContent()
+                            }
+                            item(
+                                key = "header",
+                                span = { GridItemSpan(maxLineSpan) },
+                                contentType = CONTENT_TYPE_HEADER
+                            ) {
+                                headerContent()
+                            }
+                            items(
+                                items = playlists,
+                                key = { it.id },
+                                contentType = { CONTENT_TYPE_PLAYLIST }
+                            ) { playlist ->
+                                PlaylistGridItem(
+                                    playlist = playlist,
+                                    thumbnail = Icons.AutoMirrored.Rounded.QueueMusic,
+                                    isActive = playlist.id == mediaMetadata?.playlist?.id,
+                                    isPlaying = isPlaying,
+                                    fillMaxWidth = true,
+                                    coroutineScope = coroutineScope,
+                                    navController = navController,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .combinedClickable(
+                                            onClick = {
+                                                navController.navigate("local_playlist/${playlist.id}")
+                                            },
+                                            onLongClick = {
+                                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                menuState.show {
+                                                    PlaylistMenu(
+                                                        playlist = playlist,
+                                                        coroutineScope = coroutineScope,
+                                                        onDismiss = menuState::dismiss,
+                                                        navController = navController
+                                                    )
+                                                }
+                                            }
+                                        )
+                                        .animateItem()
+                                )
+                            }
+                        }
+                        LazyVerticalGridScrollbar(
+                            visible = gridChecker,
+                            state = lazyGridState
+                        )
+                    }
+                    HideOnScrollFAB(
+                        visible = filter != PlaylistFilter.DOWNLOADED,
+                        lazyListState = lazyGridState,
+                        icon = R.drawable.add,
+                        onClick = {
+                            showAddPlaylistDialog = true
+                        }
+                    )
+                }
+            }
+        }
+        if (playlists != null && ytmSync && isLoggedIn && isInternetAvailable(context)) {
+            Indicator(
+                isRefreshing = isRefreshing,
+                state = pullRefreshState,
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(LocalPlayerAwareWindowInsets.current.asPaddingValues()),
+            )
+        }
+        CenterAlignedTopAppBar(
+            title = {
+                if (isSearching) {
+                    TextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        placeholder = {
+                            Text(
+                                text = stringResource(R.string.search),
+                                style = MaterialTheme.typography.titleLarge
+                            )
+                        },
+                        singleLine = true,
+                        textStyle = MaterialTheme.typography.titleLarge,
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        colors = TextFieldDefaults.colors(
+                            focusedContainerColor = Color.Transparent,
+                            unfocusedContainerColor = Color.Transparent,
+                            focusedIndicatorColor = Color.Transparent,
+                            unfocusedIndicatorColor = Color.Transparent,
+                            disabledIndicatorColor = Color.Transparent,
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .focusRequester(focusRequester),
+                        trailingIcon = {
+                            if (searchQuery.text.isEmpty() && isVoiceInputAvailable) {
+                                IconButton(
+                                    onClick = startVoiceInput
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.mic),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                            if (searchQuery.text.isNotEmpty()) {
+                                IconButton(
+                                    onClick = { searchQuery = TextFieldValue("") }
+                                ) {
+                                    Icon(
+                                        painter = painterResource(R.drawable.close),
+                                        contentDescription = null
+                                    )
+                                }
+                            }
+                        }
+                    )
+                } else Text(stringResource(R.string.playlists))
+            },
+            navigationIcon = {
+                com.maloy.muzza.ui.component.IconButton(
+                    onClick = {
+                        if (isSearching) {
+                            isSearching = false
+                            searchQuery = TextFieldValue()
+                        } else {
+                            navController.navigateUp()
+                        }
+                    },
+                    onLongClick = {
+                        if (!isSearching) {
+                            navController.backToMain()
+                        }
+                    }
+                ) {
+                    Icon(
+                        painter = painterResource(
+                            R.drawable.arrow_back
+                        ),
+                        contentDescription = null
+                    )
+                }
+            },
+            actions = {
+                filteredPlaylists?.let { playlists ->
+                    if (playlists.isNotEmpty() && !isSearching) {
+                        IconButton(
+                            onClick = { isSearching = true }
+                        ) {
+                            Icon(
+                                painter = painterResource(R.drawable.search),
+                                contentDescription = null
+                            )
+                        }
+                    }
+                }
+            },
+            scrollBehavior = if (!isSearching) scrollBehavior else null
+        )
+    }
+}

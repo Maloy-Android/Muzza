@@ -1,0 +1,69 @@
+CREATE TABLE IF NOT EXISTS song (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    duration INTEGER NOT NULL DEFAULT -1,
+    thumbnailUrl TEXT,
+    albumId TEXT,
+    albumName TEXT,
+    liked INTEGER NOT NULL DEFAULT 0,
+    totalPlayTime INTEGER NOT NULL DEFAULT 0,
+    inLibrary TEXT,
+    dateDownload TEXT,
+    artistName TEXT,
+    isLocal INTEGER NOT NULL DEFAULT 0,
+    localPath TEXT,
+    contentUri TEXT,
+    isVideoSong INTEGER NOT NULL DEFAULT 0,
+    explicit INTEGER NOT NULL DEFAULT 0,
+    isFromCache INTEGER NOT NULL DEFAULT 0
+);
+
+CREATE INDEX IF NOT EXISTS song_albumId ON song(albumId);
+
+upsert:
+INSERT OR REPLACE INTO song VALUES ?;
+
+selectById:
+SELECT * FROM song WHERE id = :id;
+
+selectAll:
+SELECT * FROM song;
+
+selectLiked:
+SELECT * FROM song WHERE liked = 1 ORDER BY inLibrary DESC;
+
+selectByAlbum:
+SELECT * FROM song WHERE albumId = :albumId;
+
+selectLocal:
+SELECT * FROM song WHERE isLocal = 1;
+
+updateLiked:
+UPDATE song SET liked = :liked WHERE id = :id;
+
+updateTotalPlayTime:
+UPDATE song SET totalPlayTime = totalPlayTime + :addition WHERE id = :id;
+
+updateInLibrary:
+UPDATE song SET inLibrary = :inLibrary WHERE id = :id;
+
+delete:
+DELETE FROM song WHERE id = :id;
+
+countAll:
+SELECT COUNT(*) FROM song;
+
+selectQuickPicks:
+SELECT song.* FROM song
+LEFT JOIN event ON song.id = event.songId
+WHERE song.liked = 0 AND song.isLocal = 0
+GROUP BY song.id
+HAVING COUNT(event.id) > 0
+ORDER BY MAX(event.timestamp) DESC
+LIMIT 20;
+
+selectForgottenFavorites:
+SELECT song.* FROM song
+WHERE song.liked = 1 AND song.isLocal = 0
+ORDER BY song.totalPlayTime ASC
+LIMIT 20;

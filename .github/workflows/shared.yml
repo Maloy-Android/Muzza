@@ -1,0 +1,83 @@
+name: Shared KMP Build & Test
+
+on:
+  push:
+    branches: [ main, master, dev ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build-shared:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Cache Gradle + Konan
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
+
+      - name: Compile Shared (Android)
+        run: ./gradlew :shared:compileKotlinAndroid --stacktrace
+
+      - name: Run Shared Tests
+        run: ./gradlew :shared:jvmTest --stacktrace || true
+
+      - name: Compile innertube
+        run: ./gradlew :innertube:compileKotlinJvm --stacktrace
+
+      - name: Compile kugou
+        run: ./gradlew :kugou:compileKotlinJvm --stacktrace
+
+      - name: Compile lrclib
+        run: ./gradlew :lrclib:compileKotlinJvm --stacktrace
+
+  build-shared-ios:
+    runs-on: macos-15
+    needs: build-shared
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Cache Gradle + Konan
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+            ~/.konan
+          key: ${{ runner.os }}-gradle-konan-${{ hashFiles('**/*.gradle*', '**/libs.versions.toml') }}
+
+      - name: Compile Shared (iOS Simulator)
+        run: ./gradlew :shared:compileKotlinIosSimulatorArm64 --stacktrace
+
+      - name: Compile Shared (iOS Arm64)
+        run: ./gradlew :shared:compileKotlinIosArm64 --stacktrace

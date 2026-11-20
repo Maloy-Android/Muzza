@@ -56,7 +56,7 @@ class AlbumViewModel(
 
     fun toggleBookmark() {
         val current = album.value ?: return
-        val newBookmark = if (current.bookmarkedAt != null) null else kotlinx.datetime.Clock.System.now()
+        val newBookmark = if (current.bookmarkedAt != null) null else kotlin.time.Clock.System.now()
             .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).toString()
         viewModelScope.launch(ioDispatcher) {
             repository.toggleAlbumBookmark(current.id, newBookmark)

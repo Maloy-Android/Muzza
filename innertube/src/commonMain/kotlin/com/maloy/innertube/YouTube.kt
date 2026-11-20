@@ -1389,6 +1389,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
     suspend fun feedback(tokens: List<String>): Result<Boolean> = runCatching {
         innerTube.feedback(WEB_REMIX, tokens).body<FeedbackResponse>().feedbackResponses.all { it.isProcessed }
     }
+    @kotlin.jvm.JvmInline
     value class SearchFilter(val value: String) {
         companion object {
             val FILTER_SONG = SearchFilter("EgWKAQIIAWoKEAkQBRAKEAMQBA%3D%3D")

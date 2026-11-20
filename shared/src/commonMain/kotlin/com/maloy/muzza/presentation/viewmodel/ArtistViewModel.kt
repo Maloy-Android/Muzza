@@ -33,7 +33,7 @@ class ArtistViewModel(
     fun toggleBookmark(artistId: String) {
         val current = artist.value ?: return
         val newBookmark = if (current.bookmarkedAt != null) null
-        else kotlinx.datetime.Clock.System.now()
+        else kotlin.time.Clock.System.now()
             .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).toString()
         viewModelScope.launch(ioDispatcher) {
             repository.toggleArtistBookmark(artistId, newBookmark)

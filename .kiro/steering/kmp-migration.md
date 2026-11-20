@@ -242,13 +242,24 @@ navigation-compose = "2.9.0"    # Official KMP Navigation
 - `extensions/`, `constants/`, `models/` скопированы в `shared/commonMain`
 
 ### Next Actions
-- [ ] Мигрировать скопированные UI-файлы с Android API (`R`, Media3, `LocalContext`, Intent/Toast/DownloadService) на Compose Multiplatform
-- [ ] Мигрировать `extensions/` — убрать `java.*` импорты
-- [ ] Настроить `iosApp/iosApp.xcodeproj`
-- [ ] Проверить сборку Android и KMP framework для iOS
+- [ ] Мигрировать основной UI из Android shell в Compose Multiplatform
+- [ ] Расширить iOS playback: Control Center metadata, queue, background audio activation и PiP
+- [ ] Настроить реальные App icons, launch screen, permissions и entitlements
+- [ ] Проверить Xcode build на macOS
+- [ ] Подключить shared module к androidApp после снижения Compose/KMP dependency conflicts
 
 ### Краткий статус продолжения работы
 - iOS target `:shared:compileKotlinIosSimulatorArm64` собирается успешно.
+- iOS device target `:shared:compileKotlinIosArm64` собирается успешно.
+- Android shared target `:shared:compileAndroidMain` собирается успешно.
+- JVM modules `innertube` и `lrclib` собираются успешно.
 - Android-only зависимости вынесены из `commonMain`: `kotlinx-coroutines-guava` доступен только в `androidMain`.
 - `innertube` и `lrclib` очищены от JVM-only API для iOS target.
-- В Native-компиляции временно исключён немигрированный Android UI-код; это не завершённая UI-миграция.
+- Немигрированный Android UI удалён из `shared/commonMain`; Android UI остаётся в `androidApp/src/main`.
+- Временный source filtering удалён полностью.
+- Xcode project содержит Gradle shell build phase для генерации `Shared.framework`.
+- Добавлен minimal iOS Compose host для Home/Quick Picks и запуск треков через InnerTube.
+- Добавлен общий `MusicPlayer` contract и iOS AVPlayer actual; Android actual временно stub.
+- Xcode project настроен на Shared.framework, Info.plist, entitlements и background audio.
+- Android legacy app `:androidApp:assembleFossDebug` собирается успешно с API 37.
+- iOS playback получил coroutine polling позиции/duration и Compose bottom-bar play/pause.

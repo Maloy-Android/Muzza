@@ -11,9 +11,27 @@
 		B00002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00002 /* ContentView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXShellScriptBuildPhase section */
+		SHELL1 /* Build Shared KMP framework */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = ();
+			inputFileListPaths = ();
+			inputPaths = ();
+			name = "Build Shared KMP framework";
+			outputFileListPaths = ();
+			outputPaths = ();
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "cd \"$SRCROOT/..\"\nif [ \"$CONFIGURATION\" = \"Debug\" ]; then\n  BUILD_TYPE=Debug\nelse\n  BUILD_TYPE=Release\nfi\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n  ./gradlew \":shared:link${BUILD_TYPE}FrameworkIosSimulatorArm64\"\nelse\n  ./gradlew \":shared:link${BUILD_TYPE}FrameworkIosArm64\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
 /* Begin PBXFileReference section */
 		A00001 /* MuzzaApp.swift */   = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaApp.swift; sourceTree = "<group>"; };
 		A00002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		A00003 /* Info.plist */       = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A00004 /* Muzza.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Muzza.entitlements; sourceTree = "<group>"; };
 		PROD001 /* iosApp.app */       = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -31,6 +49,8 @@
 			children = (
 				A00001,
 				A00002,
+				A00003,
+				A00004,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -50,6 +70,7 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = CFGLIST1;
 			buildPhases = (
+				SHELL1,
 				SOURCES1,
 			);
 			buildRules = ();
@@ -110,6 +131,19 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.maloy.muzza";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				INFOPLIST_FILE = iosApp/Info.plist;
+				CODE_SIGN_ENTITLEMENTS = iosApp/Muzza.entitlements;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/debugFramework",
+					"$(SRCROOT)/../shared/build/bin/iosArm64/debugFramework",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Shared,
+				);
 			};
 			name = Debug;
 		};
@@ -123,6 +157,19 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.maloy.muzza";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				INFOPLIST_FILE = iosApp/Info.plist;
+				CODE_SIGN_ENTITLEMENTS = iosApp/Muzza.entitlements;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(SRCROOT)/../shared/build/bin/iosSimulatorArm64/releaseFramework",
+					"$(SRCROOT)/../shared/build/bin/iosArm64/releaseFramework",
+				);
+				OTHER_LDFLAGS = (
+					"$(inherited)",
+					"-framework",
+					Shared,
+				);
 			};
 			name = Release;
 		};

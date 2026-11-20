@@ -4,6 +4,7 @@ import com.maloy.innertube.YouTube
 import com.maloy.innertube.pages.LibraryPage
 import com.maloy.innertube.pages.PlaylistPage
 
+@kotlin.jvm.JvmName("completedLibraryPage")
 suspend fun Result<PlaylistPage>.completed(): Result<PlaylistPage> = runCatching {
     val page = getOrThrow()
     val songs = page.songs.toMutableList()
@@ -30,6 +31,7 @@ suspend fun Result<PlaylistPage>.completed(): Result<PlaylistPage> = runCatching
     PlaylistPage(playlist = page.playlist, songs = songs, songsContinuation = null, continuation = page.continuation)
 }
 
+@kotlin.jvm.JvmName("completedLibraryItems")
 suspend fun Result<LibraryPage>.completed(): Result<LibraryPage> = runCatching {
     val page = getOrThrow()
     val items = page.items.toMutableList()

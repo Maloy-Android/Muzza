@@ -18,12 +18,15 @@ import com.maloy.muzza.presentation.viewmodel.OnlineSearchViewModel
 import com.maloy.muzza.presentation.viewmodel.PlayerViewModel
 import com.maloy.muzza.presentation.viewmodel.SettingsViewModel
 import com.maloy.muzza.util.AppSettings
+import com.maloy.muzza.playback.createMusicPlayer
 import org.koin.core.module.dsl.singleOf
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
 
 val sharedModule = module {
+
+    single { createMusicPlayer() }
 
     // Repository
     singleOf(::MusicRepositoryImpl) bind MusicRepository::class

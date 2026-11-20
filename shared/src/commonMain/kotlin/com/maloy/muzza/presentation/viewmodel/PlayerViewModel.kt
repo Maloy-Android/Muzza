@@ -9,10 +9,14 @@ import com.maloy.muzza.util.ioDispatcher
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import com.maloy.muzza.playback.MusicPlayer
+import com.maloy.innertube.YouTube
+import com.metrolist.innertubex.models.YouTubeClient
 
 class PlayerViewModel(
     private val repository: MusicRepository,
     private val settings: AppSettings,
+    private val player: MusicPlayer,
 ) : ViewModel() {
 
     val currentSong = MutableStateFlow<SongEntity?>(null)
@@ -23,6 +27,26 @@ class PlayerViewModel(
     val volume = MutableStateFlow(settings.playerVolume)
     val showLyrics = MutableStateFlow(settings.showLyrics)
     val queue = MutableStateFlow<List<SongEntity>>(emptyList())
+
+    fun playSong(videoId: String) {
+        viewModelScope.launch {
+            YouTube.player(videoId, client = YouTubeClient.WEB_REMIX)
+                .onSuccess { response ->
+                    val streamUrl = response.streamingData?.adaptiveFormats
+                        ?.firstOrNull { it.isAudio }
+                        ?.url
+                    if (streamUrl != null) {
+                        player.play(streamUrl)
+                        isPlaying.value = true
+                    }
+                }
+        }
+    }
+
+    fun togglePlayback() {
+        if (player.isPlaying.value) player.pause() else player.resume()
+        isPlaying.value = player.isPlaying.value
+    }
 
     fun toggleLike() {
         val song = currentSong.value ?: return

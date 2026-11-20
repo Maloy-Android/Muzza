@@ -29,6 +29,7 @@ import androidx.compose.foundation.layout.union
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -135,13 +136,17 @@ import com.maloy.muzza.ui.component.HideOnScrollFAB
 import com.maloy.muzza.ui.component.IconButton
 import com.maloy.muzza.ui.component.LazyColumnScrollbar
 import com.maloy.muzza.ui.component.LocalMenuState
+import com.maloy.muzza.ui.component.NavigationTitle
 import com.maloy.muzza.ui.component.SortHeader
+import com.maloy.muzza.ui.component.YouTubeGridItem
 import com.maloy.muzza.ui.component.YouTubeListItem
 import com.maloy.muzza.ui.component.shimmer.ButtonRowPlaceHolder
+import com.maloy.muzza.ui.component.shimmer.GridItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ListItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.PlaylistAlbumItemPlaceHolder
 import com.maloy.muzza.ui.component.shimmer.ShimmerHost
 import com.maloy.muzza.ui.component.shimmer.TextPlaceholder
+import com.maloy.muzza.ui.menu.YouTubeAlbumMenu
 import com.maloy.muzza.ui.menu.YouTubePlaylistMenuInPlaylistScreen
 import com.maloy.muzza.ui.menu.YouTubeSongMenu
 import com.maloy.muzza.ui.menu.YouTubeSongSelectionMenu
@@ -179,6 +184,7 @@ fun OnlinePlaylistScreen(
 
     val playlist by viewModel.playlist.collectAsState()
     val songs by viewModel.playlistSongs.collectAsState()
+    val similarPlaylists by viewModel.similarPlaylists.collectAsState()
     val dbPlaylist by viewModel.dbPlaylist.collectAsState()
     val isLikedMusicPlaylist = playlist?.id == "LM"
 
@@ -885,11 +891,51 @@ fun OnlinePlaylistScreen(
                             )
                         }
                     }
-                    if (viewModel.continuation != null && songs.isNotEmpty()) {
+                    if (viewModel.songsContinuation != null && songs.isNotEmpty()) {
                         item {
                             ShimmerHost {
                                 repeat(2) {
                                     ListItemPlaceHolder()
+                                }
+                            }
+                        }
+                    }
+                    if (similarPlaylists.isNotEmpty()) {
+                        item {
+                            NavigationTitle(
+                                title = stringResource(R.string.similar_playlists),
+                            )
+                        }
+                        item {
+                            LazyRow {
+                                items(
+                                    items = similarPlaylists,
+                                    key = { it.id },
+                                ) { item ->
+                                    YouTubeGridItem(
+                                        item = item,
+                                        isActive = mediaMetadata?.playlist?.id == item.id,
+                                        isPlaying = isPlaying,
+                                        navController = navController,
+                                        modifier =
+                                            Modifier
+                                                .combinedClickable(
+                                                    onClick = { navController.navigate("online_playlist/${item.id}") },
+                                                    onLongClick = {
+                                                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                                                        menuState.show {
+                                                            YouTubePlaylistMenuInPlaylistScreen(
+                                                                navController = navController,
+                                                                playlist = playlist,
+                                                                songs = songs,
+                                                                coroutineScope = coroutineScope,
+                                                                onDismiss = menuState::dismiss
+                                                            )
+                                                        }
+                                                    },
+                                                )
+                                                .animateItem(),
+                                    )
                                 }
                             }
                         }

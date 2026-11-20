@@ -141,6 +141,7 @@
     <string name="delete_playlist_confirm">Do you really want to delete the playlist \"%s\"?</string>
     <string name="playlist_author">Your playlist</string>
     <string name="unknow_playlist_author">Unknow author</string>
+    <string name="similar_playlists">Similar playlists</string>
 
     <string name="off">Disable</string>
 

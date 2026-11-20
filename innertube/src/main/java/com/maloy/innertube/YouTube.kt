@@ -737,13 +737,22 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                 val shelf = twoColShelf ?: singleColShelf
                 shelf?.contents?.getContinuation() ?: shelf?.continuations?.getContinuation()
             },
-            continuation =
-                response.contents
+            continuation = run {
+                val twoColShelf = response.contents
                     ?.twoColumnBrowseResultsRenderer
                     ?.secondaryContents
                     ?.sectionListRenderer
-                    ?.continuations
-                    ?.getContinuation(),
+                val singleColShelf = response.contents
+                    ?.singleColumnBrowseResultsRenderer
+                    ?.tabs?.firstOrNull()
+                    ?.tabRenderer?.content
+                    ?.sectionListRenderer
+
+                twoColShelf?.continuations?.getContinuation()
+                    ?: twoColShelf?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.continuations?.getContinuation()
+                    ?: singleColShelf?.continuations?.getContinuation()
+                    ?: singleColShelf?.contents?.firstOrNull()?.musicPlaylistShelfRenderer?.continuations?.getContinuation()
+            }
         )
     }
 
@@ -752,7 +761,7 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
             client = WEB_REMIX,
             continuation = continuation,
             browseId = "",
-            setLogin = true
+            setLogin = false
         ).body<BrowseResponse>()
 
         val mainContents: List<MusicShelfRenderer.Content> = response.continuationContents?.sectionListContinuation?.contents
@@ -801,8 +810,22 @@ val response = innerTube.browse(WEB_REMIX, continuation = continuation).body<Bro
                     ?.getContinuation()
         }
 
+        val similarPlaylists = (response.continuationContents?.gridContinuation?.items.orEmpty()
+            .mapNotNull { it.musicTwoRowItemRenderer } +
+                response.continuationContents?.sectionListContinuation?.contents.orEmpty()
+                    .mapNotNull { it.musicCarouselShelfRenderer }
+                    .flatMap { carousel -> carousel.contents.mapNotNull { it.musicTwoRowItemRenderer } })
+            .mapNotNull { renderer ->
+                runCatching {
+                    NewMixesPlaylistsPage.fromMusicTwoRowItemRenderer(renderer)
+                        ?: (RelatedPage.fromMusicTwoRowItemRenderer(renderer) as? PlaylistItem)
+                }.getOrNull()
+            }
+            .distinctBy { it.id }
+
         PlaylistContinuationPage(
             songs = songs,
+            similarPlaylists = similarPlaylists,
             continuation = nextContinuation
         )
     }

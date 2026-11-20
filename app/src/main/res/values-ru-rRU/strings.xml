@@ -136,6 +136,7 @@
     <string name="delete_playlist_confirm">Вы уверены, что хотите удалить плейлист «%s»?</string>
     <string name="playlist_author">Ваш плейлист</string>
     <string name="unknow_playlist_author">Неизвестный автор</string>
+    <string name="similar_playlists">Похожие плейлисты</string>
 
     <string name="off">Выключить</string>
 

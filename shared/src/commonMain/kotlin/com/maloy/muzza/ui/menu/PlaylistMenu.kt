@@ -1,8 +1,6 @@
 ﻿package com.maloy.muzza.ui.menu
 
-import android.content.Intent
-import android.net.Uri
-import android.widget.Toast
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -44,7 +42,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.text.TextRange
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
@@ -87,7 +85,6 @@ fun PlaylistMenu(
     onDismiss: () -> Unit,
     showDeleteButton: Boolean = true
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return

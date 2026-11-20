@@ -5,7 +5,6 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.muzza.db.entities.*
 import com.maloy.muzza.ui.utils.resize
-import java.io.Serializable
 
 @Immutable
 data class MediaMetadata(
@@ -27,22 +26,22 @@ data class MediaMetadata(
     val suggestedBy: String? = null,
     val isProfile: Boolean = false,
     val isFromCache: Boolean = false,
-) : Serializable {
+) {
     data class Artist(
         val id: String?,
         val name: String,
         val thumbnailUrl: String? = null,
         val isProfile: Boolean = false,
-    ) : Serializable
+    )
 
     data class Album(
         val id: String,
         val title: String,
-    ) : Serializable
+    )
 
     data class Playlist(
         val id: String,
-    ) : Serializable
+    )
 
     fun toSongEntity() = SongEntity(
         id = id,

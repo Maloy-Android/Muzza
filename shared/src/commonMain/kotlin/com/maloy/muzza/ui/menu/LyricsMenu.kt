@@ -1,7 +1,6 @@
 ﻿package com.maloy.muzza.ui.menu
 
-import android.app.SearchManager
-import android.content.Intent
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -38,7 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -67,7 +66,6 @@ fun LyricsMenu(
     onDismiss: () -> Unit,
     viewModel: LyricsMenuViewModel = org.koin.androidx.compose.koinViewModel(),
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
 
     var showEditDialog by rememberSaveable {

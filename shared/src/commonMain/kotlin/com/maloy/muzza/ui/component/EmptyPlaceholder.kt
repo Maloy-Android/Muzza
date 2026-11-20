@@ -1,6 +1,5 @@
 ﻿package com.maloy.muzza.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -18,7 +17,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun EmptyPlaceholder(
-    @DrawableRes icon: Int,
+    icon: Int,
     text: String,
     modifier: Modifier = Modifier,
 ) {

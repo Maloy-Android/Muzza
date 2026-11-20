@@ -1,7 +1,5 @@
 ﻿package com.maloy.muzza.ui.component
 
-import androidx.annotation.DrawableRes
-import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -50,9 +48,9 @@ fun ListMenuDivider(
 
 fun LazyListScope.ListMenuItem(
     modifier: Modifier = Modifier,
-    @DrawableRes icon: Int,
+    icon: Int,
     tint: @Composable () -> Color = { LocalContentColor.current },
-    @StringRes title: Int,
+    title: Int,
     enabled: Boolean = true,
     onClick: () -> Unit
 ) = ListMenuItem(
@@ -73,7 +71,7 @@ fun LazyListScope.ListMenuItem(
 fun LazyListScope.ListMenuItem(
     modifier: Modifier = Modifier,
     icon: @Composable () -> Unit,
-    @StringRes title: Int,
+    title: Int,
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {

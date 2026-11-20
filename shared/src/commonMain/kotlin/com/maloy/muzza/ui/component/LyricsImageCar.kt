@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -114,7 +114,6 @@ fun LyricsImageCard(
     textColor: Color? = null,
     secondaryTextColor: Color? = null
 ) {
-    val context = LocalContext.current
     val density = LocalDensity.current
 
     val cardSizeDp = remember {
@@ -266,7 +265,7 @@ fun LyricsImageCard(
                     Spacer(modifier = Modifier.width(8.dp))
 
                     Text(
-                        text = context.getString(R.string.app_name),
+                        text = stringResource(R.string.app_name),
                         color = secondaryColor,
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold

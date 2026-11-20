@@ -9,7 +9,7 @@ import androidx.media3.common.Player.REPEAT_MODE_ONE
 import androidx.media3.common.Timeline
 import androidx.media3.common.TrackSelectionParameters
 import com.maloy.muzza.models.MediaMetadata
-import java.util.ArrayDeque
+
 
 fun Player.togglePlayPause() {
     if (!playWhenReady && playbackState == Player.STATE_IDLE) {

@@ -2,9 +2,6 @@
 
 package com.maloy.muzza.ui.component
 
-import android.content.Intent
-import android.content.res.Configuration
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -68,8 +65,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.rememberTextMeasurer
@@ -77,8 +73,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.graphics.drawable.toBitmap
-import androidx.palette.graphics.Palette
 import coil.ImageLoader
 import coil.request.ImageRequest
 import com.maloy.muzza.LocalPlayerConnection
@@ -123,9 +117,8 @@ fun Lyrics(
 ) {
     val playerConnection = LocalPlayerConnection.current ?: return
     val density = LocalDensity.current
-    val landscapeOffset = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
+    // TODO: platform-specific — landscape detection requires platform context
+    val landscapeOffset = false
     val scope = rememberCoroutineScope()
 
     val lyricsFontSize by rememberPreference(LyricFontSizeKey, 20)
@@ -238,11 +231,7 @@ fun Lyrics(
 
     LaunchedEffect(showMaxSelectionToast) {
         if (showMaxSelectionToast) {
-            Toast.makeText(
-                context,
-                context.getString(R.string.max_selection_limit, maxSelectionLimit),
-                Toast.LENGTH_SHORT
-            ).show()
+            // TODO: KMP toast — show max selection limit feedback
             showMaxSelectionToast = false
         }
     }
@@ -564,22 +553,14 @@ fun Lyrics(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
-                                val shareIntent = Intent().apply {
-                                    action = Intent.ACTION_SEND
-                                    type = "text/plain"
-                                    val songLink =
-                                        "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink"
-                                    )
-                                }
-                                context.startActivity(
-                                    Intent.createChooser(
-                                        shareIntent,
-                                        context.getString(R.string.share_lyrics)
-                                    )
-                                )
+                                // TODO: Android-only — share as text via Intent
+                                // val shareIntent = Intent().apply {
+                                //     action = Intent.ACTION_SEND
+                                //     type = "text/plain"
+                                //     val songLink = "https://music.youtube.com/watch?v=${mediaMetadata?.id}"
+                                //     putExtra(Intent.EXTRA_TEXT, "\"$lyricsText\"\n\n$songTitle - $artists\n$songLink")
+                                // }
+                                // context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_lyrics)))
                                 showShareDialog = false
                             }
                             .padding(vertical = 12.dp),
@@ -653,7 +634,7 @@ fun Lyrics(
                     val coverUrl = mediaMetadata?.thumbnailUrl
                     val paletteColors = remember { mutableStateListOf<Color>() }
 
-                    val previewCardWidth = configuration.screenWidthDp.dp * 0.90f
+                    val previewCardWidth = 360.dp * 0.90f
                     val previewPadding = 20.dp * 2
                     val previewBoxPadding = 28.dp * 2
                     val previewAvailableWidth =
@@ -681,34 +662,8 @@ fun Lyrics(
                         textMeasurer = textMeasurer
                     )
                     LaunchedEffect(coverUrl) {
-                        if (coverUrl != null) {
-                            withContext(Dispatchers.IO) {
-                                try {
-                                    val loader = ImageLoader(context)
-                                    val req = ImageRequest.Builder(context).data(coverUrl)
-                                        .allowHardware(false).build()
-                                    val result = loader.execute(req)
-                                    val bmp = result.drawable?.toBitmap()
-                                    if (bmp != null) {
-                                        val palette = Palette.from(bmp).generate()
-                                        val swatches =
-                                            palette.swatches.sortedByDescending { it.population }
-                                        val colors = swatches.map { Color(it.rgb) }
-                                            .filter { color ->
-                                                val hsv = FloatArray(3)
-                                                android.graphics.Color.colorToHSV(
-                                                    color.toArgb(),
-                                                    hsv
-                                                )
-                                                hsv[1] > 0.2f
-                                            }
-                                        paletteColors.clear()
-                                        paletteColors.addAll(colors.take(5))
-                                    }
-                                } catch (_: Exception) {
-                                }
-                            }
-                        }
+                        // TODO: Android-only — palette extraction from cover art
+                        // On Android, use ImageLoader + Palette to populate paletteColors
                     }
                     BasicAlertDialog(onDismissRequest = { showColorPickerDialog = false }) {
                         Card(

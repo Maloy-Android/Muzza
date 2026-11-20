@@ -2,7 +2,6 @@
 
 package com.maloy.muzza.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.Indication
 import androidx.compose.foundation.background
@@ -33,7 +32,7 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun ResizableIconButton(
-    @DrawableRes icon: Int,
+    icon: Int,
     modifier: Modifier = Modifier,
     color: Color = MaterialTheme.colorScheme.onSurface,
     enabled: Boolean = true,

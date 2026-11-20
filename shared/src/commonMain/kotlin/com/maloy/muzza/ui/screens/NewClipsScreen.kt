@@ -44,7 +44,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.toMutableStateList
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.util.fastForEachReversed
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.maloy.innertube.models.WatchEndpoint

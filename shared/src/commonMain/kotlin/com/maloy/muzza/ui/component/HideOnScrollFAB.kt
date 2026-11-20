@@ -1,6 +1,5 @@
 ﻿package com.maloy.muzza.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -25,7 +24,7 @@ import com.maloy.muzza.ui.utils.isScrollingUp
 fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyListState,
-    @DrawableRes icon: Int,
+    icon: Int,
     onClick: () -> Unit,
 ) {
     AnimatedVisibility(
@@ -55,7 +54,7 @@ fun BoxScope.HideOnScrollFAB(
 fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     lazyListState: LazyGridState,
-    @DrawableRes icon: Int,
+    icon: Int,
     onClick: () -> Unit,
 ) {
     AnimatedVisibility(
@@ -85,7 +84,7 @@ fun BoxScope.HideOnScrollFAB(
 fun BoxScope.HideOnScrollFAB(
     visible: Boolean = true,
     scrollState: ScrollState,
-    @DrawableRes icon: Int,
+    icon: Int,
     onClick: () -> Unit,
 ) {
     AnimatedVisibility(

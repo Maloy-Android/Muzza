@@ -10,7 +10,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.maloy.innertube.models.SongItem
 import com.maloy.muzza.LocalDatabase
@@ -22,7 +22,9 @@ import com.maloy.muzza.models.toMediaMetadata
 import com.maloy.muzza.playback.queues.ListQueue
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
-import java.time.LocalDateTime
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun YouTubeSongSelectionMenu(
@@ -33,7 +35,6 @@ fun YouTubeSongSelectionMenu(
     showPlayNextButton : Boolean = true,
     onHistoryRemoved: () -> Unit = {}
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current

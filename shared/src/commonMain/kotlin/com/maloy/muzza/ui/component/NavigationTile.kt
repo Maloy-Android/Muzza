@@ -1,6 +1,5 @@
 ﻿package com.maloy.muzza.ui.component
 
-import androidx.annotation.DrawableRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -22,7 +21,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun NavigationTile(
     title: String,
-    @DrawableRes icon: Int,
+    icon: Int,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {

@@ -1,6 +1,6 @@
 ﻿package com.maloy.muzza.ui.menu
 
-import android.widget.Toast
+
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
@@ -14,7 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.media3.common.Timeline
 import androidx.media3.exoplayer.offline.Download
@@ -44,7 +44,6 @@ fun QueueSelectionMenu(
     onExitSelectionMode: () -> Unit,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val listenTogetherManager = LocalListenTogetherManager.current

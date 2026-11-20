@@ -1,6 +1,6 @@
 ﻿package com.maloy.muzza.ui.menu
 
-import android.content.Intent
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -29,7 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import com.maloy.innertube.YouTube
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
@@ -61,7 +61,6 @@ fun YouTubePlaylistMenu(
     coroutineScope: CoroutineScope,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()
@@ -552,7 +551,6 @@ fun YouTubePlaylistMenuInPlaylistScreen(
     playlistAuthors: String? = null,
     playlistSongCount: String? = null,
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val mediaMetadata by playerConnection.mediaMetadata.collectAsState()

@@ -1,11 +1,6 @@
 ﻿package com.maloy.muzza.ui.menu
 
-import android.Manifest
-import android.app.Activity
-import android.content.pm.PackageManager
-import android.net.Uri
-import android.os.Build
-import android.widget.Toast
+
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,8 +40,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
-import androidx.core.app.ActivityCompat.requestPermissions
+import androidx.compose.ui.unit.dp
+
 import androidx.core.net.toUri
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.media3.exoplayer.offline.Download
@@ -103,7 +98,6 @@ fun AutoPlaylistMenu(
     syncUtils: SyncUtils?,
     iconThumbnail: ImageVector
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val downloadUtil = LocalDownloadUtil.current
     val playerConnection = LocalPlayerConnection.current ?: return

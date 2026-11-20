@@ -1,6 +1,5 @@
 ﻿package com.maloy.muzza.ui.component
 
-import android.widget.Toast
 import androidx.compose.animation.core.animate
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
@@ -25,7 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.media3.common.MediaItem
 import com.maloy.muzza.LocalPlayerConnection
@@ -40,7 +39,6 @@ fun SwipeToSongBox(
     mediaItem: MediaItem,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val ctx = LocalContext.current
     val player = LocalPlayerConnection.current
     val scope = rememberCoroutineScope()
     val offset = remember { mutableFloatStateOf(0f) }
@@ -60,13 +58,13 @@ fun SwipeToSongBox(
                     when {
                         offset.floatValue >= threshold -> {
                             player?.playNext(listOf(mediaItem))
-                            Toast.makeText(ctx, R.string.play_next, Toast.LENGTH_SHORT).show()
+                            // TODO: KMP toast — show "play next" feedback
                             reset(offset, scope)
                         }
 
                         offset.floatValue <= -threshold -> {
                             player?.addToQueue(listOf(mediaItem))
-                            Toast.makeText(ctx, R.string.add_to_queue, Toast.LENGTH_SHORT).show()
+                            // TODO: KMP toast — show "add to queue" feedback
                             reset(offset, scope)
                         }
 
@@ -126,7 +124,6 @@ fun SwipeToSongBoxWitchMediaMetadata(
     onRemove: () -> Unit,
     content: @Composable BoxScope.() -> Unit
 ) {
-    val ctx = LocalContext.current
     val scope = rememberCoroutineScope()
     val offset = remember { mutableFloatStateOf(0f) }
     val threshold = 300f
@@ -145,7 +142,7 @@ fun SwipeToSongBoxWitchMediaMetadata(
                     when {
                         offset.floatValue >= threshold -> {
                             onRemove()
-                            Toast.makeText(ctx, R.string.remove_from_queue, Toast.LENGTH_SHORT).show()
+                            // TODO: KMP toast — show "remove from queue" feedback
                             reset(offset, scope)
                         }
                         else -> reset(offset, scope)

@@ -1,6 +1,6 @@
 ﻿package com.maloy.muzza.ui.menu
 
-import android.content.Intent
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -25,7 +25,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
 import com.maloy.muzza.R
@@ -41,7 +41,6 @@ fun ArtistMenu(
     originalArtist: Artist,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val artistState = database.artist(originalArtist.id).collectAsState(initial = originalArtist)

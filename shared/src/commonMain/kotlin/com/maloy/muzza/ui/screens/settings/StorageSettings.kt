@@ -44,7 +44,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent
+import androidx.compose.ui.unit.dp
 import androidx.media3.exoplayer.offline.DownloadService
 import androidx.navigation.NavController
 import coil.annotation.ExperimentalCoilApi

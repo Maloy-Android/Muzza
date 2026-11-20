@@ -2,7 +2,7 @@
 
 package com.maloy.muzza.ui.menu
 
-import android.content.Intent
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.basicMarquee
 import androidx.compose.foundation.clickable
@@ -28,7 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.platform.LocalContext // TODO: replace with KMP equivalent\nimport androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.dp
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.muzza.LocalDatabase
 import com.maloy.muzza.LocalPlayerConnection
@@ -37,7 +37,10 @@ import com.maloy.muzza.db.entities.ArtistEntity
 import com.maloy.muzza.ui.component.ListMenu
 import com.maloy.muzza.ui.component.ListMenuItem
 import com.maloy.muzza.ui.component.YouTubeListItem
-import java.time.LocalDateTime
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import androidx.core.net.toUri
 import com.maloy.muzza.playback.queues.YouTubeArtistRadio
 
@@ -46,7 +49,6 @@ fun YouTubeArtistMenu(
     artist: ArtistItem,
     onDismiss: () -> Unit,
 ) {
-    val context = LocalContext.current
     val database = LocalDatabase.current
     val playerConnection = LocalPlayerConnection.current ?: return
     val libraryArtist by database.artist(artist.id).collectAsState(initial = null)

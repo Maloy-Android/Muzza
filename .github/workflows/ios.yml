@@ -100,6 +100,8 @@ jobs:
           KEYCHAIN_PATH="$RUNNER_TEMP/muzza-signing.keychain-db"
           KEYCHAIN_PASSWORD="$(openssl rand -base64 32)"
           CERTIFICATE_PATH="$RUNNER_TEMP/muzza-signing.p12"
+          CERTIFICATE_PEM="$RUNNER_TEMP/muzza-certificate.pem"
+          PRIVATE_KEY_PEM="$RUNNER_TEMP/muzza-private-key.pem"
           PROFILE_PATH="$RUNNER_TEMP/muzza.mobileprovision"
           PROFILE_PLIST="$RUNNER_TEMP/muzza-profile.plist"
 
@@ -109,8 +111,10 @@ jobs:
           security create-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security set-keychain-settings -lut 21600 "$KEYCHAIN_PATH"
           security unlock-keychain -p "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
-          openssl pkcs12 -in "$CERTIFICATE_PATH" -passin "pass:$IOS_SIGNING_CERTIFICATE_PASSWORD" -noout
-          security import "$CERTIFICATE_PATH" -P "$IOS_SIGNING_CERTIFICATE_PASSWORD" -A -k "$KEYCHAIN_PATH"
+          openssl pkcs12 -in "$CERTIFICATE_PATH" -passin "pass:$IOS_SIGNING_CERTIFICATE_PASSWORD" -clcerts -nokeys -out "$CERTIFICATE_PEM"
+          openssl pkcs12 -in "$CERTIFICATE_PATH" -passin "pass:$IOS_SIGNING_CERTIFICATE_PASSWORD" -nocerts -nodes -out "$PRIVATE_KEY_PEM"
+          security import "$CERTIFICATE_PEM" -A -t cert -k "$KEYCHAIN_PATH"
+          security import "$PRIVATE_KEY_PEM" -A -t priv -k "$KEYCHAIN_PATH"
           security set-key-partition-list -S apple-tool:,apple:,codesigning: -s -k "$KEYCHAIN_PASSWORD" "$KEYCHAIN_PATH"
           security list-keychain -d user -s "$KEYCHAIN_PATH"
 

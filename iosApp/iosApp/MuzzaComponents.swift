@@ -103,6 +103,10 @@ struct MuzzaMediaSectionView: View {
                                 MuzzaMediaCard(item: item)
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                Button("Play next") { playback.enqueue(item, playNext: true) }
+                                Button("Add to queue") { playback.enqueue(item, playNext: false) }
+                            }
                         } else {
                             NavigationLink(value: item) { MuzzaMediaCard(item: item) }
                                 .buttonStyle(.plain)
@@ -188,6 +192,16 @@ struct MuzzaSongRow: View {
             .buttonStyle(.plain)
 
             Menu {
+                Button {
+                    playback.enqueue(item, playNext: true)
+                } label: {
+                    Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                }
+                Button {
+                    playback.enqueue(item, playNext: false)
+                } label: {
+                    Label("Add to queue", systemImage: "text.badge.plus")
+                }
                 Button {
                     playback.toggleLike(item)
                 } label: {

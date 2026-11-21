@@ -184,21 +184,26 @@ private struct MuzzaQueueView: View {
     var body: some View {
         NavigationStack {
             List {
-                ForEach(Array(playback.queue.enumerated()), id: \.offset) { index, item in
+                ForEach(playback.queueEntries) { entry in
                     HStack {
                         MuzzaSongRow(
-                            item: item, playback: playback, queue: playback.queue,
-                            queueIndex: index, usesCurrentQueue: true
+                            item: entry.item, playback: playback, queue: playback.queue,
+                            queueIndex: entry.index, usesCurrentQueue: true
                         )
-                        if index == playback.queueIndex {
+                        if entry.index == playback.queueIndex {
                             Image(systemName: "speaker.wave.2.fill").foregroundStyle(Color.accentColor)
                         }
                     }
                 }
+                .onMove { playback.moveQueue(from: $0, to: $1) }
+                .onDelete { playback.removeFromQueue(at: $0) }
             }
             .navigationTitle("Queue")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    EditButton()
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }

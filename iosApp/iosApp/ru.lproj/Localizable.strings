@@ -61,6 +61,8 @@
 "Like" = "Нравится";
 "Remove like" = "Убрать отметку «Нравится»";
 "Add to playlist" = "Добавить в плейлист";
+"Play next" = "Следующей";
+"Add to queue" = "Добавить в очередь";
 "This song is already in the playlist." = "Эта песня уже есть в плейлисте.";
 "Add anyway" = "Всё равно добавить";
 "Remove from playlist" = "Удалить из плейлиста";

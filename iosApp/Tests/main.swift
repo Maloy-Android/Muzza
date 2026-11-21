@@ -74,6 +74,10 @@ func testQueueRules() {
     let order = MuzzaQueueRules.shuffleUpcoming([0, 1, 2, 3], currentIndex: 1)
     expect(order?.prefix(2).elementsEqual([0, 1]) == true, "shuffle keeps played items")
     expect(Set(order ?? []) == Set([0, 1, 2, 3]), "shuffle keeps every queue item")
+    expect(MuzzaQueueRules.indexAfterRemoving(current: 2, count: 4, indices: IndexSet(integer: 0)) == 1, "removing before current")
+    expect(MuzzaQueueRules.indexAfterRemoving(current: 1, count: 4, indices: IndexSet(integer: 1)) == 1, "removing current selects next")
+    expect(MuzzaQueueRules.indexAfterRemoving(current: 2, count: 3, indices: IndexSet(integer: 2)) == 1, "removing last selects previous")
+    expect(MuzzaQueueRules.indexAfterRemoving(current: 0, count: 1, indices: IndexSet(integer: 0)) == nil, "removing all items")
 }
 
 testContentRangeValidation()

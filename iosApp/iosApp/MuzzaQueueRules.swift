@@ -27,4 +27,12 @@ enum MuzzaQueueRules {
         upcoming.shuffle()
         return played + upcoming
     }
+
+    static func indexAfterRemoving(current: Int, count: Int, indices: IndexSet) -> Int? {
+        guard current >= 0, current < count, indices.allSatisfy({ $0 >= 0 && $0 < count }) else { return nil }
+        let next = (current..<count).first { !indices.contains($0) }
+        let previous = (0..<current).reversed().first { !indices.contains($0) }
+        guard let survivor = next ?? previous else { return nil }
+        return survivor - indices.filter { $0 < survivor }.count
+    }
 }

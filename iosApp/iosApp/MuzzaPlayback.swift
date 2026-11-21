@@ -12,6 +12,12 @@ private struct MuzzaSavedQueue: Codable {
     let shuffled: Bool?
 }
 
+struct MuzzaQueueEntry: Identifiable {
+    let id: UUID
+    let item: MuzzaLiveItem
+    let index: Int
+}
+
 @MainActor
 final class MuzzaPlayback: ObservableObject {
     @Published private(set) var current: MuzzaLiveItem?
@@ -100,6 +106,12 @@ final class MuzzaPlayback: ObservableObject {
 
     func isDownloaded(_ item: MuzzaLiveItem) -> Bool {
         downloads.contains { $0.id == item.id }
+    }
+
+    var queueEntries: [MuzzaQueueEntry] {
+        zip(queueTokens, queue).enumerated().map { index, entry in
+            MuzzaQueueEntry(id: entry.0, item: entry.1, index: index)
+        }
     }
 
     func refreshLibrary() async {
@@ -256,6 +268,112 @@ final class MuzzaPlayback: ObservableObject {
         start(queue[index])
     }
 
+    func enqueue(_ item: MuzzaLiveItem, playNext: Bool) {
+        guard item.kind == "song" else {
+            message = "This item is not a playable song."
+            return
+        }
+        let token = UUID()
+        if queue.isEmpty {
+            queue = [item]
+            queueTokens = [token]
+            originalQueue = queue
+            originalTokens = queueTokens
+            queueIndex = 0
+            current = item
+            persistQueue()
+            updateNowPlaying()
+            return
+        }
+        guard queueTokens.indices.contains(queueIndex), queue.count == queueTokens.count,
+              originalQueue.count == originalTokens.count,
+              let originalIndex = originalTokens.firstIndex(of: queueTokens[queueIndex]) else {
+            message = "The queue could not be updated."
+            return
+        }
+        let insertion = playNext ? queueIndex + 1 : queue.count
+        queue.insert(item, at: insertion)
+        queueTokens.insert(token, at: insertion)
+        if isShuffling {
+            let originalInsertion = playNext ? originalIndex + 1 : originalQueue.count
+            originalQueue.insert(item, at: originalInsertion)
+            originalTokens.insert(token, at: originalInsertion)
+        } else {
+            originalQueue = queue
+            originalTokens = queueTokens
+        }
+        persistQueue()
+    }
+
+    func moveQueue(from offsets: IndexSet, to destination: Int) {
+        guard !offsets.isEmpty, offsets.allSatisfy({ queue.indices.contains($0) }),
+              destination >= 0, destination <= queue.count, queueTokens.indices.contains(queueIndex) else {
+            message = "The queue could not be reordered."
+            return
+        }
+        let currentToken = queueTokens[queueIndex]
+        var reordered = queue
+        var reorderedTokens = queueTokens
+        reordered.move(fromOffsets: offsets, toOffset: destination)
+        reorderedTokens.move(fromOffsets: offsets, toOffset: destination)
+        guard let index = reorderedTokens.firstIndex(of: currentToken) else {
+            message = "The current song is missing from the queue."
+            return
+        }
+        queue = reordered
+        queueTokens = reorderedTokens
+        queueIndex = index
+        if !isShuffling {
+            originalQueue = queue
+            originalTokens = queueTokens
+        }
+        persistQueue()
+    }
+
+    func removeFromQueue(at offsets: IndexSet) {
+        guard !offsets.isEmpty, offsets.allSatisfy({ queue.indices.contains($0) }),
+              queueTokens.count == queue.count, queueTokens.indices.contains(queueIndex),
+              originalQueue.count == originalTokens.count else {
+            message = "The queue could not be updated."
+            return
+        }
+        let wasPlaying = isPlaying || isLoadingAudio
+        let removedCurrent = offsets.contains(queueIndex)
+        let newIndex = MuzzaQueueRules.indexAfterRemoving(current: queueIndex, count: queue.count, indices: offsets)
+        let removedTokens = Set(offsets.map { queueTokens[$0] })
+        var remaining = queue
+        var remainingTokens = queueTokens
+        remaining.remove(atOffsets: offsets)
+        remainingTokens.remove(atOffsets: offsets)
+        let originals = zip(originalTokens, originalQueue).filter { !removedTokens.contains($0.0) }
+        guard remaining.count == originals.count, remaining.isEmpty || newIndex != nil else {
+            message = "The queue could not be updated."
+            return
+        }
+        queue = remaining
+        queueTokens = remainingTokens
+        originalTokens = originals.map(\.0)
+        originalQueue = originals.map(\.1)
+        if let newIndex {
+            queueIndex = newIndex
+            if removedCurrent {
+                if wasPlaying {
+                    start(queue[newIndex])
+                } else {
+                    stopCurrentItem()
+                    current = queue[newIndex]
+                    updateNowPlaying()
+                }
+            }
+        } else {
+            stopCurrentItem()
+            queueIndex = 0
+            current = nil
+            updateNowPlaying()
+        }
+        persistQueue()
+    }
+
     func toggle() {
         if isPlaying || isLoadingAudio {
             pause()
@@ -266,14 +384,10 @@ final class MuzzaPlayback: ObservableObject {
 
     func pause() {
         if isLoadingAudio {
-            playbackTask?.cancel()
-            playbackID = UUID()
-            isLoadingAudio = false
-            player.replaceCurrentItem(with: nil)
-            resourceLoader?.invalidate()
-            resourceLoader = nil
+            stopCurrentItem()
+        } else {
+            player.pause()
         }
-        player.pause()
     }
 
     func resume() {
@@ -448,8 +562,15 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     func stopForSignOut() {
-        playbackTask?.cancel()
         for task in downloadTasks.values { task.cancel() }
+        stopCurrentItem()
+        hasSignedInAccount = false
+        likeOverrides.removeAll()
+        updateNowPlaying()
+    }
+
+    private func stopCurrentItem() {
+        playbackTask?.cancel()
         playbackID = UUID()
         player.pause()
         player.replaceCurrentItem(with: nil)
@@ -464,9 +585,6 @@ final class MuzzaPlayback: ObservableObject {
         isPlaying = false
         position = 0
         duration = 0
-        hasSignedInAccount = false
-        likeOverrides.removeAll()
-        updateNowPlaying()
     }
 
     func accountDidChange(isSignedIn: Bool) {
@@ -475,18 +593,8 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     private func start(_ item: MuzzaLiveItem) {
-        playbackTask?.cancel()
-        playbackID = UUID()
+        stopCurrentItem()
         let id = playbackID
-        player.pause()
-        player.replaceCurrentItem(with: nil)
-        resourceLoader?.invalidate()
-        resourceLoader = nil
-        itemObservation = nil
-        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
-        if let failureObserver { NotificationCenter.default.removeObserver(failureObserver) }
-        endObserver = nil
-        failureObserver = nil
         current = item
         position = 0
         duration = 0

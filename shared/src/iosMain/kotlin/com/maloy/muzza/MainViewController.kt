@@ -55,6 +55,7 @@ fun MainViewController(): UIViewController {
                         }
                     }
                 }
+                }
             },
         ) { padding ->
             LazyColumn(

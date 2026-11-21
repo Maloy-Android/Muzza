@@ -6,7 +6,6 @@ import AVFoundation
 struct MuzzaApp: App {
     init() {
         configureAppAudioSession()
-        KoinIosKt.initKoinIos()
     }
 
     var body: some Scene {

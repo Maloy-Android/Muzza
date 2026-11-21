@@ -83,6 +83,10 @@ internal val iosJson = Json {
 
 internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
     iosBridgeScope.launch {
+        if (YouTube.visitorData.isNullOrBlank()) {
+            YouTube.visitorData = YouTube.visitorData().getOrNull()
+                ?: YouTube.DEFAULT_VISITOR_DATA
+        }
         completion(iosJson.encodeToString(iosResponse(block)))
     }
 }

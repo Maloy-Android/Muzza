@@ -23,13 +23,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
+import com.maloy.muzza.di.initKoinIos
 import com.maloy.muzza.presentation.viewmodel.HomeViewModel
 import com.maloy.muzza.presentation.viewmodel.PlayerViewModel
 import org.koin.compose.viewmodel.koinViewModel
 
 @Suppress("FunctionName", "unused")
-fun MainViewController() = ComposeUIViewController {
-    MuzzaTheme {
+fun MainViewController() = run {
+    initKoinIos()
+    ComposeUIViewController {
+        MuzzaTheme {
         val homeViewModel = koinViewModel<HomeViewModel>()
         val playerViewModel = koinViewModel<PlayerViewModel>()
         val isLoading by homeViewModel.isLoading.collectAsState()
@@ -50,6 +53,7 @@ fun MainViewController() = ComposeUIViewController {
                             Text(if (isPlaying) "||" else ">")
                         }
                     }
+                }
                 }
             },
         ) { padding ->

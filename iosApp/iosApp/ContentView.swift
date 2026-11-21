@@ -186,6 +186,8 @@ private struct MuzzaHomeView: View {
 }
 
 private struct MuzzaExploreView: View {
+    let player: MuzzaPlayback
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -204,6 +206,7 @@ private struct MuzzaExploreView: View {
 }
 
 private struct MuzzaLibraryView: View {
+    let player: MuzzaPlayback
     @State private var category = 0
     var body: some View {
         NavigationStack {

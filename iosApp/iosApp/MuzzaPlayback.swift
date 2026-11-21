@@ -183,6 +183,10 @@ final class MuzzaPlayback: ObservableObject {
         await changeLibrary { try await MuzzaAPI.createPlaylist(name) }
     }
 
+    func renamePlaylist(_ playlist: MuzzaLiveItem, name: String) async -> Bool {
+        await changeLibrary { try await MuzzaAPI.renamePlaylist(playlist, name: name) }
+    }
+
     func add(_ item: MuzzaLiveItem, to playlist: MuzzaLiveItem, allowDuplicate: Bool) async throws {
         guard libraryLoaded, !isLibraryBusy else {
             throw MuzzaAPIError.requestFailed("The library is not ready.")
@@ -210,6 +214,21 @@ final class MuzzaPlayback: ObservableObject {
         let recentAtStart = recentRevision
         defer { isLibraryBusy = false }
         let updated = try await MuzzaAPI.remove(item, from: playlist)
+        let library = try await MuzzaAPI.library()
+        if revision == libraryRevision {
+            applyLibrary(library, includeRecent: recentAtStart == recentRevision)
+        }
+        return updated.items
+    }
+
+    func reorder(_ playlist: MuzzaLiveItem, items: [MuzzaLiveItem]) async throws -> [MuzzaLiveItem] {
+        guard !isLibraryBusy else { throw MuzzaAPIError.requestFailed("The library is busy.") }
+        isLibraryBusy = true
+        libraryRevision += 1
+        let revision = libraryRevision
+        let recentAtStart = recentRevision
+        defer { isLibraryBusy = false }
+        let updated = try await MuzzaAPI.reorderPlaylist(playlist, items: items)
         let library = try await MuzzaAPI.library()
         if revision == libraryRevision {
             applyLibrary(library, includeRecent: recentAtStart == recentRevision)

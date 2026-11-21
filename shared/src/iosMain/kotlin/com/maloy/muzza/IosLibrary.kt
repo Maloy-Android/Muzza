@@ -265,6 +265,52 @@ fun createIosPlaylist(name: String, completion: (String) -> Unit) = iosRequest(c
     }
 }
 
+internal fun MuzzaDatabase.renameLocalPlaylist(id: String, name: String) {
+    val title = name.trim()
+    require(title.isNotEmpty() && title.length <= 120) { "Enter a playlist name of up to 120 characters." }
+    val playlist = playlistQueries.selectById(id).executeAsOneOrNull()?.toModel()
+        ?: throw IllegalArgumentException("Playlist not found.")
+    require(playlist.isLocal && playlist.isEditable) { "Playlist cannot be edited." }
+    playlistQueries.upsert(playlist.copy(name = title, lastUpdateTime = now()).toDb())
+}
+
+fun renameIosPlaylist(id: String, name: String, completion: (String) -> Unit) = iosRequest(completion) {
+    withIosDatabase { db ->
+        db.renameLocalPlaylist(id, name)
+        db.libraryResponse()
+    }
+}
+
+internal fun MuzzaDatabase.reorderLocalPlaylist(driver: SqlDriver, id: String, entryIds: List<Long>) {
+    transaction {
+        val playlist = playlistQueries.selectById(id).executeAsOneOrNull()
+            ?: throw IllegalArgumentException("Playlist not found.")
+        require(playlist.isLocal != 0L && playlist.isEditable != 0L) { "Playlist cannot be edited." }
+        val entries = playlistSongMapQueries.selectByPlaylist(id).executeAsList()
+        val selected = entryIds.toSet()
+        require(selected.size == entryIds.size && entries.map { it.id }.containsAll(selected)) {
+            "The playlist order is invalid."
+        }
+        val ordered = entryIds.iterator()
+        entries.map { if (it.id in selected) ordered.next() else it.id }.forEachIndexed { index, entryId ->
+            driver.execute(null, "UPDATE playlistSongMap SET position = ? WHERE id = ? AND playlistId = ?", 3) {
+                bindLong(0, index.toLong())
+                bindLong(1, entryId)
+                bindString(2, id)
+            }
+        }
+    }
+    driver.notifyListeners("playlistSongMap")
+}
+
+fun reorderIosPlaylist(id: String, entriesJson: String, completion: (String) -> Unit) = iosRequest(completion) {
+    val entries = iosJson.decodeFromString<List<Long>>(entriesJson)
+    withIosDatabase { db ->
+        db.reorderLocalPlaylist(iosDriver, id, entries)
+        db.localPlaylistResponse(id)
+    }
+}
+
 fun addIosSongToPlaylist(
     id: String,
     json: String,

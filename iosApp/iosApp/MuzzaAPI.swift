@@ -258,6 +258,26 @@ enum MuzzaAPI {
         try await request { IosLibraryKt.createIosPlaylist(name: name, completion: $0) }
     }
 
+    static func renamePlaylist(_ playlist: MuzzaLiveItem, name: String) async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.renameIosPlaylist(id: playlist.id, name: name, completion: $0) }
+    }
+
+    static func reorderPlaylist(_ playlist: MuzzaLiveItem, items: [MuzzaLiveItem]) async throws -> MuzzaLiveResponse {
+        let ids = try items.map { item -> Int64 in
+            guard let id = item.entryId else {
+                throw MuzzaAPIError.requestFailed("The playlist entry is missing its identifier.")
+            }
+            return id
+        }
+        let data = try JSONEncoder().encode(ids)
+        guard let json = String(data: data, encoding: .utf8) else {
+            throw MuzzaAPIError.requestFailed("Could not encode the playlist order.")
+        }
+        return try await request {
+            IosLibraryKt.reorderIosPlaylist(id: playlist.id, entriesJson: json, completion: $0)
+        }
+    }
+
     static func add(
         _ item: MuzzaLiveItem, to playlist: MuzzaLiveItem, allowDuplicate: Bool
     ) async throws -> MuzzaLiveResponse {

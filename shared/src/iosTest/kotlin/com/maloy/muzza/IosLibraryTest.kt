@@ -113,6 +113,31 @@ class IosLibraryTest {
             } finally {
                 driver.close()
             }
+
+            @Test
+            fun playlistEditingPreservesHiddenEntriesAndRejectsInvalidOrder() {
+                val driver = inMemoryDriver(MuzzaDatabase.Schema)
+                try {
+                    val db = MuzzaDatabase(driver)
+                    db.playlistQueries.upsert(PlaylistEntity(id = "LP_edit", name = "Old", isLocal = true).toDb())
+                    val songs = listOf("first", "hidden", "last").map { id -> item.copy(id = id, title = id) }
+                    songs.forEachIndexed { index, song ->
+                        db.saveSong(song)
+                        db.playlistSongMapQueries.insert("LP_edit", song.id, index.toLong())
+                    }
+                    val entries = db.localPlaylistResponse("LP_edit").items
+                    val first = requireNotNull(entries[0].entryId)
+                    val last = requireNotNull(entries[2].entryId)
+                    db.reorderLocalPlaylist(driver, "LP_edit", listOf(last, first))
+                    assertEquals(listOf("last", "hidden", "first"), db.localPlaylistResponse("LP_edit").items.map { it.id })
+                    assertFailsWith<IllegalArgumentException> { db.reorderLocalPlaylist(driver, "LP_edit", listOf(last, last)) }
+                    assertEquals(listOf("last", "hidden", "first"), db.localPlaylistResponse("LP_edit").items.map { it.id })
+                    db.renameLocalPlaylist("LP_edit", "  Renamed  ")
+                    assertEquals("Renamed", db.playlistQueries.selectById("LP_edit").executeAsOne().name)
+                } finally {
+                    driver.close()
+                }
+            }
         }
     }
 }

@@ -38,6 +38,9 @@
 "Keep Muzza open while a song is downloading." = "Не закрывайте Muzza во время загрузки песни.";
 "History" = "История";
 "New playlist" = "Новый плейлист";
+"Rename playlist" = "Переименовать плейлист";
+"Edit playlist" = "Изменить плейлист";
+"Could not save playlist" = "Не удалось сохранить плейлист";
 "Playlist name" = "Название плейлиста";
 "Create" = "Создать";
 "Cancel" = "Отмена";

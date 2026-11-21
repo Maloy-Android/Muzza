@@ -23,8 +23,9 @@ struct MuzzaLibraryView: View {
     @Binding var category: MuzzaLibraryCategory
     @State private var source: MuzzaLibrarySource = .device
     @State private var remoteRefresh = 0
-    @State private var showCreate = false
+    @State private var showPlaylistDialog = false
     @State private var playlistName = ""
+    @State private var playlistToRename: MuzzaLiveItem?
     @State private var showDelete = false
     @State private var playlistToDelete: MuzzaLiveItem?
 
@@ -109,18 +110,38 @@ struct MuzzaLibraryView: View {
                 if account.profile == nil { source = .device }
             }
         }
-        .alert("New playlist", isPresented: $showCreate) {
+        .alert(
+            LocalizedStringKey(playlistToRename == nil ? "New playlist" : "Rename playlist"),
+            isPresented: $showPlaylistDialog
+        ) {
             TextField("Playlist name", text: $playlistName)
-            Button("Cancel", role: .cancel) { playlistName = "" }
-            Button("Create") {
+            Button("Cancel", role: .cancel) {
+                playlistName = ""
+                playlistToRename = nil
+            }
+            Button {
                 let name = playlistName
+                let playlist = playlistToRename
                 Task {
-                    if await playback.createPlaylist(name) { playlistName = "" }
+                    let succeeded: Bool
+                    if let playlist {
+                        succeeded = await playback.renamePlaylist(playlist, name: name)
+                    } else {
+                        succeeded = await playback.createPlaylist(name)
+                    }
+                    if succeeded {
+                        playlistName = ""
+                        playlistToRename = nil
+                    }
                 }
+            } label: {
+                Text(LocalizedStringKey(playlistToRename == nil ? "Create" : "Save"))
             }
             .disabled(playlistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
         } message: {
-            Text("The playlist is stored on this device.")
+            if playlistToRename == nil {
+                Text("The playlist is stored on this device.")
+            }
         }
         .confirmationDialog("Delete playlist?", isPresented: $showDelete, titleVisibility: .visible) {
             Button("Delete", role: .destructive) {
@@ -138,7 +159,11 @@ struct MuzzaLibraryView: View {
     private var categoryContent: some View {
         switch category {
         case .playlists:
-            Button { showCreate = true } label: {
+            Button {
+                playlistToRename = nil
+                playlistName = ""
+                showPlaylistDialog = true
+            } label: {
                 Label("New playlist", systemImage: "plus").font(.headline)
                     .frame(maxWidth: .infinity, alignment: .leading).padding()
                     .background(Color(.secondarySystemFill)).clipShape(RoundedRectangle(cornerRadius: 12))
@@ -163,6 +188,13 @@ struct MuzzaLibraryView: View {
                     .buttonStyle(.plain)
                     .contextMenu {
                         if playlist.kind == "localPlaylist" {
+                            Button {
+                                playlistToRename = playlist
+                                playlistName = playlist.title
+                                showPlaylistDialog = true
+                            } label: {
+                                Label("Rename playlist", systemImage: "pencil")
+                            }
                             Button(role: .destructive) {
                                 playlistToDelete = playlist
                                 showDelete = true
@@ -224,7 +256,6 @@ private struct MuzzaYouTubeLibraryContent: View {
     @State private var loadError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
-
     init(category: MuzzaLibraryCategory, account: MuzzaAccount, playback: MuzzaPlayback, refreshToken: Int) {
         self.category = category
         _account = ObservedObject(wrappedValue: account)
@@ -360,6 +391,7 @@ struct MuzzaCollectionView: View {
     @State private var loadError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
+    @State private var showPlaylistEditor = false
 
     init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
         self.item = item
@@ -397,6 +429,13 @@ struct MuzzaCollectionView: View {
                             .buttonStyle(.bordered)
                             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
                         }
+                        if item.kind == "localPlaylist" && !songs.isEmpty {
+                            Button { showPlaylistEditor = true } label: {
+                                Label("Edit playlist", systemImage: "pencil")
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(playback.isLibraryBusy)
+                        }
                     }
                 }
                 ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
@@ -430,6 +469,11 @@ struct MuzzaCollectionView: View {
         .toolbar(.visible, for: .navigationBar)
         .task(id: "\(item.kind)-\(item.id)-\(hideExplicit)") { await reload() }
         .refreshable { await reload() }
+        .sheet(isPresented: $showPlaylistEditor) {
+            MuzzaPlaylistEditorView(playlist: item, playback: playback, items: songs) {
+                songs = visible($0)
+            }
+        }
     }
 
     private func visible(_ items: [MuzzaLiveItem]) -> [MuzzaLiveItem] {

@@ -1,6 +1,6 @@
 # Muzza for iOS
 
-The iOS app uses the shared InnerTube client and an iOS SQLDelight database. Home, Explore, search, collection pages, playback, YouTube radio queues, local playlists, saved items, listening history, and synchronized lyrics use live data rather than sample cards.
+The iOS app uses the shared InnerTube client and an iOS SQLDelight database. Home, Explore, search, collection pages, playback, YouTube radio queues, local playlists, saved items, listening history, and synchronized lyrics use live data rather than sample cards. Local playlists can be created, renamed, reordered, and deleted.
 
 ## Build and verification
 

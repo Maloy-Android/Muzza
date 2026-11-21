@@ -1,5 +1,6 @@
 import SwiftUI
 import Shared
+import AVFoundation
 
 struct MuzzaLiveItem: Codable, Identifiable {
     let id: String
@@ -22,19 +23,47 @@ struct MuzzaLiveResponse: Codable {
     let error: String?
 }
 
+@MainActor
+final class MuzzaPlayback: ObservableObject {
+    private var player: AVPlayer?
+    @Published var current: MuzzaLiveItem?
+    @Published var isPlaying = false
+
+    func play(_ item: MuzzaLiveItem) {
+        guard item.kind == "song" else { return }
+        current = item
+        IosBridgeKt.fetchIosPlayerUrl(videoId: item.id) { [weak self] rawUrl in
+            guard let self, !rawUrl.isEmpty, let url = URL(string: rawUrl) else { return }
+            DispatchQueue.main.async {
+                let av = AVPlayer(url: url)
+                self.player = av
+                av.play()
+                self.isPlaying = true
+            }
+        }
+    }
+
+    func toggle() {
+        guard let player else { return }
+        if isPlaying { player.pause() } else { player.play() }
+        isPlaying.toggle()
+    }
+}
+
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showSearch = false
     @State private var showSettings = false
+    @StateObject private var playback = MuzzaPlayback()
     @AppStorage("muzza.darkTheme") private var darkTheme = true
     @AppStorage("muzza.pureBlack") private var pureBlack = false
 
     var body: some View {
         TabView(selection: $selectedTab) {
-            MuzzaHomeView(showSearch: $showSearch, showSettings: $showSettings)
+            MuzzaHomeView(playback: playback, showSearch: $showSearch, showSettings: $showSettings)
                 .tag(0).tabItem { Label("Home", systemImage: "house.fill") }
-            MuzzaExploreView().tag(1).tabItem { Label("Explore", systemImage: "safari") }
-            MuzzaLibraryView().tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
+            MuzzaExploreView(player: playback).tag(1).tabItem { Label("Explore", systemImage: "safari") }
+            MuzzaLibraryView(player: playback).tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
         }
         .tint(accent)
         .preferredColorScheme(darkTheme ? .dark : .light)
@@ -49,6 +78,7 @@ struct ContentView: View {
 }
 
 private struct MuzzaHomeView: View {
+    @ObservedObject var playback: MuzzaPlayback
     @Binding var showSearch: Bool
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
@@ -77,13 +107,9 @@ private struct MuzzaHomeView: View {
                     if isLoading {
                         MuzzaLoadingRows()
                     }
-
                     if let loadError {
-                        MuzzaInnerTubeError(message: loadError) {
-                            generation += 1
-                        }
+                        Text(loadError).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 16)
                     }
-
                     if !chips.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
@@ -98,13 +124,12 @@ private struct MuzzaHomeView: View {
                             }.padding(.horizontal, 16)
                         }
                     }
-
                     ForEach(sections) { section in
                         MuzzaHomeSection(title: section.title) {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(alignment: .top, spacing: 12) {
                                     ForEach(section.items.prefix(24)) { item in
-                                        MuzzaLiveCard(item: item)
+                                        MuzzaLiveCard(item: item) { playback.play(item) }
                                     }
                                 }.padding(.horizontal, 16)
                             }

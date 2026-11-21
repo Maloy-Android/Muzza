@@ -147,6 +147,7 @@
 					"$(inherited)",
 					"-framework",
 					Shared,
+					"-lsqlite3",
 				);
 			};
 			name = Debug;
@@ -175,6 +176,7 @@
 					"$(inherited)",
 					"-framework",
 					Shared,
+					"-lsqlite3",
 				);
 			};
 			name = Release;

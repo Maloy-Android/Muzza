@@ -1,0 +1,163 @@
+import SwiftUI
+
+private enum MuzzaSearchCategory: String, CaseIterable {
+    case songs, videos, albums, artists, playlists, community
+
+    var title: String {
+        switch self {
+        case .songs: return "Songs"
+        case .videos: return "Videos"
+        case .albums: return "Albums"
+        case .artists: return "Artists"
+        case .playlists: return "Playlists"
+        case .community: return "Community"
+        }
+    }
+}
+
+struct MuzzaSearchView: View {
+    @Environment(\.dismiss) private var dismiss
+    @ObservedObject var playback: MuzzaPlayback
+    @AppStorage("muzza.hideExplicit") private var hideExplicit = false
+    @State private var query = ""
+    @State private var category: MuzzaSearchCategory = .songs
+    @State private var items: [MuzzaLiveItem] = []
+    @State private var continuation: String?
+    @State private var isLoading = false
+    @State private var searched = false
+    @State private var searchError: String?
+    @State private var pageError: String?
+    @State private var requestID = UUID()
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 16) {
+                    HStack {
+                        Image(systemName: "magnifyingglass").foregroundStyle(.secondary)
+                        TextField("Search Muzza", text: $query)
+                            .textInputAutocapitalization(.never)
+                            .autocorrectionDisabled()
+                            .submitLabel(.search)
+                        if !query.isEmpty {
+                            Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
+                                .accessibilityLabel("Clear search")
+                        }
+                    }
+                    .padding(12).background(Color(.secondarySystemFill))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
+                            ForEach(MuzzaSearchCategory.allCases, id: \.self) { value in
+                                Button { category = value } label: {
+                                    Text(value.title).font(.subheadline.weight(.semibold))
+                                        .padding(.horizontal, 15).padding(.vertical, 9)
+                                        .background(category == value ? Color.accentColor : Color(.secondarySystemFill))
+                                        .clipShape(Capsule())
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+
+                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                        if item.kind == "song" {
+                            MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
+                        } else {
+                            NavigationLink(value: item) {
+                                HStack(spacing: 12) {
+                                    MuzzaArtwork(item: item, size: 54)
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                                        Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                    }
+                                    Spacer()
+                                    Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                                }
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    if isLoading {
+                        ProgressView().frame(maxWidth: .infinity).padding()
+                    } else if let searchError {
+                        MuzzaErrorView(message: searchError) { Task { await search() } }
+                    } else if searched && items.isEmpty {
+                        MuzzaEmptyView(symbol: "magnifyingglass", message: "No results found.")
+                    }
+                    if let pageError {
+                        MuzzaErrorView(message: pageError) { Task { await loadMore() } }
+                    } else if continuation != nil && !isLoading {
+                        ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
+                    }
+                }
+                .padding(16).padding(.bottom, 30)
+            }
+            .modifier(MuzzaPageBackground())
+            .navigationTitle("Search")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
+                }
+            }
+            .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
+            .task(id: "\(category.rawValue)-\(hideExplicit)-\(query)") { await search() }
+        }
+    }
+
+    private func search() async {
+        let id = UUID()
+        requestID = id
+        let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        items = []
+        continuation = nil
+        searchError = nil
+        pageError = nil
+        searched = false
+        guard !text.isEmpty else {
+            isLoading = false
+            return
+        }
+        isLoading = true
+        defer { if requestID == id { isLoading = false } }
+        do {
+            try await Task.sleep(nanoseconds: 350_000_000)
+            let response = try await MuzzaAPI.search(
+                query: text, category: category.rawValue, hideExplicit: hideExplicit, continuation: nil
+            )
+            guard !Task.isCancelled, requestID == id else { return }
+            items = response.items
+            continuation = response.continuation
+            searched = true
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            searchError = error.localizedDescription
+        }
+    }
+
+    private func loadMore() async {
+        guard !isLoading, let token = continuation else { return }
+        let id = requestID
+        isLoading = true
+        pageError = nil
+        defer { if requestID == id { isLoading = false } }
+        do {
+            let response = try await MuzzaAPI.search(
+                query: query.trimmingCharacters(in: .whitespacesAndNewlines),
+                category: category.rawValue, hideExplicit: hideExplicit, continuation: token
+            )
+            guard !Task.isCancelled, requestID == id else { return }
+            items.append(contentsOf: response.items)
+            if response.continuation == token {
+                pageError = "YouTube returned an invalid continuation."
+            } else {
+                continuation = response.continuation
+            }
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            pageError = error.localizedDescription
+        }
+    }
+}

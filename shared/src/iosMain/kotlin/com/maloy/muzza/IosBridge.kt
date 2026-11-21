@@ -1,9 +1,12 @@
 package com.maloy.muzza
 
 import com.maloy.innertube.YouTube
+import com.maloy.innertube.models.AlbumItem
+import com.maloy.innertube.models.ArtistItem
+import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.YTItem
-import com.metrolist.innertubex.models.YouTubeClient
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -19,6 +22,9 @@ data class IosMediaItem(
     val subtitle: String,
     val thumbnail: String,
     val kind: String,
+    val params: String? = null,
+    val explicit: Boolean = false,
+    val duration: Int? = null,
 )
 
 @Serializable
@@ -28,110 +34,190 @@ data class IosMediaSection(
 )
 
 @Serializable
+data class IosHomeChip(
+    val title: String,
+    val params: String,
+)
+
+@Serializable
 data class IosBridgeResponse(
     val sections: List<IosMediaSection> = emptyList(),
     val items: List<IosMediaItem> = emptyList(),
-    val chips: List<String> = emptyList(),
+    val playlists: List<IosMediaItem> = emptyList(),
+    val albums: List<IosMediaItem> = emptyList(),
+    val artists: List<IosMediaItem> = emptyList(),
+    val recent: List<IosMediaItem> = emptyList(),
+    val chips: List<IosHomeChip> = emptyList(),
+    val continuation: String? = null,
+    val audioUrl: String? = null,
+    val headers: Map<String, String> = emptyMap(),
     val error: String? = null,
 )
 
 private val iosBridgeScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
-private val iosJson = Json {
+internal val iosJson = Json {
     encodeDefaults = true
     ignoreUnknownKeys = true
 }
 
-private fun YTItem.toIosMediaItem(): IosMediaItem {
+internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
+    iosBridgeScope.launch {
+        val response = try {
+            block()
+        } catch (error: CancellationException) {
+            throw error
+        } catch (error: Exception) {
+            IosBridgeResponse(error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error")
+        }
+        completion(iosJson.encodeToString(response))
+    }
+}
+
+internal fun YTItem.toIosMediaItem(): IosMediaItem {
     val subtitle = when (this) {
         is SongItem -> artists.joinToString { it.name }.ifBlank { "Song" }
-        is com.maloy.innertube.models.AlbumItem -> artists?.joinToString { it.name }.orEmpty().ifBlank { "Album" }
-        is com.maloy.innertube.models.PlaylistItem -> author?.name?.ifBlank { "Playlist" } ?: "Playlist"
-        is com.maloy.innertube.models.ArtistItem -> subscriptions?.ifBlank { "Artist" } ?: "Artist"
+        is AlbumItem -> artists?.joinToString { it.name }.orEmpty().ifBlank { "Album" }
+        is PlaylistItem -> author?.name?.ifBlank { "Playlist" } ?: "Playlist"
+        is ArtistItem -> subscriptions?.ifBlank { "Artist" } ?: "Artist"
     }
     val kind = when (this) {
         is SongItem -> "song"
-        is com.maloy.innertube.models.AlbumItem -> "album"
-        is com.maloy.innertube.models.PlaylistItem -> "playlist"
-        is com.maloy.innertube.models.ArtistItem -> "artist"
+        is AlbumItem -> "album"
+        is PlaylistItem -> "playlist"
+        is ArtistItem -> "artist"
     }
-    return IosMediaItem(id, title, subtitle, thumbnail, kind)
+    return IosMediaItem(
+        id = id,
+        title = title,
+        subtitle = subtitle,
+        thumbnail = thumbnail,
+        kind = kind,
+        explicit = explicit,
+        duration = (this as? SongItem)?.duration,
+    )
 }
 
-fun fetchIosHome(hideExplicit: Boolean, completion: (String) -> Unit) {
-    iosBridgeScope.launch {
-        val response = YouTube.home()
-        val sections = response.getOrNull()?.sections.orEmpty().mapNotNull { section ->
-            val items = section.items
-                .let { items -> if (hideExplicit) items.filter { !it.explicit } else items }
-                .take(20)
-                .map(YTItem::toIosMediaItem)
-            if (items.isEmpty()) null else IosMediaSection(section.title, items)
+private fun List<YTItem>.iosItems(hideExplicit: Boolean): List<IosMediaItem> =
+    asSequence()
+        .filter { !hideExplicit || !it.explicit }
+        .map(YTItem::toIosMediaItem)
+        .toList()
+
+fun fetchIosHome(
+    hideExplicit: Boolean,
+    params: String?,
+    continuation: String?,
+    completion: (String) -> Unit,
+) = iosRequest(completion) {
+    val page = YouTube.home(continuation = continuation, params = params).getOrThrow()
+    IosBridgeResponse(
+        sections = page.sections.mapNotNull { section ->
+            section.items.iosItems(hideExplicit).takeIf { it.isNotEmpty() }
+                ?.let { IosMediaSection(section.title, it) }
+        },
+        chips = page.chips.orEmpty().mapNotNull { chip ->
+            val endpoint = chip.endpoint
+            endpoint?.params?.takeIf { endpoint.browseId == "FEmusic_home" }
+                ?.let { IosHomeChip(chip.title, it) }
+        },
+        continuation = page.continuation,
+    )
+}
+
+fun fetchIosExplore(hideExplicit: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
+    val page = YouTube.explore().getOrThrow()
+    IosBridgeResponse(
+        sections = buildList {
+            page.newReleaseAlbums.iosItems(hideExplicit).takeIf { it.isNotEmpty() }?.let {
+                add(IosMediaSection("New releases", it))
+            }
+            page.moodAndGenres.takeIf { it.isNotEmpty() }?.let { genres ->
+                add(IosMediaSection("Moods and genres", genres.map {
+                    IosMediaItem(
+                        id = it.endpoint.browseId,
+                        title = it.title,
+                        subtitle = "",
+                        thumbnail = "",
+                        kind = "genre",
+                        params = it.endpoint.params,
+                    )
+                }))
+            }
+            page.newClips.iosItems(hideExplicit).takeIf { it.isNotEmpty() }?.let {
+                add(IosMediaSection("New clips", it))
+            }
+        },
+    )
+}
+
+fun searchIosMusic(
+    query: String,
+    category: String,
+    hideExplicit: Boolean,
+    continuation: String?,
+    completion: (String) -> Unit,
+) = iosRequest(completion) {
+    require(query.isNotBlank()) { "Enter a search term." }
+    val filter = when (category) {
+        "songs" -> YouTube.SearchFilter.FILTER_SONG
+        "videos" -> YouTube.SearchFilter.FILTER_VIDEO
+        "albums" -> YouTube.SearchFilter.FILTER_ALBUM
+        "artists" -> YouTube.SearchFilter.FILTER_ARTIST
+        "playlists" -> YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST
+        "community" -> YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST
+        else -> throw IllegalArgumentException("Unsupported search category.")
+    }
+    val page = if (continuation == null) {
+        YouTube.search(query.trim(), filter).getOrThrow()
+    } else {
+        YouTube.searchContinuation(continuation).getOrThrow()
+    }
+    IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
+}
+
+fun fetchIosCollection(
+    kind: String,
+    id: String,
+    params: String?,
+    hideExplicit: Boolean,
+    continuation: String?,
+    completion: (String) -> Unit,
+) = iosRequest(completion) {
+    require(id.isNotBlank()) { "Missing collection identifier." }
+    when {
+        kind == "playlist" && continuation != null -> {
+            val page = YouTube.playlistContinuation(continuation, setLogin = false).getOrThrow()
+            IosBridgeResponse(
+                items = page.songs.iosItems(hideExplicit),
+                continuation = page.continuation,
+            )
         }
-        val body = IosBridgeResponse(
-            sections = sections,
-            chips = response.getOrNull()?.chips.orEmpty().mapNotNull { it.title },
-            error = response.exceptionOrNull()?.message,
-        )
-        completion(iosJson.encodeToString(body))
-    }
-}
-
-fun fetchIosExplore(completion: (String) -> Unit) {
-    iosBridgeScope.launch {
-        val response = YouTube.explore()
-        val page = response.getOrNull()
-        val sections = buildList {
-            page?.newReleaseAlbums?.take(20)?.let { albums ->
-                if (albums.isNotEmpty()) add(IosMediaSection(
-                    "New releases",
-                    albums.map(YTItem::toIosMediaItem),
-                ))
-            }
-            page?.newClips?.take(20)?.let { clips ->
-                if (clips.isNotEmpty()) add(IosMediaSection(
-                    "New clips",
-                    clips.map(YTItem::toIosMediaItem),
-                ))
-            }
-            page?.moodAndGenres?.take(20)?.let { moodGenres ->
-                if (moodGenres.isNotEmpty()) add(IosMediaSection(
-                    "Moods and genres",
-                    moodGenres.map {
-                        IosMediaItem(it.title, it.title, "Mood or genre", "", "genre")
-                    },
-                ))
-            }
+        kind == "playlist" -> {
+            val page = YouTube.playlist(id.removePrefix("VL"), setLogin = false).getOrThrow()
+            IosBridgeResponse(
+                items = page.songs.iosItems(hideExplicit),
+                continuation = page.songsContinuation ?: page.continuation,
+            )
         }
-        completion(iosJson.encodeToString(IosBridgeResponse(
-            sections = sections,
-            error = response.exceptionOrNull()?.message,
-        )))
-    }
-}
-
-fun searchIosMusic(query: String, completion: (String) -> Unit) {
-    if (query.isBlank()) {
-        completion(iosJson.encodeToString(IosBridgeResponse()))
-        return
-    }
-    iosBridgeScope.launch {
-        val response = YouTube.search(query, YouTube.SearchFilter.FILTER_SONG)
-        val items = response.getOrNull()?.items.orEmpty().map(YTItem::toIosMediaItem)
-        completion(iosJson.encodeToString(IosBridgeResponse(
-            items = items,
-            error = response.exceptionOrNull()?.message,
-        )))
-    }
-}
-
-fun fetchIosPlayerUrl(videoId: String, completion: (String) -> Unit) {
-    iosBridgeScope.launch {
-        val response = YouTube.player(videoId, client = YouTubeClient.WEB_REMIX)
-        val url = response.getOrNull()
-            ?.streamingData
-            ?.adaptiveFormats
-            ?.firstOrNull { it.isAudio }
-            ?.url
-        completion(url.orEmpty())
+        kind == "album" -> {
+            val page = YouTube.album(id)?.getOrThrow()
+                ?: throw IllegalStateException("Album details are unavailable.")
+            IosBridgeResponse(items = page.songs.iosItems(hideExplicit))
+        }
+        kind == "artist" -> {
+            val page = YouTube.artist(id).getOrThrow()
+            IosBridgeResponse(sections = page.sections.mapNotNull { section ->
+                section.items.iosItems(hideExplicit).takeIf { it.isNotEmpty() }
+                    ?.let { IosMediaSection(section.title, it) }
+            })
+        }
+        kind == "genre" -> {
+            val page = YouTube.browse(id, params).getOrThrow()
+            IosBridgeResponse(sections = page.items.mapNotNull { section ->
+                section.items.iosItems(hideExplicit).takeIf { it.isNotEmpty() }
+                    ?.let { IosMediaSection(section.title.orEmpty(), it) }
+            })
+        }
+        else -> throw IllegalArgumentException("Unsupported collection type.")
     }
 }

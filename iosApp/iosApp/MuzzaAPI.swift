@@ -1,0 +1,171 @@
+import Foundation
+import Shared
+
+struct MuzzaLiveItem: Codable, Identifiable, Hashable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let thumbnail: String
+    let kind: String
+    let params: String?
+    let explicit: Bool?
+    let duration: Int?
+}
+
+struct MuzzaLiveSection: Codable {
+    let title: String
+    let items: [MuzzaLiveItem]
+}
+
+struct MuzzaHomeChip: Codable, Identifiable {
+    let title: String
+    let params: String
+    var id: String { params }
+}
+
+struct MuzzaLiveResponse: Decodable {
+    let sections: [MuzzaLiveSection]
+    let items: [MuzzaLiveItem]
+    let playlists: [MuzzaLiveItem]
+    let albums: [MuzzaLiveItem]
+    let artists: [MuzzaLiveItem]
+    let recent: [MuzzaLiveItem]
+    let chips: [MuzzaHomeChip]
+    let continuation: String?
+    let audioUrl: String?
+    let headers: [String: String]
+    let error: String?
+}
+
+enum MuzzaAPIError: LocalizedError {
+    case invalidResponse(Error)
+    case requestFailed(String)
+    case invalidAudioURL
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidResponse(let error):
+            return "Could not read the response: \(error.localizedDescription)"
+        case .requestFailed(let message):
+            return message
+        case .invalidAudioURL:
+            return "YouTube did not return a valid audio URL."
+        }
+    }
+}
+
+@MainActor
+enum MuzzaAPI {
+    private static func request(
+        _ start: (@escaping (String) -> Void) -> Void
+    ) async throws -> MuzzaLiveResponse {
+        let raw = await withCheckedContinuation { (continuation: CheckedContinuation<String, Never>) in
+            start { continuation.resume(returning: $0) }
+        }
+        let response: MuzzaLiveResponse
+        do {
+            response = try JSONDecoder().decode(MuzzaLiveResponse.self, from: Data(raw.utf8))
+        } catch {
+            throw MuzzaAPIError.invalidResponse(error)
+        }
+        if let message = response.error, !message.isEmpty {
+            throw MuzzaAPIError.requestFailed(message)
+        }
+        return response
+    }
+
+    private static func encode(_ item: MuzzaLiveItem) throws -> String {
+        let data = try JSONEncoder().encode(item)
+        guard let json = String(data: data, encoding: .utf8) else {
+            throw MuzzaAPIError.requestFailed("Could not encode the song.")
+        }
+        return json
+    }
+
+    static func home(hideExplicit: Bool, params: String?, continuation: String?) async throws -> MuzzaLiveResponse {
+        try await request {
+            IosBridgeKt.fetchIosHome(
+                hideExplicit: hideExplicit, params: params, continuation: continuation, completion: $0
+            )
+        }
+    }
+
+    static func explore(hideExplicit: Bool) async throws -> MuzzaLiveResponse {
+        try await request { IosBridgeKt.fetchIosExplore(hideExplicit: hideExplicit, completion: $0) }
+    }
+
+    static func search(
+        query: String, category: String, hideExplicit: Bool, continuation: String?
+    ) async throws -> MuzzaLiveResponse {
+        try await request {
+            IosBridgeKt.searchIosMusic(
+                query: query, category: category, hideExplicit: hideExplicit,
+                continuation: continuation, completion: $0
+            )
+        }
+    }
+
+    static func collection(
+        _ item: MuzzaLiveItem, hideExplicit: Bool, continuation: String? = nil
+    ) async throws -> MuzzaLiveResponse {
+        if item.kind == "localPlaylist" {
+            return try await request { IosLibraryKt.fetchIosLocalPlaylist(id: item.id, completion: $0) }
+        }
+        return try await request {
+            IosBridgeKt.fetchIosCollection(
+                kind: item.kind, id: item.id, params: item.params, hideExplicit: hideExplicit,
+                continuation: continuation, completion: $0
+            )
+        }
+    }
+
+    static func audio(for item: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
+        try await request {
+            IosPlaybackResolverKt.fetchIosPlayerUrl(
+                videoId: item.id, isExplicit: item.explicit ?? false, completion: $0
+            )
+        }
+    }
+
+    static func library() async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.fetchIosLibrary(completion: $0) }
+    }
+
+    static func importLikes(_ json: String) async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.importIosLikes(json: json, completion: $0) }
+    }
+
+    static func setLiked(_ item: MuzzaLiveItem, liked: Bool) async throws -> MuzzaLiveResponse {
+        let json = try encode(item)
+        return try await request { IosLibraryKt.setIosSongLiked(json: json, liked: liked, completion: $0) }
+    }
+
+    static func setSaved(_ item: MuzzaLiveItem, saved: Bool) async throws -> MuzzaLiveResponse {
+        let json = try encode(item)
+        return try await request { IosLibraryKt.setIosCollectionSaved(json: json, saved: saved, completion: $0) }
+    }
+
+    static func recordPlay(_ item: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
+        let json = try encode(item)
+        return try await request { IosLibraryKt.recordIosPlay(json: json, completion: $0) }
+    }
+
+    static func createPlaylist(_ name: String) async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.createIosPlaylist(name: name, completion: $0) }
+    }
+
+    static func add(_ item: MuzzaLiveItem, to playlist: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
+        let json = try encode(item)
+        return try await request { IosLibraryKt.addIosSongToPlaylist(id: playlist.id, json: json, completion: $0) }
+    }
+
+    static func remove(_ item: MuzzaLiveItem, from playlist: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
+        try await request {
+            IosLibraryKt.removeIosSongFromPlaylist(id: playlist.id, songId: item.id, completion: $0)
+        }
+    }
+
+    static func deletePlaylist(_ playlist: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.deleteIosPlaylist(id: playlist.id, completion: $0) }
+    }
+}

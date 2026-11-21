@@ -2,9 +2,13 @@ package com.maloy.innertube
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
+import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.header
+import io.ktor.client.request.url
 import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
@@ -29,5 +33,12 @@ actual fun createInnerTubeHttpClient(
         gzip(0.9F)
         deflate(0.8F)
     }
+
+    defaultRequest {
+        url("https://music.youtube.com/youtubei/v1/")
+        header(HttpHeaders.Accept, ContentType.Application.Json.toString())
+        header(HttpHeaders.CacheControl, "no-cache")
+    }
+
     // Proxy not supported on iOS Darwin engine
 }

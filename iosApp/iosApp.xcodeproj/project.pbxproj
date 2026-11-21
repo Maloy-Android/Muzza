@@ -10,6 +10,13 @@
 		B00001 /* MuzzaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00001 /* MuzzaApp.swift */; };
 		B00002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00002 /* ContentView.swift */; };
 		B00003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00005 /* Assets.xcassets */; };
+		B00004 /* MuzzaAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00006 /* MuzzaAPI.swift */; };
+		B00005 /* MuzzaResourceLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00007 /* MuzzaResourceLoader.swift */; };
+		B00006 /* MuzzaPlayback.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00008 /* MuzzaPlayback.swift */; };
+		B00007 /* MuzzaComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00009 /* MuzzaComponents.swift */; };
+		B00008 /* MuzzaLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00010 /* MuzzaLibraryView.swift */; };
+		B00009 /* MuzzaSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00011 /* MuzzaSearchView.swift */; };
+		B00010 /* MuzzaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00012 /* MuzzaPlayerView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -34,6 +41,13 @@
 		A00003 /* Info.plist */       = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A00004 /* Muzza.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Muzza.entitlements; sourceTree = "<group>"; };
 		A00005 /* Assets.xcassets */  = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A00006 /* MuzzaAPI.swift */   = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaAPI.swift; sourceTree = "<group>"; };
+		A00007 /* MuzzaResourceLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaResourceLoader.swift; sourceTree = "<group>"; };
+		A00008 /* MuzzaPlayback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaPlayback.swift; sourceTree = "<group>"; };
+		A00009 /* MuzzaComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaComponents.swift; sourceTree = "<group>"; };
+		A00010 /* MuzzaLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaLibraryView.swift; sourceTree = "<group>"; };
+		A00011 /* MuzzaSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaSearchView.swift; sourceTree = "<group>"; };
+		A00012 /* MuzzaPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaPlayerView.swift; sourceTree = "<group>"; };
 		PROD001 /* iosApp.app */       = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -54,6 +68,13 @@
 				A00003,
 				A00004,
 				A00005,
+				A00006,
+				A00007,
+				A00008,
+				A00009,
+				A00010,
+				A00011,
+				A00012,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -119,6 +140,13 @@
 			files = (
 				B00001,
 				B00002,
+				B00004,
+				B00005,
+				B00006,
+				B00007,
+				B00008,
+				B00009,
+				B00010,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

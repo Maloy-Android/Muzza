@@ -28,6 +28,14 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Test iOS transport and library
+        run: ./gradlew :innertube:iosSimulatorArm64Test :shared:iosSimulatorArm64Test --no-daemon --console=plain
+
+      - name: Test media request validation
+        run: |
+          xcrun swiftc -swift-version 5 iosApp/iosApp/MuzzaResourceLoader.swift iosApp/Tests/main.swift -o "$RUNNER_TEMP/ios-media-tests"
+          "$RUNNER_TEMP/ios-media-tests"
+
       - name: Skip unsigned signing setup
         id: signing
         run: |

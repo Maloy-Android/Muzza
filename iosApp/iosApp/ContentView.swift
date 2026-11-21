@@ -1,105 +1,41 @@
 import SwiftUI
-import Shared
-import AVFoundation
-
-struct MuzzaLiveItem: Codable, Identifiable {
-    let id: String
-    let title: String
-    let subtitle: String
-    let thumbnail: String
-    let kind: String
-}
-
-struct MuzzaLiveSection: Codable, Identifiable {
-    let title: String
-    let items: [MuzzaLiveItem]
-    var id: String { title }
-}
-
-struct MuzzaLiveResponse: Codable {
-    let sections: [MuzzaLiveSection]?
-    let items: [MuzzaLiveItem]?
-    let chips: [String]?
-    let error: String?
-}
-
-@MainActor
-final class MuzzaPlayback: ObservableObject {
-    private var player: AVPlayer?
-    @Published var current: MuzzaLiveItem?
-    @Published var isPlaying = false
-    @Published var liked: [MuzzaLiveItem]
-
-    init() {
-        if let data = UserDefaults.standard.data(forKey: "muzza.liked"),
-           let items = try? JSONDecoder().decode([MuzzaLiveItem].self, from: data) {
-            liked = items
-        } else {
-            liked = []
-        }
-    }
-
-    func play(_ item: MuzzaLiveItem) {
-        guard item.kind == "song" else { return }
-        current = item
-        IosBridgeKt.fetchIosPlayerUrl(videoId: item.id) { [weak self] rawUrl in
-            guard let self, !rawUrl.isEmpty, let url = URL(string: rawUrl) else { return }
-            DispatchQueue.main.async {
-                let av = AVPlayer(url: url)
-                self.player = av
-                av.play()
-                self.isPlaying = true
-            }
-        }
-    }
-
-    func toggle() {
-        guard let player else { return }
-        if isPlaying { player.pause() } else { player.play() }
-        isPlaying.toggle()
-    }
-
-    func toggleLike(_ item: MuzzaLiveItem) {
-        if liked.contains(where: { $0.id == item.id }) {
-            liked.removeAll { $0.id == item.id }
-        } else {
-            liked.insert(item, at: 0)
-        }
-        if let data = try? JSONEncoder().encode(liked) {
-            UserDefaults.standard.set(data, forKey: "muzza.liked")
-        }
-    }
-}
 
 struct ContentView: View {
     @State private var selectedTab = 0
     @State private var showSearch = false
     @State private var showSettings = false
+    @State private var showPlayer = false
     @StateObject private var playback = MuzzaPlayback()
     @AppStorage("muzza.darkTheme") private var darkTheme = true
-    @AppStorage("muzza.pureBlack") private var pureBlack = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
                 MuzzaHomeView(playback: playback, showSearch: $showSearch, showSettings: $showSettings)
                     .tag(0).tabItem { Label("Home", systemImage: "house.fill") }
-                MuzzaExploreView(player: playback).tag(1).tabItem { Label("Explore", systemImage: "safari") }
-                MuzzaLibraryView(player: playback).tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
+                MuzzaExploreView(playback: playback, showSearch: $showSearch, showSettings: $showSettings)
+                    .tag(1).tabItem { Label("Explore", systemImage: "safari") }
+                MuzzaLibraryView(playback: playback, showSearch: $showSearch, showSettings: $showSettings)
+                    .tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
             }
             if playback.current != nil {
-                MuzzaMiniPlayer(player: playback).padding(.bottom, 49)
+                MuzzaMiniPlayer(playback: playback) { showPlayer = true }
+                    .padding(.bottom, 49)
             }
         }
-        .tint(accent)
+        .tint(Color(red: 237.0 / 255, green: 85.0 / 255, blue: 100.0 / 255))
         .preferredColorScheme(darkTheme ? .dark : .light)
-        .background(pureBlack ? Color.black : Color(.systemBackground))
-        .sheet(isPresented: $showSearch) { MuzzaSearchView(player: playback) }
-        .sheet(isPresented: $showSettings) { MuzzaSettingsView() }
-    }
-
-    private var accent: Color {
-        Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255)
+        .sheet(isPresented: $showSearch) { MuzzaSearchView(playback: playback) }
+        .sheet(isPresented: $showSettings) { MuzzaSettingsView(playback: playback) }
+        .fullScreenCover(isPresented: $showPlayer) { MuzzaPlayerView(playback: playback) }
+        .alert("Muzza", isPresented: Binding(
+            get: { playback.message != nil },
+            set: { if !$0 { playback.message = nil } }
+        )) {
+            Button("OK", role: .cancel) { playback.message = nil }
+        } message: {
+            Text(playback.message ?? "")
+        }
     }
 }
 
@@ -109,453 +45,169 @@ private struct MuzzaHomeView: View {
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var sections: [MuzzaLiveSection] = []
-    @State private var chips: [String] = []
-    @State private var isLoading = true
+    @State private var chips: [MuzzaHomeChip] = []
+    @State private var selectedParams: String?
+    @State private var continuation: String?
+    @State private var isLoading = false
     @State private var loadError: String?
-    @State private var generation = 0
+    @State private var pageError: String?
+    @State private var requestID = UUID()
+
+    private var quickPicks: [MuzzaLiveItem] {
+        Array(playback.recent.filter { !hideExplicit || !($0.explicit ?? false) }.prefix(4))
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(alignment: .leading, spacing: 24) {
-                    HStack(alignment: .firstTextBaseline) {
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text("Good evening").font(.subheadline.weight(.semibold)).foregroundStyle(.secondary)
-                            Text("Muzza").font(.largeTitle.bold())
+                LazyVStack(alignment: .leading, spacing: 26) {
+                    MuzzaHeader("Home", search: { showSearch = true }, settings: { showSettings = true })
+                    if !quickPicks.isEmpty {
+                        VStack(alignment: .leading, spacing: 10) {
+                            Text("Quick picks").font(.title2.bold())
+                            ForEach(Array(quickPicks.enumerated()), id: \.offset) { index, item in
+                                MuzzaSongRow(item: item, playback: playback, queue: quickPicks, queueIndex: index)
+                            }
                         }
-                        Spacer()
-                        HStack(spacing: 8) {
-                            Button { showSearch = true } label: { MuzzaCircleButton("magnifyingglass") }
-                            Button { showSettings = true } label: { MuzzaCircleButton("gearshape") }
-                        }
-                    }
-
-                    if isLoading {
-                        MuzzaLoadingRows()
-                    }
-                    if let loadError {
-                        Text(loadError).font(.caption).foregroundStyle(.secondary).padding(.horizontal, 16)
                     }
                     if !chips.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
-                                ForEach(chips, id: \.self) { chip in
-                                    Text(chip)
-                                        .font(.subheadline.weight(.semibold))
-                                        .padding(.horizontal, 14)
-                                        .padding(.vertical, 9)
-                                        .background(Color(.secondarySystemFill))
-                                        .clipShape(Capsule())
-                                }
-                            }.padding(.horizontal, 16)
-                        }
-                    }
-                    ForEach(sections) { section in
-                        MuzzaHomeSection(title: section.title) {
-                            ScrollView(.horizontal, showsIndicators: false) {
-                                HStack(alignment: .top, spacing: 12) {
-                                    ForEach(section.items.prefix(24)) { item in
-                                        MuzzaLiveCard(item: item) { playback.play(item) }
+                                ForEach(chips) { chip in
+                                    Button {
+                                        selectedParams = selectedParams == chip.params ? nil : chip.params
+                                    } label: {
+                                        Text(chip.title)
+                                            .font(.subheadline.weight(.semibold))
+                                            .padding(.horizontal, 16).padding(.vertical, 10)
+                                            .background(selectedParams == chip.params ? Color.accentColor : Color(.secondarySystemFill))
+                                            .clipShape(Capsule())
                                     }
-                                }.padding(.horizontal, 16)
+                                    .buttonStyle(.plain)
+                                }
                             }
                         }
                     }
-
-                    MuzzaHomeSection(title: "Quick picks") {
-                        MuzzaHorizontalCards(items: [
-                            MuzzaPreview(title: "Liked music", subtitle: "Songs you saved", symbol: "heart.fill"),
-                            MuzzaPreview(title: "Daily mix", subtitle: "Made for you", symbol: "sparkles"),
-                            MuzzaPreview(title: "Recently played", subtitle: "Pick up where you left off", symbol: "clock.fill")
-                        ])
+                    ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
+                        MuzzaMediaSectionView(section: section, playback: playback)
                     }
-                    MuzzaHomeSection(title: "Forgotten favorites") {
-                        MuzzaHorizontalCards(items: [
-                            MuzzaPreview(title: "Rediscover", subtitle: "Tracks worth hearing again", symbol: "arrow.clockwise"),
-                            MuzzaPreview(title: "Mix 1", subtitle: "Muzza selection", symbol: "music.note"),
-                            MuzzaPreview(title: "Mix 2", subtitle: "Muzza selection", symbol: "music.quarternote.3")
-                        ])
+                    if isLoading {
+                        ProgressView().frame(maxWidth: .infinity).padding()
+                    } else if let loadError {
+                        MuzzaErrorView(message: loadError) { Task { await reload() } }
+                    } else if sections.isEmpty {
+                        MuzzaEmptyView(symbol: "music.note", message: "No recommendations are available.")
                     }
-                    MuzzaHomeSection(title: "Keep listening") {
-                        MuzzaHorizontalCards(items: [
-                            MuzzaPreview(title: "Continue", subtitle: "Your last queue", symbol: "play.fill"),
-                            MuzzaPreview(title: "Downloads", subtitle: "Available offline", symbol: "arrow.down.circle.fill"),
-                            MuzzaPreview(title: "History", subtitle: "Recently listened", symbol: "clock.arrow.circlepath")
-                        ])
+                    if let pageError {
+                        MuzzaErrorView(message: pageError) { Task { await loadMore() } }
+                    } else if continuation != nil && !isLoading {
+                        ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
                     }
-                }.padding().padding(.bottom, 84)
-            }.toolbar(.hidden, for: .navigationBar)
-                .task(id: generation) { loadHome() }
-                .refreshable { generation += 1 }
+                }
+                .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 100)
+            }
+            .modifier(MuzzaPageBackground())
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
+            .task(id: "\(hideExplicit)-\(selectedParams ?? "")") { await reload() }
+            .refreshable { await reload() }
         }
     }
 
-    private func loadHome() {
+    private func reload() async {
+        let id = UUID()
+        requestID = id
         isLoading = true
         loadError = nil
-        IosBridgeKt.fetchIosHome(hideExplicit: hideExplicit) { raw in
-            DispatchQueue.main.async {
-                isLoading = false
-                guard let data = raw.data(using: .utf8),
-                      let response = try? JSONDecoder().decode(MuzzaLiveResponse.self, from: data) else {
-                    loadError = "The InnerTube bridge returned invalid JSON."
-                    return
-                }
-                if let message = response.error, !message.isEmpty {
-                    loadError = message
-                }
-                sections = response.sections ?? []
-                chips = response.chips ?? []
+        pageError = nil
+        sections = []
+        chips = []
+        continuation = nil
+        defer { if requestID == id { isLoading = false } }
+        do {
+            let response = try await MuzzaAPI.home(hideExplicit: hideExplicit, params: selectedParams, continuation: nil)
+            guard !Task.isCancelled, requestID == id else { return }
+            sections = response.sections
+            chips = response.chips
+            continuation = response.continuation
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            loadError = error.localizedDescription
+        }
+    }
+
+    private func loadMore() async {
+        guard !isLoading, let token = continuation else { return }
+        let id = requestID
+        isLoading = true
+        pageError = nil
+        defer { if requestID == id { isLoading = false } }
+        do {
+            let response = try await MuzzaAPI.home(hideExplicit: hideExplicit, params: selectedParams, continuation: token)
+            guard !Task.isCancelled, requestID == id else { return }
+            sections.append(contentsOf: response.sections)
+            if response.continuation == token {
+                continuation = nil
+            } else {
+                continuation = response.continuation
             }
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            pageError = error.localizedDescription
         }
     }
 }
 
 private struct MuzzaExploreView: View {
-    let player: MuzzaPlayback
-
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("Explore").font(.largeTitle.bold())
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                        MuzzaLibraryTile(title: "Moods", detail: "Find a feeling", symbol: "face.smiling", tint: .pink)
-                        MuzzaLibraryTile(title: "Genres", detail: "Browse styles", symbol: "guitars", tint: .orange)
-                        MuzzaLibraryTile(title: "New releases", detail: "Latest music", symbol: "sparkles", tint: .red)
-                        MuzzaLibraryTile(title: "Charts", detail: "Popular now", symbol: "chart.line.uptrend.xyaxis", tint: .purple)
-                    }
-                }.padding().padding(.bottom, 84)
-            }.toolbar(.hidden, for: .navigationBar)
-        }
-    }
-}
-
-private struct MuzzaLibraryView: View {
-    let player: MuzzaPlayback
-    @State private var category = 0
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 20) {
-                    Text("Library").font(.largeTitle.bold())
-                    Picker("Library", selection: $category) {
-                        Text("Playlists").tag(0)
-                        Text("Albums").tag(1)
-                        Text("Songs").tag(2)
-                        Text("Artists").tag(3)
-                    }.pickerStyle(.segmented)
-                    LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                        MuzzaLibraryTile(title: "Liked music", detail: "\(player.liked.count) songs", symbol: "heart.fill", tint: .red)
-                        MuzzaLibraryTile(title: "Downloads", detail: "Offline music", symbol: "arrow.down.circle.fill", tint: .green)
-                        MuzzaLibraryTile(title: "Local", detail: "On this iPhone", symbol: "iphone", tint: .blue)
-                        MuzzaLibraryTile(title: "Most played", detail: "Top tracks", symbol: "chart.bar.fill", tint: .orange)
-                        MuzzaLibraryTile(title: "Recent", detail: "Listening history", symbol: "clock.fill", tint: .purple)
-                        MuzzaLibraryTile(title: "Albums", detail: "Saved albums", symbol: "square.stack.fill", tint: .teal)
-                        MuzzaLibraryTile(title: "Artists", detail: "Saved artists", symbol: "mic.fill", tint: .pink)
-                        MuzzaLibraryTile(title: "Playlists", detail: "Your playlists", symbol: "music.note.list", tint: .indigo)
-                    }
-                    if category == 2 {
-                        if player.liked.isEmpty {
-                            VStack(spacing: 10) {
-                                Image(systemName: "heart").font(.system(size: 42)).foregroundStyle(.secondary)
-                                Text("No liked songs").font(.headline)
-                            }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 60)
-                        } else {
-                            Text("Liked songs").font(.title3.bold())
-                            ForEach(player.liked) { item in
-                                HStack(spacing: 12) {
-                                    AsyncImage(url: URL(string: item.thumbnail)) { image in
-                                        image.resizable().scaledToFill()
-                                    } placeholder: {
-                                        Rectangle().fill(.secondary.opacity(0.12))
-                                    }
-                                    .frame(width: 52, height: 52)
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(item.title).lineLimit(1)
-                                        Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                                    }
-                                    Spacer()
-                                    Button {
-                                        player.play(item)
-                                    } label: {
-                                        Image(systemName: "play.circle.fill")
-                                    }.buttonStyle(.plain)
-                                }
-                            }
-                        }
-                    }
-                }.padding().padding(.bottom, 84)
-            }.toolbar(.hidden, for: .navigationBar)
-        }
-    }
-}
-
-private struct MuzzaSearchView: View {
-    @Environment(\.dismiss) private var dismiss
-    @ObservedObject var player: MuzzaPlayback
-    @State private var query = ""
-    @State private var items: [MuzzaLiveItem] = []
-    @State private var isLoading = false
-    @State private var error: String?
-    var body: some View {
-        NavigationStack {
-            List {
-                TextField("Search Muzza", text: $query)
-                    .textInputAutocapitalization(.never)
-                    .autocorrectionDisabled()
-                if isLoading {
-                    ProgressView().frame(maxWidth: .infinity)
-                }
-                if let error {
-                    Text(error).font(.caption).foregroundStyle(.secondary)
-                }
-                ForEach(items) { item in
-                    Button {
-                        player.play(item)
-                        dismiss()
-                    } label: {
-                        HStack {
-                            AsyncImage(url: URL(string: item.thumbnail)) { image in
-                                image.resizable().scaledToFill()
-                            } placeholder: {
-                                Rectangle().fill(.secondary.opacity(0.12))
-                            }
-                            .frame(width: 52, height: 52)
-                            .clipShape(RoundedRectangle(cornerRadius: 10))
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(item.title).lineLimit(1)
-                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                            }
-                            Spacer()
-                            Image(systemName: "play.circle.fill")
-                        }
-                    }.buttonStyle(.plain)
-                }
-            }
-            .navigationTitle("Search")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
-            .onSubmit(of: .text) { search() }
-            .onChange(of: query) { value in
-                if value.count >= 3 { search() }
-            }
-        }
-    }
-
-    private func search() {
-        guard !query.isEmpty else { return }
-        isLoading = true
-        error = nil
-        IosBridgeKt.searchIosMusic(query: query) { raw in
-            DispatchQueue.main.async {
-                isLoading = false
-                guard let data = raw.data(using: .utf8),
-                      let response = try? JSONDecoder().decode(MuzzaLiveResponse.self, from: data) else {
-                    error = "Search returned invalid data."
-                    return
-                }
-                if let message = response.error, !message.isEmpty {
-                    error = message
-                }
-                items = response.items ?? []
-            }
-        }
-    }
-}
-
-private struct MuzzaSettingsView: View {
-    @Environment(\.dismiss) private var dismiss
-    @AppStorage("muzza.darkTheme") private var darkTheme = true
-    @AppStorage("muzza.pureBlack") private var pureBlack = false
+    @ObservedObject var playback: MuzzaPlayback
+    @Binding var showSearch: Bool
+    @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
-    @AppStorage("muzza.persistentQueue") private var persistentQueue = true
+    @State private var sections: [MuzzaLiveSection] = []
+    @State private var isLoading = false
+    @State private var loadError: String?
+    @State private var requestID = UUID()
+
     var body: some View {
         NavigationStack {
-            Form {
-                Section("Appearance") {
-                    Toggle("Dark theme", isOn: $darkTheme)
-                    Toggle("Pure black", isOn: $pureBlack)
-                }
-                Section("Content") {
-                    Toggle("Hide explicit content", isOn: $hideExplicit)
-                }
-                Section("Playback") {
-                    Toggle("Persistent queue", isOn: $persistentQueue)
-                }
-            }
-            .navigationTitle("Settings")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
-                }
-            }
-        }
-    }
-}
-
-private struct MuzzaCircleButton: View {
-    let symbol: String
-    init(_ symbol: String) { self.symbol = symbol }
-    var body: some View {
-        Image(systemName: symbol).font(.headline).frame(width: 42, height: 42)
-            .background(.ultraThinMaterial).clipShape(Circle())
-    }
-}
-
-private struct MuzzaHomeSection<Content: View>: View {
-    let title: String
-    @ViewBuilder let content: Content
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(title).font(.title3.bold()).padding(.horizontal, 16)
-            content
-        }
-    }
-}
-
-private struct MuzzaPreview: Identifiable {
-    let id = UUID()
-    let title: String
-    let subtitle: String
-    let symbol: String
-}
-
-private struct MuzzaHorizontalCards: View {
-    let items: [MuzzaPreview]
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 12) {
-                ForEach(items) { item in
-                    VStack(alignment: .leading, spacing: 8) {
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 18).fill(
-                                LinearGradient(colors: [
-                                    Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255),
-                                    Color(red: 70 / 255, green: 20 / 255, blue: 42 / 255)
-                                ], startPoint: .topLeading, endPoint: .bottomTrailing)
-                            )
-                            Image(systemName: item.symbol).font(.system(size: 36, weight: .semibold)).foregroundStyle(.white)
-                        }.frame(width: 156, height: 156)
-                        VStack(alignment: .leading, spacing: 3) {
-                            Text(item.title).font(.headline).lineLimit(1)
-                            Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-                        }.frame(width: 156, alignment: .leading)
+            ScrollView {
+                LazyVStack(alignment: .leading, spacing: 26) {
+                    MuzzaHeader("Explore", search: { showSearch = true }, settings: { showSettings = true })
+                    ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
+                        MuzzaMediaSectionView(section: section, playback: playback)
+                    }
+                    if isLoading {
+                        ProgressView().frame(maxWidth: .infinity).padding()
+                    } else if let loadError {
+                        MuzzaErrorView(message: loadError) { Task { await reload() } }
+                    } else if sections.isEmpty {
+                        MuzzaEmptyView(symbol: "safari", message: "No music is available to explore.")
                     }
                 }
-            }.padding(.horizontal, 16)
+                .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 100)
+            }
+            .modifier(MuzzaPageBackground())
+            .toolbar(.hidden, for: .navigationBar)
+            .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
+            .task(id: hideExplicit) { await reload() }
+            .refreshable { await reload() }
         }
     }
-}
 
-private struct MuzzaLibraryTile: View {
-    let title: String
-    let detail: String
-    let symbol: String
-    let tint: Color
-    var body: some View {
-        VStack(alignment: .leading, spacing: 14) {
-            Image(systemName: symbol).font(.title2).foregroundStyle(tint)
-            Spacer()
-            VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.headline).lineLimit(1)
-                Text(detail).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-            }
-        }.frame(maxWidth: .infinity, minHeight: 142, alignment: .leading).padding()
-            .background(.ultraThinMaterial).clipShape(RoundedRectangle(cornerRadius: 18))
-    }
-}
-
-private struct MuzzaLoadingRows: View {
-    var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            ForEach(0..<3, id: \.self) { _ in
-                VStack(alignment: .leading, spacing: 10) {
-                    RoundedRectangle(cornerRadius: 6).fill(.secondary.opacity(0.14))
-                        .frame(width: 150, height: 18).padding(.horizontal, 16)
-                    HStack(spacing: 12) {
-                        ForEach(0..<4, id: \.self) { _ in
-                            RoundedRectangle(cornerRadius: 18).fill(.secondary.opacity(0.12))
-                                .frame(width: 156, height: 156)
-                        }
-                    }.padding(.horizontal, 16)
-                }
-            }
+    private func reload() async {
+        let id = UUID()
+        requestID = id
+        isLoading = true
+        loadError = nil
+        sections = []
+        defer { if requestID == id { isLoading = false } }
+        do {
+            let response = try await MuzzaAPI.explore(hideExplicit: hideExplicit)
+            guard !Task.isCancelled, requestID == id else { return }
+            sections = response.sections
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            loadError = error.localizedDescription
         }
-    }
-}
-
-private struct MuzzaInnerTubeError: View {
-    let message: String
-    let retry: () -> Void
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Label("InnerTube did not return data", systemImage: "exclamationmark.triangle.fill").font(.headline)
-            Text(message).font(.caption).foregroundStyle(.secondary)
-            Button("Try again", action: retry).buttonStyle(.borderedProminent)
-        }.padding().frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 16)
-    }
-}
-
-private struct MuzzaLiveCard: View {
-    let item: MuzzaLiveItem
-    let action: () -> Void
-    var body: some View {
-        Button(action: action) {
-            VStack(alignment: .leading, spacing: 8) {
-            AsyncImage(url: URL(string: item.thumbnail)) { phase in
-                if let image = phase.image {
-                    image.resizable().scaledToFill()
-                } else {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 18).fill(
-                            LinearGradient(colors: [
-                                Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255),
-                                Color(red: 70 / 255, green: 20 / 255, blue: 42 / 255)
-                            ], startPoint: .topLeading, endPoint: .bottomTrailing)
-                        )
-                        Image(systemName: "music.note").foregroundStyle(.white)
-                    }
-                }
-            }.frame(width: 156, height: 156).clipShape(RoundedRectangle(cornerRadius: 18))
-            VStack(alignment: .leading, spacing: 3) {
-                Text(item.title).font(.headline).lineLimit(1)
-                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-            }.frame(width: 156, alignment: .leading)
-            }
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-private struct MuzzaMiniPlayer: View {
-    @ObservedObject var player: MuzzaPlayback
-    var body: some View {
-        HStack(spacing: 10) {
-            AsyncImage(url: URL(string: player.current?.thumbnail ?? "")) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                RoundedRectangle(cornerRadius: 8).fill(.secondary.opacity(0.12))
-            }.frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
-            VStack(alignment: .leading, spacing: 2) {
-                Text(player.current?.title ?? "").font(.subheadline.weight(.semibold)).lineLimit(1)
-                Text(player.current?.subtitle ?? "").font(.caption).foregroundStyle(.secondary).lineLimit(1)
-            }
-            Spacer()
-            if let item = player.current {
-                Button { player.toggleLike(item) } label: {
-                    Image(systemName: player.liked.contains(where: { $0.id == item.id }) ? "heart.fill" : "heart")
-                }.buttonStyle(.plain)
-            }
-            Button { player.toggle() } label: {
-                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
-            }.buttonStyle(.plain)
-        }.padding(10).background(.regularMaterial).clipShape(RoundedRectangle(cornerRadius: 16)).padding(.horizontal)
     }
 }

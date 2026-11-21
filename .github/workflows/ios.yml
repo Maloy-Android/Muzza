@@ -32,7 +32,7 @@ jobs:
         run: |
           for source in iosApp/iosApp/*.swift; do xcrun swiftc -frontend -parse "$source"; done
           plutil -lint iosApp/iosApp/ru.lproj/Localizable.strings
-          xcrun swiftc -swift-version 5 iosApp/iosApp/MuzzaResourceLoader.swift iosApp/iosApp/MuzzaLyricsParser.swift iosApp/iosApp/MuzzaCookieFilter.swift iosApp/iosApp/MuzzaDownloadStore.swift iosApp/Tests/main.swift -o "$RUNNER_TEMP/ios-media-tests"
+          xcrun swiftc -swift-version 5 iosApp/iosApp/MuzzaResourceLoader.swift iosApp/iosApp/MuzzaLyricsParser.swift iosApp/iosApp/MuzzaCookieFilter.swift iosApp/iosApp/MuzzaDownloadStore.swift iosApp/iosApp/MuzzaQueueRules.swift iosApp/Tests/main.swift -o "$RUNNER_TEMP/ios-media-tests"
           "$RUNNER_TEMP/ios-media-tests"
 
       - name: Test iOS transport and library

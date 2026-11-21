@@ -63,9 +63,23 @@ func testDownloadFilenamesStayInTheDownloadDirectory() {
     expect(!MuzzaDownloadStore.isSafeFilename("12345678-1234-1234-1234-123456789abc.mp3"), "unexpected extension")
 }
 
+func testQueueRules() {
+    expect(MuzzaQueueRules.nextIndex(current: 1, count: 3, repeatMode: .off, automatic: true) == 2, "next song")
+    expect(MuzzaQueueRules.nextIndex(current: 2, count: 3, repeatMode: .off, automatic: true) == nil, "queue end")
+    expect(MuzzaQueueRules.nextIndex(current: 2, count: 3, repeatMode: .all, automatic: true) == 0, "repeat queue")
+    expect(MuzzaQueueRules.nextIndex(current: 1, count: 3, repeatMode: .one, automatic: true) == 1, "repeat song")
+    expect(MuzzaQueueRules.nextIndex(current: 1, count: 3, repeatMode: .one, automatic: false) == 2, "manual skip")
+    expect(MuzzaQueueRules.previousIndex(current: 0, count: 3, repeatMode: .all) == 2, "previous wraps")
+    expect(MuzzaQueueRules.nextIndex(current: 0, count: 0, repeatMode: .all, automatic: true) == nil, "empty queue")
+    let order = MuzzaQueueRules.shuffleUpcoming([0, 1, 2, 3], currentIndex: 1)
+    expect(order?.prefix(2).elementsEqual([0, 1]) == true, "shuffle keeps played items")
+    expect(Set(order ?? []) == Set([0, 1, 2, 3]), "shuffle keeps every queue item")
+}
+
 testContentRangeValidation()
 testMediaHosts()
 testDownloadFilenamesStayInTheDownloadDirectory()
+testQueueRules()
 do {
     try testLyricsParser()
     try testCookieSelection()

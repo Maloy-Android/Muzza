@@ -6,6 +6,10 @@ import SwiftUI
 private struct MuzzaSavedQueue: Codable {
     let items: [MuzzaLiveItem]
     let index: Int
+    let tokens: [UUID]?
+    let originalItems: [MuzzaLiveItem]?
+    let originalTokens: [UUID]?
+    let shuffled: Bool?
 }
 
 @MainActor
@@ -17,6 +21,8 @@ final class MuzzaPlayback: ObservableObject {
     @Published private(set) var duration = 0.0
     @Published private(set) var queue: [MuzzaLiveItem] = []
     @Published private(set) var queueIndex = 0
+    @Published private(set) var isShuffling = false
+    @Published private(set) var repeatMode: MuzzaRepeatMode = .off
     @Published private(set) var liked: [MuzzaLiveItem] = []
     @Published private(set) var playlists: [MuzzaLiveItem] = []
     @Published private(set) var albums: [MuzzaLiveItem] = []
@@ -38,6 +44,9 @@ final class MuzzaPlayback: ObservableObject {
     private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var playbackID = UUID()
     private var recordedPlaybackID: UUID?
+    private var queueTokens: [UUID] = []
+    private var originalQueue: [MuzzaLiveItem] = []
+    private var originalTokens: [UUID] = []
     private var libraryRevision = 0
     private var recentRevision = 0
     private var resourceLoader: MuzzaResourceLoader?
@@ -49,6 +58,14 @@ final class MuzzaPlayback: ObservableObject {
     private var remoteTargets: [(MPRemoteCommand, Any)] = []
 
     init() {
+        isShuffling = UserDefaults.standard.bool(forKey: "muzza.shuffle")
+        if let savedMode = UserDefaults.standard.string(forKey: "muzza.repeatMode") {
+            if let mode = MuzzaRepeatMode(rawValue: savedMode) {
+                repeatMode = mode
+            } else {
+                message = "The saved repeat setting is invalid."
+            }
+        }
         restoreQueue()
         observePlayer()
         configureRemoteCommands()
@@ -218,8 +235,25 @@ final class MuzzaPlayback: ObservableObject {
             queue = [item]
             queueIndex = 0
         }
+        queueTokens = queue.map { _ in UUID() }
+        originalQueue = queue
+        originalTokens = queueTokens
+        if isShuffling && !shuffleUpcoming() {
+            isShuffling = false
+            UserDefaults.standard.set(false, forKey: "muzza.shuffle")
+        }
         persistQueue()
         start(item)
+    }
+
+    func playQueued(at index: Int) {
+        guard queue.indices.contains(index) else {
+            message = "The selected queue item is unavailable."
+            return
+        }
+        queueIndex = index
+        persistQueue()
+        start(queue[index])
     }
 
     func toggle() {
@@ -252,24 +286,76 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
-    func next() {
-        guard queueIndex + 1 < queue.count else {
+    func next(finishedNaturally: Bool = false) {
+        guard let index = MuzzaQueueRules.nextIndex(
+            current: queueIndex, count: queue.count, repeatMode: repeatMode, automatic: finishedNaturally
+        ) else {
             player.pause()
             return
         }
-        queueIndex += 1
+        queueIndex = index
         persistQueue()
         start(queue[queueIndex])
     }
 
     func previous() {
-        if position > 3 || queueIndex == 0 {
+        if position > 3 {
             seek(to: 0)
-        } else {
-            queueIndex -= 1
-            persistQueue()
-            start(queue[queueIndex])
+            return
         }
+        guard let index = MuzzaQueueRules.previousIndex(
+            current: queueIndex, count: queue.count, repeatMode: repeatMode
+        ) else {
+            seek(to: 0)
+            return
+        }
+        queueIndex = index
+        persistQueue()
+        start(queue[index])
+    }
+
+    func toggleShuffle() {
+        if queue.isEmpty {
+            isShuffling.toggle()
+        } else if isShuffling {
+            guard queueTokens.indices.contains(queueIndex),
+                  originalQueue.count == originalTokens.count,
+                  let index = originalTokens.firstIndex(of: queueTokens[queueIndex]) else {
+                message = "The queue order could not be restored."
+                return
+            }
+            queue = originalQueue
+            queueTokens = originalTokens
+            queueIndex = index
+            isShuffling = false
+        } else {
+            originalQueue = queue
+            originalTokens = queueTokens
+            guard shuffleUpcoming() else { return }
+            isShuffling = true
+        }
+        UserDefaults.standard.set(isShuffling, forKey: "muzza.shuffle")
+        persistQueue()
+    }
+
+    func cycleRepeat() {
+        switch repeatMode {
+        case .off: repeatMode = .all
+        case .all: repeatMode = .one
+        case .one: repeatMode = .off
+        }
+        UserDefaults.standard.set(repeatMode.rawValue, forKey: "muzza.repeatMode")
+    }
+
+    private func shuffleUpcoming() -> Bool {
+        guard queue.count == queueTokens.count,
+              let shuffled = MuzzaQueueRules.shuffleUpcoming(Array(zip(queue, queueTokens)), currentIndex: queueIndex) else {
+            message = "The queue could not be shuffled."
+            return false
+        }
+        queue = shuffled.map(\.0)
+        queueTokens = shuffled.map(\.1)
+        return true
     }
 
     func seek(to seconds: Double) {
@@ -474,7 +560,7 @@ final class MuzzaPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.playbackID == id, self.player.currentItem === item else { return }
-                self.next()
+                self.next(finishedNaturally: true)
             }
         }
         failureObserver = NotificationCenter.default.addObserver(
@@ -580,8 +666,25 @@ final class MuzzaPlayback: ObservableObject {
 
     private func persistQueue() {
         guard queuePersistenceEnabled else { return }
+        guard !queue.isEmpty else {
+            UserDefaults.standard.removeObject(forKey: "muzza.queue")
+            return
+        }
+        guard queue.indices.contains(queueIndex), queue.count == queueTokens.count,
+              queue.count == originalQueue.count, originalQueue.count == originalTokens.count,
+              Set(queueTokens) == Set(originalTokens) else {
+            message = "The queue could not be saved."
+            return
+        }
         do {
-            let data = try JSONEncoder().encode(MuzzaSavedQueue(items: queue, index: queueIndex))
+            let data = try JSONEncoder().encode(MuzzaSavedQueue(
+                items: queue,
+                index: queueIndex,
+                tokens: queueTokens,
+                originalItems: originalQueue,
+                originalTokens: originalTokens,
+                shuffled: isShuffling
+            ))
             UserDefaults.standard.set(data, forKey: "muzza.queue")
         } catch {
             message = "Could not save the queue: \(error.localizedDescription)"
@@ -597,8 +700,41 @@ final class MuzzaPlayback: ObservableObject {
             }
             queue = saved.items
             queueIndex = saved.index
+            if let tokens = saved.tokens, let originals = saved.originalItems,
+               let originalIDs = saved.originalTokens, let shuffled = saved.shuffled {
+                guard tokens.count == saved.items.count, originalIDs.count == originals.count,
+                      Set(tokens).count == tokens.count, Set(originalIDs).count == originalIDs.count,
+                      Set(tokens) == Set(originalIDs) else {
+                    throw MuzzaAPIError.requestFailed("The saved queue order is invalid.")
+                }
+                let originalByID = Dictionary(uniqueKeysWithValues: zip(originalIDs, originals))
+                guard zip(tokens, saved.items).allSatisfy({ originalByID[$0.0] == $0.1 }) else {
+                    throw MuzzaAPIError.requestFailed("The saved queue order is invalid.")
+                }
+                queueTokens = tokens
+                originalQueue = originals
+                originalTokens = originalIDs
+                isShuffling = shuffled
+                UserDefaults.standard.set(shuffled, forKey: "muzza.shuffle")
+            } else if saved.tokens == nil && saved.originalItems == nil &&
+                        saved.originalTokens == nil && saved.shuffled == nil {
+                queueTokens = queue.map { _ in UUID() }
+                originalQueue = queue
+                originalTokens = queueTokens
+                if isShuffling && !shuffleUpcoming() {
+                    throw MuzzaAPIError.requestFailed("The saved queue could not be shuffled.")
+                }
+            } else {
+                throw MuzzaAPIError.requestFailed("The saved queue order is incomplete.")
+            }
             current = queue[queueIndex]
         } catch {
+            queue = []
+            queueIndex = 0
+            queueTokens = []
+            originalQueue = []
+            originalTokens = []
+            current = nil
             message = "Could not restore the queue: \(error.localizedDescription)"
         }
     }

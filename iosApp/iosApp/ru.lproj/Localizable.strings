@@ -80,6 +80,12 @@
 "Lyrics from LRCLIB or KuGou" = "Текст предоставлен LRCLIB или KuGou";
 "Previous" = "Предыдущая";
 "Next" = "Следующая";
+"Shuffle" = "Перемешать";
+"Repeat" = "Повтор";
+"On" = "Включено";
+"Off" = "Выключено";
+"All" = "Все";
+"One" = "Одну";
 "No song selected." = "Песня не выбрана.";
 "Done" = "Готово";
 "Appearance" = "Внешний вид";

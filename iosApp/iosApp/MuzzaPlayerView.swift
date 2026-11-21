@@ -95,11 +95,19 @@ struct MuzzaPlayerView: View {
                             }
                             .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
                         }
-                        HStack(spacing: 42) {
+                        HStack {
+                            Button { playback.toggleShuffle() } label: {
+                                Image(systemName: "shuffle").font(.title3)
+                                    .foregroundStyle(playback.isShuffling ? Color.accentColor : Color.secondary)
+                            }
+                            .accessibilityLabel("Shuffle")
+                            .accessibilityValue(playback.isShuffling ? "On" : "Off")
+                            Spacer(minLength: 12)
                             Button { playback.previous() } label: {
                                 Image(systemName: "backward.end.fill").font(.title2)
                             }
                             .accessibilityLabel("Previous")
+                            Spacer(minLength: 12)
                             Button { playback.toggle() } label: {
                                 Group {
                                     if playback.isLoadingAudio {
@@ -113,11 +121,23 @@ struct MuzzaPlayerView: View {
                                 .background(.regularMaterial).clipShape(Circle())
                             }
                             .accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
+                            Spacer(minLength: 12)
                             Button { playback.next() } label: {
                                 Image(systemName: "forward.end.fill").font(.title2)
                             }
-                            .disabled(playback.queueIndex + 1 >= playback.queue.count)
+                            .disabled(MuzzaQueueRules.nextIndex(
+                                current: playback.queueIndex, count: playback.queue.count,
+                                repeatMode: playback.repeatMode, automatic: false
+                            ) == nil)
                             .accessibilityLabel("Next")
+                            Spacer(minLength: 12)
+                            Button { playback.cycleRepeat() } label: {
+                                Image(systemName: playback.repeatMode == .one ? "repeat.1" : "repeat")
+                                    .font(.title3)
+                                    .foregroundStyle(playback.repeatMode == .off ? Color.secondary : Color.accentColor)
+                            }
+                            .accessibilityLabel("Repeat")
+                            .accessibilityValue(Text(LocalizedStringKey(playback.repeatMode.rawValue.capitalized)))
                         }
                         HStack(spacing: 16) {
                             Button { showQueue = true } label: {
@@ -166,7 +186,10 @@ private struct MuzzaQueueView: View {
             List {
                 ForEach(Array(playback.queue.enumerated()), id: \.offset) { index, item in
                     HStack {
-                        MuzzaSongRow(item: item, playback: playback, queue: playback.queue, queueIndex: index)
+                        MuzzaSongRow(
+                            item: item, playback: playback, queue: playback.queue,
+                            queueIndex: index, usesCurrentQueue: true
+                        )
                         if index == playback.queueIndex {
                             Image(systemName: "speaker.wave.2.fill").foregroundStyle(Color.accentColor)
                         }

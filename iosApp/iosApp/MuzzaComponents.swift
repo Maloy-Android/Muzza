@@ -142,6 +142,7 @@ struct MuzzaSongRow: View {
     @ObservedObject var playback: MuzzaPlayback
     let queue: [MuzzaLiveItem]
     var queueIndex: Int? = nil
+    var usesCurrentQueue = false
     var playlist: MuzzaLiveItem? = nil
     var onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
     @State private var duplicatePlaylist: MuzzaLiveItem?
@@ -152,6 +153,7 @@ struct MuzzaSongRow: View {
         playback: MuzzaPlayback,
         queue: [MuzzaLiveItem],
         queueIndex: Int? = nil,
+        usesCurrentQueue: Bool = false,
         playlist: MuzzaLiveItem? = nil,
         onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
     ) {
@@ -159,13 +161,20 @@ struct MuzzaSongRow: View {
         self.playback = playback
         self.queue = queue
         self.queueIndex = queueIndex
+        self.usesCurrentQueue = usesCurrentQueue
         self.playlist = playlist
         self.onPlaylistChange = onPlaylistChange
     }
 
     var body: some View {
         HStack(spacing: 8) {
-            Button { playback.play(item, in: queue, startingAt: queueIndex) } label: {
+            Button {
+                if usesCurrentQueue, let queueIndex {
+                    playback.playQueued(at: queueIndex)
+                } else {
+                    playback.play(item, in: queue, startingAt: queueIndex)
+                }
+            } label: {
                 HStack(spacing: 12) {
                     MuzzaArtwork(item: item, size: 54)
                     VStack(alignment: .leading, spacing: 3) {

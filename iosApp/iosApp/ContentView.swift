@@ -378,8 +378,16 @@ private struct SettingsView: View {
                     Toggle("Persistent queue", isOn: $persistentQueue)
                 }
                 Section("About") {
-                    LabeledContent("App", Text("Muzza"))
-                    LabeledContent("iOS", Text("Native SwiftUI"))
+                    HStack {
+                        Text("App")
+                        Spacer()
+                        Text("Muzza").foregroundStyle(.secondary)
+                    }
+                    HStack {
+                        Text("iOS")
+                        Spacer()
+                        Text("Native SwiftUI").foregroundStyle(.secondary)
+                    }
                 }
             }
             .scrollContentBackground(.hidden)

@@ -85,7 +85,7 @@ internal val iosJson = Json {
 
 internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
     iosBridgeScope.launch {
-        val locale = NSLocale.currentLocale
+        val locale = NSLocale.currentLocale()
         YouTube.locale = YouTubeLocale(
             gl = locale.countryCode?.takeIf(String::isNotBlank) ?: "US",
             hl = locale.languageCode?.takeIf(String::isNotBlank) ?: "en",

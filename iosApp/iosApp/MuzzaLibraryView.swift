@@ -36,7 +36,7 @@ struct MuzzaLibraryView: View {
                         HStack(spacing: 8) {
                             ForEach(MuzzaLibraryCategory.allCases, id: \.self) { item in
                                 Button { category = item } label: {
-                                    Text(item.rawValue).font(.subheadline.weight(.semibold))
+                                    Text(LocalizedStringKey(item.rawValue)).font(.subheadline.weight(.semibold))
                                         .padding(.horizontal, 15).padding(.vertical, 9)
                                         .background(category == item ? Color.accentColor : Color(.secondarySystemFill))
                                         .clipShape(Capsule())
@@ -215,10 +215,11 @@ struct MuzzaCollectionView: View {
                         }
                         if ["album", "artist", "playlist"].contains(item.kind) {
                             Button { playback.toggleSaved(item) } label: {
-                                Label(
-                                    playback.isSaved(item) ? "Saved" : "Save",
-                                    systemImage: playback.isSaved(item) ? "bookmark.fill" : "bookmark"
-                                )
+                                Label {
+                                    Text(LocalizedStringKey(playback.isSaved(item) ? "Saved" : "Save"))
+                                } icon: {
+                                    Image(systemName: playback.isSaved(item) ? "bookmark.fill" : "bookmark")
+                                }
                             }
                             .buttonStyle(.bordered)
                             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)

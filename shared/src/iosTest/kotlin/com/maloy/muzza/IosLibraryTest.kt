@@ -2,13 +2,14 @@
 
 package com.maloy.muzza
 
-import app.cash.sqldelight.driver.native.NativeSqliteDriver
+import app.cash.sqldelight.driver.native.inMemoryDriver
+import com.maloy.muzza.data.db.createIosDatabaseDriver
 import com.maloy.muzza.data.db.toDb
 import com.maloy.muzza.db.MuzzaDatabase
 import com.maloy.muzza.domain.model.PlaylistEntity
 import com.maloy.muzza.domain.model.SongEntity
-import platform.Foundation.NSFileManager
-import platform.Foundation.NSTemporaryDirectory
+import co.touchlab.sqliter.DatabaseFileContext
+import co.touchlab.sqliter.databaseFileExists
 import platform.Foundation.NSUUID
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -27,9 +28,9 @@ class IosLibraryTest {
 
     @Test
     fun likesPersistAndKeepExistingSongData() {
-        val path = NSTemporaryDirectory() + "muzza-library-test-${NSUUID().UUIDString}.db"
+        val name = "muzza-library-test-${NSUUID().UUIDString}.db"
         try {
-            val first = NativeSqliteDriver(MuzzaDatabase.Schema, path)
+            val first = createIosDatabaseDriver(name)
             try {
                 val db = MuzzaDatabase(first)
                 db.songQueries.upsert(SongEntity(id = item.id, title = "Old title", totalPlayTime = 42).toDb())
@@ -38,7 +39,7 @@ class IosLibraryTest {
                 first.close()
             }
 
-            val second = NativeSqliteDriver(MuzzaDatabase.Schema, path)
+            val second = createIosDatabaseDriver(name)
             try {
                 val db = MuzzaDatabase(second)
                 val saved = db.songQueries.selectById(item.id).executeAsOne()
@@ -53,18 +54,14 @@ class IosLibraryTest {
                 second.close()
             }
         } finally {
-            val files = NSFileManager.defaultManager
-            listOf(path, "$path-wal", "$path-shm").forEach { file ->
-                if (files.fileExistsAtPath(file)) {
-                    check(files.removeItemAtPath(file, error = null)) { "Could not remove the test database." }
-                }
-            }
+            DatabaseFileContext.deleteDatabase(name)
+            check(!DatabaseFileContext.databaseFileExists(name)) { "Could not remove the test database." }
         }
     }
 
     @Test
     fun failedImportRollsBackAllSongs() {
-        val driver = NativeSqliteDriver(MuzzaDatabase.Schema, ":memory:")
+        val driver = inMemoryDriver(MuzzaDatabase.Schema)
         try {
             val db = MuzzaDatabase(driver)
             assertFailsWith<IllegalArgumentException> {
@@ -81,13 +78,19 @@ class IosLibraryTest {
 
     @Test
     fun localPlaylistReturnsItsStoredSongs() {
-        val driver = NativeSqliteDriver(MuzzaDatabase.Schema, ":memory:")
+        val driver = inMemoryDriver(MuzzaDatabase.Schema)
         try {
             val db = MuzzaDatabase(driver)
             db.playlistQueries.upsert(PlaylistEntity(id = "LP_test", name = "Test", isLocal = true).toDb())
             db.saveSong(item)
             db.playlistSongMapQueries.insert("LP_test", item.id, 0)
-            assertEquals(listOf(item.id), db.localPlaylistResponse("LP_test").items.map { it.id })
+            db.playlistSongMapQueries.insert("LP_test", item.id, 1)
+            val entries = db.localPlaylistResponse("LP_test").items
+            assertEquals(listOf(item.id, item.id), entries.map { it.id })
+            val firstEntry = requireNotNull(entries.first().entryId)
+            val secondEntry = requireNotNull(entries.last().entryId)
+            db.removeLocalPlaylistEntry(driver, "LP_test", firstEntry)
+            assertEquals(listOf(secondEntry), db.localPlaylistResponse("LP_test").items.map { it.entryId })
             assertEquals(listOf("LP_test"), db.libraryResponse().playlists.map { it.id })
         } finally {
             driver.close()

@@ -51,7 +51,7 @@ struct MuzzaSearchView: View {
                         HStack(spacing: 8) {
                             ForEach(MuzzaSearchCategory.allCases, id: \.self) { value in
                                 Button { category = value } label: {
-                                    Text(value.title).font(.subheadline.weight(.semibold))
+                                    Text(LocalizedStringKey(value.title)).font(.subheadline.weight(.semibold))
                                         .padding(.horizontal, 15).padding(.vertical, 9)
                                         .background(category == value ? Color.accentColor : Color(.secondarySystemFill))
                                         .clipShape(Capsule())

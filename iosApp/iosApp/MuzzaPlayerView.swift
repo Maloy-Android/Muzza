@@ -44,6 +44,7 @@ struct MuzzaPlayerView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var playback: MuzzaPlayback
     @State private var showQueue = false
+    @State private var showLyrics = false
 
     var body: some View {
         GeometryReader { geometry in
@@ -114,8 +115,13 @@ struct MuzzaPlayerView: View {
                             .disabled(playback.queueIndex + 1 >= playback.queue.count)
                             .accessibilityLabel("Next")
                         }
-                        Button { showQueue = true } label: {
-                            Label("Queue", systemImage: "list.bullet")
+                        HStack(spacing: 16) {
+                            Button { showQueue = true } label: {
+                                Label("Queue", systemImage: "list.bullet")
+                            }
+                            Button { showLyrics = true } label: {
+                                Label("Lyrics", systemImage: "text.alignleft")
+                            }
                         }
                         .buttonStyle(.bordered)
                     } else {
@@ -133,6 +139,7 @@ struct MuzzaPlayerView: View {
             )
         }
         .sheet(isPresented: $showQueue) { MuzzaQueueView(playback: playback) }
+        .sheet(isPresented: $showLyrics) { MuzzaLyricsView(playback: playback) }
     }
 
     private func timeText(_ value: Double) -> String {

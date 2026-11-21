@@ -48,7 +48,7 @@ private struct MuzzaHomeView: View {
     @State private var chips: [MuzzaHomeChip] = []
     @State private var selectedParams: String?
     @State private var continuation: String?
-    @State private var isLoading = false
+    @State private var isLoading = true
     @State private var loadError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
@@ -147,7 +147,7 @@ private struct MuzzaHomeView: View {
             guard !Task.isCancelled, requestID == id else { return }
             sections.append(contentsOf: response.sections)
             if response.continuation == token {
-                continuation = nil
+                pageError = "YouTube returned an invalid continuation."
             } else {
                 continuation = response.continuation
             }
@@ -164,7 +164,7 @@ private struct MuzzaExploreView: View {
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var sections: [MuzzaLiveSection] = []
-    @State private var isLoading = false
+    @State private var isLoading = true
     @State private var loadError: String?
     @State private var requestID = UUID()
 

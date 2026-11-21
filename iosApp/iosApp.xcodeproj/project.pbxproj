@@ -17,6 +17,9 @@
 		B00008 /* MuzzaLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00010 /* MuzzaLibraryView.swift */; };
 		B00009 /* MuzzaSearchView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00011 /* MuzzaSearchView.swift */; };
 		B00010 /* MuzzaPlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00012 /* MuzzaPlayerView.swift */; };
+		B00011 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = V00001 /* Localizable.strings */; };
+		B00012 /* MuzzaLyricsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00014 /* MuzzaLyricsParser.swift */; };
+		B00013 /* MuzzaLyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00015 /* MuzzaLyricsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -48,6 +51,9 @@
 		A00010 /* MuzzaLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaLibraryView.swift; sourceTree = "<group>"; };
 		A00011 /* MuzzaSearchView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaSearchView.swift; sourceTree = "<group>"; };
 		A00012 /* MuzzaPlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaPlayerView.swift; sourceTree = "<group>"; };
+		A00013 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
+		A00014 /* MuzzaLyricsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaLyricsParser.swift; sourceTree = "<group>"; };
+		A00015 /* MuzzaLyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaLyricsView.swift; sourceTree = "<group>"; };
 		PROD001 /* iosApp.app */       = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -75,6 +81,9 @@
 				A00010,
 				A00011,
 				A00012,
+				V00001,
+				A00014,
+				A00015,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -124,7 +133,7 @@
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
-			knownRegions = (en, Base);
+			knownRegions = (en, ru, Base);
 			mainGroup = ROOT;
 			productRefGroup = PRODUCTS;
 			projectDirPath = "";
@@ -147,6 +156,8 @@
 				B00008,
 				B00009,
 				B00010,
+				B00012,
+				B00013,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -158,10 +169,22 @@
 			buildActionMask = 2147483647;
 			files = (
 				B00003,
+				B00011,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		V00001 /* Localizable.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A00013,
+			);
+			name = Localizable.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		CFG_DEBUG /* Debug */ = {

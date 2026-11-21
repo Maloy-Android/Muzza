@@ -22,7 +22,7 @@ struct MuzzaHeader: View {
 
     var body: some View {
         HStack(spacing: 20) {
-            Text(title).font(.largeTitle.bold())
+            Text(LocalizedStringKey(title)).font(.largeTitle.bold())
             Spacer()
             Button(action: search) { Image(systemName: "magnifyingglass").font(.title3) }
                 .accessibilityLabel("Search")
@@ -73,7 +73,7 @@ struct MuzzaMediaSectionView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             if !section.title.isEmpty {
-                Text(section.title).font(.title2.bold())
+                Text(LocalizedStringKey(section.title)).font(.title2.bold())
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 14) {
@@ -133,6 +133,24 @@ struct MuzzaSongRow: View {
     var queueIndex: Int? = nil
     var playlist: MuzzaLiveItem? = nil
     var onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
+    @State private var duplicatePlaylist: MuzzaLiveItem?
+    @State private var showDuplicate = false
+
+    init(
+        item: MuzzaLiveItem,
+        playback: MuzzaPlayback,
+        queue: [MuzzaLiveItem],
+        queueIndex: Int? = nil,
+        playlist: MuzzaLiveItem? = nil,
+        onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
+    ) {
+        self.item = item
+        self.playback = playback
+        self.queue = queue
+        self.queueIndex = queueIndex
+        self.playlist = playlist
+        self.onPlaylistChange = onPlaylistChange
+    }
 
     var body: some View {
         HStack(spacing: 8) {
@@ -153,7 +171,11 @@ struct MuzzaSongRow: View {
                 Button {
                     playback.toggleLike(item)
                 } label: {
-                    Label(playback.isLiked(item) ? "Remove like" : "Like", systemImage: playback.isLiked(item) ? "heart.slash" : "heart")
+                    Label {
+                        Text(LocalizedStringKey(playback.isLiked(item) ? "Remove like" : "Like"))
+                    } icon: {
+                        Image(systemName: playback.isLiked(item) ? "heart.slash" : "heart")
+                    }
                 }
                 .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
 
@@ -161,7 +183,7 @@ struct MuzzaSongRow: View {
                 if !localPlaylists.isEmpty {
                     Menu("Add to playlist") {
                         ForEach(localPlaylists) { target in
-                            Button(target.title) { playback.add(item, to: target) }
+                            Button(target.title) { add(to: target, allowDuplicate: false) }
                         }
                     }
                     .disabled(playback.isLibraryBusy)
@@ -185,6 +207,25 @@ struct MuzzaSongRow: View {
                 Image(systemName: "ellipsis").frame(width: 36, height: 44)
             }
             .accessibilityLabel("Song actions")
+        }
+        .confirmationDialog("This song is already in the playlist.", isPresented: $showDuplicate, titleVisibility: .visible) {
+            if let target = duplicatePlaylist {
+                Button("Add anyway") { add(to: target, allowDuplicate: true) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+    }
+
+    private func add(to playlist: MuzzaLiveItem, allowDuplicate: Bool) {
+        Task {
+            do {
+                try await playback.add(item, to: playlist, allowDuplicate: allowDuplicate)
+            } catch MuzzaAPIError.duplicateSong {
+                duplicatePlaylist = playlist
+                showDuplicate = true
+            } catch {
+                playback.message = error.localizedDescription
+            }
         }
     }
 }
@@ -212,7 +253,7 @@ struct MuzzaEmptyView: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: symbol).font(.largeTitle).foregroundStyle(.secondary)
-            Text(message).foregroundStyle(.secondary).multilineTextAlignment(.center)
+            Text(LocalizedStringKey(message)).foregroundStyle(.secondary).multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity).padding(.vertical, 50)
     }

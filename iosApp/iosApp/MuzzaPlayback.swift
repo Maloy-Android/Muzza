@@ -77,6 +77,7 @@ final class MuzzaPlayback: ObservableObject {
         libraryError = nil
         libraryRevision += 1
         let revision = libraryRevision
+        let recentAtStart = recentRevision
         defer { isLibraryLoading = false }
         do {
             let response: MuzzaLiveResponse
@@ -89,7 +90,9 @@ final class MuzzaPlayback: ObservableObject {
             } else {
                 response = try await MuzzaAPI.library()
             }
-            if revision == libraryRevision { applyLibrary(response) }
+            if revision == libraryRevision {
+                applyLibrary(response, includeRecent: recentAtStart == recentRevision)
+            }
             libraryLoaded = true
         } catch {
             libraryError = error.localizedDescription
@@ -116,9 +119,18 @@ final class MuzzaPlayback: ObservableObject {
         await changeLibrary { try await MuzzaAPI.createPlaylist(name) }
     }
 
-    func add(_ item: MuzzaLiveItem, to playlist: MuzzaLiveItem) {
-        Task {
-            _ = await changeLibrary { try await MuzzaAPI.add(item, to: playlist) }
+    func add(_ item: MuzzaLiveItem, to playlist: MuzzaLiveItem, allowDuplicate: Bool) async throws {
+        guard libraryLoaded, !isLibraryBusy else {
+            throw MuzzaAPIError.requestFailed("The library is not ready.")
+        }
+        isLibraryBusy = true
+        libraryRevision += 1
+        let revision = libraryRevision
+        let recentAtStart = recentRevision
+        defer { isLibraryBusy = false }
+        let response = try await MuzzaAPI.add(item, to: playlist, allowDuplicate: allowDuplicate)
+        if revision == libraryRevision {
+            applyLibrary(response, includeRecent: recentAtStart == recentRevision)
         }
     }
 
@@ -131,10 +143,13 @@ final class MuzzaPlayback: ObservableObject {
         isLibraryBusy = true
         libraryRevision += 1
         let revision = libraryRevision
+        let recentAtStart = recentRevision
         defer { isLibraryBusy = false }
         let updated = try await MuzzaAPI.remove(item, from: playlist)
         let library = try await MuzzaAPI.library()
-        if revision == libraryRevision { applyLibrary(library) }
+        if revision == libraryRevision {
+            applyLibrary(library, includeRecent: recentAtStart == recentRevision)
+        }
         return updated.items
     }
 
@@ -146,10 +161,13 @@ final class MuzzaPlayback: ObservableObject {
         isLibraryBusy = true
         libraryRevision += 1
         let revision = libraryRevision
+        let recentAtStart = recentRevision
         defer { isLibraryBusy = false }
         do {
             let response = try await action()
-            if revision == libraryRevision { applyLibrary(response) }
+            if revision == libraryRevision {
+                applyLibrary(response, includeRecent: recentAtStart == recentRevision)
+            }
             return true
         } catch {
             message = error.localizedDescription
@@ -157,12 +175,12 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
-    private func applyLibrary(_ response: MuzzaLiveResponse) {
+    private func applyLibrary(_ response: MuzzaLiveResponse, includeRecent: Bool) {
         liked = response.items
         playlists = response.playlists
         albums = response.albums
         artists = response.artists
-        recent = response.recent
+        if includeRecent { recent = response.recent }
         libraryError = nil
     }
 
@@ -371,6 +389,7 @@ final class MuzzaPlayback: ObservableObject {
                 if revision == recentRevision { recent = response.recent }
             } catch {
                 libraryError = error.localizedDescription
+                message = "Could not save listening history: \(error.localizedDescription)"
             }
         }
     }

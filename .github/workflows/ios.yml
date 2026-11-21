@@ -28,13 +28,25 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
+      - name: Test Swift syntax and media handling
+        run: |
+          for source in iosApp/iosApp/*.swift; do xcrun swiftc -frontend -parse "$source"; done
+          plutil -lint iosApp/iosApp/ru.lproj/Localizable.strings
+          xcrun swiftc -swift-version 5 iosApp/iosApp/MuzzaResourceLoader.swift iosApp/iosApp/MuzzaLyricsParser.swift iosApp/Tests/main.swift -o "$RUNNER_TEMP/ios-media-tests"
+          "$RUNNER_TEMP/ios-media-tests"
+
       - name: Test iOS transport and library
         run: ./gradlew :innertube:iosSimulatorArm64Test :shared:iosSimulatorArm64Test --no-daemon --console=plain
 
-      - name: Test media request validation
-        run: |
-          xcrun swiftc -swift-version 5 iosApp/iosApp/MuzzaResourceLoader.swift iosApp/Tests/main.swift -o "$RUNNER_TEMP/ios-media-tests"
-          "$RUNNER_TEMP/ios-media-tests"
+      - name: Upload iOS test reports on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-test-reports
+          path: |
+            innertube/build/test-results/iosSimulatorArm64Test/
+            shared/build/test-results/iosSimulatorArm64Test/
+          if-no-files-found: ignore
 
       - name: Skip unsigned signing setup
         id: signing

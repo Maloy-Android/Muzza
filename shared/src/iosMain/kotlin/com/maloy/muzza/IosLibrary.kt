@@ -1,9 +1,9 @@
 package com.maloy.muzza
 
 import com.maloy.muzza.data.db.DatabaseDriverFactory
-import com.maloy.muzza.data.db.createDatabase
 import com.maloy.muzza.data.db.toDb
 import com.maloy.muzza.data.db.toModel
+import app.cash.sqldelight.db.SqlDriver
 import com.maloy.muzza.db.MuzzaDatabase
 import com.maloy.muzza.domain.model.AlbumEntity
 import com.maloy.muzza.domain.model.ArtistEntity
@@ -19,10 +19,13 @@ import kotlinx.serialization.decodeFromString
 import platform.Foundation.NSUUID
 import kotlin.time.Clock
 
-private val iosDatabase by lazy { createDatabase(DatabaseDriverFactory()) }
+private val iosDriver by lazy { DatabaseDriverFactory().createDriver() }
+private val iosDatabase by lazy { MuzzaDatabase(iosDriver) }
 private val iosDatabaseMutex = Mutex()
 
-private suspend fun <T> withIosDatabase(block: (MuzzaDatabase) -> T): T =
+internal class IosDuplicateSongException : IllegalStateException("This song is already in the playlist.")
+
+internal suspend fun <T> withIosDatabase(block: (MuzzaDatabase) -> T): T =
     withContext(Dispatchers.Default) {
         iosDatabaseMutex.withLock { block(iosDatabase) }
     }
@@ -59,8 +62,7 @@ internal fun MuzzaDatabase.saveSong(item: IosMediaItem, liked: Boolean? = null) 
 internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
     val liked = songQueries.selectLiked().executeAsList().map { it.toModel().toIosMediaItem() }
     val playlists = playlistQueries.selectAll().executeAsList()
-        .filter { it.isLocal != 0L || it.bookmarkedAt != null }
-        .map { playlist ->
+        .filter { it.isLocal != 0L || it.bookmarkedAt != null }.map { playlist ->
         val count = playlistSongMapQueries.countByPlaylist(playlist.id).executeAsOne()
         IosMediaItem(
             id = if (playlist.isLocal != 0L) playlist.id else playlist.browseId ?: playlist.id,
@@ -93,7 +95,7 @@ internal fun MuzzaDatabase.localPlaylistResponse(id: String): IosBridgeResponse 
         ?: throw IllegalArgumentException("Playlist not found.")
     require(playlist.isLocal != 0L) { "This playlist is not stored on this device." }
     val songs = playlistSongMapQueries.selectByPlaylist(id).executeAsList().mapNotNull { entry ->
-        songQueries.selectById(entry.songId).executeAsOneOrNull()?.toModel()?.toIosMediaItem()
+        songQueries.selectById(entry.songId).executeAsOneOrNull()?.toModel()?.toIosMediaItem()?.copy(entryId = entry.id)
     }
     return IosBridgeResponse(items = songs)
 }
@@ -203,7 +205,12 @@ fun createIosPlaylist(name: String, completion: (String) -> Unit) = iosRequest(c
     }
 }
 
-fun addIosSongToPlaylist(id: String, json: String, completion: (String) -> Unit) = iosRequest(completion) {
+fun addIosSongToPlaylist(
+    id: String,
+    json: String,
+    allowDuplicate: Boolean,
+    completion: (String) -> Unit,
+) = iosRequest(completion) {
     val item = iosJson.decodeFromString<IosMediaItem>(json)
     withIosDatabase { db ->
         db.transaction {
@@ -211,7 +218,7 @@ fun addIosSongToPlaylist(id: String, json: String, completion: (String) -> Unit)
                 ?: throw IllegalArgumentException("Playlist not found.")
             require(playlist.isLocal != 0L && playlist.isEditable != 0L) { "Playlist cannot be edited." }
             val songs = db.playlistSongMapQueries.selectByPlaylist(id).executeAsList()
-            require(songs.none { it.songId == item.id }) { "This song is already in the playlist." }
+            if (!allowDuplicate && songs.any { it.songId == item.id }) throw IosDuplicateSongException()
             db.saveSong(item)
             val position = (songs.maxOfOrNull { it.position } ?: -1L) + 1
             db.playlistSongMapQueries.insert(id, item.id, position)
@@ -220,17 +227,25 @@ fun addIosSongToPlaylist(id: String, json: String, completion: (String) -> Unit)
     }
 }
 
-fun removeIosSongFromPlaylist(id: String, songId: String, completion: (String) -> Unit) = iosRequest(completion) {
-    withIosDatabase { db ->
-        db.transaction {
-            val playlist = db.playlistQueries.selectById(id).executeAsOneOrNull()
-                ?: throw IllegalArgumentException("Playlist not found.")
-            require(playlist.isLocal != 0L && playlist.isEditable != 0L) { "Playlist cannot be edited." }
-            require(db.playlistSongMapQueries.selectByPlaylist(id).executeAsList().any { it.songId == songId }) {
-                "Song not found in this playlist."
-            }
-            db.playlistSongMapQueries.deleteByPlaylistAndSong(id, songId)
+internal fun MuzzaDatabase.removeLocalPlaylistEntry(driver: SqlDriver, id: String, entryId: Long) {
+    transaction {
+        val playlist = playlistQueries.selectById(id).executeAsOneOrNull()
+            ?: throw IllegalArgumentException("Playlist not found.")
+        require(playlist.isLocal != 0L && playlist.isEditable != 0L) { "Playlist cannot be edited." }
+        require(playlistSongMapQueries.selectByPlaylist(id).executeAsList().any { it.id == entryId }) {
+            "Song not found in this playlist."
         }
+        driver.execute(null, "DELETE FROM playlistSongMap WHERE id = ? AND playlistId = ?", 2) {
+            bindLong(0, entryId)
+            bindString(1, id)
+        }
+    }
+    driver.notifyListeners("playlistSongMap")
+}
+
+fun removeIosSongFromPlaylist(id: String, entryId: Long, completion: (String) -> Unit) = iosRequest(completion) {
+    withIosDatabase { db ->
+        db.removeLocalPlaylistEntry(iosDriver, id, entryId)
         db.localPlaylistResponse(id)
     }
 }

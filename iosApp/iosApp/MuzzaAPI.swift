@@ -10,6 +10,7 @@ struct MuzzaLiveItem: Codable, Identifiable, Hashable {
     let params: String?
     let explicit: Bool?
     let duration: Int?
+    let entryId: Int64?
 }
 
 struct MuzzaLiveSection: Codable {
@@ -34,6 +35,8 @@ struct MuzzaLiveResponse: Decodable {
     let continuation: String?
     let audioUrl: String?
     let headers: [String: String]
+    let lyrics: String?
+    let errorCode: String?
     let error: String?
 }
 
@@ -41,6 +44,7 @@ enum MuzzaAPIError: LocalizedError {
     case invalidResponse(Error)
     case requestFailed(String)
     case invalidAudioURL
+    case duplicateSong
 
     var errorDescription: String? {
         switch self {
@@ -50,6 +54,8 @@ enum MuzzaAPIError: LocalizedError {
             return message
         case .invalidAudioURL:
             return "YouTube did not return a valid audio URL."
+        case .duplicateSong:
+            return "This song is already in the playlist."
         }
     }
 }
@@ -67,6 +73,9 @@ enum MuzzaAPI {
             response = try JSONDecoder().decode(MuzzaLiveResponse.self, from: Data(raw.utf8))
         } catch {
             throw MuzzaAPIError.invalidResponse(error)
+        }
+        if response.errorCode == "duplicate_song" {
+            throw MuzzaAPIError.duplicateSong
         }
         if let message = response.error, !message.isEmpty {
             throw MuzzaAPIError.requestFailed(message)
@@ -127,6 +136,18 @@ enum MuzzaAPI {
         }
     }
 
+    static func lyrics(for item: MuzzaLiveItem, duration: Double) async throws -> String {
+        let json = try encode(item)
+        let seconds = duration.isFinite && duration > 0 ? Int32(min(duration, Double(Int32.max))) : 0
+        let response = try await request {
+            IosLyricsKt.fetchIosLyrics(json: json, durationSeconds: seconds, completion: $0)
+        }
+        guard let lyrics = response.lyrics, !lyrics.isEmpty else {
+            throw MuzzaAPIError.requestFailed("No synchronized lyrics were found.")
+        }
+        return lyrics
+    }
+
     static func library() async throws -> MuzzaLiveResponse {
         try await request { IosLibraryKt.fetchIosLibrary(completion: $0) }
     }
@@ -154,14 +175,23 @@ enum MuzzaAPI {
         try await request { IosLibraryKt.createIosPlaylist(name: name, completion: $0) }
     }
 
-    static func add(_ item: MuzzaLiveItem, to playlist: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
+    static func add(
+        _ item: MuzzaLiveItem, to playlist: MuzzaLiveItem, allowDuplicate: Bool
+    ) async throws -> MuzzaLiveResponse {
         let json = try encode(item)
-        return try await request { IosLibraryKt.addIosSongToPlaylist(id: playlist.id, json: json, completion: $0) }
+        return try await request {
+            IosLibraryKt.addIosSongToPlaylist(
+                id: playlist.id, json: json, allowDuplicate: allowDuplicate, completion: $0
+            )
+        }
     }
 
     static func remove(_ item: MuzzaLiveItem, from playlist: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
-        try await request {
-            IosLibraryKt.removeIosSongFromPlaylist(id: playlist.id, songId: item.id, completion: $0)
+        guard let entryId = item.entryId else {
+            throw MuzzaAPIError.requestFailed("The playlist entry is missing its identifier.")
+        }
+        return try await request {
+            IosLibraryKt.removeIosSongFromPlaylist(id: playlist.id, entryId: entryId, completion: $0)
         }
     }
 

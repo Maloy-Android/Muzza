@@ -25,6 +25,7 @@ data class IosMediaItem(
     val params: String? = null,
     val explicit: Boolean = false,
     val duration: Int? = null,
+    val entryId: Long? = null,
 )
 
 @Serializable
@@ -51,6 +52,8 @@ data class IosBridgeResponse(
     val continuation: String? = null,
     val audioUrl: String? = null,
     val headers: Map<String, String> = emptyMap(),
+    val lyrics: String? = null,
+    val errorCode: String? = null,
     val error: String? = null,
 )
 
@@ -67,7 +70,10 @@ internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBr
         } catch (error: CancellationException) {
             throw error
         } catch (error: Exception) {
-            IosBridgeResponse(error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error")
+            IosBridgeResponse(
+                errorCode = if (error is IosDuplicateSongException) "duplicate_song" else null,
+                error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error",
+            )
         }
         completion(iosJson.encodeToString(response))
     }

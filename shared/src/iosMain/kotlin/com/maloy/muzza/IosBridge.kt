@@ -18,7 +18,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import platform.Foundation.NSLocale
 
 @Serializable
 data class IosMediaItem(
@@ -85,30 +84,45 @@ internal val iosJson = Json {
 
 internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
     iosBridgeScope.launch {
-        val locale = NSLocale.currentLocale()
         YouTube.locale = YouTubeLocale(
-            gl = locale.countryCode?.takeIf(String::isNotBlank) ?: "US",
-            hl = locale.languageCode?.takeIf(String::isNotBlank) ?: "en",
+            gl = "US",
+            hl = "en",
         )
         if (YouTube.visitorData.isNullOrBlank()) {
             YouTube.visitorData = YouTube.visitorData().getOrNull()
                 ?: YouTube.DEFAULT_VISITOR_DATA
         }
-        completion(iosJson.encodeToString(iosResponse(block)))
+        completion(iosJson.encodeToString(iosRequestResponse(block)))
     }
 }
 
-internal suspend fun iosResponse(block: suspend () -> IosBridgeResponse): IosBridgeResponse =
+private suspend fun iosRequestResponse(block: suspend () -> IosBridgeResponse): IosBridgeResponse =
     try {
         block()
     } catch (error: CancellationException) {
         IosBridgeResponse(error = "The request was cancelled.")
     } catch (error: Exception) {
-        IosBridgeResponse(
-            errorCode = if (error is IosDuplicateSongException) "duplicate_song" else null,
-            error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error",
-        )
+        val message = error.message.orEmpty()
+        if ("400" in message || "INVALID_ARGUMENT" in message || "badRequest" in message) {
+            YouTube.visitorData = YouTube.visitorData().getOrNull()
+                ?.takeIf(String::isNotBlank)
+                ?: YouTube.DEFAULT_VISITOR_DATA
+            try {
+                return block()
+            } catch (retryError: CancellationException) {
+                return IosBridgeResponse(error = "The request was cancelled.")
+            } catch (retryError: Exception) {
+                return iosResponseFromError(retryError)
+            }
+        }
+        iosResponseFromError(error)
     }
+
+private fun iosResponseFromError(error: Exception): IosBridgeResponse =
+    IosBridgeResponse(
+        errorCode = if (error is IosDuplicateSongException) "duplicate_song" else null,
+        error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error",
+    )
 
 internal fun YTItem.toIosMediaItem(): IosMediaItem {
     val subtitle = when (this) {

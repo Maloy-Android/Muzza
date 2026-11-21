@@ -1,4 +1,26 @@
 import SwiftUI
+import Shared
+
+struct MuzzaLiveItem: Codable, Identifiable {
+    let id: String
+    let title: String
+    let subtitle: String
+    let thumbnail: String
+    let kind: String
+}
+
+struct MuzzaLiveSection: Codable, Identifiable {
+    let title: String
+    let items: [MuzzaLiveItem]
+    var id: String { title }
+}
+
+struct MuzzaLiveResponse: Codable {
+    let sections: [MuzzaLiveSection]?
+    let items: [MuzzaLiveItem]?
+    let chips: [String]?
+    let error: String?
+}
 
 struct ContentView: View {
     @State private var selectedTab = 0
@@ -29,6 +51,12 @@ struct ContentView: View {
 private struct MuzzaHomeView: View {
     @Binding var showSearch: Bool
     @Binding var showSettings: Bool
+    @AppStorage("muzza.hideExplicit") private var hideExplicit = false
+    @State private var sections: [MuzzaLiveSection] = []
+    @State private var chips: [String] = []
+    @State private var isLoading = true
+    @State private var loadError: String?
+    @State private var generation = 0
 
     var body: some View {
         NavigationStack {
@@ -45,6 +73,44 @@ private struct MuzzaHomeView: View {
                             Button { showSettings = true } label: { MuzzaCircleButton("gearshape") }
                         }
                     }
+
+                    if isLoading {
+                        MuzzaLoadingRows()
+                    }
+
+                    if let loadError {
+                        MuzzaInnerTubeError(message: loadError) {
+                            generation += 1
+                        }
+                    }
+
+                    if !chips.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                ForEach(chips, id: \.self) { chip in
+                                    Text(chip)
+                                        .font(.subheadline.weight(.semibold))
+                                        .padding(.horizontal, 14)
+                                        .padding(.vertical, 9)
+                                        .background(Color(.secondarySystemFill))
+                                        .clipShape(Capsule())
+                                }
+                            }.padding(.horizontal, 16)
+                        }
+                    }
+
+                    ForEach(sections) { section in
+                        MuzzaHomeSection(title: section.title) {
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(alignment: .top, spacing: 12) {
+                                    ForEach(section.items.prefix(24)) { item in
+                                        MuzzaLiveCard(item: item)
+                                    }
+                                }.padding(.horizontal, 16)
+                            }
+                        }
+                    }
+
                     MuzzaHomeSection(title: "Quick picks") {
                         MuzzaHorizontalCards(items: [
                             MuzzaPreview(title: "Liked music", subtitle: "Songs you saved", symbol: "heart.fill"),
@@ -68,6 +134,28 @@ private struct MuzzaHomeView: View {
                     }
                 }.padding().padding(.bottom, 84)
             }.toolbar(.hidden, for: .navigationBar)
+                .task(id: generation) { loadHome() }
+                .refreshable { generation += 1 }
+        }
+    }
+
+    private func loadHome() {
+        isLoading = true
+        loadError = nil
+        IosBridgeKt.fetchIosHome(hideExplicit: hideExplicit) { raw in
+            DispatchQueue.main.async {
+                isLoading = false
+                guard let data = raw.data(using: .utf8),
+                      let response = try? JSONDecoder().decode(MuzzaLiveResponse.self, from: data) else {
+                    loadError = "The InnerTube bridge returned invalid JSON."
+                    return
+                }
+                if let message = response.error, !message.isEmpty {
+                    loadError = message
+                }
+                sections = response.sections ?? []
+                chips = response.chips ?? []
+            }
         }
     }
 }
@@ -238,5 +326,63 @@ private struct MuzzaLibraryTile: View {
             }
         }.frame(maxWidth: .infinity, minHeight: 142, alignment: .leading).padding()
             .background(.ultraThinMaterial).clipShape(RoundedRectangle(cornerRadius: 18))
+    }
+}
+
+private struct MuzzaLoadingRows: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            ForEach(0..<3, id: \.self) { _ in
+                VStack(alignment: .leading, spacing: 10) {
+                    RoundedRectangle(cornerRadius: 6).fill(.secondary.opacity(0.14))
+                        .frame(width: 150, height: 18).padding(.horizontal, 16)
+                    HStack(spacing: 12) {
+                        ForEach(0..<4, id: \.self) { _ in
+                            RoundedRectangle(cornerRadius: 18).fill(.secondary.opacity(0.12))
+                                .frame(width: 156, height: 156)
+                        }
+                    }.padding(.horizontal, 16)
+                }
+            }
+        }
+    }
+}
+
+private struct MuzzaInnerTubeError: View {
+    let message: String
+    let retry: () -> Void
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Label("InnerTube did not return data", systemImage: "exclamationmark.triangle.fill").font(.headline)
+            Text(message).font(.caption).foregroundStyle(.secondary)
+            Button("Try again", action: retry).buttonStyle(.borderedProminent)
+        }.padding().frame(maxWidth: .infinity, alignment: .leading).padding(.horizontal, 16)
+    }
+}
+
+private struct MuzzaLiveCard: View {
+    let item: MuzzaLiveItem
+    var body: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            AsyncImage(url: URL(string: item.thumbnail)) { phase in
+                if let image = phase.image {
+                    image.resizable().scaledToFill()
+                } else {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 18).fill(
+                            LinearGradient(colors: [
+                                Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255),
+                                Color(red: 70 / 255, green: 20 / 255, blue: 42 / 255)
+                            ], startPoint: .topLeading, endPoint: .bottomTrailing)
+                        )
+                        Image(systemName: "music.note").foregroundStyle(.white)
+                    }
+                }
+            }.frame(width: 156, height: 156).clipShape(RoundedRectangle(cornerRadius: 18))
+            VStack(alignment: .leading, spacing: 3) {
+                Text(item.title).font(.headline).lineLimit(1)
+                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
+            }.frame(width: 156, alignment: .leading)
+        }
     }
 }

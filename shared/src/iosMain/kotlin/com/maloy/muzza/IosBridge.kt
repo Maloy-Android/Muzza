@@ -49,11 +49,14 @@ private fun YTItem.toIosMediaItem(): IosMediaItem {
     return IosMediaItem(id, title, subtitle, thumbnail)
 }
 
-fun fetchIosHome(completion: (String) -> Unit) {
+fun fetchIosHome(hideExplicit: Boolean, completion: (String) -> Unit) {
     iosBridgeScope.launch {
         val response = YouTube.home()
         val sections = response.getOrNull()?.sections.orEmpty().mapNotNull { section ->
-            val items = section.items.take(20).map(YTItem::toIosMediaItem)
+            val items = section.items
+                .let { items -> if (hideExplicit) items.filter { !it.explicit } else items }
+                .take(20)
+                .map(YTItem::toIosMediaItem)
             if (items.isEmpty()) null else IosMediaSection(section.title, items)
         }
         val body = IosBridgeResponse(

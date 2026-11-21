@@ -27,6 +27,16 @@ final class MuzzaAudioPlayer: ObservableObject {
     private var player: AVPlayer?
     @Published var currentItem: MuzzaMediaItem?
     @Published var isPlaying = false
+    @Published var likedItems: [MuzzaMediaItem]
+
+    init() {
+        if let data = UserDefaults.standard.data(forKey: "muzza.likedItems"),
+           let items = try? JSONDecoder().decode([MuzzaMediaItem].self, from: data) {
+            likedItems = items
+        } else {
+            likedItems = []
+        }
+    }
 
     func play(_ item: MuzzaMediaItem) {
         currentItem = item
@@ -50,12 +60,28 @@ final class MuzzaAudioPlayer: ObservableObject {
         }
         isPlaying.toggle()
     }
+
+    func toggleLiked(_ item: MuzzaMediaItem) {
+        if likedItems.contains(where: { $0.id == item.id }) {
+            likedItems.removeAll { $0.id == item.id }
+        } else {
+            likedItems.insert(item, at: 0)
+        }
+        if let data = try? JSONEncoder().encode(likedItems) {
+            UserDefaults.standard.set(data, forKey: "muzza.likedItems")
+        }
+    }
+
+    func isLiked(_ item: MuzzaMediaItem) -> Bool {
+        likedItems.contains { $0.id == item.id }
+    }
 }
 
 struct ContentView: View {
     @State private var selectedTab = 0
     @StateObject private var player = MuzzaAudioPlayer()
-    @State private var showSearch = false
+    @AppStorage("muzza.darkTheme") private var darkTheme = true
+    @AppStorage("muzza.pureBlack") private var pureBlack = false
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -64,7 +90,7 @@ struct ContentView: View {
                     .tag(0)
                     .tabItem { Label("Home", systemImage: "house.fill") }
 
-                LibraryView()
+                LibraryView(player: player)
                     .tag(1)
                     .tabItem { Label("Library", systemImage: "music.note.list") }
 
@@ -77,7 +103,8 @@ struct ContentView: View {
                     .tabItem { Label("Settings", systemImage: "gearshape.fill") }
             }
             .tint(Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255))
-            .preferredColorScheme(.dark)
+            .preferredColorScheme(darkTheme ? .dark : .light)
+            .background(pureBlack ? Color.black : Color(.systemBackground))
 
             if player.currentItem != nil {
                 MiniPlayer(player: player)
@@ -85,17 +112,16 @@ struct ContentView: View {
                     .transition(.move(edge: .bottom).combined(with: .opacity))
             }
         }
-        .sheet(isPresented: $showSearch) {
-            SearchView(player: player)
-        }
     }
 }
 
 private struct HomeView: View {
     @ObservedObject var player: MuzzaAudioPlayer
+    @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var sections: [MuzzaMediaSection] = []
     @State private var isLoading = false
     @State private var showSearch = false
+    @State private var loadError: String?
 
     var body: some View {
         NavigationStack {
@@ -125,6 +151,26 @@ private struct HomeView: View {
                         ProgressView()
                             .frame(maxWidth: .infinity)
                             .tint(Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255))
+                    }
+
+                    if let loadError {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Could not load InnerTube")
+                                .font(.headline)
+                            Text(loadError)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(6)
+                            Button("Retry") {
+                                self.loadError = nil
+                                loadHome()
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(.ultraThinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                     }
 
                     if sections.isEmpty && !isLoading {
@@ -167,12 +213,17 @@ private struct HomeView: View {
     private func loadHome() {
         guard !isLoading else { return }
         isLoading = true
-        IosBridgeKt.fetchIosHome { raw in
+        loadError = nil
+        IosBridgeKt.fetchIosHome(hideExplicit: hideExplicit) { raw in
             DispatchQueue.main.async {
                 isLoading = false
                 guard let data = raw.data(using: .utf8),
                       let response = try? JSONDecoder().decode(MuzzaBridgeResponse.self, from: data) else {
+                    loadError = "Invalid JSON response from the InnerTube bridge."
                     return
+                }
+                if let error = response.error, !error.isEmpty {
+                    loadError = error
                 }
                 sections = response.sections ?? []
             }
@@ -307,8 +358,8 @@ private struct SearchView: View {
 }
 
 private struct LibraryView: View {
+    @ObservedObject var player: MuzzaAudioPlayer
     @State private var category = 0
-    @State private var likedSongs: [MuzzaMediaItem] = []
 
     var body: some View {
         NavigationStack {
@@ -322,12 +373,14 @@ private struct LibraryView: View {
                     .pickerStyle(.segmented)
 
                     if category == 1 {
-                        if likedSongs.isEmpty {
+                        if player.likedItems.isEmpty {
                             EmptyLibraryState(title: "No liked songs", subtitle: "Liked tracks will appear here.")
                         } else {
                             LazyVStack(spacing: 8) {
-                                ForEach(likedSongs) { item in
-                                    LibrarySongRow(item: item)
+                                ForEach(player.likedItems) { item in
+                                    LibrarySongRow(item: item) {
+                                        player.play(item)
+                                    }
                                 }
                             }
                         }
@@ -419,6 +472,15 @@ private struct MiniPlayer: View {
                     .lineLimit(1)
             }
             Spacer()
+            if let currentItem = player.currentItem {
+                Button {
+                    player.toggleLiked(currentItem)
+                } label: {
+                    Image(systemName: player.isLiked(currentItem) ? "heart.fill" : "heart")
+                        .foregroundStyle(player.isLiked(currentItem) ? Color(red: 237 / 255, green: 85 / 255, blue: 100 / 255) : .secondary)
+                }
+                .buttonStyle(.plain)
+            }
             Button {
                 player.toggle()
             } label: {
@@ -564,20 +626,26 @@ private struct EmptyLibraryState: View {
 
 private struct LibrarySongRow: View {
     let item: MuzzaMediaItem
+    let action: () -> Void
 
     var body: some View {
-        HStack(spacing: 12) {
-            AsyncImage(url: URL(string: item.thumbnail)) { image in
-                image.resizable().scaledToFill()
-            } placeholder: {
-                Rectangle().fill(.ultraThinMaterial)
-            }
-            .frame(width: 52, height: 52)
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            VStack(alignment: .leading) {
-                Text(item.title).lineLimit(1)
-                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+        Button(action: action) {
+            HStack(spacing: 12) {
+                AsyncImage(url: URL(string: item.thumbnail)) { image in
+                    image.resizable().scaledToFill()
+                } placeholder: {
+                    Rectangle().fill(.ultraThinMaterial)
+                }
+                .frame(width: 52, height: 52)
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                VStack(alignment: .leading) {
+                    Text(item.title).lineLimit(1)
+                    Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                }
+                Spacer()
+                Image(systemName: "play.circle.fill")
             }
         }
+        .buttonStyle(.plain)
     }
 }

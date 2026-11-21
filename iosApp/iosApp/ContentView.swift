@@ -2,7 +2,6 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    @State private var libraryCategory: MuzzaLibraryCategory = .playlists
     @State private var showSearch = false
     @State private var showSettings = false
     @State private var showPlayer = false
@@ -13,20 +12,11 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             TabView(selection: $selectedTab) {
-                MuzzaHomeView(
-                    playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings,
-                    openLibrary: { category in
-                        libraryCategory = category
-                        selectedTab = 2
-                    }
-                )
+                MuzzaHomeView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
                     .tag(0).tabItem { Label("Home", systemImage: "house.fill") }
                 MuzzaExploreView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
                     .tag(1).tabItem { Label("Explore", systemImage: "safari") }
-                MuzzaLibraryView(
-                    playback: playback, account: account, showSearch: $showSearch,
-                    showSettings: $showSettings, category: $libraryCategory
-                )
+                MuzzaLibraryView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
                     .tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
             }
             if playback.current != nil {
@@ -58,7 +48,6 @@ private struct MuzzaHomeView: View {
     @ObservedObject var account: MuzzaAccount
     @Binding var showSearch: Bool
     @Binding var showSettings: Bool
-    let openLibrary: (MuzzaLibraryCategory) -> Void
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var sections: [MuzzaLiveSection] = []
     @State private var chips: [MuzzaHomeChip] = []
@@ -73,14 +62,12 @@ private struct MuzzaHomeView: View {
         playback: MuzzaPlayback,
         account: MuzzaAccount,
         showSearch: Binding<Bool>,
-        showSettings: Binding<Bool>,
-        openLibrary: @escaping (MuzzaLibraryCategory) -> Void
+        showSettings: Binding<Bool>
     ) {
         _playback = ObservedObject(wrappedValue: playback)
         _account = ObservedObject(wrappedValue: account)
         _showSearch = showSearch
         _showSettings = showSettings
-        self.openLibrary = openLibrary
     }
 
     private var quickPicks: [MuzzaLiveItem] {
@@ -92,15 +79,6 @@ private struct MuzzaHomeView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 26) {
                     MuzzaHeader("Home", search: { showSearch = true }, settings: { showSettings = true })
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                            Button("History") { openLibrary(.history) }
-                            Button("Liked music") { openLibrary(.songs) }
-                            Button("Downloads") { openLibrary(.downloads) }
-                        }
-                        .font(.subheadline.weight(.semibold))
-                        .buttonStyle(MuzzaShortcutStyle())
-                    }
                     if !quickPicks.isEmpty {
                         VStack(alignment: .leading, spacing: 10) {
                             Text("Quick picks").font(.title2.bold())

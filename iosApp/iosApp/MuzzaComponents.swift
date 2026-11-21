@@ -35,15 +35,6 @@ struct MuzzaHeader: View {
     }
 }
 
-struct MuzzaShortcutStyle: ButtonStyle {
-    func makeBody(configuration: Configuration) -> some View {
-        configuration.label
-            .padding(.horizontal, 16).padding(.vertical, 10)
-            .background(Color(.secondarySystemFill).opacity(configuration.isPressed ? 0.6 : 1))
-            .clipShape(Capsule())
-    }
-}
-
 struct MuzzaArtwork: View {
     let item: MuzzaLiveItem
     let size: CGFloat

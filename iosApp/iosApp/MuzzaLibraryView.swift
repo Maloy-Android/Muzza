@@ -1,6 +1,6 @@
 import SwiftUI
 
-enum MuzzaLibraryCategory: String, CaseIterable {
+private enum MuzzaLibraryCategory: String, CaseIterable {
     case playlists = "Playlists"
     case songs = "Songs"
     case albums = "Albums"
@@ -20,7 +20,7 @@ struct MuzzaLibraryView: View {
     @Binding var showSearch: Bool
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
-    @Binding var category: MuzzaLibraryCategory
+    @State private var category: MuzzaLibraryCategory = .playlists
     @State private var source: MuzzaLibrarySource = .device
     @State private var remoteRefresh = 0
     @State private var showPlaylistDialog = false
@@ -33,14 +33,12 @@ struct MuzzaLibraryView: View {
         playback: MuzzaPlayback,
         account: MuzzaAccount,
         showSearch: Binding<Bool>,
-        showSettings: Binding<Bool>,
-        category: Binding<MuzzaLibraryCategory>
+        showSettings: Binding<Bool>
     ) {
         _playback = ObservedObject(wrappedValue: playback)
         _account = ObservedObject(wrappedValue: account)
         _showSearch = showSearch
         _showSettings = showSettings
-        _category = category
     }
 
     private var liked: [MuzzaLiveItem] {

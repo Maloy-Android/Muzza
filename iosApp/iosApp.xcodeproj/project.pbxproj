@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		B00001 /* MuzzaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00001 /* MuzzaApp.swift */; };
 		B00002 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00002 /* ContentView.swift */; };
+		B00003 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A00005 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -32,6 +33,7 @@
 		A00002 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		A00003 /* Info.plist */       = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A00004 /* Muzza.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Muzza.entitlements; sourceTree = "<group>"; };
+		A00005 /* Assets.xcassets */  = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		PROD001 /* iosApp.app */       = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -51,6 +53,7 @@
 				A00002,
 				A00003,
 				A00004,
+				A00005,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -72,6 +75,7 @@
 			buildPhases = (
 				SHELL1,
 				SOURCES1,
+				RESOURCES1,
 			);
 			buildRules = ();
 			dependencies = ();
@@ -120,6 +124,17 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXResourcesBuildPhase section */
+		RESOURCES1 = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B00003,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
 /* Begin XCBuildConfiguration section */
 		CFG_DEBUG /* Debug */ = {
 			isa = XCBuildConfiguration;
@@ -132,6 +147,7 @@
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
 				ARCHS = arm64;
 				ONLY_ACTIVE_ARCH = YES;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.maloy.muzza";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -161,6 +177,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				SDKROOT = iphoneos;
 				SUPPORTED_PLATFORMS = "iphonesimulator iphoneos";
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				PRODUCT_BUNDLE_IDENTIFIER = "com.maloy.muzza";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;

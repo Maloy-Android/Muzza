@@ -7,7 +7,12 @@ private var koinInitialized = false
 fun initKoinIos() {
     if (koinInitialized) return
     koinInitialized = true
-    startKoin {
-        modules(iosModule, sharedModule)
+    try {
+        startKoin {
+            modules(iosModule, sharedModule)
+        }
+    } catch (error: Throwable) {
+        koinInitialized = false
+        throw error
     }
 }

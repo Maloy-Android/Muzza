@@ -62,11 +62,6 @@ kotlin {
             implementation(libs.multiplatform.settings)
             implementation(libs.multiplatform.settings.coroutines)
 
-            // Coil 3 KMP
-            implementation(libs.coil3.compose)
-            implementation(libs.coil3.network.ktor)
-
-
             // Coroutines
             implementation(libs.coroutines.core)
 

@@ -1,12 +1,9 @@
 import SwiftUI
-import Shared
-import AVFoundation
 import Foundation
 
 @main
 struct MuzzaApp: App {
     init() {
-        configureAppAudioSession()
         NSSetUncaughtExceptionHandler { exception in
             let message = "\(exception.name.rawValue): \(exception.reason ?? "")\n\(exception.callStackSymbols.joined(separator: "\n"))"
             let directory = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first?
@@ -22,11 +19,5 @@ struct MuzzaApp: App {
         WindowGroup {
             ContentView()
         }
-    }
-
-    private func configureAppAudioSession() {
-        let audioSession = AVAudioSession.sharedInstance()
-        try? audioSession.setCategory(.playback, mode: .default)
-        try? audioSession.setActive(true)
     }
 }

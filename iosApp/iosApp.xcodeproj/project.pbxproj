@@ -20,6 +20,10 @@
 		B00011 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = V00001 /* Localizable.strings */; };
 		B00012 /* MuzzaLyricsParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00014 /* MuzzaLyricsParser.swift */; };
 		B00013 /* MuzzaLyricsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00015 /* MuzzaLyricsView.swift */; };
+		B00014 /* MuzzaCookieFilter.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00016 /* MuzzaCookieFilter.swift */; };
+		B00015 /* MuzzaAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00017 /* MuzzaAccount.swift */; };
+		B00016 /* MuzzaAccountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00018 /* MuzzaAccountView.swift */; };
+		B00017 /* MuzzaDownloadStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A00019 /* MuzzaDownloadStore.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXShellScriptBuildPhase section */
@@ -54,6 +58,10 @@
 		A00013 /* ru */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ru; path = ru.lproj/Localizable.strings; sourceTree = "<group>"; };
 		A00014 /* MuzzaLyricsParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaLyricsParser.swift; sourceTree = "<group>"; };
 		A00015 /* MuzzaLyricsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaLyricsView.swift; sourceTree = "<group>"; };
+		A00016 /* MuzzaCookieFilter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaCookieFilter.swift; sourceTree = "<group>"; };
+		A00017 /* MuzzaAccount.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaAccount.swift; sourceTree = "<group>"; };
+		A00018 /* MuzzaAccountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaAccountView.swift; sourceTree = "<group>"; };
+		A00019 /* MuzzaDownloadStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MuzzaDownloadStore.swift; sourceTree = "<group>"; };
 		PROD001 /* iosApp.app */       = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -84,6 +92,10 @@
 				V00001,
 				A00014,
 				A00015,
+				A00016,
+				A00017,
+				A00018,
+				A00019,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -158,6 +170,10 @@
 				B00010,
 				B00012,
 				B00013,
+				B00014,
+				B00015,
+				B00016,
+				B00017,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

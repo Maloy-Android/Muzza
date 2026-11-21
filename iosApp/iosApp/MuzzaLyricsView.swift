@@ -10,6 +10,10 @@ struct MuzzaLyricsView: View {
     @State private var loadError: String?
     @State private var requestID = UUID()
 
+    init(playback: MuzzaPlayback) {
+        _playback = ObservedObject(wrappedValue: playback)
+    }
+
     var body: some View {
         NavigationStack {
             Group {

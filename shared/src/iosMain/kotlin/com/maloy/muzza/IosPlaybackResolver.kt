@@ -33,5 +33,5 @@ fun fetchIosPlayerUrl(videoId: String, isExplicit: Boolean, completion: (String)
             audioQuality = AudioQuality.MP4,
         ) ?: throw IllegalStateException("YouTube did not return a playable audio stream.")
         check(!stream.requireBoundedRange) { "This audio stream requires an unsupported transport." }
-        IosBridgeResponse(audioUrl = stream.audioUrl, headers = stream.headers)
+        IosBridgeResponse(audioUrl = stream.audioUrl, headers = stream.headers, contentLength = stream.contentLengthBytes)
     }

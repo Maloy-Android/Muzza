@@ -1,23 +1,46 @@
 import SwiftUI
 
-private enum MuzzaLibraryCategory: String, CaseIterable {
+enum MuzzaLibraryCategory: String, CaseIterable {
     case playlists = "Playlists"
     case songs = "Songs"
     case albums = "Albums"
     case artists = "Artists"
+    case downloads = "Downloads"
     case history = "History"
+}
+
+private enum MuzzaLibrarySource: String, CaseIterable {
+    case device = "On device"
+    case youtube = "YouTube Music"
 }
 
 struct MuzzaLibraryView: View {
     @ObservedObject var playback: MuzzaPlayback
+    @ObservedObject var account: MuzzaAccount
     @Binding var showSearch: Bool
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
-    @State private var category: MuzzaLibraryCategory = .playlists
+    @Binding var category: MuzzaLibraryCategory
+    @State private var source: MuzzaLibrarySource = .device
+    @State private var remoteRefresh = 0
     @State private var showCreate = false
     @State private var playlistName = ""
     @State private var showDelete = false
     @State private var playlistToDelete: MuzzaLiveItem?
+
+    init(
+        playback: MuzzaPlayback,
+        account: MuzzaAccount,
+        showSearch: Binding<Bool>,
+        showSettings: Binding<Bool>,
+        category: Binding<MuzzaLibraryCategory>
+    ) {
+        _playback = ObservedObject(wrappedValue: playback)
+        _account = ObservedObject(wrappedValue: account)
+        _showSearch = showSearch
+        _showSettings = showSettings
+        _category = category
+    }
 
     private var liked: [MuzzaLiveItem] {
         playback.liked.filter { !hideExplicit || !($0.explicit ?? false) }
@@ -32,9 +55,19 @@ struct MuzzaLibraryView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
                     MuzzaHeader("Library", search: { showSearch = true }, settings: { showSettings = true })
+                    if account.profile != nil {
+                        Picker("Library source", selection: $source) {
+                            ForEach(MuzzaLibrarySource.allCases, id: \.self) { value in
+                                Text(LocalizedStringKey(value.rawValue)).tag(value)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                    }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            ForEach(MuzzaLibraryCategory.allCases, id: \.self) { item in
+                            ForEach(MuzzaLibraryCategory.allCases.filter {
+                                source == .device || ($0 != .history && $0 != .downloads)
+                            }, id: \.self) { item in
                                 Button { category = item } label: {
                                     Text(LocalizedStringKey(item.rawValue)).font(.subheadline.weight(.semibold))
                                         .padding(.horizontal, 15).padding(.vertical, 9)
@@ -45,7 +78,11 @@ struct MuzzaLibraryView: View {
                             }
                         }
                     }
-                    if playback.isLibraryLoading && !playback.libraryLoaded {
+                    if source == .youtube && account.profile != nil {
+                        MuzzaYouTubeLibraryContent(
+                            category: category, account: account, playback: playback, refreshToken: remoteRefresh
+                        )
+                    } else if playback.isLibraryLoading && !playback.libraryLoaded {
                         ProgressView().frame(maxWidth: .infinity).padding()
                     } else if let error = playback.libraryError {
                         MuzzaErrorView(message: error) { Task { await playback.refreshLibrary() } }
@@ -58,7 +95,19 @@ struct MuzzaLibraryView: View {
             .modifier(MuzzaPageBackground())
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
-            .refreshable { await playback.refreshLibrary() }
+            .refreshable {
+                if source == .youtube {
+                    remoteRefresh += 1
+                } else {
+                    await playback.refreshLibrary()
+                }
+            }
+            .onChange(of: source) { value in
+                if value == .youtube && (category == .history || category == .downloads) { category = .songs }
+            }
+            .onChange(of: account.revision) { _ in
+                if account.profile == nil { source = .device }
+            }
         }
         .alert("New playlist", isPresented: $showCreate) {
             TextField("Playlist name", text: $playlistName)
@@ -142,6 +191,15 @@ struct MuzzaLibraryView: View {
             MuzzaSavedGrid(items: playback.albums, symbol: "square.stack", emptyMessage: "No saved albums yet.")
         case .artists:
             MuzzaSavedGrid(items: playback.artists, symbol: "person", emptyMessage: "No saved artists yet.")
+        case .downloads:
+            let items = playback.downloads.filter { !hideExplicit || !($0.explicit ?? false) }
+            if items.isEmpty {
+                MuzzaEmptyView(symbol: "arrow.down.circle", message: "No downloaded songs yet.")
+            } else {
+                ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                    MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
+                }
+            }
         case .history:
             if recent.isEmpty {
                 MuzzaEmptyView(symbol: "clock", message: "No listening history yet.")
@@ -154,11 +212,121 @@ struct MuzzaLibraryView: View {
     }
 }
 
+private struct MuzzaYouTubeLibraryContent: View {
+    let category: MuzzaLibraryCategory
+    @ObservedObject var account: MuzzaAccount
+    @ObservedObject var playback: MuzzaPlayback
+    let refreshToken: Int
+    @AppStorage("muzza.hideExplicit") private var hideExplicit = false
+    @State private var items: [MuzzaLiveItem] = []
+    @State private var continuation: String?
+    @State private var isLoading = true
+    @State private var loadError: String?
+    @State private var pageError: String?
+    @State private var requestID = UUID()
+
+    init(category: MuzzaLibraryCategory, account: MuzzaAccount, playback: MuzzaPlayback, refreshToken: Int) {
+        self.category = category
+        _account = ObservedObject(wrappedValue: account)
+        _playback = ObservedObject(wrappedValue: playback)
+        self.refreshToken = refreshToken
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 14) {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                if item.kind == "song" {
+                    MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
+                } else {
+                    NavigationLink(value: item) {
+                        HStack(spacing: 12) {
+                            MuzzaArtwork(item: item, size: 58)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(item.title).font(.headline).lineLimit(1)
+                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            if isLoading {
+                ProgressView().frame(maxWidth: .infinity).padding()
+            } else if let loadError {
+                MuzzaErrorView(message: loadError) { Task { await reload() } }
+            } else if items.isEmpty {
+                MuzzaEmptyView(symbol: "music.note.list", message: "Your YouTube Music library is empty.")
+            }
+            if let pageError {
+                MuzzaErrorView(message: pageError) { Task { await loadMore() } }
+            } else if continuation != nil && !isLoading {
+                ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
+            }
+        }
+        .task(id: "\(category.rawValue)-\(account.revision)-\(playback.libraryChangeToken)-\(hideExplicit)-\(refreshToken)") {
+            await reload()
+        }
+    }
+
+    private func reload() async {
+        let id = UUID()
+        requestID = id
+        isLoading = true
+        loadError = nil
+        pageError = nil
+        items = []
+        continuation = nil
+        defer { if requestID == id { isLoading = false } }
+        do {
+            let response = try await MuzzaAPI.youtubeLibrary(
+                category: category.rawValue.lowercased(), hideExplicit: hideExplicit, continuation: nil
+            )
+            guard !Task.isCancelled, requestID == id else { return }
+            items = response.items
+            continuation = response.continuation
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            loadError = error.localizedDescription
+        }
+    }
+
+    private func loadMore() async {
+        guard !isLoading, let token = continuation else { return }
+        let id = requestID
+        isLoading = true
+        pageError = nil
+        defer { if requestID == id { isLoading = false } }
+        do {
+            let response = try await MuzzaAPI.youtubeLibrary(
+                category: category.rawValue.lowercased(), hideExplicit: hideExplicit, continuation: token
+            )
+            guard !Task.isCancelled, requestID == id else { return }
+            items.append(contentsOf: response.items)
+            if response.continuation == token {
+                pageError = "YouTube returned an invalid continuation."
+            } else {
+                continuation = response.continuation
+            }
+        } catch {
+            guard !Task.isCancelled, requestID == id else { return }
+            pageError = error.localizedDescription
+        }
+    }
+}
+
 private struct MuzzaSavedGrid: View {
     let items: [MuzzaLiveItem]
     let symbol: String
     let emptyMessage: String
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
+
+    init(items: [MuzzaLiveItem], symbol: String, emptyMessage: String) {
+        self.items = items
+        self.symbol = symbol
+        self.emptyMessage = emptyMessage
+    }
 
     var body: some View {
         if items.isEmpty {
@@ -193,6 +361,11 @@ struct MuzzaCollectionView: View {
     @State private var pageError: String?
     @State private var requestID = UUID()
 
+    init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
+        self.item = item
+        _playback = ObservedObject(wrappedValue: playback)
+    }
+
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
@@ -216,7 +389,7 @@ struct MuzzaCollectionView: View {
                         if ["album", "artist", "playlist"].contains(item.kind) {
                             Button { playback.toggleSaved(item) } label: {
                                 Label {
-                                    Text(LocalizedStringKey(playback.isSaved(item) ? "Saved" : "Save"))
+                                    Text(LocalizedStringKey(playback.isSaved(item) ? "Saved on device" : "Save on device"))
                                 } icon: {
                                     Image(systemName: playback.isSaved(item) ? "bookmark.fill" : "bookmark")
                                 }

@@ -11,6 +11,8 @@ struct MuzzaLiveItem: Codable, Identifiable, Hashable {
     let explicit: Bool?
     let duration: Int?
     let entryId: Int64?
+    let downloadPath: String?
+    let remoteLiked: Bool?
 }
 
 struct MuzzaLiveSection: Codable {
@@ -24,18 +26,28 @@ struct MuzzaHomeChip: Codable, Identifiable {
     var id: String { params }
 }
 
+struct MuzzaAccountProfile: Decodable {
+    let name: String
+    let email: String?
+    let channelHandle: String?
+    let thumbnailUrl: String?
+}
+
 struct MuzzaLiveResponse: Decodable {
     let sections: [MuzzaLiveSection]
     let items: [MuzzaLiveItem]
     let playlists: [MuzzaLiveItem]
     let albums: [MuzzaLiveItem]
     let artists: [MuzzaLiveItem]
+    let downloads: [MuzzaLiveItem]
     let recent: [MuzzaLiveItem]
     let chips: [MuzzaHomeChip]
     let continuation: String?
     let audioUrl: String?
     let headers: [String: String]
+    let contentLength: Int64?
     let lyrics: String?
+    let account: MuzzaAccountProfile?
     let errorCode: String?
     let error: String?
 }
@@ -68,6 +80,7 @@ enum MuzzaAPI {
         let raw = await withCheckedContinuation { (continuation: CheckedContinuation<String, Never>) in
             start { continuation.resume(returning: $0) }
         }
+        try Task.checkCancellation()
         let response: MuzzaLiveResponse
         do {
             response = try JSONDecoder().decode(MuzzaLiveResponse.self, from: Data(raw.utf8))
@@ -152,13 +165,46 @@ enum MuzzaAPI {
         try await request { IosLibraryKt.fetchIosLibrary(completion: $0) }
     }
 
+    static func youtubeLibrary(
+        category: String, hideExplicit: Bool, continuation: String?
+    ) async throws -> MuzzaLiveResponse {
+        try await request {
+            IosBridgeKt.fetchIosYouTubeLibrary(
+                category: category, hideExplicit: hideExplicit, continuation: continuation, completion: $0
+            )
+        }
+    }
+
+    static func validateAccount(cookie: String, visitorData: String?) async throws -> MuzzaAccountProfile {
+        let response = try await request {
+            IosAccountKt.validateIosAccount(cookie: cookie, visitorData: visitorData, completion: $0)
+        }
+        guard let account = response.account else {
+            throw MuzzaAPIError.requestFailed("YouTube did not confirm the account.")
+        }
+        return account
+    }
+
+    static func activateAccount(cookie: String, visitorData: String?) async throws {
+        _ = try await request {
+            IosAccountKt.activateIosAccount(cookie: cookie, visitorData: visitorData, completion: $0)
+        }
+    }
+
+    static func clearAccount() async throws {
+        _ = try await request { IosAccountKt.clearIosAccount(completion: $0) }
+    }
+
     static func importLikes(_ json: String) async throws -> MuzzaLiveResponse {
         try await request { IosLibraryKt.importIosLikes(json: json, completion: $0) }
     }
 
     static func setLiked(_ item: MuzzaLiveItem, liked: Bool) async throws -> MuzzaLiveResponse {
         let json = try encode(item)
-        return try await request { IosLibraryKt.setIosSongLiked(json: json, liked: liked, completion: $0) }
+        let sync = UserDefaults.standard.object(forKey: "muzza.syncLikes") as? Bool ?? true
+        return try await request {
+            IosLibraryKt.setIosSongLiked(json: json, liked: liked, syncRemote: sync, completion: $0)
+        }
     }
 
     static func setSaved(_ item: MuzzaLiveItem, saved: Bool) async throws -> MuzzaLiveResponse {
@@ -169,6 +215,19 @@ enum MuzzaAPI {
     static func recordPlay(_ item: MuzzaLiveItem) async throws -> MuzzaLiveResponse {
         let json = try encode(item)
         return try await request { IosLibraryKt.recordIosPlay(json: json, completion: $0) }
+    }
+
+    static func downloadInfo(id: String) async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.fetchIosDownload(id: id, completion: $0) }
+    }
+
+    static func markDownloaded(_ item: MuzzaLiveItem, filename: String) async throws -> MuzzaLiveResponse {
+        let json = try encode(item)
+        return try await request { IosLibraryKt.markIosDownload(json: json, filename: filename, completion: $0) }
+    }
+
+    static func clearDownload(id: String) async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.clearIosDownload(id: id, completion: $0) }
     }
 
     static func createPlaylist(_ name: String) async throws -> MuzzaLiveResponse {

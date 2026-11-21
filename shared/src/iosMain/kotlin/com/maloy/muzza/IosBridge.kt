@@ -26,6 +26,8 @@ data class IosMediaItem(
     val explicit: Boolean = false,
     val duration: Int? = null,
     val entryId: Long? = null,
+    val downloadPath: String? = null,
+    val remoteLiked: Boolean? = null,
 )
 
 @Serializable
@@ -41,18 +43,29 @@ data class IosHomeChip(
 )
 
 @Serializable
+data class IosAccountProfile(
+    val name: String,
+    val email: String? = null,
+    val channelHandle: String? = null,
+    val thumbnailUrl: String? = null,
+)
+
+@Serializable
 data class IosBridgeResponse(
     val sections: List<IosMediaSection> = emptyList(),
     val items: List<IosMediaItem> = emptyList(),
     val playlists: List<IosMediaItem> = emptyList(),
     val albums: List<IosMediaItem> = emptyList(),
     val artists: List<IosMediaItem> = emptyList(),
+    val downloads: List<IosMediaItem> = emptyList(),
     val recent: List<IosMediaItem> = emptyList(),
     val chips: List<IosHomeChip> = emptyList(),
     val continuation: String? = null,
     val audioUrl: String? = null,
     val headers: Map<String, String> = emptyMap(),
+    val contentLength: Long? = null,
     val lyrics: String? = null,
+    val account: IosAccountProfile? = null,
     val errorCode: String? = null,
     val error: String? = null,
 )
@@ -65,19 +78,21 @@ internal val iosJson = Json {
 
 internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
     iosBridgeScope.launch {
-        val response = try {
-            block()
-        } catch (error: CancellationException) {
-            throw error
-        } catch (error: Exception) {
-            IosBridgeResponse(
-                errorCode = if (error is IosDuplicateSongException) "duplicate_song" else null,
-                error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error",
-            )
-        }
-        completion(iosJson.encodeToString(response))
+        completion(iosJson.encodeToString(iosResponse(block)))
     }
 }
+
+internal suspend fun iosResponse(block: suspend () -> IosBridgeResponse): IosBridgeResponse =
+    try {
+        block()
+    } catch (error: CancellationException) {
+        IosBridgeResponse(error = "The request was cancelled.")
+    } catch (error: Exception) {
+        IosBridgeResponse(
+            errorCode = if (error is IosDuplicateSongException) "duplicate_song" else null,
+            error = error.message?.takeIf(String::isNotBlank) ?: error::class.simpleName ?: "Unknown error",
+        )
+    }
 
 internal fun YTItem.toIosMediaItem(): IosMediaItem {
     val subtitle = when (this) {
@@ -190,16 +205,17 @@ fun fetchIosCollection(
     completion: (String) -> Unit,
 ) = iosRequest(completion) {
     require(id.isNotBlank()) { "Missing collection identifier." }
+    val useLogin = !YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse
     when {
         kind == "playlist" && continuation != null -> {
-            val page = YouTube.playlistContinuation(continuation, setLogin = false).getOrThrow()
+            val page = YouTube.playlistContinuation(continuation, setLogin = useLogin).getOrThrow()
             IosBridgeResponse(
                 items = page.songs.iosItems(hideExplicit),
                 continuation = page.continuation,
             )
         }
         kind == "playlist" -> {
-            val page = YouTube.playlist(id.removePrefix("VL"), setLogin = false).getOrThrow()
+            val page = YouTube.playlist(id.removePrefix("VL"), setLogin = useLogin).getOrThrow()
             IosBridgeResponse(
                 items = page.songs.iosItems(hideExplicit),
                 continuation = page.songsContinuation ?: page.continuation,
@@ -225,5 +241,41 @@ fun fetchIosCollection(
             })
         }
         else -> throw IllegalArgumentException("Unsupported collection type.")
+    }
+}
+
+fun fetchIosYouTubeLibrary(
+    category: String,
+    hideExplicit: Boolean,
+    continuation: String?,
+    completion: (String) -> Unit,
+) = iosRequest(completion) {
+    check(!YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) { "Sign in to YouTube Music first." }
+    if (category == "songs") {
+        if (continuation == null) {
+            val page = YouTube.playlist("LM", setLogin = true).getOrThrow()
+            IosBridgeResponse(
+                items = page.songs.iosItems(hideExplicit).map { it.copy(remoteLiked = true) },
+                continuation = page.songsContinuation ?: page.continuation,
+            )
+        } else {
+            val page = YouTube.playlistContinuation(continuation, setLogin = true).getOrThrow()
+            IosBridgeResponse(
+                items = page.songs.iosItems(hideExplicit).map { it.copy(remoteLiked = true) },
+                continuation = page.continuation,
+            )
+        }
+    } else if (continuation != null) {
+        val page = YouTube.libraryContinuation(continuation).getOrThrow()
+        IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
+    } else {
+        val browseId = when (category) {
+            "albums" -> "FEmusic_liked_albums"
+            "artists" -> "FEmusic_library_corpus_artists"
+            "playlists" -> "FEmusic_liked_playlists"
+            else -> throw IllegalArgumentException("Unsupported library category.")
+        }
+        val page = YouTube.library(browseId).getOrThrow()
+        IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
     }
 }

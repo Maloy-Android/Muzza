@@ -4,6 +4,8 @@ struct MuzzaPageBackground: ViewModifier {
     @AppStorage("muzza.pureBlack") private var pureBlack = false
     @Environment(\.colorScheme) private var colorScheme
 
+    init() {}
+
     func body(content: Content) -> some View {
         content.background(pureBlack && colorScheme == .dark ? Color.black : Color(.systemBackground))
     }
@@ -22,7 +24,7 @@ struct MuzzaHeader: View {
 
     var body: some View {
         HStack(spacing: 20) {
-            Text(LocalizedStringKey(title)).font(.largeTitle.bold())
+            Text(LocalizedStringKey(title)).font(.system(size: 26))
             Spacer()
             Button(action: search) { Image(systemName: "magnifyingglass").font(.title3) }
                 .accessibilityLabel("Search")
@@ -30,6 +32,15 @@ struct MuzzaHeader: View {
                 .accessibilityLabel("Settings")
         }
         .padding(.bottom, 8)
+    }
+}
+
+struct MuzzaShortcutStyle: ButtonStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .padding(.horizontal, 16).padding(.vertical, 10)
+            .background(Color(.secondarySystemFill).opacity(configuration.isPressed ? 0.6 : 1))
+            .clipShape(Capsule())
     }
 }
 
@@ -188,6 +199,21 @@ struct MuzzaSongRow: View {
                     }
                     .disabled(playback.isLibraryBusy)
                 }
+                if playback.isDownloaded(item) {
+                    Button(role: .destructive) {
+                        Task { _ = await playback.removeDownload(item) }
+                    } label: {
+                        Label("Remove download", systemImage: "arrow.down.circle")
+                    }
+                    .disabled(playback.isLibraryBusy)
+                } else {
+                    Button {
+                        playback.download(item)
+                    } label: {
+                        Label("Download", systemImage: "arrow.down.circle")
+                    }
+                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy || playback.downloading.contains(item.id))
+                }
                 if let playlist {
                     Button(role: .destructive) {
                         Task {
@@ -204,7 +230,11 @@ struct MuzzaSongRow: View {
                     .disabled(playback.isLibraryBusy)
                 }
             } label: {
-                Image(systemName: "ellipsis").frame(width: 36, height: 44)
+                if playback.downloading.contains(item.id) {
+                    ProgressView().frame(width: 36, height: 44)
+                } else {
+                    Image(systemName: "ellipsis").frame(width: 36, height: 44)
+                }
             }
             .accessibilityLabel("Song actions")
         }

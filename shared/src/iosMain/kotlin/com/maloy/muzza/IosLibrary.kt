@@ -1,9 +1,10 @@
 package com.maloy.muzza
 
+import app.cash.sqldelight.db.SqlDriver
+import com.maloy.innertube.YouTube
 import com.maloy.muzza.data.db.DatabaseDriverFactory
 import com.maloy.muzza.data.db.toDb
 import com.maloy.muzza.data.db.toModel
-import app.cash.sqldelight.db.SqlDriver
 import com.maloy.muzza.db.MuzzaDatabase
 import com.maloy.muzza.domain.model.AlbumEntity
 import com.maloy.muzza.domain.model.ArtistEntity
@@ -40,6 +41,7 @@ private fun SongEntity.toIosMediaItem() = IosMediaItem(
     kind = "song",
     explicit = explicit,
     duration = duration.takeIf { it >= 0 },
+    downloadPath = localPath.takeIf { dateDownload != null },
 )
 
 internal fun MuzzaDatabase.saveSong(item: IosMediaItem, liked: Boolean? = null) {
@@ -78,6 +80,9 @@ internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
     val artists = artistQueries.selectAll().executeAsList().filter { it.bookmarkedAt != null }.map { artist ->
         IosMediaItem(artist.id, artist.name, "Artist", artist.thumbnailUrl.orEmpty(), "artist")
     }
+    val downloads = songQueries.selectAll().executeAsList()
+        .filter { it.dateDownload != null }
+        .map { it.toModel().toIosMediaItem() }
     val recent = eventQueries.selectRecent(100).executeAsList()
         .distinctBy { it.songId }
         .mapNotNull { event -> songQueries.selectById(event.songId).executeAsOneOrNull()?.toModel()?.toIosMediaItem() }
@@ -86,6 +91,7 @@ internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
         playlists = playlists,
         albums = albums,
         artists = artists,
+        downloads = downloads,
         recent = recent,
     )
 }
@@ -114,8 +120,12 @@ fun importIosLikes(json: String, completion: (String) -> Unit) = iosRequest(comp
     }
 }
 
-fun setIosSongLiked(json: String, liked: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
+fun setIosSongLiked(json: String, liked: Boolean, syncRemote: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
     val item = iosJson.decodeFromString<IosMediaItem>(json)
+    require(item.kind == "song" && item.id.isNotBlank() && item.title.isNotBlank()) { "Invalid song data." }
+    if (syncRemote && !YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) {
+        YouTube.likeVideo(item.id, liked).getOrThrow()
+    }
     withIosDatabase { db ->
         db.transaction { db.saveSong(item, liked) }
         db.libraryResponse()
@@ -180,6 +190,56 @@ fun recordIosPlay(json: String, completion: (String) -> Unit) = iosRequest(compl
             db.saveSong(item)
             db.eventQueries.insert(item.id, now().toString(), 0)
         }
+        db.libraryResponse()
+    }
+}
+
+private val downloadFilename = Regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.m4a$")
+
+internal fun MuzzaDatabase.markDownload(item: IosMediaItem, filename: String) {
+    require(downloadFilename.matches(filename)) { "Invalid download filename." }
+    transaction {
+        saveSong(item)
+        val song = songQueries.selectById(item.id).executeAsOne().toModel()
+        require(!song.isLocal) { "A local song cannot be downloaded." }
+        require(song.dateDownload == null) { "This song is already downloaded." }
+        songQueries.upsert(song.copy(localPath = filename, dateDownload = now()).toDb())
+    }
+}
+
+internal fun MuzzaDatabase.clearDownload(id: String) {
+    transaction {
+        val song = songQueries.selectById(id).executeAsOneOrNull()?.toModel()
+            ?: throw IllegalArgumentException("Song not found.")
+        require(song.dateDownload != null && !song.isLocal) { "Song is not downloaded." }
+        songQueries.upsert(song.copy(localPath = null, dateDownload = null).toDb())
+    }
+}
+
+fun fetchIosDownload(id: String, completion: (String) -> Unit) = iosRequest(completion) {
+    require(id.isNotBlank()) { "Missing song identifier." }
+    withIosDatabase { db ->
+        val song = db.songQueries.selectById(id).executeAsOneOrNull()?.toModel()
+        if (song?.dateDownload == null) {
+            IosBridgeResponse()
+        } else {
+            check(!song.localPath.isNullOrBlank()) { "The downloaded audio has no file path." }
+            IosBridgeResponse(items = listOf(song.toIosMediaItem()))
+        }
+    }
+}
+
+fun markIosDownload(json: String, filename: String, completion: (String) -> Unit) = iosRequest(completion) {
+    val item = iosJson.decodeFromString<IosMediaItem>(json)
+    withIosDatabase { db ->
+        db.markDownload(item, filename)
+        db.libraryResponse()
+    }
+}
+
+fun clearIosDownload(id: String, completion: (String) -> Unit) = iosRequest(completion) {
+    withIosDatabase { db ->
+        db.clearDownload(id)
         db.libraryResponse()
     }
 }

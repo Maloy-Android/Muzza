@@ -2,6 +2,7 @@ package com.maloy.innertube
 
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.defaultRequest
 import io.ktor.client.plugins.compression.ContentEncoding
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
@@ -32,6 +33,12 @@ actual fun createInnerTubeHttpClient(
     install(ContentEncoding) {
         gzip(0.9F)
         deflate(0.8F)
+    }
+
+    install(HttpTimeout) {
+        requestTimeoutMillis = 60_000
+        connectTimeoutMillis = 15_000
+        socketTimeoutMillis = 30_000
     }
 
     defaultRequest {

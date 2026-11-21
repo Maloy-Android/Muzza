@@ -95,5 +95,24 @@ class IosLibraryTest {
         } finally {
             driver.close()
         }
+
+        @Test
+        fun downloadMetadataPreservesLikesAndRejectsUnsafePaths() {
+            val driver = inMemoryDriver(MuzzaDatabase.Schema)
+            try {
+                val db = MuzzaDatabase(driver)
+                db.saveSong(item, liked = true)
+                assertFailsWith<IllegalArgumentException> { db.markDownload(item, "../outside.m4a") }
+                val name = "12345678-1234-1234-1234-123456789abc.m4a"
+                db.markDownload(item, name)
+                assertEquals(name, db.libraryResponse().downloads.single().downloadPath)
+                assertEquals(1L, db.songQueries.selectById(item.id).executeAsOne().liked)
+                db.clearDownload(item.id)
+                assertTrue(db.libraryResponse().downloads.isEmpty())
+                assertEquals(1L, db.songQueries.selectById(item.id).executeAsOne().liked)
+            } finally {
+                driver.close()
+            }
+        }
     }
 }

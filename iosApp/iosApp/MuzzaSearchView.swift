@@ -29,6 +29,10 @@ struct MuzzaSearchView: View {
     @State private var pageError: String?
     @State private var requestID = UUID()
 
+    init(playback: MuzzaPlayback) {
+        _playback = ObservedObject(wrappedValue: playback)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {

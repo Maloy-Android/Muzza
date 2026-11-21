@@ -21,15 +21,21 @@ final class MuzzaPlayback: ObservableObject {
     @Published private(set) var playlists: [MuzzaLiveItem] = []
     @Published private(set) var albums: [MuzzaLiveItem] = []
     @Published private(set) var artists: [MuzzaLiveItem] = []
+    @Published private(set) var downloads: [MuzzaLiveItem] = []
+    @Published private(set) var downloading: Set<String> = []
+    @Published private var likeOverrides: [String: Bool] = [:]
+    @Published private var hasSignedInAccount = false
     @Published private(set) var recent: [MuzzaLiveItem] = []
     @Published private(set) var isLibraryLoading = false
     @Published private(set) var isLibraryBusy = false
     @Published private(set) var libraryLoaded = false
+    @Published private(set) var libraryChangeToken = 0
     @Published var libraryError: String?
     @Published var message: String?
 
     private let player = AVPlayer()
     private var playbackTask: Task<Void, Never>?
+    private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var playbackID = UUID()
     private var recordedPlaybackID: UUID?
     private var libraryRevision = 0
@@ -51,6 +57,7 @@ final class MuzzaPlayback: ObservableObject {
 
     deinit {
         playbackTask?.cancel()
+        for task in downloadTasks.values { task.cancel() }
         if let timeObserver { player.removeTimeObserver(timeObserver) }
         if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
         if let failureObserver { NotificationCenter.default.removeObserver(failureObserver) }
@@ -59,7 +66,10 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     func isLiked(_ item: MuzzaLiveItem) -> Bool {
-        liked.contains { $0.id == item.id }
+        if let override = likeOverrides[item.id] { return override }
+        if liked.contains(where: { $0.id == item.id }) { return true }
+        let sync = UserDefaults.standard.object(forKey: "muzza.syncLikes") as? Bool ?? true
+        return sync && hasSignedInAccount && item.remoteLiked == true
     }
 
     func isSaved(_ item: MuzzaLiveItem) -> Bool {
@@ -69,6 +79,10 @@ final class MuzzaPlayback: ObservableObject {
         case "playlist": return playlists.contains { $0.kind == "playlist" && $0.id == item.id }
         default: return false
         }
+    }
+
+    func isDownloaded(_ item: MuzzaLiveItem) -> Bool {
+        downloads.contains { $0.id == item.id }
     }
 
     func refreshLibrary() async {
@@ -103,7 +117,9 @@ final class MuzzaPlayback: ObservableObject {
         guard libraryLoaded, !isLibraryBusy else { return }
         let next = !isLiked(item)
         Task {
-            _ = await changeLibrary { try await MuzzaAPI.setLiked(item, liked: next) }
+            if await changeLibrary({ try await MuzzaAPI.setLiked(item, liked: next) }) {
+                likeOverrides[item.id] = next
+            }
         }
     }
 
@@ -180,8 +196,10 @@ final class MuzzaPlayback: ObservableObject {
         playlists = response.playlists
         albums = response.albums
         artists = response.artists
+        downloads = response.downloads
         if includeRecent { recent = response.recent }
         libraryError = nil
+        libraryChangeToken += 1
     }
 
     func play(_ item: MuzzaLiveItem, in items: [MuzzaLiveItem]? = nil, startingAt requestedIndex: Int? = nil) {
@@ -268,6 +286,108 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
+    func download(_ item: MuzzaLiveItem) {
+        guard item.kind == "song", libraryLoaded, !downloading.contains(item.id), !isDownloaded(item) else {
+            message = "This song cannot be downloaded right now."
+            return
+        }
+        downloading.insert(item.id)
+        downloadTasks[item.id] = Task {
+            var filename: String?
+            defer {
+                downloading.remove(item.id)
+                downloadTasks.removeValue(forKey: item.id)
+            }
+            do {
+                let stream = try await MuzzaAPI.audio(for: item)
+                guard let rawURL = stream.audioUrl, let url = URL(string: rawURL) else {
+                    throw MuzzaAPIError.invalidAudioURL
+                }
+                let saved = try await MuzzaDownloadStore.download(
+                    url: url, headers: stream.headers, expectedLength: stream.contentLength
+                )
+                filename = saved
+                try Task.checkCancellation()
+                guard !isLibraryBusy else { throw MuzzaAPIError.requestFailed("The library is busy. Try again.") }
+                libraryRevision += 1
+                let revision = libraryRevision
+                let recentAtStart = recentRevision
+                let response: MuzzaLiveResponse
+                do {
+                    isLibraryBusy = true
+                    defer { isLibraryBusy = false }
+                    response = try await MuzzaAPI.markDownloaded(item, filename: saved)
+                }
+                if revision == libraryRevision {
+                    applyLibrary(response, includeRecent: recentAtStart == recentRevision)
+                }
+                filename = nil
+            } catch {
+                if let filename {
+                    do {
+                        try MuzzaDownloadStore.removeFileIfPresent(filename)
+                    } catch let cleanupError {
+                        message = "Could not remove an unfinished download: \(cleanupError.localizedDescription)"
+                        return
+                    }
+                }
+                if !Task.isCancelled && !(error is CancellationError) { message = error.localizedDescription }
+            }
+        }
+    }
+
+    func removeDownload(_ item: MuzzaLiveItem) async -> Bool {
+        guard libraryLoaded, !isLibraryBusy,
+              let saved = downloads.first(where: { $0.id == item.id }),
+              let filename = saved.downloadPath else {
+            message = "The downloaded song is unavailable."
+            return false
+        }
+        isLibraryBusy = true
+        libraryRevision += 1
+        let revision = libraryRevision
+        let recentAtStart = recentRevision
+        defer { isLibraryBusy = false }
+        do {
+            try MuzzaDownloadStore.removeFileIfPresent(filename)
+            let response = try await MuzzaAPI.clearDownload(id: item.id)
+            if revision == libraryRevision {
+                applyLibrary(response, includeRecent: recentAtStart == recentRevision)
+            }
+            return true
+        } catch {
+            message = error.localizedDescription
+            return false
+        }
+    }
+
+    func stopForSignOut() {
+        playbackTask?.cancel()
+        for task in downloadTasks.values { task.cancel() }
+        playbackID = UUID()
+        player.pause()
+        player.replaceCurrentItem(with: nil)
+        resourceLoader?.invalidate()
+        resourceLoader = nil
+        itemObservation = nil
+        if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
+        if let failureObserver { NotificationCenter.default.removeObserver(failureObserver) }
+        endObserver = nil
+        failureObserver = nil
+        isLoadingAudio = false
+        isPlaying = false
+        position = 0
+        duration = 0
+        hasSignedInAccount = false
+        likeOverrides.removeAll()
+        updateNowPlaying()
+    }
+
+    func accountDidChange(isSignedIn: Bool) {
+        hasSignedInAccount = isSignedIn
+        likeOverrides.removeAll()
+    }
+
     private func start(_ item: MuzzaLiveItem) {
         playbackTask?.cancel()
         playbackID = UUID()
@@ -289,23 +409,30 @@ final class MuzzaPlayback: ObservableObject {
 
         playbackTask = Task {
             do {
-                let response = try await MuzzaAPI.audio(for: item)
+                let download = try await MuzzaAPI.downloadInfo(id: item.id)
                 guard !Task.isCancelled, id == playbackID else { return }
-                guard let rawURL = response.audioUrl, let url = URL(string: rawURL),
-                      url.scheme?.lowercased() == "https" else {
-                    throw MuzzaAPIError.invalidAudioURL
-                }
-                let userAgent = response.headers.first { $0.key.lowercased() == "user-agent" }?.value
-                let needsHeaders = response.headers.keys.contains { $0.lowercased() != "user-agent" }
                 let asset: AVURLAsset
-                if needsHeaders {
-                    let loader = MuzzaResourceLoader(url: url, headers: response.headers)
-                    asset = try loader.makeAsset()
-                    resourceLoader = loader
-                } else if let userAgent {
-                    asset = AVURLAsset(url: url, options: [AVURLAssetHTTPUserAgentKey: userAgent])
+                if let stored = download.items.first {
+                    guard let filename = stored.downloadPath else { throw MuzzaDownloadError.missingFile }
+                    asset = AVURLAsset(url: try MuzzaDownloadStore.existingFileURL(for: filename))
                 } else {
-                    asset = AVURLAsset(url: url)
+                    let response = try await MuzzaAPI.audio(for: item)
+                    guard !Task.isCancelled, id == playbackID else { return }
+                    guard let rawURL = response.audioUrl, let url = URL(string: rawURL),
+                          url.scheme?.lowercased() == "https" else {
+                        throw MuzzaAPIError.invalidAudioURL
+                    }
+                    let userAgent = response.headers.first { $0.key.lowercased() == "user-agent" }?.value
+                    let needsHeaders = response.headers.keys.contains { $0.lowercased() != "user-agent" }
+                    if needsHeaders {
+                        let loader = MuzzaResourceLoader(url: url, headers: response.headers)
+                        asset = try loader.makeAsset()
+                        resourceLoader = loader
+                    } else if let userAgent {
+                        asset = AVURLAsset(url: url, options: [AVURLAssetHTTPUserAgentKey: userAgent])
+                    } else {
+                        asset = AVURLAsset(url: url)
+                    }
                 }
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
                 try AVAudioSession.sharedInstance().setActive(true)
@@ -333,6 +460,10 @@ final class MuzzaPlayback: ObservableObject {
                 case .failed:
                     self.isLoadingAudio = false
                     self.message = item.error?.localizedDescription ?? "The audio could not be played."
+                    self.player.pause()
+                    self.player.replaceCurrentItem(with: nil)
+                    self.resourceLoader?.invalidate()
+                    self.resourceLoader = nil
                 default:
                     break
                 }
@@ -341,14 +472,23 @@ final class MuzzaPlayback: ObservableObject {
         endObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemDidPlayToEndTime, object: item, queue: .main
         ) { [weak self] _ in
-            Task { @MainActor in self?.next() }
+            Task { @MainActor in
+                guard let self, self.playbackID == id, self.player.currentItem === item else { return }
+                self.next()
+            }
         }
         failureObserver = NotificationCenter.default.addObserver(
             forName: .AVPlayerItemFailedToPlayToEndTime, object: item, queue: .main
         ) { [weak self] notification in
             let error = notification.userInfo?[AVPlayerItemFailedToPlayToEndTimeErrorKey] as? Error
             Task { @MainActor in
-                self?.message = error?.localizedDescription ?? "Playback stopped unexpectedly."
+                guard let self, self.playbackID == id, self.player.currentItem === item else { return }
+                self.isLoadingAudio = false
+                self.message = error?.localizedDescription ?? "Playback stopped unexpectedly."
+                self.player.pause()
+                self.player.replaceCurrentItem(with: nil)
+                self.resourceLoader?.invalidate()
+                self.resourceLoader = nil
             }
         }
     }

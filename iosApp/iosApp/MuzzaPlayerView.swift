@@ -46,6 +46,10 @@ struct MuzzaPlayerView: View {
     @State private var showQueue = false
     @State private var showLyrics = false
 
+    init(playback: MuzzaPlayback) {
+        _playback = ObservedObject(wrappedValue: playback)
+    }
+
     var body: some View {
         GeometryReader { geometry in
             ScrollView {
@@ -153,6 +157,10 @@ private struct MuzzaQueueView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var playback: MuzzaPlayback
 
+    init(playback: MuzzaPlayback) {
+        _playback = ObservedObject(wrappedValue: playback)
+    }
+
     var body: some View {
         NavigationStack {
             List {
@@ -179,14 +187,34 @@ private struct MuzzaQueueView: View {
 struct MuzzaSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var playback: MuzzaPlayback
+    @ObservedObject var account: MuzzaAccount
     @AppStorage("muzza.darkTheme") private var darkTheme = true
     @AppStorage("muzza.pureBlack") private var pureBlack = false
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @AppStorage("muzza.persistentQueue") private var persistentQueue = true
 
+    init(playback: MuzzaPlayback, account: MuzzaAccount) {
+        _playback = ObservedObject(wrappedValue: playback)
+        _account = ObservedObject(wrappedValue: account)
+    }
+
     var body: some View {
         NavigationStack {
             Form {
+                Section("Account") {
+                    NavigationLink {
+                        MuzzaAccountView(account: account, playback: playback)
+                    } label: {
+                        HStack {
+                            Image(systemName: "person.crop.circle")
+                            if let profile = account.profile {
+                                Text(profile.name)
+                            } else {
+                                Text("Sign in")
+                            }
+                        }
+                    }
+                }
                 Section("Appearance") {
                     Toggle("Dark theme", isOn: $darkTheme)
                     Toggle("Pure black", isOn: $pureBlack)
@@ -197,6 +225,10 @@ struct MuzzaSettingsView: View {
                 Section("Playback") {
                     Toggle("Persistent queue", isOn: $persistentQueue)
                         .onChange(of: persistentQueue) { playback.queuePreferenceChanged($0) }
+                }
+                Section("Downloads") {
+                    Text("Keep Muzza open while a song is downloading.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             .navigationTitle("Settings")

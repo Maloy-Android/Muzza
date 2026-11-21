@@ -35,12 +35,42 @@ func testLyricsParser() throws {
     expect(plain.isEmpty, "plain lyrics")
 }
 
+func testCookieSelection() throws {
+    func cookie(_ name: String, _ value: String, domain: String, path: String = "/") -> HTTPCookie {
+        HTTPCookie(properties: [.name: name, .value: value, .domain: domain, .path: path])!
+    }
+    let url = URL(string: "https://music.youtube.com/youtubei/v1/")!
+    let cookies = [
+        cookie("SAPISID", "broad", domain: ".youtube.com"),
+        cookie("SAPISID", "specific", domain: "music.youtube.com", path: "/youtubei"),
+        cookie("SID", "session", domain: ".youtube.com"),
+        cookie("OTHER", "ignored", domain: ".example.org")
+    ]
+    let header = try MuzzaCookieFilter.header(from: cookies, for: url)
+    expect(header.contains("SAPISID=specific"), "most specific YouTube cookie")
+    expect(header.contains("SID=session"), "YouTube session cookie")
+    expect(!header.contains("broad") && !header.contains("OTHER"), "unrelated and duplicate cookies excluded")
+    do {
+        _ = try MuzzaCookieFilter.header(from: [cookies[2]], for: url)
+        expect(false, "missing authentication cookie")
+    } catch MuzzaCookieError.missingSession {
+    }
+}
+
+func testDownloadFilenamesStayInTheDownloadDirectory() {
+    expect(MuzzaDownloadStore.isSafeFilename("12345678-1234-1234-1234-123456789abc.m4a"), "valid download name")
+    expect(!MuzzaDownloadStore.isSafeFilename("../12345678-1234-1234-1234-123456789abc.m4a"), "path traversal")
+    expect(!MuzzaDownloadStore.isSafeFilename("12345678-1234-1234-1234-123456789abc.mp3"), "unexpected extension")
+}
+
 testContentRangeValidation()
 testMediaHosts()
+testDownloadFilenamesStayInTheDownloadDirectory()
 do {
     try testLyricsParser()
+    try testCookieSelection()
 } catch {
-    fputs("FAIL: lyrics parser: \(error.localizedDescription)\n", stderr)
+    fputs("FAIL: \(error.localizedDescription)\n", stderr)
     exit(1)
 }
-print("iOS media and lyrics checks passed.")
+print("iOS media, lyrics, and cookie checks passed.")

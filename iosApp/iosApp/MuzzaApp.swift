@@ -5,9 +5,9 @@ import Shared
 @main
 struct MuzzaApp: App {
     init() {
-        let locale = NSLocale.current
-        let gl = locale.countryCode?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let hl = locale.languageCode?.trimmingCharacters(in: .whitespacesAndNewlines)
+        let locale = Locale.current
+        let gl = locale.region?.identifier
+        let hl = locale.language.languageCode?.identifier
         IosBridgeKt.configureIosLocale(
             gl: gl?.isEmpty == false ? gl! : "US",
             hl: hl?.isEmpty == false ? hl! : "en"

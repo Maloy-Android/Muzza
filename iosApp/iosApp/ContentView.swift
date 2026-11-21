@@ -117,6 +117,7 @@ private struct MuzzaLibraryView: View {
             }.toolbar(.hidden, for: .navigationBar)
         }
     }
+}
 
 private struct MuzzaSearchView: View {
     @Environment(\.dismiss) private var dismiss

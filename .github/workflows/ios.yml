@@ -149,7 +149,7 @@ jobs:
             CODE_SIGN_STYLE=Manual \
             CODE_SIGN_IDENTITY="$SIGNING_IDENTITY" \
             DEVELOPMENT_TEAM="$TEAM_ID" \
-            PRODUCT_BUNDLE_IDENTIFIER=com.maloy.muzza \
+            PRODUCT_BUNDLE_IDENTIFIER=app.orange2516.nance975 \
             PROVISIONING_PROFILE_SPECIFIER="$PROFILE_NAME" \
             archive
 
@@ -168,7 +168,7 @@ jobs:
             <true/>
             <key>provisioningProfiles</key>
             <dict>
-              <key>com.maloy.muzza</key>
+              <key>app.orange2516.nance975</key>
               <string>${PROFILE_NAME}</string>
             </dict>
           </dict>

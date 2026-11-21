@@ -1,48 +1,46 @@
 import Foundation
-import XCTest
 
-final class MuzzaResourceLoaderTests: XCTestCase {
-    func testContentRangeValidation() {
-        let range = MuzzaResourceLoader.parseContentRange("bytes 5-9/30")
-        XCTAssertEqual(range?.start, 5)
-        XCTAssertEqual(range?.total, 30)
-        XCTAssertNil(MuzzaResourceLoader.parseContentRange("items 5-9/30"))
-        XCTAssertNil(MuzzaResourceLoader.parseContentRange("bytes 9-5/30"))
-        XCTAssertNil(MuzzaResourceLoader.parseContentRange("bytes 5-30/30"))
-        XCTAssertNil(MuzzaResourceLoader.parseContentRange("bytes 0-4/*"))
-        XCTAssertNil(MuzzaResourceLoader.parseContentRange("bytes 0-/30"))
-    }
-
-    func testMediaHostsRequireTrustedHTTPSOrigins() {
-        XCTAssertTrue(MuzzaResourceLoader.isAllowed(URL(string: "https://r1.googlevideo.com/audio")!))
-        XCTAssertTrue(MuzzaResourceLoader.isAllowed(URL(string: "https://www.youtube.com/audio")!))
-        XCTAssertFalse(MuzzaResourceLoader.isAllowed(URL(string: "http://r1.googlevideo.com/audio")!))
-        XCTAssertFalse(MuzzaResourceLoader.isAllowed(URL(string: "https://googlevideo.com.example.org/audio")!))
-        XCTAssertFalse(MuzzaResourceLoader.isAllowed(URL(string: "https://user:pass@googlevideo.com/audio")!))
-        XCTAssertFalse(MuzzaResourceLoader.isAllowed(URL(string: "https://googlevideo.com:8443/audio")!))
+func expect(_ condition: @autoclosure () -> Bool, _ message: String) {
+    guard condition() else {
+        fputs("FAIL: \(message)\n", stderr)
+        exit(1)
     }
 }
 
-final class MuzzaLyricsParserTests: XCTestCase {
-    func testMultipleTimestampsAndFractions() throws {
-        let lyrics = "[00:02.50][00:05.25]Second\n[0:01.2]First\n[00:04:125]Third\n[00:99.00]Invalid"
-        let lines = try MuzzaLyricsParser.parse(lyrics)
-        XCTAssertEqual(lines.map(\.text), ["First", "Second", "Third", "Second"])
-        XCTAssertEqual(lines.map(\.time), [1.2, 2.5, 4.125, 5.25])
-    }
-
-    func testUnsyncedTextHasNoTimedLines() throws {
-        XCTAssertTrue(try MuzzaLyricsParser.parse("A line without timestamps").isEmpty)
-    }
+func testContentRangeValidation() {
+    let range = MuzzaResourceLoader.parseContentRange("bytes 5-9/30")
+    expect(range?.start == 5 && range?.total == 30, "valid byte range")
+    expect(MuzzaResourceLoader.parseContentRange("items 5-9/30") == nil, "invalid range unit")
+    expect(MuzzaResourceLoader.parseContentRange("bytes 9-5/30") == nil, "reversed range")
+    expect(MuzzaResourceLoader.parseContentRange("bytes 5-30/30") == nil, "range beyond total")
+    expect(MuzzaResourceLoader.parseContentRange("bytes 0-4/*") == nil, "unknown total")
+    expect(MuzzaResourceLoader.parseContentRange("bytes 0-/30") == nil, "missing range end")
 }
 
-XCTMain([
-    testCase([
-        ("testContentRangeValidation", MuzzaResourceLoaderTests.testContentRangeValidation),
-        ("testMediaHostsRequireTrustedHTTPSOrigins", MuzzaResourceLoaderTests.testMediaHostsRequireTrustedHTTPSOrigins)
-    ]),
-    testCase([
-        ("testMultipleTimestampsAndFractions", MuzzaLyricsParserTests.testMultipleTimestampsAndFractions),
-        ("testUnsyncedTextHasNoTimedLines", MuzzaLyricsParserTests.testUnsyncedTextHasNoTimedLines)
-    ])
-])
+func testMediaHosts() {
+    expect(MuzzaResourceLoader.isAllowed(URL(string: "https://r1.googlevideo.com/audio")!), "Google video host")
+    expect(MuzzaResourceLoader.isAllowed(URL(string: "https://www.youtube.com/audio")!), "YouTube host")
+    expect(!MuzzaResourceLoader.isAllowed(URL(string: "http://r1.googlevideo.com/audio")!), "insecure scheme")
+    expect(!MuzzaResourceLoader.isAllowed(URL(string: "https://googlevideo.com.example.org/audio")!), "lookalike host")
+    expect(!MuzzaResourceLoader.isAllowed(URL(string: "https://user:pass@googlevideo.com/audio")!), "URL credentials")
+    expect(!MuzzaResourceLoader.isAllowed(URL(string: "https://googlevideo.com:8443/audio")!), "unexpected port")
+}
+
+func testLyricsParser() throws {
+    let lyrics = "[00:02.50][00:05.25]Second\n[0:01.2]First\n[00:04:125]Third\n[00:99.00]Invalid"
+    let lines = try MuzzaLyricsParser.parse(lyrics)
+    expect(lines.map(\.text) == ["First", "Second", "Third", "Second"], "lyric ordering and repeated lines")
+    expect(lines.map(\.time) == [1.2, 2.5, 4.125, 5.25], "lyric timestamp precision")
+    let plain = try MuzzaLyricsParser.parse("A line without timestamps")
+    expect(plain.isEmpty, "plain lyrics")
+}
+
+testContentRangeValidation()
+testMediaHosts()
+do {
+    try testLyricsParser()
+} catch {
+    fputs("FAIL: lyrics parser: \(error.localizedDescription)\n", stderr)
+    exit(1)
+}
+print("iOS media and lyrics checks passed.")

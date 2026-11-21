@@ -82,12 +82,18 @@ internal val iosJson = Json {
     ignoreUnknownKeys = true
 }
 
+private var iosGl = "US"
+private var iosHl = "en"
+
+fun configureIosLocale(gl: String, hl: String) {
+    iosGl = gl.takeIf(String::isNotBlank) ?: "US"
+    iosHl = hl.takeIf(String::isNotBlank) ?: "en"
+    YouTube.locale = YouTubeLocale(gl = iosGl, hl = iosHl)
+}
+
 internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
     iosBridgeScope.launch {
-        YouTube.locale = YouTubeLocale(
-            gl = "US",
-            hl = "en",
-        )
+        YouTube.locale = YouTubeLocale(gl = iosGl, hl = iosHl)
         if (YouTube.visitorData.isNullOrBlank()) {
             YouTube.visitorData = YouTube.visitorData().getOrNull()
                 ?: YouTube.DEFAULT_VISITOR_DATA

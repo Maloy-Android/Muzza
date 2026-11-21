@@ -44,20 +44,39 @@ class HomeViewModel(
 
     suspend fun load() {
         isLoading.value = true
-        val hideExplicit = settings.hideExplicit
+        try {
+            val hideExplicit = settings.hideExplicit
 
-        quickPicks.value = repository.quickPicks().shuffled().take(20)
-        forgottenFavorites.value = repository.forgottenFavorites().shuffled().take(20)
+            quickPicks.value = runCatching { repository.quickPicks().shuffled().take(20) }
+                .getOrElse { emptyList() }
+            forgottenFavorites.value = runCatching { repository.forgottenFavorites().shuffled().take(20) }
+                .getOrElse { emptyList() }
 
-        YouTube.home().onSuccess { page ->
-            homePage.value = page.filterExplicit(hideExplicit)
+            try {
+                YouTube.home().onSuccess { page ->
+                    homePage.value = page.filterExplicit(hideExplicit)
+                }
+            } catch (_: Exception) {
+                homePage.value = homePage.value
+            }
+
+            try {
+                YouTube.explore().onSuccess { page ->
+                    explorePage.value = page
+                }
+            } catch (_: Exception) {
+                explorePage.value = explorePage.value
+            }
+        } catch (_: Exception) {
+            quickPicks.value = quickPicks.value ?: emptyList()
+            forgotenFavoritesFallback()
+        } finally {
+            isLoading.value = false
         }
+    }
 
-        YouTube.explore().onSuccess { page ->
-            explorePage.value = page
-        }
-
-        isLoading.value = false
+    private fun forgotenFavoritesFallback() {
+        forgottenFavorites.value = forgottenFavorites.value ?: emptyList()
     }
 
     fun refresh() {

@@ -33,6 +33,11 @@ actual class DatabaseDriverFactory {
         val databasePath = databaseUrl.path
             ?: throw IllegalStateException("iOS database path has no filesystem representation")
 
-        return NativeSqliteDriver(MuzzaDatabase.Schema, databasePath)
+        return try {
+            NativeSqliteDriver(MuzzaDatabase.Schema, databasePath)
+        } catch (error: Throwable) {
+            fileManager.removeItemAtURL(databaseUrl, error = null)
+            NativeSqliteDriver(MuzzaDatabase.Schema, databasePath)
+        }
     }
 }

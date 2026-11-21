@@ -28,6 +28,16 @@ final class MuzzaPlayback: ObservableObject {
     private var player: AVPlayer?
     @Published var current: MuzzaLiveItem?
     @Published var isPlaying = false
+    @Published var liked: [MuzzaLiveItem]
+
+    init() {
+        if let data = UserDefaults.standard.data(forKey: "muzza.liked"),
+           let items = try? JSONDecoder().decode([MuzzaLiveItem].self, from: data) {
+            liked = items
+        } else {
+            liked = []
+        }
+    }
 
     func play(_ item: MuzzaLiveItem) {
         guard item.kind == "song" else { return }
@@ -48,6 +58,17 @@ final class MuzzaPlayback: ObservableObject {
         if isPlaying { player.pause() } else { player.play() }
         isPlaying.toggle()
     }
+
+    func toggleLike(_ item: MuzzaLiveItem) {
+        if liked.contains(where: { $0.id == item.id }) {
+            liked.removeAll { $0.id == item.id }
+        } else {
+            liked.insert(item, at: 0)
+        }
+        if let data = try? JSONEncoder().encode(liked) {
+            UserDefaults.standard.set(data, forKey: "muzza.liked")
+        }
+    }
 }
 
 struct ContentView: View {
@@ -59,16 +80,21 @@ struct ContentView: View {
     @AppStorage("muzza.pureBlack") private var pureBlack = false
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            MuzzaHomeView(playback: playback, showSearch: $showSearch, showSettings: $showSettings)
-                .tag(0).tabItem { Label("Home", systemImage: "house.fill") }
-            MuzzaExploreView(player: playback).tag(1).tabItem { Label("Explore", systemImage: "safari") }
-            MuzzaLibraryView(player: playback).tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
+        ZStack(alignment: .bottom) {
+            TabView(selection: $selectedTab) {
+                MuzzaHomeView(playback: playback, showSearch: $showSearch, showSettings: $showSettings)
+                    .tag(0).tabItem { Label("Home", systemImage: "house.fill") }
+                MuzzaExploreView(player: playback).tag(1).tabItem { Label("Explore", systemImage: "safari") }
+                MuzzaLibraryView(player: playback).tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
+            }
+            if playback.current != nil {
+                MuzzaMiniPlayer(player: playback).padding(.bottom, 49)
+            }
         }
         .tint(accent)
         .preferredColorScheme(darkTheme ? .dark : .light)
         .background(pureBlack ? Color.black : Color(.systemBackground))
-        .sheet(isPresented: $showSearch) { MuzzaSearchView() }
+        .sheet(isPresented: $showSearch) { MuzzaSearchView(player: playback) }
         .sheet(isPresented: $showSettings) { MuzzaSettingsView() }
     }
 
@@ -220,7 +246,7 @@ private struct MuzzaLibraryView: View {
                         Text("Artists").tag(3)
                     }.pickerStyle(.segmented)
                     LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
-                        MuzzaLibraryTile(title: "Liked music", detail: "0 songs", symbol: "heart.fill", tint: .red)
+                        MuzzaLibraryTile(title: "Liked music", detail: "\(player.liked.count) songs", symbol: "heart.fill", tint: .red)
                         MuzzaLibraryTile(title: "Downloads", detail: "Offline music", symbol: "arrow.down.circle.fill", tint: .green)
                         MuzzaLibraryTile(title: "Local", detail: "On this iPhone", symbol: "iphone", tint: .blue)
                         MuzzaLibraryTile(title: "Most played", detail: "Top tracks", symbol: "chart.bar.fill", tint: .orange)
@@ -228,6 +254,39 @@ private struct MuzzaLibraryView: View {
                         MuzzaLibraryTile(title: "Albums", detail: "Saved albums", symbol: "square.stack.fill", tint: .teal)
                         MuzzaLibraryTile(title: "Artists", detail: "Saved artists", symbol: "mic.fill", tint: .pink)
                         MuzzaLibraryTile(title: "Playlists", detail: "Your playlists", symbol: "music.note.list", tint: .indigo)
+                    }
+                    if category == 2 {
+                        if player.liked.isEmpty {
+                            VStack(spacing: 10) {
+                                Image(systemName: "heart").font(.system(size: 42)).foregroundStyle(.secondary)
+                                Text("No liked songs").font(.headline)
+                            }
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 60)
+                        } else {
+                            Text("Liked songs").font(.title3.bold())
+                            ForEach(player.liked) { item in
+                                HStack(spacing: 12) {
+                                    AsyncImage(url: URL(string: item.thumbnail)) { image in
+                                        image.resizable().scaledToFill()
+                                    } placeholder: {
+                                        Rectangle().fill(.secondary.opacity(0.12))
+                                    }
+                                    .frame(width: 52, height: 52)
+                                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                                    VStack(alignment: .leading, spacing: 3) {
+                                        Text(item.title).lineLimit(1)
+                                        Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                                    }
+                                    Spacer()
+                                    Button {
+                                        player.play(item)
+                                    } label: {
+                                        Image(systemName: "play.circle.fill")
+                                    }.buttonStyle(.plain)
+                                }
+                            }
+                        }
                     }
                 }.padding().padding(.bottom, 84)
             }.toolbar(.hidden, for: .navigationBar)
@@ -237,19 +296,75 @@ private struct MuzzaLibraryView: View {
 
 private struct MuzzaSearchView: View {
     @Environment(\.dismiss) private var dismiss
+    @ObservedObject var player: MuzzaPlayback
     @State private var query = ""
+    @State private var items: [MuzzaLiveItem] = []
+    @State private var isLoading = false
+    @State private var error: String?
     var body: some View {
         NavigationStack {
             List {
                 TextField("Search Muzza", text: $query)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                if isLoading {
+                    ProgressView().frame(maxWidth: .infinity)
+                }
+                if let error {
+                    Text(error).font(.caption).foregroundStyle(.secondary)
+                }
+                ForEach(items) { item in
+                    Button {
+                        player.play(item)
+                        dismiss()
+                    } label: {
+                        HStack {
+                            AsyncImage(url: URL(string: item.thumbnail)) { image in
+                                image.resizable().scaledToFill()
+                            } placeholder: {
+                                Rectangle().fill(.secondary.opacity(0.12))
+                            }
+                            .frame(width: 52, height: 52)
+                            .clipShape(RoundedRectangle(cornerRadius: 10))
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(item.title).lineLimit(1)
+                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer()
+                            Image(systemName: "play.circle.fill")
+                        }
+                    }.buttonStyle(.plain)
+                }
             }
             .navigationTitle("Search")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") { dismiss() }
                 }
+            }
+            .onSubmit(of: .text) { search() }
+            .onChange(of: query) { value in
+                if value.count >= 3 { search() }
+            }
+        }
+    }
+
+    private func search() {
+        guard !query.isEmpty else { return }
+        isLoading = true
+        error = nil
+        IosBridgeKt.searchIosMusic(query: query) { raw in
+            DispatchQueue.main.async {
+                isLoading = false
+                guard let data = raw.data(using: .utf8),
+                      let response = try? JSONDecoder().decode(MuzzaLiveResponse.self, from: data) else {
+                    error = "Search returned invalid data."
+                    return
+                }
+                if let message = response.error, !message.isEmpty {
+                    error = message
+                }
+                items = response.items ?? []
             }
         }
     }
@@ -390,8 +505,10 @@ private struct MuzzaInnerTubeError: View {
 
 private struct MuzzaLiveCard: View {
     let item: MuzzaLiveItem
+    let action: () -> Void
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        Button(action: action) {
+            VStack(alignment: .leading, spacing: 8) {
             AsyncImage(url: URL(string: item.thumbnail)) { phase in
                 if let image = phase.image {
                     image.resizable().scaledToFill()
@@ -411,6 +528,34 @@ private struct MuzzaLiveCard: View {
                 Text(item.title).font(.headline).lineLimit(1)
                 Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }.frame(width: 156, alignment: .leading)
+            }
         }
+        .buttonStyle(.plain)
+    }
+}
+
+private struct MuzzaMiniPlayer: View {
+    @ObservedObject var player: MuzzaPlayback
+    var body: some View {
+        HStack(spacing: 10) {
+            AsyncImage(url: URL(string: player.current?.thumbnail ?? "")) { image in
+                image.resizable().scaledToFill()
+            } placeholder: {
+                RoundedRectangle(cornerRadius: 8).fill(.secondary.opacity(0.12))
+            }.frame(width: 44, height: 44).clipShape(RoundedRectangle(cornerRadius: 8))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(player.current?.title ?? "").font(.subheadline.weight(.semibold)).lineLimit(1)
+                Text(player.current?.subtitle ?? "").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            }
+            Spacer()
+            if let item = player.current {
+                Button { player.toggleLike(item) } label: {
+                    Image(systemName: player.liked.contains(where: { $0.id == item.id }) ? "heart.fill" : "heart")
+                }.buttonStyle(.plain)
+            }
+            Button { player.toggle() } label: {
+                Image(systemName: player.isPlaying ? "pause.fill" : "play.fill")
+            }.buttonStyle(.plain)
+        }.padding(10).background(.regularMaterial).clipShape(RoundedRectangle(cornerRadius: 16)).padding(.horizontal)
     }
 }

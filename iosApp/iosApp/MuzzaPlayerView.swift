@@ -123,12 +123,13 @@ struct MuzzaPlayerView: View {
                             .accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
                             Spacer(minLength: 12)
                             Button { playback.next() } label: {
-                                Image(systemName: "forward.end.fill").font(.title2)
+                                if playback.isLoadingRadio && playback.queueIndex == playback.queue.count - 1 {
+                                    ProgressView().frame(width: 24, height: 24)
+                                } else {
+                                    Image(systemName: "forward.end.fill").font(.title2)
+                                }
                             }
-                            .disabled(MuzzaQueueRules.nextIndex(
-                                current: playback.queueIndex, count: playback.queue.count,
-                                repeatMode: playback.repeatMode, automatic: false
-                            ) == nil)
+                            .disabled(!playback.canAdvance)
                             .accessibilityLabel("Next")
                             Spacer(minLength: 12)
                             Button { playback.cycleRepeat() } label: {
@@ -146,6 +147,10 @@ struct MuzzaPlayerView: View {
                             Button { showLyrics = true } label: {
                                 Label("Lyrics", systemImage: "text.alignleft")
                             }
+                            Button { playback.startRadio(item) } label: {
+                                Label("Radio", systemImage: "dot.radiowaves.left.and.right")
+                            }
+                            .disabled(playback.isLoadingRadio)
                         }
                         .buttonStyle(.bordered)
                     } else {
@@ -197,6 +202,9 @@ private struct MuzzaQueueView: View {
                 }
                 .onMove { playback.moveQueue(from: $0, to: $1) }
                 .onDelete { playback.removeFromQueue(at: $0) }
+                if playback.isLoadingRadio {
+                    ProgressView().frame(maxWidth: .infinity)
+                }
             }
             .navigationTitle("Queue")
             .navigationBarTitleDisplayMode(.inline)

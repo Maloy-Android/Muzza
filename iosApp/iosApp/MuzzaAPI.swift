@@ -33,6 +33,14 @@ struct MuzzaAccountProfile: Decodable {
     let thumbnailUrl: String?
 }
 
+struct MuzzaRadioEndpoint: Codable {
+    let videoId: String?
+    let playlistId: String?
+    let playlistSetVideoId: String?
+    let params: String?
+    let index: Int?
+}
+
 struct MuzzaLiveResponse: Decodable {
     let sections: [MuzzaLiveSection]
     let items: [MuzzaLiveItem]
@@ -48,6 +56,8 @@ struct MuzzaLiveResponse: Decodable {
     let contentLength: Int64?
     let lyrics: String?
     let account: MuzzaAccountProfile?
+    let radioEndpoint: MuzzaRadioEndpoint?
+    let currentIndex: Int?
     let errorCode: String?
     let error: String?
 }
@@ -145,6 +155,20 @@ enum MuzzaAPI {
         try await request {
             IosPlaybackResolverKt.fetchIosPlayerUrl(
                 videoId: item.id, isExplicit: item.explicit ?? false, completion: $0
+            )
+        }
+    }
+
+    static func radio(
+        endpoint: MuzzaRadioEndpoint, continuation: String?, hideExplicit: Bool
+    ) async throws -> MuzzaLiveResponse {
+        let data = try JSONEncoder().encode(endpoint)
+        guard let json = String(data: data, encoding: .utf8) else {
+            throw MuzzaAPIError.requestFailed("Could not encode the radio endpoint.")
+        }
+        return try await request {
+            IosBridgeKt.fetchIosRadio(
+                endpointJson: json, continuation: continuation, hideExplicit: hideExplicit, completion: $0
             )
         }
     }

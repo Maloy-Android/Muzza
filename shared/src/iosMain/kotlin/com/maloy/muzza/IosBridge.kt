@@ -5,13 +5,16 @@ import com.maloy.innertube.models.AlbumItem
 import com.maloy.innertube.models.ArtistItem
 import com.maloy.innertube.models.PlaylistItem
 import com.maloy.innertube.models.SongItem
+import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
+import com.maloy.innertube.pages.NextResult
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -66,6 +69,8 @@ data class IosBridgeResponse(
     val contentLength: Long? = null,
     val lyrics: String? = null,
     val account: IosAccountProfile? = null,
+    val radioEndpoint: WatchEndpoint? = null,
+    val currentIndex: Int? = null,
     val errorCode: String? = null,
     val error: String? = null,
 )
@@ -278,4 +283,30 @@ fun fetchIosYouTubeLibrary(
         val page = YouTube.library(browseId).getOrThrow()
         IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
     }
+}
+
+internal fun NextResult.toIosRadioResponse(hideExplicit: Boolean): IosBridgeResponse {
+    val visible = items.withIndex().filter { (index, item) ->
+        !hideExplicit || !item.explicit || index == currentIndex
+    }
+    val selected = currentIndex?.let { index -> visible.indexOfFirst { it.index == index }.takeIf { it >= 0 } }
+    return IosBridgeResponse(
+        items = visible.map { it.value.toIosMediaItem() },
+        continuation = continuation,
+        radioEndpoint = endpoint,
+        currentIndex = selected,
+    )
+}
+
+fun fetchIosRadio(
+    endpointJson: String,
+    continuation: String?,
+    hideExplicit: Boolean,
+    completion: (String) -> Unit,
+) = iosRequest(completion) {
+    val endpoint = iosJson.decodeFromString<WatchEndpoint>(endpointJson)
+    require(!endpoint.videoId.isNullOrBlank() || !endpoint.playlistId.isNullOrBlank()) {
+        "Missing radio endpoint."
+    }
+    YouTube.next(endpoint, continuation).getOrThrow().toIosRadioResponse(hideExplicit)
 }

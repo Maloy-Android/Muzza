@@ -10,6 +10,8 @@ private struct MuzzaSavedQueue: Codable {
     let originalItems: [MuzzaLiveItem]?
     let originalTokens: [UUID]?
     let shuffled: Bool?
+    let radioEndpoint: MuzzaRadioEndpoint?
+    let radioContinuation: String?
 }
 
 struct MuzzaQueueEntry: Identifiable {
@@ -29,6 +31,8 @@ final class MuzzaPlayback: ObservableObject {
     @Published private(set) var queueIndex = 0
     @Published private(set) var isShuffling = false
     @Published private(set) var repeatMode: MuzzaRepeatMode = .off
+    @Published private(set) var isLoadingRadio = false
+    @Published private(set) var hasRadioContinuation = false
     @Published private(set) var liked: [MuzzaLiveItem] = []
     @Published private(set) var playlists: [MuzzaLiveItem] = []
     @Published private(set) var albums: [MuzzaLiveItem] = []
@@ -47,12 +51,19 @@ final class MuzzaPlayback: ObservableObject {
 
     private let player = AVPlayer()
     private var playbackTask: Task<Void, Never>?
+    private var radioTask: Task<Void, Never>?
     private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var playbackID = UUID()
     private var recordedPlaybackID: UUID?
     private var queueTokens: [UUID] = []
     private var originalQueue: [MuzzaLiveItem] = []
     private var originalTokens: [UUID] = []
+    private var queueIdentity = UUID()
+    private var queueRevision = 0
+    private var radioEndpoint: MuzzaRadioEndpoint?
+    private var radioContinuation: String?
+    private var pendingRadioAdvance: UUID?
+    private var radioRequestID = UUID()
     private var libraryRevision = 0
     private var recentRevision = 0
     private var resourceLoader: MuzzaResourceLoader?
@@ -80,6 +91,7 @@ final class MuzzaPlayback: ObservableObject {
 
     deinit {
         playbackTask?.cancel()
+        radioTask?.cancel()
         for task in downloadTasks.values { task.cancel() }
         if let timeObserver { player.removeTimeObserver(timeObserver) }
         if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
@@ -112,6 +124,13 @@ final class MuzzaPlayback: ObservableObject {
         zip(queueTokens, queue).enumerated().map { index, entry in
             MuzzaQueueEntry(id: entry.0, item: entry.1, index: index)
         }
+    }
+
+    var canAdvance: Bool {
+        guard !queue.isEmpty else { return false }
+        return MuzzaQueueRules.nextIndex(
+            current: queueIndex, count: queue.count, repeatMode: repeatMode, automatic: false
+        ) != nil || hasRadioContinuation || isLoadingRadio
     }
 
     func refreshLibrary() async {
@@ -236,6 +255,9 @@ final class MuzzaPlayback: ObservableObject {
             message = "This item is not a playable song."
             return
         }
+        cancelRadio()
+        queueIdentity = UUID()
+        queueRevision += 1
         let songs = (items ?? [item]).filter { $0.kind == "song" }
         let selectedIndex = requestedIndex.flatMap { index in
             songs.indices.contains(index) && songs[index].id == item.id ? index : nil
@@ -263,9 +285,177 @@ final class MuzzaPlayback: ObservableObject {
             message = "The selected queue item is unavailable."
             return
         }
+        pendingRadioAdvance = nil
         queueIndex = index
+        queueRevision += 1
         persistQueue()
         start(queue[index])
+    }
+
+    func startRadio(_ item: MuzzaLiveItem) {
+        guard item.kind == "song" else {
+            message = "This item is not a playable song."
+            return
+        }
+        if current?.id == item.id, queueTokens.indices.contains(queueIndex),
+           player.currentItem != nil || isLoadingAudio {
+            let token = queueTokens[queueIndex]
+            let selected = current ?? item
+            cancelRadio()
+            queueIdentity = UUID()
+            queueRevision += 1
+            queue = [selected]
+            queueTokens = [token]
+            originalQueue = queue
+            originalTokens = queueTokens
+            queueIndex = 0
+            persistQueue()
+        } else {
+            play(item)
+        }
+
+        guard let selected = current, queueTokens.indices.contains(queueIndex) else { return }
+        let currentToken = queueTokens[queueIndex]
+        let identity = queueIdentity
+        let revision = queueRevision
+        let endpoint = MuzzaRadioEndpoint(
+            videoId: item.id, playlistId: nil, playlistSetVideoId: nil, params: nil, index: nil
+        )
+        let requestID = UUID()
+        radioRequestID = requestID
+        isLoadingRadio = true
+        radioTask = Task {
+            defer {
+                if queueIdentity == identity && radioRequestID == requestID {
+                    isLoadingRadio = false
+                    radioTask = nil
+                }
+            }
+            do {
+                let response = try await MuzzaAPI.radio(
+                    endpoint: endpoint, continuation: nil,
+                    hideExplicit: UserDefaults.standard.bool(forKey: "muzza.hideExplicit")
+                )
+                guard !Task.isCancelled, queueIdentity == identity else { return }
+                guard queueRevision == revision else {
+                    pendingRadioAdvance = nil
+                    message = "Radio was not applied because the queue changed."
+                    return
+                }
+                guard let nextEndpoint = response.radioEndpoint,
+                      response.items.contains(where: { $0.id != selected.id }) else {
+                    throw MuzzaAPIError.requestFailed("YouTube did not return radio tracks.")
+                }
+                var items = response.items
+                var index = response.currentIndex.flatMap { candidate in
+                    items.indices.contains(candidate) && items[candidate].id == selected.id ? candidate : nil
+                } ?? items.firstIndex(where: { $0.id == selected.id })
+                if index == nil {
+                    items.insert(selected, at: 0)
+                    index = 0
+                }
+                guard let index else { throw MuzzaAPIError.requestFailed("The radio queue is invalid.") }
+                var tokens = items.map { _ in UUID() }
+                tokens[index] = currentToken
+                queue = items
+                queueTokens = tokens
+                queueIndex = index
+                originalQueue = items
+                originalTokens = tokens
+                if isShuffling && !shuffleUpcoming() {
+                    isShuffling = false
+                    UserDefaults.standard.set(false, forKey: "muzza.shuffle")
+                }
+                radioEndpoint = nextEndpoint
+                radioContinuation = response.continuation
+                hasRadioContinuation = response.continuation != nil
+                queueRevision += 1
+                persistQueue()
+                if pendingRadioAdvance == currentToken {
+                    pendingRadioAdvance = nil
+                    isLoadingRadio = false
+                    next()
+                }
+            } catch {
+                guard !Task.isCancelled, queueIdentity == identity else { return }
+                pendingRadioAdvance = nil
+                message = "Could not start radio: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func loadMoreRadio(advance: Bool) {
+        guard let endpoint = radioEndpoint, let token = radioContinuation,
+              queueTokens.indices.contains(queueIndex) else { return }
+        if advance { pendingRadioAdvance = queueTokens[queueIndex] }
+        guard !isLoadingRadio else { return }
+        let identity = queueIdentity
+        let requestID = UUID()
+        radioRequestID = requestID
+        isLoadingRadio = true
+        radioTask = Task {
+            defer {
+                if queueIdentity == identity && radioRequestID == requestID {
+                    isLoadingRadio = false
+                    radioTask = nil
+                }
+            }
+            do {
+                let response = try await MuzzaAPI.radio(
+                    endpoint: endpoint, continuation: token,
+                    hideExplicit: UserDefaults.standard.bool(forKey: "muzza.hideExplicit")
+                )
+                guard !Task.isCancelled, queueIdentity == identity else { return }
+                guard let nextEndpoint = response.radioEndpoint, response.continuation != token else {
+                    throw MuzzaAPIError.requestFailed("YouTube returned an invalid radio continuation.")
+                }
+                var items = response.items
+                if items.first?.id == queue.last?.id { items.removeFirst() }
+                radioEndpoint = nextEndpoint
+                radioContinuation = response.continuation
+                hasRadioContinuation = response.continuation != nil
+                if !items.isEmpty {
+                    let tokens = items.map { _ in UUID() }
+                    originalQueue.append(contentsOf: items)
+                    originalTokens.append(contentsOf: tokens)
+                    var additions = Array(zip(items, tokens))
+                    if isShuffling { additions.shuffle() }
+                    queue.append(contentsOf: additions.map(\.0))
+                    queueTokens.append(contentsOf: additions.map(\.1))
+                    queueRevision += 1
+                }
+                persistQueue()
+                let currentToken = queueTokens.indices.contains(queueIndex) ? queueTokens[queueIndex] : nil
+                let shouldAdvance = pendingRadioAdvance != nil && pendingRadioAdvance == currentToken
+                pendingRadioAdvance = nil
+                isLoadingRadio = false
+                if shouldAdvance {
+                    if items.isEmpty {
+                        player.pause()
+                        if response.continuation != nil {
+                            message = "No additional radio tracks were returned. Try again."
+                        }
+                    } else {
+                        next()
+                    }
+                }
+            } catch {
+                guard !Task.isCancelled, queueIdentity == identity else { return }
+                pendingRadioAdvance = nil
+                message = "Could not load more radio tracks: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func cancelRadio() {
+        radioTask?.cancel()
+        radioRequestID = UUID()
+        radioTask = nil
+        isLoadingRadio = false
+        radioEndpoint = nil
+        radioContinuation = nil
+        hasRadioContinuation = false
+        pendingRadioAdvance = nil
     }
 
     func enqueue(_ item: MuzzaLiveItem, playNext: Bool) {
@@ -281,6 +471,7 @@ final class MuzzaPlayback: ObservableObject {
             originalTokens = queueTokens
             queueIndex = 0
             current = item
+            queueRevision += 1
             persistQueue()
             updateNowPlaying()
             return
@@ -302,12 +493,14 @@ final class MuzzaPlayback: ObservableObject {
             originalQueue = queue
             originalTokens = queueTokens
         }
+        queueRevision += 1
         persistQueue()
     }
 
     func moveQueue(from offsets: IndexSet, to destination: Int) {
         guard !offsets.isEmpty, offsets.allSatisfy({ queue.indices.contains($0) }),
-              destination >= 0, destination <= queue.count, queueTokens.indices.contains(queueIndex) else {
+              destination >= 0, destination <= queue.count, queue.count == queueTokens.count,
+              queueTokens.indices.contains(queueIndex) else {
             message = "The queue could not be reordered."
             return
         }
@@ -327,6 +520,7 @@ final class MuzzaPlayback: ObservableObject {
             originalQueue = queue
             originalTokens = queueTokens
         }
+        queueRevision += 1
         persistQueue()
     }
 
@@ -366,11 +560,14 @@ final class MuzzaPlayback: ObservableObject {
                 }
             }
         } else {
+            cancelRadio()
+            queueIdentity = UUID()
             stopCurrentItem()
             queueIndex = 0
             current = nil
             updateNowPlaying()
         }
+        queueRevision += 1
         persistQueue()
     }
 
@@ -383,6 +580,7 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     func pause() {
+        pendingRadioAdvance = nil
         if isLoadingAudio {
             stopCurrentItem()
         } else {
@@ -401,6 +599,17 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     func next(finishedNaturally: Bool = false) {
+        if queueTokens.indices.contains(queueIndex), queueIndex == queue.count - 1,
+           !(finishedNaturally && repeatMode == .one) {
+            if isLoadingRadio {
+                pendingRadioAdvance = queueTokens[queueIndex]
+                return
+            }
+            if radioContinuation != nil {
+                loadMoreRadio(advance: true)
+                return
+            }
+        }
         guard let index = MuzzaQueueRules.nextIndex(
             current: queueIndex, count: queue.count, repeatMode: repeatMode, automatic: finishedNaturally
         ) else {
@@ -408,11 +617,13 @@ final class MuzzaPlayback: ObservableObject {
             return
         }
         queueIndex = index
+        queueRevision += 1
         persistQueue()
         start(queue[queueIndex])
     }
 
     func previous() {
+        pendingRadioAdvance = nil
         if position > 3 {
             seek(to: 0)
             return
@@ -424,6 +635,7 @@ final class MuzzaPlayback: ObservableObject {
             return
         }
         queueIndex = index
+        queueRevision += 1
         persistQueue()
         start(queue[index])
     }
@@ -449,6 +661,7 @@ final class MuzzaPlayback: ObservableObject {
             isShuffling = true
         }
         UserDefaults.standard.set(isShuffling, forKey: "muzza.shuffle")
+        queueRevision += 1
         persistQueue()
     }
 
@@ -474,6 +687,7 @@ final class MuzzaPlayback: ObservableObject {
 
     func seek(to seconds: Double) {
         guard seconds.isFinite, seconds >= 0 else { return }
+        pendingRadioAdvance = nil
         let target = duration > 0 ? min(seconds, duration) : seconds
         player.seek(to: CMTime(seconds: target, preferredTimescale: 600))
     }
@@ -563,9 +777,11 @@ final class MuzzaPlayback: ObservableObject {
 
     func stopForSignOut() {
         for task in downloadTasks.values { task.cancel() }
+        cancelRadio()
         stopCurrentItem()
         hasSignedInAccount = false
         likeOverrides.removeAll()
+        persistQueue()
         updateNowPlaying()
     }
 
@@ -791,7 +1007,9 @@ final class MuzzaPlayback: ObservableObject {
                 tokens: queueTokens,
                 originalItems: originalQueue,
                 originalTokens: originalTokens,
-                shuffled: isShuffling
+                shuffled: isShuffling,
+                radioEndpoint: radioEndpoint,
+                radioContinuation: radioContinuation
             ))
             UserDefaults.standard.set(data, forKey: "muzza.queue")
         } catch {
@@ -835,6 +1053,12 @@ final class MuzzaPlayback: ObservableObject {
             } else {
                 throw MuzzaAPIError.requestFailed("The saved queue order is incomplete.")
             }
+            guard saved.radioContinuation == nil || saved.radioEndpoint != nil else {
+                throw MuzzaAPIError.requestFailed("The saved radio queue is incomplete.")
+            }
+            radioEndpoint = saved.radioEndpoint
+            radioContinuation = saved.radioContinuation
+            hasRadioContinuation = saved.radioContinuation != nil
             current = queue[queueIndex]
         } catch {
             queue = []
@@ -843,6 +1067,7 @@ final class MuzzaPlayback: ObservableObject {
             originalQueue = []
             originalTokens = []
             current = nil
+            cancelRadio()
             message = "Could not restore the queue: \(error.localizedDescription)"
         }
     }

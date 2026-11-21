@@ -104,6 +104,7 @@ struct MuzzaMediaSectionView: View {
                             }
                             .buttonStyle(.plain)
                             .contextMenu {
+                                Button("Start radio") { playback.startRadio(item) }
                                 Button("Play next") { playback.enqueue(item, playNext: true) }
                                 Button("Add to queue") { playback.enqueue(item, playNext: false) }
                             }
@@ -192,6 +193,11 @@ struct MuzzaSongRow: View {
             .buttonStyle(.plain)
 
             Menu {
+                Button {
+                    playback.startRadio(item)
+                } label: {
+                    Label("Start radio", systemImage: "dot.radiowaves.left.and.right")
+                }
                 Button {
                     playback.enqueue(item, playNext: true)
                 } label: {

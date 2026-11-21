@@ -63,6 +63,8 @@
 "Add to playlist" = "Добавить в плейлист";
 "Play next" = "Следующей";
 "Add to queue" = "Добавить в очередь";
+"Start radio" = "Запустить радио";
+"Radio" = "Радио";
 "This song is already in the playlist." = "Эта песня уже есть в плейлисте.";
 "Add anyway" = "Всё равно добавить";
 "Remove from playlist" = "Удалить из плейлиста";

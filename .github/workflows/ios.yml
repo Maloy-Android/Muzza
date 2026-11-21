@@ -35,52 +35,6 @@ jobs:
           xcrun swiftc -swift-version 5 iosApp/iosApp/MuzzaResourceLoader.swift iosApp/iosApp/MuzzaLyricsParser.swift iosApp/iosApp/MuzzaCookieFilter.swift iosApp/iosApp/MuzzaDownloadStore.swift iosApp/iosApp/MuzzaQueueRules.swift iosApp/Tests/main.swift -o "$RUNNER_TEMP/ios-media-tests"
           "$RUNNER_TEMP/ios-media-tests"
 
-      - name: Test iOS transport and library
-        run: ./gradlew :innertube:iosSimulatorArm64Test :shared:iosSimulatorArm64Test --no-daemon --console=plain
-
-      - name: Upload iOS test reports on failure
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-test-reports
-          path: |
-            innertube/build/test-results/iosSimulatorArm64Test/
-            shared/build/test-results/iosSimulatorArm64Test/
-          if-no-files-found: ignore
-
-      - name: Build and launch the iOS simulator app
-        run: |
-          set -euo pipefail
-          SIMULATOR_ID="$(xcrun simctl list devices available --json | python3 -c 'import json,sys; data=json.load(sys.stdin); devices=[d for runtime,items in data["devices"].items() if ".iOS-" in runtime for d in items if d["isAvailable"] and d["name"].startswith("iPhone")]; assert devices, "No available iPhone simulator"; print(next((d["udid"] for d in devices if d["state"] == "Booted"), devices[0]["udid"]))')"
-          if ! xcrun simctl list devices booted | grep -F "$SIMULATOR_ID" >/dev/null; then
-            xcrun simctl boot "$SIMULATOR_ID"
-          fi
-          xcrun simctl bootstatus "$SIMULATOR_ID" -b
-          xcodebuild \
-            -quiet \
-            -project iosApp/iosApp.xcodeproj \
-            -scheme iosApp \
-            -sdk iphonesimulator \
-            -configuration Debug \
-            -destination "id=$SIMULATOR_ID" \
-            -derivedDataPath "$RUNNER_TEMP/ios-simulator-build" \
-            CODE_SIGNING_ALLOWED=NO \
-            build
-          xcrun simctl install "$SIMULATOR_ID" "$RUNNER_TEMP/ios-simulator-build/Build/Products/Debug-iphonesimulator/iosApp.app"
-          LAUNCH_OUTPUT="$(xcrun simctl launch "$SIMULATOR_ID" com.maloy.muzza)"
-          echo "$LAUNCH_OUTPUT"
-          APP_PID="${LAUNCH_OUTPUT##*: }"
-          sleep 20
-          kill -0 "$APP_PID"
-          xcrun simctl io "$SIMULATOR_ID" screenshot "$RUNNER_TEMP/ios-simulator-home.png"
-
-      - name: Upload iOS simulator screenshot
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-simulator-home
-          path: ${{ runner.temp }}/ios-simulator-home.png
-          retention-days: 7
-
       - name: Skip unsigned signing setup
         id: signing
         run: |

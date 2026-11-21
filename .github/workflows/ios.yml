@@ -42,6 +42,7 @@ jobs:
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
             -target iosApp \
+            -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -configuration Debug \
             CODE_SIGN_IDENTITY="" \

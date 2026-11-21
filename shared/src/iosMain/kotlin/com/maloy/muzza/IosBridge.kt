@@ -8,6 +8,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.pages.NextResult
+import com.metrolist.innertubex.models.YouTubeLocale
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import platform.Foundation.NSLocale
 
 @Serializable
 data class IosMediaItem(
@@ -83,6 +85,11 @@ internal val iosJson = Json {
 
 internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBridgeResponse) {
     iosBridgeScope.launch {
+        val locale = NSLocale.currentLocale
+        YouTube.locale = YouTubeLocale(
+            gl = locale.countryCode?.takeIf(String::isNotBlank) ?: "US",
+            hl = locale.languageCode?.takeIf(String::isNotBlank) ?: "en",
+        )
         if (YouTube.visitorData.isNullOrBlank()) {
             YouTube.visitorData = YouTube.visitorData().getOrNull()
                 ?: YouTube.DEFAULT_VISITOR_DATA

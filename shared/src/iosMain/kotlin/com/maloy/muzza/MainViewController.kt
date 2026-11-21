@@ -27,11 +27,12 @@ import com.maloy.muzza.di.initKoinIos
 import com.maloy.muzza.presentation.viewmodel.HomeViewModel
 import com.maloy.muzza.presentation.viewmodel.PlayerViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import platform.UIKit.UIViewController
 
 @Suppress("FunctionName", "unused")
-fun MainViewController() = run {
+fun MainViewController(): UIViewController {
     initKoinIos()
-    ComposeUIViewController {
+    return ComposeUIViewController {
         MuzzaTheme {
         val homeViewModel = koinViewModel<HomeViewModel>()
         val playerViewModel = koinViewModel<PlayerViewModel>()

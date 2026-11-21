@@ -89,7 +89,7 @@ jobs:
 
           xcodebuild \
             -project iosApp/iosApp.xcodeproj \
-            -target iosApp \
+            -scheme iosApp \
             -sdk iphoneos \
             -configuration Release \
             -derivedDataPath iosApp/build \

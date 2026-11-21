@@ -45,6 +45,7 @@ jobs:
             -sdk iphonesimulator \
             -destination 'platform=iOS Simulator,name=iPhone 16,OS=latest' \
             -configuration Debug \
+            -derivedDataPath iosApp/build \
             ARCHS=arm64 \
             ONLY_ACTIVE_ARCH=YES \
             CODE_SIGN_IDENTITY="" \
@@ -57,5 +58,5 @@ jobs:
         with:
           name: muzza-ios-simulator
           path: |
-            ~/Library/Developer/Xcode/DerivedData/**/Build/Products/**/*.app
+            iosApp/build/Build/Products/Debug-iphonesimulator/*.app
           retention-days: 7

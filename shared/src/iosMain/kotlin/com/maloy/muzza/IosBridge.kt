@@ -18,6 +18,7 @@ data class IosMediaItem(
     val title: String,
     val subtitle: String,
     val thumbnail: String,
+    val kind: String,
 )
 
 @Serializable
@@ -30,6 +31,7 @@ data class IosMediaSection(
 data class IosBridgeResponse(
     val sections: List<IosMediaSection> = emptyList(),
     val items: List<IosMediaItem> = emptyList(),
+    val chips: List<String> = emptyList(),
     val error: String? = null,
 )
 
@@ -46,7 +48,13 @@ private fun YTItem.toIosMediaItem(): IosMediaItem {
         is com.maloy.innertube.models.PlaylistItem -> author?.name?.ifBlank { "Playlist" } ?: "Playlist"
         is com.maloy.innertube.models.ArtistItem -> subscriptions?.ifBlank { "Artist" } ?: "Artist"
     }
-    return IosMediaItem(id, title, subtitle, thumbnail)
+    val kind = when (this) {
+        is SongItem -> "song"
+        is com.maloy.innertube.models.AlbumItem -> "album"
+        is com.maloy.innertube.models.PlaylistItem -> "playlist"
+        is com.maloy.innertube.models.ArtistItem -> "artist"
+    }
+    return IosMediaItem(id, title, subtitle, thumbnail, kind)
 }
 
 fun fetchIosHome(hideExplicit: Boolean, completion: (String) -> Unit) {
@@ -61,6 +69,7 @@ fun fetchIosHome(hideExplicit: Boolean, completion: (String) -> Unit) {
         }
         val body = IosBridgeResponse(
             sections = sections,
+            chips = response.getOrNull()?.chips.orEmpty().mapNotNull { it.title },
             error = response.exceptionOrNull()?.message,
         )
         completion(iosJson.encodeToString(body))
@@ -88,7 +97,7 @@ fun fetchIosExplore(completion: (String) -> Unit) {
                 if (moodGenres.isNotEmpty()) add(IosMediaSection(
                     "Moods and genres",
                     moodGenres.map {
-                        IosMediaItem(it.title, it.title, "Mood or genre", "")
+                        IosMediaItem(it.title, it.title, "Mood or genre", "", "genre")
                     },
                 ))
             }

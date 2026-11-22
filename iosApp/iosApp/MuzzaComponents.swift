@@ -53,7 +53,7 @@ struct MuzzaArtwork: View {
     let item: MuzzaLiveItem
     let size: CGFloat
     @State private var modelImage: UIImage?
-    @State private isLoading = false
+    @State private var isLoading = false
     private static let imageCache = NSCache<NSURL, UIImage>()
 
     var body: some View {

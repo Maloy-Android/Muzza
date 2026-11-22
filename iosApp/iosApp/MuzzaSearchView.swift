@@ -1,7 +1,7 @@
 import SwiftUI
 
 private enum MuzzaSearchCategory: String, CaseIterable {
-    case songs, videos, albums, artists, playlists, community
+    case songs, videos, albums, artists, profiles, playlists, community
 
     var title: String {
         switch self {
@@ -9,6 +9,7 @@ private enum MuzzaSearchCategory: String, CaseIterable {
         case .videos: return "Videos"
         case .albums: return "Albums"
         case .artists: return "Artists"
+        case .profiles: return "Profiles"
         case .playlists: return "Playlists"
         case .community: return "Community"
         }
@@ -28,6 +29,7 @@ struct MuzzaSearchView: View {
     @State private var searchError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
+    @State private var loadedContinuations: Set<String> = []
 
     init(playback: MuzzaPlayback) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -81,6 +83,19 @@ struct MuzzaSearchView: View {
                                 }
                             }
                             .buttonStyle(.plain)
+                            .contextMenu {
+                                if ["album", "artist", "playlist"].contains(item.kind) {
+                                    Button {
+                                        playback.toggleSaved(item)
+                                    } label: {
+                                        Label(
+                                            playback.isSaved(item) ? "Remove from library" : "Save",
+                                            systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
+                                        )
+                                    }
+                                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                                }
+                            }
                         }
                     }
                     if isLoading {
@@ -93,7 +108,7 @@ struct MuzzaSearchView: View {
                     if let pageError {
                         MuzzaErrorView(message: pageError) { Task { await loadMore() } }
                     } else if continuation != nil && !isLoading {
-                        ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
+                        ProgressView().frame(maxWidth: .infinity).task(id: continuation) { await loadMore() }
                     }
                 }
                 .padding(16).padding(.bottom, 30)
@@ -117,6 +132,7 @@ struct MuzzaSearchView: View {
         let text = query.trimmingCharacters(in: .whitespacesAndNewlines)
         items = []
         continuation = nil
+        loadedContinuations.removeAll()
         searchError = nil
         pageError = nil
         searched = false
@@ -132,7 +148,7 @@ struct MuzzaSearchView: View {
                 query: text, category: category.rawValue, hideExplicit: hideExplicit, continuation: nil
             )
             guard !Task.isCancelled, requestID == id else { return }
-            items = response.items
+            items = uniqueItems(response.items)
             continuation = response.continuation
             searched = true
         } catch {
@@ -142,7 +158,7 @@ struct MuzzaSearchView: View {
     }
 
     private func loadMore() async {
-        guard !isLoading, let token = continuation else { return }
+        guard !isLoading, let token = continuation, !loadedContinuations.contains(token) else { return }
         let id = requestID
         isLoading = true
         pageError = nil
@@ -153,15 +169,23 @@ struct MuzzaSearchView: View {
                 category: category.rawValue, hideExplicit: hideExplicit, continuation: token
             )
             guard !Task.isCancelled, requestID == id else { return }
-            items.append(contentsOf: response.items)
-            if response.continuation == token {
+            loadedContinuations.insert(token)
+            items = uniqueItems(items + response.items)
+            if response.continuation == token || response.continuation.map({ loadedContinuations.contains($0) }) == true {
                 pageError = "YouTube returned an invalid continuation."
+                continuation = nil
             } else {
+                isLoading = false
                 continuation = response.continuation
             }
         } catch {
             guard !Task.isCancelled, requestID == id else { return }
             pageError = error.localizedDescription
         }
+    }
+
+    private func uniqueItems(_ items: [MuzzaLiveItem]) -> [MuzzaLiveItem] {
+        var seen = Set<String>()
+        return items.filter { seen.insert("\($0.kind):\($0.id)").inserted }
     }
 }

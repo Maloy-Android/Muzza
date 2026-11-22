@@ -13,6 +13,23 @@ struct MuzzaLiveItem: Codable, Identifiable, Hashable {
     let entryId: Int64?
     let downloadPath: String?
     let remoteLiked: Bool?
+    let artists: [MuzzaArtistMetadata]? = nil
+    let album: MuzzaAlbumMetadata? = nil
+    let playlistId: String? = nil
+    let playlistTitle: String? = nil
+    let isEditable: Bool? = nil
+}
+
+struct MuzzaArtistMetadata: Codable, Hashable {
+    let id: String?
+    let name: String
+    let thumbnail: String?
+    let isProfile: Bool?
+}
+
+struct MuzzaAlbumMetadata: Codable, Hashable {
+    let id: String
+    let title: String
 }
 
 struct MuzzaLiveSection: Codable {
@@ -255,8 +272,10 @@ enum MuzzaAPI {
         try await request { IosLibraryKt.clearIosDownload(id: id, completion: $0) }
     }
 
-    static func createPlaylist(_ name: String) async throws -> MuzzaLiveResponse {
-        try await request { IosLibraryKt.createIosPlaylist(name: name, completion: $0) }
+    static func createPlaylist(_ name: String, syncToYouTube: Bool) async throws -> MuzzaLiveResponse {
+        try await request {
+            IosLibraryKt.createIosPlaylist(name: name, syncToYouTube: syncToYouTube, completion: $0)
+        }
     }
 
     static func renamePlaylist(_ playlist: MuzzaLiveItem, name: String) async throws -> MuzzaLiveResponse {

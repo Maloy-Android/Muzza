@@ -30,6 +30,7 @@ struct MuzzaLibraryView: View {
     @State private var showDelete = false
     @State private var playlistToDelete: MuzzaLiveItem?
     @State private var showClearHistory = false
+    @State private var showClearDownloads = false
     @State private var sortMode: MuzzaLibrarySort = .title
 
     init(
@@ -120,6 +121,14 @@ struct MuzzaLibraryView: View {
                             if category == .history && !recent.isEmpty {
                                 Button(role: .destructive) {
                                     showClearHistory = true
+                                } label: {
+                                    Label("Clear", systemImage: "trash")
+                                        .font(.caption.weight(.semibold))
+                                }
+                            }
+                            if category == .downloads && !playback.downloads.isEmpty {
+                                Button(role: .destructive) {
+                                    showClearDownloads = true
                                 } label: {
                                     Label("Clear", systemImage: "trash")
                                         .font(.caption.weight(.semibold))
@@ -236,6 +245,12 @@ struct MuzzaLibraryView: View {
         .confirmationDialog("Clear listening history?", isPresented: $showClearHistory, titleVisibility: .visible) {
             Button("Clear History", role: .destructive) {
                 Task { _ = await playback.clearHistory() }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
+        .confirmationDialog("Clear all downloads?", isPresented: $showClearDownloads, titleVisibility: .visible) {
+            Button("Clear Downloads", role: .destructive) {
+                Task { _ = await playback.clearDownloads() }
             }
             Button("Cancel", role: .cancel) {}
         }

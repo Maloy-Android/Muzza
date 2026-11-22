@@ -933,6 +933,18 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
+    func clearDownloads() async -> Bool {
+        let items = downloads
+        guard !items.isEmpty else { return true }
+        var succeeded = true
+        for item in items {
+            if await removeDownload(item) == false {
+                succeeded = false
+            }
+        }
+        return succeeded
+    }
+
     func stopForSignOut() {
         for task in downloadTasks.values { task.cancel() }
         cancelRadio()

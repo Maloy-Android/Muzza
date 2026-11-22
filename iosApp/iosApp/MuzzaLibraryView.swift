@@ -7,6 +7,12 @@ private enum MuzzaLibraryCategory: String, CaseIterable {
     case artists = "Artists"
     case downloads = "Downloads"
     case history = "History"
+    case stats = "Statistics"
+}
+
+private enum MuzzaLibrarySort: String, CaseIterable {
+    case title = "Title"
+    case reverseTitle = "Title (Z-A)"
 }
 
 struct MuzzaLibraryView: View {
@@ -23,6 +29,7 @@ struct MuzzaLibraryView: View {
     @State private var playlistToRename: MuzzaLiveItem?
     @State private var showDelete = false
     @State private var playlistToDelete: MuzzaLiveItem?
+    @State private var sortMode: MuzzaLibrarySort = .title
 
     init(
         playback: MuzzaPlayback,
@@ -44,6 +51,50 @@ struct MuzzaLibraryView: View {
         playback.recent.filter { !hideExplicit || !($0.explicit ?? false) }
     }
 
+    private var sortedLiked: [MuzzaLiveItem] {
+        liked.sorted { sortMode == .title
+            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+        }
+    }
+
+    private var sortedDownloads: [MuzzaLiveItem] {
+        playback.downloads
+            .filter { !hideExplicit || !($0.explicit ?? false) }
+            .sorted { sortMode == .title
+                ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+                : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+            }
+    }
+
+    private var sortedRecent: [MuzzaLiveItem] {
+        recent.sorted { sortMode == .title
+            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+        }
+    }
+
+    private var sortedAlbums: [MuzzaLiveItem] {
+        playback.albums.sorted { sortMode == .title
+            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+        }
+    }
+
+    private var sortedArtists: [MuzzaLiveItem] {
+        playback.artists.sorted { sortMode == .title
+            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+        }
+    }
+
+    private var sortedPlaylists: [MuzzaLiveItem] {
+        playback.playlists.sorted { sortMode == .title
+            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
+            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+        }
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -62,13 +113,33 @@ struct MuzzaLibraryView: View {
                             }
                         }
                     }
+                    if [.songs, .albums, .artists, .downloads, .history, .playlists].contains(category) {
+                        HStack {
+                            Spacer()
+                            Menu {
+                                ForEach(MuzzaLibrarySort.allCases, id: \.self) { mode in
+                                    Button {
+                                        sortMode = mode
+                                    } label: {
+                                        Label(
+                                            mode.rawValue,
+                                            systemImage: sortMode == mode ? "checkmark" : "arrow.up.arrow.down"
+                                        )
+                                    }
+                                }
+                            } label: {
+                                Label("Sort", systemImage: "arrow.up.arrow.down")
+                                    .font(.caption.weight(.semibold))
+                            }
+                        }
+                    }
                     if playback.isLibraryLoading && !playback.libraryLoaded {
                         ProgressView().frame(maxWidth: .infinity).padding()
                     } else if let error = playback.libraryError {
                         MuzzaErrorView(message: error) { Task { await playback.refreshLibrary() } }
                     } else {
                         categoryContent
-                        if account.profile != nil && category != .history && category != .downloads {
+                        if account.profile != nil && ![MuzzaLibraryCategory.history, .downloads, .stats].contains(category) {
                             MuzzaYouTubeLibraryContent(
                                 category: category,
                                 account: account,
@@ -86,7 +157,7 @@ struct MuzzaLibraryView: View {
             .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
             .refreshable {
                 await playback.refreshLibrary()
-                if account.profile != nil && category != .history && category != .downloads {
+                if account.profile != nil && ![MuzzaLibraryCategory.history, .downloads, .stats].contains(category) {
                     remoteRefresh += 1
                 }
             }
@@ -171,10 +242,10 @@ struct MuzzaLibraryView: View {
             }
             .buttonStyle(.plain)
             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-            if playback.playlists.isEmpty {
+            if sortedPlaylists.isEmpty {
                 MuzzaEmptyView(symbol: "music.note.list", message: "No playlists yet.")
             } else {
-                ForEach(playback.playlists) { playlist in
+                ForEach(sortedPlaylists) { playlist in
                     NavigationLink(value: playlist) {
                         HStack(spacing: 12) {
                             MuzzaArtwork(item: playlist, size: 58)
@@ -214,19 +285,19 @@ struct MuzzaLibraryView: View {
                 }
             }
         case .songs:
-            if liked.isEmpty {
+            if sortedLiked.isEmpty {
                 MuzzaEmptyView(symbol: "heart", message: "No liked songs yet.")
             } else {
-                ForEach(Array(liked.enumerated()), id: \.offset) { index, item in
-                    MuzzaSongRow(item: item, playback: playback, queue: liked, queueIndex: index)
+                ForEach(Array(sortedLiked.enumerated()), id: \.offset) { index, item in
+                    MuzzaSongRow(item: item, playback: playback, queue: sortedLiked, queueIndex: index)
                 }
             }
         case .albums:
-            MuzzaSavedGrid(items: playback.albums, playback: playback, symbol: "square.stack", emptyMessage: "No saved albums yet.")
+            MuzzaSavedGrid(items: sortedAlbums, playback: playback, symbol: "square.stack", emptyMessage: "No saved albums yet.")
         case .artists:
-            MuzzaSavedGrid(items: playback.artists, playback: playback, symbol: "person", emptyMessage: "No saved artists yet.")
+            MuzzaSavedGrid(items: sortedArtists, playback: playback, symbol: "person", emptyMessage: "No saved artists yet.")
         case .downloads:
-            let items = playback.downloads.filter { !hideExplicit || !($0.explicit ?? false) }
+            let items = sortedDownloads
             if items.isEmpty {
                 MuzzaEmptyView(symbol: "arrow.down.circle", message: "No downloaded songs yet.")
             } else {
@@ -235,13 +306,15 @@ struct MuzzaLibraryView: View {
                 }
             }
         case .history:
-            if recent.isEmpty {
+            if sortedRecent.isEmpty {
                 MuzzaEmptyView(symbol: "clock", message: "No listening history yet.")
             } else {
-                ForEach(Array(recent.enumerated()), id: \.offset) { index, item in
-                    MuzzaSongRow(item: item, playback: playback, queue: recent, queueIndex: index)
+                ForEach(Array(sortedRecent.enumerated()), id: \.offset) { index, item in
+                    MuzzaSongRow(item: item, playback: playback, queue: sortedRecent, queueIndex: index)
                 }
             }
+        case .stats:
+            MuzzaListeningStatsView(playback: playback)
         }
     }
 
@@ -253,7 +326,61 @@ struct MuzzaLibraryView: View {
         case .artists: return playback.artists
         case .downloads: return playback.downloads
         case .history: return recent
+        case .stats: return []
         }
+    }
+}
+
+private struct MuzzaListeningStatsView: View {
+    let playback: MuzzaPlayback
+
+    private var listenedDuration: Int {
+        playback.recent.reduce(0) { total, item in
+            total + max(item.duration ?? 0, 0)
+        }
+    }
+
+    var body: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            MuzzaStatCard(
+                title: "Liked",
+                value: "\(playback.liked.count)",
+                icon: "heart.fill"
+            )
+            MuzzaStatCard(
+                title: "Recent tracks",
+                value: "\(playback.recent.count)",
+                icon: "clock.fill"
+            )
+            MuzzaStatCard(
+                title: "Downloads",
+                value: "\(playback.downloads.count)",
+                icon: "arrow.down.circle.fill"
+            )
+            MuzzaStatCard(
+                title: "Recent minutes",
+                value: "\(listenedDuration / 60)",
+                icon: "headphones"
+            )
+        }
+    }
+}
+
+private struct MuzzaStatCard: View {
+    let title: String
+    let value: String
+    let icon: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Image(systemName: icon).font(.title3).foregroundStyle(Color.accentColor)
+            Text(value).font(.title.bold()).monospacedDigit()
+            Text(title).font(.caption).foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
+        .padding()
+        .background(Color(.secondarySystemFill))
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }
 
@@ -486,6 +613,12 @@ struct MuzzaCollectionView: View {
                                 Label("Play", systemImage: "play.fill")
                             }
                             .buttonStyle(.borderedProminent)
+                            Button {
+                                playback.playShuffled(songs)
+                            } label: {
+                                Label("Shuffle", systemImage: "shuffle")
+                            }
+                            .buttonStyle(.bordered)
                         }
                         if ["album", "artist", "playlist"].contains(item.kind) {
                             Button { playback.toggleSaved(item) } label: {

@@ -201,6 +201,22 @@ private struct MuzzaPlayerActionsView: View {
                     } label: {
                         Label("Queue", systemImage: "list.bullet")
                     }
+                    HStack {
+                        Label("Playback speed", systemImage: "speedometer")
+                        Spacer()
+                        Slider(
+                            value: Binding(
+                                get: { playback.playbackRate },
+                                set: { playback.setPlaybackRate($0) }
+                            ),
+                            in: 0.5...2.0,
+                            step: 0.05
+                        )
+                        .frame(width: 150)
+                        Text(String(format: "%.2gx", playback.playbackRate))
+                            .monospacedDigit()
+                            .foregroundStyle(.secondary)
+                    }
                     Toggle(
                         "Autoplay",
                         isOn: Binding(
@@ -454,6 +470,18 @@ struct MuzzaSettingsView: View {
                 Section("Playback") {
                     Toggle("Persistent queue", isOn: $persistentQueue)
                         .onChange(of: persistentQueue) { playback.queuePreferenceChanged($0) }
+                    Picker("Playback speed", selection: Binding(
+                        get: { playback.playbackRate },
+                        set: { playback.setPlaybackRate($0) }
+                    )) {
+                        Text("0.5x").tag(0.5)
+                        Text("0.75x").tag(0.75)
+                        Text("1x").tag(1.0)
+                        Text("1.25x").tag(1.25)
+                        Text("1.5x").tag(1.5)
+                        Text("1.75x").tag(1.75)
+                        Text("2x").tag(2.0)
+                    }
                 }
                 Section("Downloads") {
                     Text("Keep Muzza open while a song is downloading.")

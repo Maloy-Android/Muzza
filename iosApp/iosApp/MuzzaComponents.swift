@@ -349,6 +349,22 @@ struct MuzzaSongRow: View {
                 .disabled(playback.isLibraryBusy)
             }
         }
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button {
+                playback.enqueue(item, playNext: false)
+            } label: {
+                Label("Queue", systemImage: "text.badge.plus")
+            }
+            .tint(.accentColor)
+        }
+        .swipeActions(edge: .leading, allowsFullSwipe: true) {
+            Button {
+                playback.enqueue(item, playNext: true)
+            } label: {
+                Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward")
+            }
+            .tint(.orange)
+        }
         .confirmationDialog("This song is already in the playlist.", isPresented: $showDuplicate, titleVisibility: .visible) {
             if let target = duplicatePlaylist {
                 Button("Add anyway") { add(to: target, allowDuplicate: true) }

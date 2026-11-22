@@ -28,6 +28,7 @@ final class MuzzaPlayback: ObservableObject {
     @Published private(set) var position = 0.0
     @Published private(set) var duration = 0.0
     @Published private(set) var volume = 1.0
+    @Published private(set) var playbackRate = 1.0
     @Published private(set) var queue: [MuzzaLiveItem] = []
     @Published private(set) var queueIndex = 0
     @Published private(set) var isShuffling = false
@@ -81,6 +82,10 @@ final class MuzzaPlayback: ObservableObject {
 
     init() {
         isShuffling = UserDefaults.standard.bool(forKey: "muzza.shuffle")
+        if let savedRate = UserDefaults.standard.object(forKey: "muzza.playbackRate") as? Double,
+           savedRate >= 0.5, savedRate <= 2.0 {
+            playbackRate = savedRate
+        }
         if let savedMode = UserDefaults.standard.string(forKey: "muzza.repeatMode") {
             if let mode = MuzzaRepeatMode(rawValue: savedMode) {
                 repeatMode = mode
@@ -208,6 +213,15 @@ final class MuzzaPlayback: ObservableObject {
         guard value.isFinite else { return }
         volume = min(max(value, 0), 1)
         player.volume = Float(volume)
+    }
+
+    func setPlaybackRate(_ value: Double) {
+        guard value.isFinite else { return }
+        playbackRate = min(max(value, 0.5), 2.0)
+        UserDefaults.standard.set(playbackRate, forKey: "muzza.playbackRate")
+        if isPlaying {
+            player.rate = Float(playbackRate)
+        }
     }
 
     func startSleepTimer(minutes: Int) {
@@ -362,6 +376,37 @@ final class MuzzaPlayback: ObservableObject {
         }
         persistQueue()
         start(item)
+    }
+
+    func playShuffled(_ items: [MuzzaLiveItem]) {
+        let songs = items.filter { $0.kind == "song" }
+        guard let first = songs.shuffled().first else {
+            message = "This item is not a playable song."
+            return
+        }
+        cancelRadio()
+        queueIdentity = UUID()
+        queueRevision += 1
+
+        var shuffled = songs
+        shuffled.shuffle()
+        let originalTokens = songs.map { _ in UUID() }
+        let shuffledTokens = shuffled.map { item in
+            if let index = songs.firstIndex(where: { $0.id == item.id }) {
+                return originalTokens[index]
+            }
+            return UUID()
+        }
+
+        queue = shuffled
+        queueTokens = shuffledTokens
+        queueIndex = max(0, shuffled.firstIndex(where: { $0.id == first.id }) ?? 0)
+        originalQueue = songs
+        originalTokens = originalTokens
+        isShuffling = true
+        UserDefaults.standard.set(true, forKey: "muzza.shuffle")
+        persistQueue()
+        start(queue[queueIndex])
     }
 
     func playQueued(at index: Int) {
@@ -678,7 +723,7 @@ final class MuzzaPlayback: ObservableObject {
             start(current)
         } else {
             if duration > 0, position >= duration - 0.5 { seek(to: 0) }
-            player.play()
+            player.playImmediately(atRate: Float(playbackRate))
         }
     }
 
@@ -933,7 +978,7 @@ final class MuzzaPlayback: ObservableObject {
                 let playerItem = AVPlayerItem(asset: asset)
                 observe(playerItem, playbackID: id)
                 player.replaceCurrentItem(with: playerItem)
-                player.play()
+                player.playImmediately(atRate: Float(playbackRate))
             } catch {
                 guard !Task.isCancelled, id == playbackID else { return }
                 isLoadingAudio = false

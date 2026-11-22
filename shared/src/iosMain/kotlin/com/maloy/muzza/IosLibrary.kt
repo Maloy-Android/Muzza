@@ -258,6 +258,15 @@ fun fetchIosLocalPlaylist(id: String, completion: (String) -> Unit) = iosRequest
     withIosDatabase { it.localPlaylistResponse(id) }
 }
 
+fun fetchIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) {
+    withIosDatabase { db ->
+        IosBridgeResponse(
+            items = db.songQueries.selectLiked().executeAsList()
+                .map { it.toModel().toIosMediaItem() }
+        )
+    }
+}
+
 fun createIosPlaylist(name: String, syncToYouTube: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
     val title = name.trim()
     require(title.isNotEmpty() && title.length <= 120) { "Enter a playlist name of up to 120 characters." }

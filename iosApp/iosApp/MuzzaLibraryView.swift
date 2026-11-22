@@ -51,6 +51,22 @@ struct MuzzaLibraryView: View {
         playback.liked.filter { !hideExplicit || !($0.explicit ?? false) }
     }
 
+    private var likedPlaylist: MuzzaLiveItem {
+        MuzzaLiveItem(
+            id: "liked-songs",
+            title: "Liked Songs",
+            subtitle: "\(liked.count) \(liked.count == 1 ? "song" : "songs")",
+            thumbnail: "",
+            kind: "likedPlaylist",
+            params: nil,
+            explicit: false,
+            duration: nil,
+            entryId: nil,
+            downloadPath: nil,
+            remoteLiked: nil
+        )
+    }
+
     private var recent: [MuzzaLiveItem] {
         playback.recent.filter { !hideExplicit || !($0.explicit ?? false) }
     }
@@ -315,6 +331,24 @@ struct MuzzaLibraryView: View {
     private var categoryContent: some View {
         switch category {
         case .playlists:
+            NavigationLink(value: likedPlaylist) {
+                HStack(spacing: 12) {
+                    ZStack {
+                        RoundedRectangle(cornerRadius: 10)
+                            .fill(Color.accentColor.opacity(0.16))
+                            .frame(width: 58, height: 58)
+                        Image(systemName: "heart.fill")
+                            .foregroundStyle(Color.accentColor)
+                    }
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("Liked Songs").font(.headline).lineLimit(1)
+                        Text(likedPlaylist.subtitle).font(.caption).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                }
+            }
+            .buttonStyle(.plain)
             Button {
                 playlistToRename = nil
                 playlistName = ""

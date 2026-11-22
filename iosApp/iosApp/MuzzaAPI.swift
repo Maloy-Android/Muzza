@@ -158,6 +158,9 @@ enum MuzzaAPI {
     static func collection(
         _ item: MuzzaLiveItem, hideExplicit: Bool, continuation: String? = nil
     ) async throws -> MuzzaLiveResponse {
+        if item.kind == "likedPlaylist" {
+            return try await request { IosLibraryKt.fetchIosLikedPlaylist(completion: $0) }
+        }
         if item.kind == "localPlaylist" {
             return try await request { IosLibraryKt.fetchIosLocalPlaylist(id: item.id, completion: $0) }
         }

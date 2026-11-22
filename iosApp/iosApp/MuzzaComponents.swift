@@ -88,31 +88,63 @@ struct MuzzaMediaSectionView: View {
                     }
                 }
             }
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 14) {
-                    ForEach(Array(section.items.enumerated()), id: \.offset) { _, item in
-                        if item.kind == "genre" {
-                            NavigationLink(value: item) {
-                                Text(item.title).font(.subheadline.weight(.semibold))
-                                    .frame(width: 156, height: 62, alignment: .leading)
-                                    .padding(.horizontal, 12)
-                                    .background(Color(.secondarySystemFill))
-                                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                            }
-                            .buttonStyle(.plain)
-                        } else if item.kind == "song" {
-                            Button { playback.play(item, in: section.items) } label: {
-                                MuzzaMediaCard(item: item)
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                Button("Start radio") { playback.startRadio(item) }
-                                Button("Play next") { playback.enqueue(item, playNext: true) }
-                                Button("Add to queue") { playback.enqueue(item, playNext: false) }
-                            }
-                        } else {
-                            NavigationLink(value: item) { MuzzaMediaCard(item: item) }
+            if section.items.allSatisfy({ $0.kind == "genre" }) {
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
+                    ForEach(section.items) { item in
+                        NavigationLink(value: item) {
+                            Text(item.title)
+                                .font(.subheadline.weight(.semibold))
+                                .lineLimit(1)
+                                .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
+                                .padding(.horizontal, 8)
+                                .background(Color(.secondarySystemFill))
+                                .clipShape(RoundedRectangle(cornerRadius: 8))
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            } else {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 14) {
+                        ForEach(Array(section.items.enumerated()), id: \.offset) { _, item in
+                            if item.kind == "song" {
+                                Button { playback.play(item, in: section.items) } label: {
+                                    MuzzaMediaCard(item: item)
+                                }
                                 .buttonStyle(.plain)
+                                .contextMenu {
+                                    Button("Start radio") { playback.startRadio(item) }
+                                    Button("Play next") { playback.enqueue(item, playNext: true) }
+                                    Button("Add to queue") { playback.enqueue(item, playNext: false) }
+                                    Button(playback.isLiked(item) ? "Remove like" : "Like") {
+                                        playback.toggleLike(item)
+                                    }
+                                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                                    if playback.isDownloaded(item) {
+                                        Button("Remove download", role: .destructive) {
+                                            Task { _ = await playback.removeDownload(item) }
+                                        }
+                                    } else {
+                                        Button("Download") { playback.download(item) }
+                                    }
+                                }
+                            } else {
+                                NavigationLink(value: item) { MuzzaMediaCard(item: item) }
+                                    .buttonStyle(.plain)
+                                    .contextMenu {
+                                        if ["album", "artist", "playlist"].contains(item.kind) {
+                                            Button {
+                                                playback.toggleSaved(item)
+                                            } label: {
+                                                Label(
+                                                    playback.isSaved(item) ? "Remove from library" : "Save",
+                                                    systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
+                                                )
+                                            }
+                                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                                        }
+                                    }
+                            }
                         }
                     }
                 }
@@ -221,10 +253,13 @@ struct MuzzaSongRow: View {
                 }
                 .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
 
-                let localPlaylists = playback.playlists.filter { $0.kind == "localPlaylist" }
-                if !localPlaylists.isEmpty {
+                let addablePlaylists = playback.playlists.filter {
+                    $0.kind == "localPlaylist" ||
+                        ($0.kind == "playlist" && $0.isEditable == true && playback.canSyncPlaylists)
+                }
+                if !addablePlaylists.isEmpty {
                     Menu("Add to playlist") {
-                        ForEach(localPlaylists) { target in
+                        ForEach(addablePlaylists) { target in
                             Button(target.title) { add(to: target, allowDuplicate: false) }
                         }
                     }
@@ -268,6 +303,51 @@ struct MuzzaSongRow: View {
                 }
             }
             .accessibilityLabel("Song actions")
+        }
+        .contextMenu {
+            Button("Start radio") { playback.startRadio(item) }
+            Button("Play next") { playback.enqueue(item, playNext: true) }
+            Button("Add to queue") { playback.enqueue(item, playNext: false) }
+            Button(playback.isLiked(item) ? "Remove like" : "Like") {
+                playback.toggleLike(item)
+            }
+            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+            let addablePlaylists = playback.playlists.filter {
+                $0.kind == "localPlaylist" ||
+                    ($0.kind == "playlist" && $0.isEditable == true && playback.canSyncPlaylists)
+            }
+            if !addablePlaylists.isEmpty {
+                Menu("Add to playlist") {
+                    ForEach(addablePlaylists) { target in
+                        Button(target.title) { add(to: target, allowDuplicate: false) }
+                    }
+                }
+                .disabled(playback.isLibraryBusy)
+            }
+            if playback.isDownloaded(item) {
+                Button(role: .destructive) {
+                    Task { _ = await playback.removeDownload(item) }
+                } label: {
+                    Label("Remove download", systemImage: "arrow.down.circle")
+                }
+            } else {
+                Button("Download") { playback.download(item) }
+            }
+            if let playlist {
+                Button(role: .destructive) {
+                    Task {
+                        do {
+                            let updated = try await playback.remove(item, from: playlist)
+                            onPlaylistChange?(updated)
+                        } catch {
+                            playback.message = error.localizedDescription
+                        }
+                    }
+                } label: {
+                    Label("Remove from playlist", systemImage: "minus.circle")
+                }
+                .disabled(playback.isLibraryBusy)
+            }
         }
         .confirmationDialog("This song is already in the playlist.", isPresented: $showDuplicate, titleVisibility: .visible) {
             if let target = duplicatePlaylist {

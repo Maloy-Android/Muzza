@@ -9,11 +9,6 @@ private enum MuzzaLibraryCategory: String, CaseIterable {
     case history = "History"
 }
 
-private enum MuzzaLibrarySource: String, CaseIterable {
-    case device = "On device"
-    case youtube = "YouTube Music"
-}
-
 struct MuzzaLibraryView: View {
     @ObservedObject var playback: MuzzaPlayback
     @ObservedObject var account: MuzzaAccount
@@ -21,10 +16,10 @@ struct MuzzaLibraryView: View {
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var category: MuzzaLibraryCategory = .playlists
-    @State private var source: MuzzaLibrarySource = .device
     @State private var remoteRefresh = 0
     @State private var showPlaylistDialog = false
     @State private var playlistName = ""
+    @State private var syncPlaylist = false
     @State private var playlistToRename: MuzzaLiveItem?
     @State private var showDelete = false
     @State private var playlistToDelete: MuzzaLiveItem?
@@ -54,19 +49,9 @@ struct MuzzaLibraryView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 20) {
                     MuzzaHeader("Library", search: { showSearch = true }, settings: { showSettings = true })
-                    if account.profile != nil {
-                        Picker("Library source", selection: $source) {
-                            ForEach(MuzzaLibrarySource.allCases, id: \.self) { value in
-                                Text(LocalizedStringKey(value.rawValue)).tag(value)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                    }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
-                            ForEach(MuzzaLibraryCategory.allCases.filter {
-                                source == .device || ($0 != .history && $0 != .downloads)
-                            }, id: \.self) { item in
+                            ForEach(MuzzaLibraryCategory.allCases, id: \.self) { item in
                                 Button { category = item } label: {
                                     Text(LocalizedStringKey(item.rawValue)).font(.subheadline.weight(.semibold))
                                         .padding(.horizontal, 15).padding(.vertical, 9)
@@ -77,16 +62,21 @@ struct MuzzaLibraryView: View {
                             }
                         }
                     }
-                    if source == .youtube && account.profile != nil {
-                        MuzzaYouTubeLibraryContent(
-                            category: category, account: account, playback: playback, refreshToken: remoteRefresh
-                        )
-                    } else if playback.isLibraryLoading && !playback.libraryLoaded {
+                    if playback.isLibraryLoading && !playback.libraryLoaded {
                         ProgressView().frame(maxWidth: .infinity).padding()
                     } else if let error = playback.libraryError {
                         MuzzaErrorView(message: error) { Task { await playback.refreshLibrary() } }
                     } else {
                         categoryContent
+                        if account.profile != nil && category != .history && category != .downloads {
+                            MuzzaYouTubeLibraryContent(
+                                category: category,
+                                account: account,
+                                playback: playback,
+                                excludedIDs: Set(localItems(for: category).map(\.id)),
+                                refreshToken: remoteRefresh
+                            )
+                        }
                     }
                 }
                 .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 100)
@@ -95,50 +85,62 @@ struct MuzzaLibraryView: View {
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
             .refreshable {
-                if source == .youtube {
+                await playback.refreshLibrary()
+                if account.profile != nil && category != .history && category != .downloads {
                     remoteRefresh += 1
-                } else {
-                    await playback.refreshLibrary()
                 }
-            }
-            .onChange(of: source) { value in
-                if value == .youtube && (category == .history || category == .downloads) { category = .songs }
-            }
-            .onChange(of: account.revision) { _ in
-                if account.profile == nil { source = .device }
             }
         }
-        .alert(
-            LocalizedStringKey(playlistToRename == nil ? "New playlist" : "Rename playlist"),
-            isPresented: $showPlaylistDialog
-        ) {
-            TextField("Playlist name", text: $playlistName)
-            Button("Cancel", role: .cancel) {
-                playlistName = ""
-                playlistToRename = nil
-            }
-            Button {
-                let name = playlistName
-                let playlist = playlistToRename
-                Task {
-                    let succeeded: Bool
-                    if let playlist {
-                        succeeded = await playback.renamePlaylist(playlist, name: name)
-                    } else {
-                        succeeded = await playback.createPlaylist(name)
-                    }
-                    if succeeded {
-                        playlistName = ""
-                        playlistToRename = nil
+        .sheet(isPresented: $showPlaylistDialog) {
+            NavigationStack {
+                Form {
+                    TextField("Playlist name", text: $playlistName)
+                        .textInputAutocapitalization(.words)
+                    if playlistToRename == nil {
+                        if account.profile != nil {
+                            Toggle("Sync with YouTube Music", isOn: $syncPlaylist)
+                        }
+                        Text(syncPlaylist && account.profile != nil
+                             ? "This playlist will be created in your YouTube Music account."
+                             : "The playlist is stored on this device.")
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
                     }
                 }
-            } label: {
-                Text(LocalizedStringKey(playlistToRename == nil ? "Create" : "Save"))
-            }
-            .disabled(playlistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
-        } message: {
-            if playlistToRename == nil {
-                Text("The playlist is stored on this device.")
+                .navigationTitle(playlistToRename == nil ? "New playlist" : "Rename playlist")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") {
+                            showPlaylistDialog = false
+                            playlistName = ""
+                            playlistToRename = nil
+                            syncPlaylist = false
+                        }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button(playlistToRename == nil ? "Create" : "Save") {
+                            let name = playlistName
+                            let playlist = playlistToRename
+                            let shouldSync = syncPlaylist && account.profile != nil && playlist == nil
+                            Task {
+                                let succeeded: Bool
+                                if let playlist {
+                                    succeeded = await playback.renamePlaylist(playlist, name: name)
+                                } else {
+                                    succeeded = await playback.createPlaylist(name, syncToYouTube: shouldSync)
+                                }
+                                if succeeded {
+                                    showPlaylistDialog = false
+                                    playlistName = ""
+                                    playlistToRename = nil
+                                    syncPlaylist = false
+                                }
+                            }
+                        }
+                        .disabled(playlistName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    }
+                }
             }
         }
         .confirmationDialog("Delete playlist?", isPresented: $showDelete, titleVisibility: .visible) {
@@ -160,6 +162,7 @@ struct MuzzaLibraryView: View {
             Button {
                 playlistToRename = nil
                 playlistName = ""
+                syncPlaylist = false
                 showPlaylistDialog = true
             } label: {
                 Label("New playlist", systemImage: "plus").font(.headline)
@@ -206,6 +209,7 @@ struct MuzzaLibraryView: View {
                                 Label("Remove from library", systemImage: "bookmark.slash")
                             }
                         }
+
                     }
                 }
             }
@@ -218,9 +222,9 @@ struct MuzzaLibraryView: View {
                 }
             }
         case .albums:
-            MuzzaSavedGrid(items: playback.albums, symbol: "square.stack", emptyMessage: "No saved albums yet.")
+            MuzzaSavedGrid(items: playback.albums, playback: playback, symbol: "square.stack", emptyMessage: "No saved albums yet.")
         case .artists:
-            MuzzaSavedGrid(items: playback.artists, symbol: "person", emptyMessage: "No saved artists yet.")
+            MuzzaSavedGrid(items: playback.artists, playback: playback, symbol: "person", emptyMessage: "No saved artists yet.")
         case .downloads:
             let items = playback.downloads.filter { !hideExplicit || !($0.explicit ?? false) }
             if items.isEmpty {
@@ -240,12 +244,24 @@ struct MuzzaLibraryView: View {
             }
         }
     }
+
+    private func localItems(for category: MuzzaLibraryCategory) -> [MuzzaLiveItem] {
+        switch category {
+        case .playlists: return playback.playlists
+        case .songs: return liked
+        case .albums: return playback.albums
+        case .artists: return playback.artists
+        case .downloads: return playback.downloads
+        case .history: return recent
+        }
+    }
 }
 
 private struct MuzzaYouTubeLibraryContent: View {
     let category: MuzzaLibraryCategory
     @ObservedObject var account: MuzzaAccount
     @ObservedObject var playback: MuzzaPlayback
+    let excludedIDs: Set<String>
     let refreshToken: Int
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var items: [MuzzaLiveItem] = []
@@ -254,15 +270,25 @@ private struct MuzzaYouTubeLibraryContent: View {
     @State private var loadError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
-    init(category: MuzzaLibraryCategory, account: MuzzaAccount, playback: MuzzaPlayback, refreshToken: Int) {
+    @State private var loadedKey: String?
+    @State private var loadedContinuations: Set<String> = []
+    init(
+        category: MuzzaLibraryCategory,
+        account: MuzzaAccount,
+        playback: MuzzaPlayback,
+        excludedIDs: Set<String>,
+        refreshToken: Int
+    ) {
         self.category = category
         _account = ObservedObject(wrappedValue: account)
         _playback = ObservedObject(wrappedValue: playback)
+        self.excludedIDs = excludedIDs
         self.refreshToken = refreshToken
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            Text("YouTube Music").font(.title2.bold())
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 if item.kind == "song" {
                     MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
@@ -279,6 +305,19 @@ private struct MuzzaYouTubeLibraryContent: View {
                         }
                     }
                     .buttonStyle(.plain)
+                    .contextMenu {
+                        if ["album", "artist", "playlist"].contains(item.kind) {
+                            Button {
+                                playback.toggleSaved(item)
+                            } label: {
+                                Label(
+                                    playback.isSaved(item) ? "Remove from library" : "Save",
+                                    systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
+                                )
+                            }
+                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                        }
+                    }
                 }
             }
             if isLoading {
@@ -291,7 +330,7 @@ private struct MuzzaYouTubeLibraryContent: View {
             if let pageError {
                 MuzzaErrorView(message: pageError) { Task { await loadMore() } }
             } else if continuation != nil && !isLoading {
-                ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
+                ProgressView().frame(maxWidth: .infinity).task(id: continuation) { await loadMore() }
             }
         }
         .task(id: "\(category.rawValue)-\(account.revision)-\(playback.libraryChangeToken)-\(hideExplicit)-\(refreshToken)") {
@@ -302,19 +341,26 @@ private struct MuzzaYouTubeLibraryContent: View {
     private func reload() async {
         let id = UUID()
         requestID = id
+        let key = "\(category.rawValue)-\(account.revision)-\(hideExplicit)"
+        let canPreserveItems = loadedKey == key
         isLoading = true
         loadError = nil
         pageError = nil
-        items = []
-        continuation = nil
+        if !canPreserveItems {
+            continuation = nil
+        }
         defer { if requestID == id { isLoading = false } }
         do {
             let response = try await MuzzaAPI.youtubeLibrary(
                 category: category.rawValue.lowercased(), hideExplicit: hideExplicit, continuation: nil
             )
             guard !Task.isCancelled, requestID == id else { return }
-            items = response.items
+            let freshItems = response.items.filter { !excludedIDs.contains($0.id) }
+            let retainedItems = items.filter { !excludedIDs.contains($0.id) }
+            items = uniqueItems(canPreserveItems ? freshItems + retainedItems : freshItems)
             continuation = response.continuation
+            loadedKey = key
+            loadedContinuations.removeAll()
         } catch {
             guard !Task.isCancelled, requestID == id else { return }
             loadError = error.localizedDescription
@@ -322,7 +368,7 @@ private struct MuzzaYouTubeLibraryContent: View {
     }
 
     private func loadMore() async {
-        guard !isLoading, let token = continuation else { return }
+        guard !isLoading, let token = continuation, !loadedContinuations.contains(token) else { return }
         let id = requestID
         isLoading = true
         pageError = nil
@@ -332,10 +378,13 @@ private struct MuzzaYouTubeLibraryContent: View {
                 category: category.rawValue.lowercased(), hideExplicit: hideExplicit, continuation: token
             )
             guard !Task.isCancelled, requestID == id else { return }
-            items.append(contentsOf: response.items)
-            if response.continuation == token {
+            loadedContinuations.insert(token)
+            items = uniqueItems(items + response.items.filter { !excludedIDs.contains($0.id) })
+            if response.continuation == token || response.continuation.map({ loadedContinuations.contains($0) }) == true {
                 pageError = "YouTube returned an invalid continuation."
+                continuation = nil
             } else {
+                isLoading = false
                 continuation = response.continuation
             }
         } catch {
@@ -343,16 +392,23 @@ private struct MuzzaYouTubeLibraryContent: View {
             pageError = error.localizedDescription
         }
     }
+
+    private func uniqueItems(_ items: [MuzzaLiveItem]) -> [MuzzaLiveItem] {
+        var seen = Set<String>()
+        return items.filter { seen.insert("\($0.kind):\($0.id)").inserted }
+    }
 }
 
 private struct MuzzaSavedGrid: View {
     let items: [MuzzaLiveItem]
+    let playback: MuzzaPlayback
     let symbol: String
     let emptyMessage: String
     private let columns = [GridItem(.flexible()), GridItem(.flexible())]
 
-    init(items: [MuzzaLiveItem], symbol: String, emptyMessage: String) {
+    init(items: [MuzzaLiveItem], playback: MuzzaPlayback, symbol: String, emptyMessage: String) {
         self.items = items
+        self.playback = playback
         self.symbol = symbol
         self.emptyMessage = emptyMessage
     }
@@ -372,6 +428,19 @@ private struct MuzzaSavedGrid: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
                     .buttonStyle(.plain)
+                    .contextMenu {
+                        if ["album", "artist", "playlist"].contains(item.kind) {
+                            Button {
+                                playback.toggleSaved(item)
+                            } label: {
+                                Label(
+                                    playback.isSaved(item) ? "Remove from library" : "Save",
+                                    systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
+                                )
+                            }
+                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                        }
+                    }
                 }
             }
         }
@@ -389,6 +458,8 @@ struct MuzzaCollectionView: View {
     @State private var loadError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
+    @State private var loadedKey: String?
+    @State private var loadedContinuations: Set<String> = []
     @State private var showPlaylistEditor = false
 
     init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
@@ -456,7 +527,7 @@ struct MuzzaCollectionView: View {
                 if let pageError {
                     MuzzaErrorView(message: pageError) { Task { await loadMore() } }
                 } else if continuation != nil && !isLoading {
-                    ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
+                    ProgressView().frame(maxWidth: .infinity).task(id: continuation) { await loadMore() }
                 }
             }
             .padding(.horizontal, 16).padding(.bottom, 100)
@@ -481,19 +552,23 @@ struct MuzzaCollectionView: View {
     private func reload() async {
         let id = UUID()
         requestID = id
+        let key = "\(item.kind)-\(item.id)-\(hideExplicit)"
+        let canPreserveItems = loadedKey == key
         isLoading = true
         loadError = nil
         pageError = nil
-        songs = []
-        sections = []
-        continuation = nil
+        if !canPreserveItems {
+            continuation = nil
+        }
         defer { if requestID == id { isLoading = false } }
         do {
             let response = try await MuzzaAPI.collection(item, hideExplicit: hideExplicit)
             guard !Task.isCancelled, requestID == id else { return }
-            songs = visible(response.items)
-            sections = response.sections
+            songs = uniqueItems(canPreserveItems ? visible(response.items) + songs : visible(response.items))
+            sections = mergedSections(response.sections, preserving: canPreserveItems ? sections : [])
             continuation = response.continuation
+            loadedKey = key
+            loadedContinuations.removeAll()
         } catch {
             guard !Task.isCancelled, requestID == id else { return }
             loadError = error.localizedDescription
@@ -501,7 +576,7 @@ struct MuzzaCollectionView: View {
     }
 
     private func loadMore() async {
-        guard !isLoading, let token = continuation else { return }
+        guard !isLoading, let token = continuation, !loadedContinuations.contains(token) else { return }
         let id = requestID
         isLoading = true
         pageError = nil
@@ -509,15 +584,50 @@ struct MuzzaCollectionView: View {
         do {
             let response = try await MuzzaAPI.collection(item, hideExplicit: hideExplicit, continuation: token)
             guard !Task.isCancelled, requestID == id else { return }
-            songs.append(contentsOf: visible(response.items))
-            if response.continuation == token {
+            loadedContinuations.insert(token)
+            songs = uniqueItems(songs + visible(response.items))
+            sections = mergedSections(response.sections, preserving: sections)
+            if response.continuation == token || response.continuation.map({ loadedContinuations.contains($0) }) == true {
                 pageError = "YouTube returned an invalid continuation."
+                continuation = nil
             } else {
+                isLoading = false
                 continuation = response.continuation
             }
         } catch {
             guard !Task.isCancelled, requestID == id else { return }
             pageError = error.localizedDescription
         }
+    }
+
+    private func uniqueItems(_ items: [MuzzaLiveItem]) -> [MuzzaLiveItem] {
+        var seen = Set<String>()
+        return items.filter { seen.insert("\($0.kind):\($0.id)").inserted }
+    }
+
+    private func mergedSections(
+        _ fresh: [MuzzaLiveSection],
+        preserving old: [MuzzaLiveSection]
+    ) -> [MuzzaLiveSection] {
+        var merged = fresh
+        for oldSection in old {
+            if let index = merged.firstIndex(where: {
+                $0.title == oldSection.title && $0.moreItem?.id == oldSection.moreItem?.id
+            }) {
+                let current = merged[index]
+                var seen = Set<String>()
+                let items = (current.items + oldSection.items).filter {
+                    seen.insert("\($0.kind):\($0.id)").inserted
+                }
+                merged[index] = MuzzaLiveSection(
+                    title: current.title,
+                    items: items,
+                    moreItem: current.moreItem ?? oldSection.moreItem
+                )
+            } else {
+                merged.append(oldSection)
+            }
+        }
+        return merged
     }
 }

@@ -25,6 +25,7 @@ private struct MuzzaBackupSnapshot: Codable {
     let artists: [MuzzaLiveItem]
     let downloads: [MuzzaLiveItem]
     let recent: [MuzzaLiveItem]
+    let recentPlayedAt: [String: Double]
 }
 
 struct MuzzaQueueEntry: Identifiable {
@@ -85,6 +86,7 @@ final class MuzzaPlayback: ObservableObject {
     private var radioRequestID = UUID()
     private var libraryRevision = 0
     private var recentRevision = 0
+    private var recentPlayedAt: [String: Date] = [:]
     private var resourceLoader: MuzzaResourceLoader?
     private var itemObservation: NSKeyValueObservation?
     private var playerObservation: NSKeyValueObservation?
@@ -108,6 +110,12 @@ final class MuzzaPlayback: ObservableObject {
             }
         }
         restoreQueue()
+        if let data = UserDefaults.standard.data(forKey: "muzza.recentPlayedAt"),
+           let stored = try? JSONDecoder().decode([String: Double].self, from: data) {
+            recentPlayedAt = stored.reduce(into: [:]) { result, entry in
+                result[entry.key] = Date(timeIntervalSince1970: entry.value)
+            }
+        }
         observePlayer()
         configureAudioRouteObserver()
         configureRemoteCommands()
@@ -210,7 +218,21 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     func clearHistory() async -> Bool {
-        await changeLibrary { try await MuzzaAPI.clearHistory() }
+        let cleared = await changeLibrary { try await MuzzaAPI.clearHistory() }
+        if cleared {
+            recentPlayedAt.removeAll()
+            UserDefaults.standard.removeObject(forKey: "muzza.recentPlayedAt")
+        }
+        return cleared
+    }
+
+    func recentItems(withinDays days: Int?) -> [MuzzaLiveItem] {
+        guard let days else { return recent }
+        let cutoff = Date().addingTimeInterval(-Double(days * 24 * 60 * 60))
+        return recent.filter { item in
+            guard let playedAt = recentPlayedAt[item.id] else { return false }
+            return playedAt >= cutoff
+        }
     }
 
     func exportBackup() throws -> Data {
@@ -248,7 +270,10 @@ final class MuzzaPlayback: ObservableObject {
             albums: albums,
             artists: artists,
             downloads: downloads,
-            recent: recent
+            recent: recent,
+            recentPlayedAt: recentPlayedAt.reduce(into: [:]) { result, entry in
+                result[entry.key] = entry.value.timeIntervalSince1970
+            }
         )
         return try JSONEncoder().encode(snapshot)
     }
@@ -299,6 +324,12 @@ final class MuzzaPlayback: ObservableObject {
             artists = snapshot.artists
             downloads = snapshot.downloads
             recent = snapshot.recent
+            recentPlayedAt = snapshot.recentPlayedAt.reduce(into: [:]) { result, entry in
+                result[entry.key] = Date(timeIntervalSince1970: entry.value)
+            }
+            if let data = try? JSONEncoder().encode(snapshot.recentPlayedAt) {
+                defaults.set(data, forKey: "muzza.recentPlayedAt")
+            }
             libraryLoaded = true
             libraryChangeToken += 1
             restoreQueue()
@@ -1293,6 +1324,13 @@ final class MuzzaPlayback: ObservableObject {
 
     private func record(_ item: MuzzaLiveItem) {
         guard !UserDefaults.standard.bool(forKey: "muzza.pauseListenHistory") else { return }
+        recentPlayedAt[item.id] = Date()
+        let timestampSnapshot = recentPlayedAt.reduce(into: [String: Double]()) { result, entry in
+            result[entry.key] = entry.value.timeIntervalSince1970
+        }
+        if let data = try? JSONEncoder().encode(timestampSnapshot) {
+            UserDefaults.standard.set(data, forKey: "muzza.recentPlayedAt")
+        }
         recentRevision += 1
         let revision = recentRevision
         Task {

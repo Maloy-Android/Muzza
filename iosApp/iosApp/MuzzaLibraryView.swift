@@ -441,35 +441,65 @@ struct MuzzaLibraryView: View {
 
 private struct MuzzaListeningStatsView: View {
     let playback: MuzzaPlayback
+    @State private var period: MuzzaStatsPeriod = .month
+
+    private enum MuzzaStatsPeriod: String, CaseIterable {
+        case week = "7 days"
+        case month = "30 days"
+        case year = "Year"
+        case all = "All"
+
+        var days: Int? {
+            switch self {
+            case .week: return 7
+            case .month: return 30
+            case .year: return 365
+            case .all: return nil
+            }
+        }
+    }
+
+    private var periodItems: [MuzzaLiveItem] {
+        playback.recentItems(withinDays: period.days)
+    }
 
     private var listenedDuration: Int {
-        playback.recent.reduce(0) { total, item in
+        periodItems.reduce(0) { total, item in
             total + max(item.duration ?? 0, 0)
         }
     }
 
     var body: some View {
-        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-            MuzzaStatCard(
-                title: "Liked",
-                value: "\(playback.liked.count)",
-                icon: "heart.fill"
-            )
-            MuzzaStatCard(
-                title: "Recent tracks",
-                value: "\(playback.recent.count)",
-                icon: "clock.fill"
-            )
-            MuzzaStatCard(
-                title: "Downloads",
-                value: "\(playback.downloads.count)",
-                icon: "arrow.down.circle.fill"
-            )
-            MuzzaStatCard(
-                title: "Recent minutes",
-                value: "\(listenedDuration / 60)",
-                icon: "headphones"
-            )
+        VStack(alignment: .leading, spacing: 12) {
+            Picker("Period", selection: $period) {
+                ForEach(MuzzaStatsPeriod.allCases, id: \.self) { value in
+                    Text(value.rawValue).tag(value)
+                }
+            }
+            .pickerStyle(.segmented)
+
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                MuzzaStatCard(
+                    title: "Liked",
+                    value: "\(playback.liked.count)",
+                    icon: "heart.fill"
+                )
+                MuzzaStatCard(
+                    title: "Period tracks",
+                    value: "\(periodItems.count)",
+                    icon: "clock.fill"
+                )
+                MuzzaStatCard(
+                    title: "Downloads",
+                    value: "\(playback.downloads.count)",
+                    icon: "arrow.down.circle.fill"
+                )
+                MuzzaStatCard(
+                    title: "Period minutes",
+                    value: "\(listenedDuration / 60)",
+                    icon: "headphones"
+                )
+            }
         }
     }
 }

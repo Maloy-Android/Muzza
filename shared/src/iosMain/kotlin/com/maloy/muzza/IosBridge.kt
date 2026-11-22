@@ -442,7 +442,7 @@ private suspend fun fetchIosLibraryPage(
     return IosBridgeResponse(items = items, continuation = nextContinuation)
 }
 
-private suspend fun fetchIosPlaylistSongs(
+internal suspend fun fetchIosPlaylistSongs(
     playlistId: String,
     continuation: String?,
     setLogin: Boolean,
@@ -488,8 +488,9 @@ private suspend fun fetchIosPlaylistSongs(
     val nextContinuation = response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
-        ?: response.onResponseReceivedActions?.firstOrNull()
-            ?.appendContinuationItemsAction?.continuationItems?.getContinuation()
+        ?: response.onResponseReceivedActions?.asSequence()
+            ?.mapNotNull { it.appendContinuationItemsAction?.continuationItems?.getContinuation() }
+            ?.firstOrNull()
         ?: initialSections.firstNotNullOfOrNull { section ->
             section.musicPlaylistShelfRenderer?.let { shelf ->
                 shelf.contents.getContinuation() ?: shelf.continuations?.getContinuation()
@@ -526,6 +527,11 @@ fun fetchIosHome(
         }
     val nextContinuation = sectionList?.continuations?.getContinuation()
         ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
+        ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
+        ?: response.continuationContents?.gridContinuation?.continuations?.getContinuation()
+        ?: response.onResponseReceivedActions?.asSequence()
+            ?.mapNotNull { it.appendContinuationItemsAction?.continuationItems?.getContinuation() }
+            ?.firstOrNull()
     IosBridgeResponse(
         sections = sections,
         chips = sectionList?.header?.chipCloudRenderer?.chips.orEmpty().mapNotNull {

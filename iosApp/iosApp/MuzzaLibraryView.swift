@@ -486,8 +486,10 @@ struct MuzzaLibraryView: View {
 
     private func batchUnlike() {
         let items = sortedLiked.filter { selectedIDs.contains($0.id) }
-        for item in items { playback.toggleLike(item) }
-        selectedIDs.removeAll()
+        Task {
+            await playback.removeLikes(items)
+            selectedIDs.removeAll()
+        }
     }
 
     private func batchAdd(to playlist: MuzzaLiveItem) {

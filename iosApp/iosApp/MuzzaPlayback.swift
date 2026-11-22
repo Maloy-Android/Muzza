@@ -194,6 +194,17 @@ final class MuzzaPlayback: ObservableObject {
                 applyLibrary(response, includeRecent: recentAtStart == recentRevision)
             }
             libraryLoaded = true
+            if hasSignedInAccount,
+               UserDefaults.standard.object(forKey: "muzza.syncLikes") as? Bool ?? true {
+                do {
+                    let synced = try await MuzzaAPI.syncRemoteLikes()
+                    if revision == libraryRevision {
+                        applyLibrary(synced, includeRecent: recentAtStart == recentRevision)
+                    }
+                } catch {
+                    libraryError = nil
+                }
+            }
         } catch {
             libraryError = error.localizedDescription
         }
@@ -206,6 +217,12 @@ final class MuzzaPlayback: ObservableObject {
             if await changeLibrary({ try await MuzzaAPI.setLiked(item, liked: next) }) {
                 likeOverrides[item.id] = next
             }
+        }
+    }
+
+    func removeLikes(_ items: [MuzzaLiveItem]) async {
+        for item in items {
+            _ = await changeLibrary { try await MuzzaAPI.setLiked(item, liked: false) }
         }
     }
 

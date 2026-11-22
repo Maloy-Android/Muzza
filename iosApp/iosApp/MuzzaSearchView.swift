@@ -45,6 +45,9 @@ struct MuzzaSearchView: View {
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                             .submitLabel(.search)
+                            .onSubmit {
+                                Task { await search() }
+                            }
                         if !query.isEmpty {
                             Button { query = "" } label: { Image(systemName: "xmark.circle.fill") }
                                 .accessibilityLabel("Clear search")
@@ -122,7 +125,7 @@ struct MuzzaSearchView: View {
                 }
             }
             .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
-            .task(id: "\(category.rawValue)-\(hideExplicit)-\(query)") { await search() }
+            .task(id: "\(category.rawValue)-\(hideExplicit)") { await search() }
         }
     }
 

@@ -82,6 +82,7 @@ struct ContentView: View {
         .fullScreenCover(isPresented: $showPlayer) { MuzzaPlayerView(playback: playback) }
         .onChange(of: account.revision) { _ in
             playback.accountDidChange(isSignedIn: account.profile != nil)
+            Task { await playback.refreshLibrary() }
         }
         .alert("Muzza", isPresented: Binding(
             get: { playback.message != nil },

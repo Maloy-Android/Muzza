@@ -210,6 +210,10 @@ enum MuzzaAPI {
         try await request { IosLibraryKt.fetchIosLibrary(completion: $0) }
     }
 
+    static func syncRemoteLikes() async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.syncIosLikedPlaylist(completion: $0) }
+    }
+
     static func youtubeLibrary(
         category: String, hideExplicit: Bool, continuation: String?
     ) async throws -> MuzzaLiveResponse {

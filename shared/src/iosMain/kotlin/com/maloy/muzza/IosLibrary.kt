@@ -111,6 +111,46 @@ fun fetchIosLibrary(completion: (String) -> Unit) = iosRequest(completion) {
     withIosDatabase { it.libraryResponse() }
 }
 
+fun syncIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) {
+    check(!YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) {
+        "Sign in to YouTube Music first."
+    }
+
+    val remoteItems = buildList {
+        var continuation: String? = null
+        repeat(20) {
+            val page = fetchIosPlaylistSongs(
+                playlistId = "LM",
+                continuation = continuation,
+                setLogin = true,
+                hideExplicit = false,
+            )
+            addAll(page.items.map { it.copy(remoteLiked = true) })
+            val next = page.continuation?.takeIf(String::isNotBlank)
+            if (next == null || next == continuation) return@repeat
+            continuation = next
+        }
+    }.distinctBy { it.id }
+
+    withIosDatabase { db ->
+        db.transaction {
+            val remoteIDs = remoteItems.mapTo(mutableSetOf()) { it.id }
+            db.songQueries.selectLiked().executeAsList().forEach { existing ->
+                if (existing.id !in remoteIDs) {
+                    db.saveSong(
+                        existing.toModel().toIosMediaItem(),
+                        liked = false,
+                    )
+                }
+            }
+            remoteItems.forEach { item ->
+                db.saveSong(item, liked = true)
+            }
+        }
+        db.libraryResponse()
+    }
+}
+
 fun importIosLikes(json: String, completion: (String) -> Unit) = iosRequest(completion) {
     val items = iosJson.decodeFromString<List<IosMediaItem>>(json).distinctBy { it.id }
     withIosDatabase { db ->

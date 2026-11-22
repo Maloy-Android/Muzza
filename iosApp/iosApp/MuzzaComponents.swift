@@ -38,23 +38,46 @@ struct MuzzaHeader: View {
 struct MuzzaArtwork: View {
     let item: MuzzaLiveItem
     let size: CGFloat
+    @State private var modelImage: UIImage?
+    @State private isLoading = false
+    private static let imageCache = NSCache<NSURL, UIImage>()
 
     var body: some View {
         Group {
-            if let url = URL(string: item.thumbnail), url.scheme?.lowercased() == "https" {
-                AsyncImage(url: url) { phase in
-                    if let image = phase.image {
-                        image.resizable().scaledToFill()
-                    } else {
-                        placeholder
-                    }
-                }
+            if let modelImage {
+                Image(uiImage: modelImage).resizable().scaledToFill()
             } else {
                 placeholder
             }
         }
         .frame(width: size, height: size)
         .clipShape(RoundedRectangle(cornerRadius: max(8, size * 0.06)))
+        .task(id: item.thumbnail) {
+            await loadImage()
+        }
+    }
+
+    private func loadImage() async {
+        guard let url = URL(string: item.thumbnail),
+              url.scheme?.lowercased() == "https",
+              modelImage == nil,
+              !isLoading else { return }
+        isLoading = true
+        defer { isLoading = false }
+        let key = url as NSURL
+        if let cached = Self.imageCache.object(forKey: key) {
+            modelImage = cached
+            return
+        }
+        do {
+            let (data, _) = try await URLSession.shared.data(from: url)
+            if let image = UIImage(data: data) {
+                Self.imageCache.setObject(image, forKey: key)
+                modelImage = image
+            }
+        } catch {
+            modelImage = nil
+        }
     }
 
     private var placeholder: some View {

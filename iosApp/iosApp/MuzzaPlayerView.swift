@@ -104,6 +104,14 @@ struct MuzzaPlayerView: View {
                             }
                             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
                             .accessibilityLabel(playback.isLiked(item) ? "Remove like" : "Like")
+                            Button { showPlayerMenu = true } label: {
+                                Image(systemName: "ellipsis")
+                                    .font(.title2)
+                                    .frame(width: 36, height: 36)
+                                    .background(Color(.secondarySystemFill))
+                                    .clipShape(Circle())
+                            }
+                            .accessibilityLabel("Player menu")
                         }
                         VStack(spacing: 6) {
                             Slider(
@@ -168,20 +176,31 @@ struct MuzzaPlayerView: View {
                         }
                         HStack(spacing: 16) {
                             Button { showQueue = true } label: {
-                                Label("Queue", systemImage: "list.bullet")
+                                Image(systemName: "list.bullet")
                             }
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(Color(.secondarySystemFill))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Queue")
                             Button { showLyrics = true } label: {
-                                Label("Lyrics", systemImage: "text.alignleft")
+                                Image(systemName: "text.alignleft")
                             }
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(Color(.secondarySystemFill))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Lyrics")
                             Button { playback.startRadio(item) } label: {
-                                Label("Radio", systemImage: "dot.radiowaves.left.and.right")
+                                Image(systemName: "dot.radiowaves.left.and.right")
                             }
                             .disabled(playback.isLoadingRadio)
-                            Button { showPlayerMenu = true } label: {
-                                Label("More", systemImage: "ellipsis")
-                            }
+                            .frame(maxWidth: .infinity, minHeight: 48)
+                            .background(Color(.secondarySystemFill))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                            .buttonStyle(.plain)
+                            .accessibilityLabel("Start radio")
                         }
-                        .buttonStyle(.bordered)
                     } else {
                         MuzzaEmptyView(symbol: "music.note", message: "No song selected.")
                     }

@@ -65,7 +65,7 @@ struct MuzzaArtwork: View {
             }
         }
         .frame(width: size, height: size / max(aspectRatio, 0.1))
-        .clipShape(RoundedRectangle(cornerRadius: max(8, size * 0.06)))
+        .modifier(MuzzaArtworkClip(kind: item.kind, size: size))
         .task(id: item.thumbnail) {
             modelImage = nil
             guard let url = URL(string: item.thumbnail),
@@ -98,6 +98,20 @@ struct MuzzaArtwork: View {
                     .font(.system(size: max(16, size * 0.24)))
                     .foregroundStyle(.secondary)
             }
+    }
+}
+
+private struct MuzzaArtworkClip: ViewModifier {
+    let kind: String
+    let size: CGFloat
+
+    @ViewBuilder
+    func body(content: Content) -> some View {
+        if kind == "artist" {
+            content.clipShape(Circle())
+        } else {
+            content.clipShape(RoundedRectangle(cornerRadius: max(8, size * 0.06)))
+        }
     }
 }
 

@@ -720,7 +720,7 @@ final class MuzzaPlayback: ObservableObject {
         queueTokens = shuffledTokens
         queueIndex = max(0, shuffled.firstIndex(where: { $0.id == first.id }) ?? 0)
         originalQueue = songs
-        originalTokens = originalTokens
+        self.originalTokens = originalTokens
         isShuffling = true
         UserDefaults.standard.set(true, forKey: "muzza.shuffle")
         persistQueue()

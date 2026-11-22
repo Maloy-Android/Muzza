@@ -821,13 +821,19 @@ struct MuzzaCollectionView: View {
             LazyVStack(alignment: .leading, spacing: 18) {
                 VStack(alignment: .leading, spacing: 12) {
                     if !item.thumbnail.isEmpty {
-                        MuzzaArtwork(item: item, size: 200)
+                        HStack {
+                            Spacer()
+                            MuzzaArtwork(item: item, size: 220)
+                            Spacer()
+                        }
+                        .padding(.top, 8)
                     }
                     Text(item.title).font(.largeTitle.bold())
                     if !item.subtitle.isEmpty {
                         Text(item.subtitle).foregroundStyle(.secondary)
                     }
-                    HStack {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        HStack(spacing: 8) {
                         if let first = songs.first {
                             Button {
                                 playback.play(first, in: songs, startingAt: 0)
@@ -873,6 +879,7 @@ struct MuzzaCollectionView: View {
                                 .buttonStyle(.bordered)
                                 .disabled(!playback.libraryLoaded)
                             }
+                        }
                         }
                     }
                 }

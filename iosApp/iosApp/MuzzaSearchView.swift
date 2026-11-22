@@ -70,37 +70,7 @@ struct MuzzaSearchView: View {
                         }
                     }
 
-                    ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                        if item.kind == "song" {
-                            MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
-                        } else {
-                            NavigationLink(value: item) {
-                                HStack(spacing: 12) {
-                                    MuzzaArtwork(item: item, size: 54)
-                                    VStack(alignment: .leading, spacing: 3) {
-                                        Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                                        Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                                    }
-                                    Spacer()
-                                    Image(systemName: "chevron.right").foregroundStyle(.secondary)
-                                }
-                            }
-                            .buttonStyle(.plain)
-                            .contextMenu {
-                                if ["album", "artist", "playlist"].contains(item.kind) {
-                                    Button {
-                                        playback.toggleSaved(item)
-                                    } label: {
-                                        Label(
-                                            playback.isSaved(item) ? "Remove from library" : "Save",
-                                            systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
-                                        )
-                                    }
-                                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                                }
-                            }
-                        }
-                    }
+                    searchResults
                     if isLoading {
                         ProgressView().frame(maxWidth: .infinity).padding()
                     } else if let searchError {
@@ -126,6 +96,62 @@ struct MuzzaSearchView: View {
             }
             .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
             .task(id: "\(category.rawValue)-\(hideExplicit)") { await search() }
+        }
+    }
+
+    @ViewBuilder
+    private var searchResults: some View {
+        if [.albums, .artists, .playlists, .profiles].contains(category) {
+            LazyVGrid(
+                columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
+                spacing: 16
+            ) {
+                ForEach(items) { item in
+                    NavigationLink(value: item) {
+                        VStack(alignment: .leading, spacing: 8) {
+                            MuzzaArtwork(item: item, size: 130)
+                            Text(item.title).font(.subheadline.bold()).lineLimit(2)
+                            if !item.subtitle.isEmpty {
+                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                        }
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                    }
+                    .buttonStyle(.plain)
+                    .contextMenu {
+                        if ["album", "artist", "playlist"].contains(item.kind) {
+                            Button {
+                                playback.toggleSaved(item)
+                            } label: {
+                                Label(
+                                    playback.isSaved(item) ? "Remove from library" : "Save",
+                                    systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
+                                )
+                            }
+                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                        }
+                    }
+                }
+            }
+        } else {
+            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+                if item.kind == "song" {
+                    MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
+                } else {
+                    NavigationLink(value: item) {
+                        HStack(spacing: 12) {
+                            MuzzaArtwork(item: item, size: 54)
+                            VStack(alignment: .leading, spacing: 3) {
+                                Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer()
+                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
         }
     }
 

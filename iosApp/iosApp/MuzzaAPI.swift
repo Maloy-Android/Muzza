@@ -18,6 +18,7 @@ struct MuzzaLiveItem: Codable, Identifiable, Hashable {
 struct MuzzaLiveSection: Codable {
     let title: String
     let items: [MuzzaLiveItem]
+    let moreItem: MuzzaLiveItem?
 }
 
 struct MuzzaHomeChip: Codable, Identifiable {

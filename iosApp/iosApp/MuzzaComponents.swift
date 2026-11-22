@@ -74,8 +74,19 @@ struct MuzzaMediaSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
-            if !section.title.isEmpty {
-                Text(LocalizedStringKey(section.title)).font(.title2.bold())
+            if !section.title.isEmpty || section.moreItem != nil {
+                HStack {
+                    if !section.title.isEmpty {
+                        Text(LocalizedStringKey(section.title)).font(.title2.bold())
+                    }
+                    Spacer()
+                    if let moreItem = section.moreItem {
+                        NavigationLink(value: moreItem) {
+                            Label("See all", systemImage: "chevron.right")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                    }
+                }
             }
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(alignment: .top, spacing: 14) {

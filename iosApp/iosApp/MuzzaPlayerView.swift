@@ -148,22 +148,7 @@ struct MuzzaPlayerView: View {
                                 }
                                 .accessibilityLabel("Player menu")
                             }
-                            VStack(spacing: 6) {
-                                Slider(
-                                    value: Binding(
-                                        get: { min(playback.position, max(playback.duration, 1)) },
-                                        set: { playback.seek(to: $0) }
-                                    ),
-                                    in: 0...max(playback.duration, 1)
-                                )
-                                .disabled(playback.duration <= 0)
-                                HStack {
-                                    Text(timeText(playback.position))
-                                    Spacer()
-                                    Text(timeText(playback.duration))
-                                }
-                                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                            }
+                            MuzzaPlayerSlider(playback: playback)
                             HStack {
                                 Button { playback.toggleShuffle() } label: {
                                     Image(systemName: "shuffle").font(.title3)

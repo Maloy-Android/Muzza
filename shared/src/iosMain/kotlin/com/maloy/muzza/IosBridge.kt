@@ -17,14 +17,6 @@ import com.maloy.innertube.pages.ArtistItemsPage
 import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.NextResult
 import com.maloy.innertube.models.response.BrowseResponse
-import com.maloy.muzza.data.db.toDb
-import com.maloy.muzza.data.db.toModel
-import com.maloy.muzza.domain.model.AlbumEntity
-import com.maloy.muzza.domain.model.ArtistEntity
-import com.maloy.muzza.domain.model.PlaylistEntity
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlin.time.Clock
 import com.metrolist.innertubex.models.YouTubeClient.Companion.WEB_REMIX
 import com.metrolist.innertubex.models.YouTubeLocale
 import io.ktor.client.call.body
@@ -550,11 +542,25 @@ fun fetchIosHome(
     } else {
         null
     }
-    val sections = sectionList?.contents.toIosMediaSections(hideExplicit)
-        .ifEmpty {
-            response.continuationContents?.sectionListContinuation?.contents
-                .toIosMediaSections(hideExplicit)
+    val continuedSections = response.continuationContents?.sectionListContinuation?.contents
+        .toIosMediaSections(hideExplicit)
+    val continuedItems = when {
+        response.continuationContents?.gridContinuation != null ->
+            response.continuationContents?.gridContinuation?.items?.toIosLibraryItems(hideExplicit).orEmpty()
+        response.continuationContents?.musicShelfContinuation != null ->
+            response.continuationContents?.musicShelfContinuation?.contents.orEmpty()
+                .mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
+                .filter { !hideExplicit || !it.explicit }
+        else -> emptyList()
+    }
+    val continuedTitle = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: "More"
+    val sections = sectionList?.contents.toIosMediaSections(hideExplicit).ifEmpty {
+        continuedSections.ifEmpty {
+            continuedItems.takeIf { it.isNotEmpty() }?.let {
+                listOf(IosMediaSection(continuedTitle, it))
+            }.orEmpty()
         }
+    }
     val nextContinuation = sectionList?.continuations?.getContinuation()
         ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
@@ -764,17 +770,15 @@ fun fetchIosCollection(
                     allItems.addAll(initialItems)
                     val initialPage = YouTube.artistItems(
                         BrowseEndpoint(endpoint.browseId, endpoint.params)
-                    ).getOrNull()
-                    if (initialPage != null) {
+                        ).getOrThrow()
                         allItems.addAll(initialPage.items.iosItems(hideExplicit))
                         var token = initialPage.continuation
                         val seenTokens = mutableSetOf<String>()
-                        while (!token.isNullOrBlank() && seenTokens.add(token)) {
-                            val continuationPage = YouTube.artistItemsContinuation(token).getOrNull()
-                                ?: break
+                        while (!token.isNullOrBlank()) {
+                            check(seenTokens.add(token)) { "YouTube returned a repeated artist continuation." }
+                            val continuationPage = YouTube.artistItemsContinuation(token).getOrThrow()
                             allItems.addAll(continuationPage.items.iosItems(hideExplicit))
                             token = continuationPage.continuation
-                        }
                     }
                     allItems.distinctBy { "${it.kind}:${it.id}" }
                 } else {
@@ -840,64 +844,6 @@ internal suspend fun fetchIosYouTubeLibraryPage(
             else -> throw IllegalArgumentException("Unsupported library category.")
         }
         fetchIosLibraryPage(browseId, null, hideExplicit)
-    }
-    if (category != "songs") {
-        withIosDatabase { db ->
-            db.transaction {
-                val time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
-                page.items.forEach { item ->
-                    when (category) {
-                        "albums" -> if (item.kind == "album") {
-                            val existing = db.albumQueries.selectById(item.id).executeAsOneOrNull()?.toModel()
-                            val album = (existing ?: AlbumEntity(
-                                id = item.id,
-                                title = item.title,
-                                songCount = 0,
-                                duration = 0,
-                                lastUpdateTime = time,
-                            )).copy(
-                                title = item.title,
-                                thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: existing?.thumbnailUrl,
-                                lastUpdateTime = time,
-                                bookmarkedAt = time,
-                            )
-                            db.albumQueries.upsert(album.toDb())
-                        }
-                        "artists" -> if (item.kind == "artist") {
-                            val existing = db.artistQueries.selectById(item.id).executeAsOneOrNull()?.toModel()
-                            val artist = (existing ?: ArtistEntity(
-                                id = item.id,
-                                name = item.title,
-                                lastUpdateTime = time,
-                            )).copy(
-                                name = item.title,
-                                thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: existing?.thumbnailUrl,
-                                lastUpdateTime = time,
-                                bookmarkedAt = time,
-                            )
-                            db.artistQueries.upsert(artist.toDb())
-                        }
-                        "playlists" -> if (item.kind == "playlist") {
-                            val existing = db.playlistQueries.selectById(item.id).executeAsOneOrNull()?.toModel()
-                            val playlist = (existing ?: PlaylistEntity(
-                                id = item.id,
-                                name = item.title,
-                                browseId = item.id,
-                                isEditable = item.isEditable,
-                                isLocal = false,
-                            )).copy(
-                                name = item.title,
-                                thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: existing?.thumbnailUrl,
-                                lastUpdateTime = time,
-                                bookmarkedAt = time,
-                                isEditable = item.isEditable,
-                            )
-                            db.playlistQueries.upsert(playlist.toDb())
-                        }
-                    }
-                }
-            }
-        }
     }
     return page
 }

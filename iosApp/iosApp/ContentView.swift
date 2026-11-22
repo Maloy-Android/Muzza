@@ -269,7 +269,9 @@ private struct MuzzaHomeView: View {
                     if let pageError {
                         MuzzaErrorView(message: pageError) { Task { await loadMore() } }
                     } else if continuation != nil && !isLoading {
-                        ProgressView().frame(maxWidth: .infinity).task(id: continuation) { await loadMore() }
+                        ProgressView()
+                            .frame(maxWidth: .infinity)
+                            .onAppear { Task { await loadMore() } }
                     }
                 }
                 .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 100)

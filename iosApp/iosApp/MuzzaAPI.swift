@@ -211,11 +211,11 @@ enum MuzzaAPI {
     }
 
     static func syncRemoteLikes() async throws -> MuzzaLiveResponse {
-        try await request { IosLibraryKt.syncIosLikedPlaylist(completion: $0) }
+        try await request { IosSyncUtilsKt.syncIosLikedPlaylist(completion: $0) }
     }
 
     static func syncRemoteCollections() async throws -> MuzzaLiveResponse {
-        try await request { IosLibraryKt.syncIosCollections(completion: $0) }
+        try await request { IosSyncUtilsKt.syncIosCollections(completion: $0) }
     }
 
     static func validateAccount(cookie: String, visitorData: String?) async throws -> MuzzaAccountProfile {

@@ -31,7 +31,7 @@ internal suspend fun <T> withIosDatabase(block: (MuzzaDatabase) -> T): T =
         iosDatabaseMutex.withLock { block(iosDatabase) }
     }
 
-private fun now() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
+internal fun now() = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault())
 
 private fun SongEntity.toIosMediaItem() = IosMediaItem(
     id = id,
@@ -44,7 +44,7 @@ private fun SongEntity.toIosMediaItem() = IosMediaItem(
     downloadPath = localPath.takeIf { dateDownload != null },
 )
 
-private fun MuzzaDatabase.songToIosMediaItem(song: SongEntity): IosMediaItem {
+internal fun MuzzaDatabase.songToIosMediaItem(song: SongEntity): IosMediaItem {
     val artists = songArtistMapQueries.selectArtistsBySong(song.id).executeAsList().mapNotNull { mapping ->
         artistQueries.selectById(mapping.artistId).executeAsOneOrNull()?.toModel()?.let { artist ->
             IosArtistMetadata(
@@ -174,91 +174,6 @@ internal fun MuzzaDatabase.localPlaylistResponse(id: String): IosBridgeResponse 
 
 fun fetchIosLibrary(completion: (String) -> Unit) = iosRequest(completion) {
     withIosDatabase { it.libraryResponse() }
-}
-
-fun syncIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) {
-    check(!YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) {
-        "Sign in to YouTube Music first."
-    }
-
-    val remoteItems = buildList {
-        var continuation: String? = null
-        val seenContinuations = mutableSetOf<String>()
-        while (true) {
-            val page = fetchIosPlaylistSongs(
-                playlistId = "LM",
-                continuation = continuation,
-                setLogin = true,
-                hideExplicit = false,
-            )
-            addAll(page.items.map { it.copy(remoteLiked = true) })
-            val next = page.continuation?.takeIf(String::isNotBlank)
-            if (next == null || !seenContinuations.add(next)) break
-            continuation = next
-        }
-    }.distinctBy { it.id }
-
-    withIosDatabase { db ->
-        db.transaction {
-            val remoteIDs = remoteItems.mapTo(mutableSetOf()) { it.id }
-            db.songQueries.selectLiked().executeAsList().forEach { existing ->
-                if (existing.id !in remoteIDs) {
-                    db.saveSong(
-                        db.songToIosMediaItem(existing.toModel()),
-                        liked = false,
-                    )
-                }
-            }
-            remoteItems.forEach { item ->
-                db.saveSong(item, liked = true)
-            }
-        }
-        db.libraryResponse()
-    }
-}
-
-fun syncIosCollections(completion: (String) -> Unit) = iosRequest(completion) {
-    val categories = listOf(
-        "albums" to "album",
-        "artists" to "artist",
-        "playlists" to "playlist",
-    )
-    val syncedIDs = mutableMapOf<String, Set<String>>()
-
-    for ((category, kind) in categories) {
-        val ids = mutableSetOf<String>()
-        val seenContinuations = mutableSetOf<String>()
-        var continuation: String? = null
-        while (true) {
-            val page = fetchIosYouTubeLibraryPage(category, hideExplicit = false, continuation = continuation)
-            page.items.filter { it.kind == kind }.forEach { ids.add(it.id) }
-            val next = page.continuation?.takeIf(String::isNotBlank) ?: break
-            check(seenContinuations.add(next)) { "YouTube returned a repeated library continuation." }
-            continuation = next
-        }
-        syncedIDs[category] = ids
-    }
-
-    withIosDatabase { db ->
-        db.transaction {
-            val time = now()
-            db.albumQueries.selectAll().executeAsList()
-                .map { it.toModel() }
-                .filter { it.bookmarkedAt != null && it.id !in syncedIDs.getValue("albums") }
-                .forEach { db.albumQueries.upsert(it.copy(bookmarkedAt = null, lastUpdateTime = time).toDb()) }
-            db.artistQueries.selectAll().executeAsList()
-                .map { it.toModel() }
-                .filter { it.bookmarkedAt != null && it.id !in syncedIDs.getValue("artists") }
-                .forEach { db.artistQueries.upsert(it.copy(bookmarkedAt = null, lastUpdateTime = time).toDb()) }
-            db.playlistQueries.selectAll().executeAsList()
-                .map { it.toModel() }
-                .filter {
-                    !it.isLocal && it.bookmarkedAt != null && it.id !in syncedIDs.getValue("playlists")
-                }
-                .forEach { db.playlistQueries.upsert(it.copy(bookmarkedAt = null, lastUpdateTime = time).toDb()) }
-        }
-        db.libraryResponse()
-    }
 }
 
 fun importIosLikes(json: String, completion: (String) -> Unit) = iosRequest(completion) {

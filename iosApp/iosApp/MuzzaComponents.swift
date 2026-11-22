@@ -101,6 +101,87 @@ struct MuzzaArtwork: View {
     }
 }
 
+struct MuzzaPlayerSlider: View {
+    @ObservedObject var playback: MuzzaPlayback
+    @State private var previewProgress: Double?
+
+    private var progress: Double {
+        let value = previewProgress ?? (playback.duration > 0 ? playback.position / playback.duration : 0)
+        return min(max(value, 0), 1)
+    }
+
+    private var displayedPosition: Double {
+        previewProgress.map { $0 * playback.duration } ?? playback.position
+    }
+
+    var body: some View {
+        VStack(spacing: 4) {
+            GeometryReader { geometry in
+                ZStack(alignment: .leading) {
+                    Capsule()
+                        .fill(Color.secondary.opacity(0.24))
+                        .frame(height: 4)
+                    Capsule()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 4)
+                    Circle()
+                        .fill(Color.accentColor)
+                        .frame(width: 14, height: 14)
+                        .offset(x: min(max(geometry.size.width * progress - 7, 0), max(geometry.size.width - 14, 0)))
+                }
+                .frame(maxHeight: .infinity)
+                .contentShape(Rectangle())
+                .gesture(
+                    DragGesture(minimumDistance: 0)
+                        .onChanged { value in
+                            previewProgress = scrubProgress(value.location.x, width: geometry.size.width)
+                        }
+                        .onEnded { value in
+                            let next = scrubProgress(value.location.x, width: geometry.size.width)
+                            playback.seek(to: next * playback.duration)
+                            previewProgress = nil
+                        }
+                )
+            }
+            .frame(height: 28)
+            .disabled(playback.duration <= 0)
+            HStack {
+                Text(timeText(displayedPosition))
+                Spacer()
+                Text(timeText(playback.duration))
+            }
+            .font(.caption.monospacedDigit())
+            .foregroundStyle(.secondary)
+        }
+        .accessibilityElement()
+        .accessibilityLabel("Playback position")
+        .accessibilityValue(Text("\(timeText(displayedPosition)) of \(timeText(playback.duration))"))
+        .accessibilityAdjustableAction { direction in
+            guard playback.duration > 0 else { return }
+            let step = max(playback.duration * 0.05, 5)
+            switch direction {
+            case .increment:
+                playback.seek(to: min(playback.position + step, playback.duration))
+            case .decrement:
+                playback.seek(to: max(playback.position - step, 0))
+            @unknown default:
+                break
+            }
+        }
+    }
+
+    private func scrubProgress(_ x: CGFloat, width: CGFloat) -> Double {
+        guard width > 0 else { return 0 }
+        return min(max(Double(x / width), 0), 1)
+    }
+
+    private func timeText(_ value: Double) -> String {
+        guard value.isFinite, value > 0 else { return "0:00" }
+        let seconds = Int(value)
+        return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+}
+
 struct MuzzaMediaSectionView: View {
     let section: MuzzaLiveSection
     @ObservedObject var playback: MuzzaPlayback

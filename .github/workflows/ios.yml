@@ -2,7 +2,7 @@ name: iOS Build
 
 on:
   push:
-    branches: [ main, master, kmp ]
+    branches: [ main, master, kmp, kmp-develop ]
   workflow_dispatch:
 
 jobs:

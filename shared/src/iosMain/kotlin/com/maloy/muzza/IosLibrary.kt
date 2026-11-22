@@ -118,7 +118,8 @@ fun syncIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) 
 
     val remoteItems = buildList {
         var continuation: String? = null
-        repeat(20) {
+        val seenContinuations = mutableSetOf<String>()
+        while (true) {
             val page = fetchIosPlaylistSongs(
                 playlistId = "LM",
                 continuation = continuation,
@@ -127,7 +128,7 @@ fun syncIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) 
             )
             addAll(page.items.map { it.copy(remoteLiked = true) })
             val next = page.continuation?.takeIf(String::isNotBlank)
-            if (next == null || next == continuation) return@repeat
+            if (next == null || !seenContinuations.add(next)) break
             continuation = next
         }
     }.distinctBy { it.id }

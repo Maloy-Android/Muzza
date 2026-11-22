@@ -390,6 +390,7 @@ private struct MuzzaPlayerActionsView: View {
 private struct MuzzaQueueView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var playback: MuzzaPlayback
+    @State private var showClearConfirmation = false
 
     init(playback: MuzzaPlayback) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -424,6 +425,21 @@ private struct MuzzaQueueView: View {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    if !playback.queue.isEmpty {
+                        Button("Clear", role: .destructive) {
+                            showClearConfirmation = true
+                        }
+                        .disabled(playback.queue.isEmpty)
+                    }
+                }
+            }
+            .confirmationDialog("Clear the queue?", isPresented: $showClearConfirmation, titleVisibility: .visible) {
+                Button("Clear Queue", role: .destructive) {
+                    playback.clearQueue()
+                    dismiss()
+                }
+                Button("Cancel", role: .cancel) {}
             }
         }
     }

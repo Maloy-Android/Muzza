@@ -700,6 +700,21 @@ final class MuzzaPlayback: ObservableObject {
         persistQueue()
     }
 
+    func clearQueue() {
+        cancelRadio()
+        queueIdentity = UUID()
+        queueRevision += 1
+        queue = []
+        queueTokens = []
+        originalQueue = []
+        originalTokens = []
+        queueIndex = 0
+        stopCurrentItem()
+        current = nil
+        updateNowPlaying()
+        persistQueue()
+    }
+
     func toggle() {
         if isPlaying || isLoadingAudio {
             pause()

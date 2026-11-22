@@ -18,3 +18,6 @@ SELECT * FROM event ORDER BY timestamp DESC LIMIT :limit;
 
 deleteOlderThan:
 DELETE FROM event WHERE timestamp < :cutoff;
+
+clearAll:
+DELETE FROM event;

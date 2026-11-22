@@ -197,6 +197,13 @@ fun recordIosPlay(json: String, completion: (String) -> Unit) = iosRequest(compl
     }
 }
 
+fun clearIosHistory(completion: (String) -> Unit) = iosRequest(completion) {
+    withIosDatabase { db ->
+        db.transaction { db.eventQueries.clearAll() }
+        db.libraryResponse()
+    }
+}
+
 private val downloadFilename = Regex("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\\.m4a$")
 
 internal fun MuzzaDatabase.markDownload(item: IosMediaItem, filename: String) {

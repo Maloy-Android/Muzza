@@ -29,6 +29,7 @@ struct MuzzaLibraryView: View {
     @State private var playlistToRename: MuzzaLiveItem?
     @State private var showDelete = false
     @State private var playlistToDelete: MuzzaLiveItem?
+    @State private var showClearHistory = false
     @State private var sortMode: MuzzaLibrarySort = .title
 
     init(
@@ -116,6 +117,14 @@ struct MuzzaLibraryView: View {
                     if [.songs, .albums, .artists, .downloads, .history, .playlists].contains(category) {
                         HStack {
                             Spacer()
+                            if category == .history && !recent.isEmpty {
+                                Button(role: .destructive) {
+                                    showClearHistory = true
+                                } label: {
+                                    Label("Clear", systemImage: "trash")
+                                        .font(.caption.weight(.semibold))
+                                }
+                            }
                             Menu {
                                 ForEach(MuzzaLibrarySort.allCases, id: \.self) { mode in
                                     Button {
@@ -223,6 +232,12 @@ struct MuzzaLibraryView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text(playlistToDelete?.title ?? "")
+        }
+        .confirmationDialog("Clear listening history?", isPresented: $showClearHistory, titleVisibility: .visible) {
+            Button("Clear History", role: .destructive) {
+                Task { _ = await playback.clearHistory() }
+            }
+            Button("Cancel", role: .cancel) {}
         }
     }
 

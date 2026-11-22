@@ -193,6 +193,10 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
+    func clearHistory() async -> Bool {
+        await changeLibrary { try await MuzzaAPI.clearHistory() }
+    }
+
     func createPlaylist(_ name: String, syncToYouTube: Bool = false) async -> Bool {
         await changeLibrary { try await MuzzaAPI.createPlaylist(name, syncToYouTube: syncToYouTube) }
     }

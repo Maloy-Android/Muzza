@@ -259,6 +259,10 @@ enum MuzzaAPI {
         return try await request { IosLibraryKt.recordIosPlay(json: json, completion: $0) }
     }
 
+    static func clearHistory() async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.clearIosHistory(completion: $0) }
+    }
+
     static func downloadInfo(id: String) async throws -> MuzzaLiveResponse {
         try await request { IosLibraryKt.fetchIosDownload(id: id, completion: $0) }
     }

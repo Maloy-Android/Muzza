@@ -350,6 +350,118 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
+    func importPlaylistExport(_ data: Data) async -> Bool {
+        guard let text = String(data: data, encoding: .utf8) else {
+            message = "The playlist export could not be read."
+            return false
+        }
+        var queries: [String] = []
+
+        if let jsonObject = try? JSONSerialization.jsonObject(with: data) {
+            queries = parsePlaylistExportJSON(jsonObject).prefix(250).map { $0 }
+        } else {
+            let lines = text.components(separatedBy: .newlines).filter {
+                !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            }
+            if let header = lines.first {
+                let columns = parseCSV(header)
+                let trackIndex = columns.firstIndex { ["track_name", "name", "track"].contains($0.lowercased()) }
+                let artistIndex = columns.firstIndex { ["artist_name", "artists", "artist"].contains($0.lowercased()) }
+                for line in lines.dropFirst().prefix(250) {
+                    let values = parseCSV(line)
+                    let name = trackIndex.flatMap { values.indices.contains($0) ? values[$0] : nil } ?? ""
+                    let artist = artistIndex.flatMap { values.indices.contains($0) ? values[$0] : nil } ?? ""
+                    let query = [name, artist].filter { !$0.isEmpty }.joined(separator: " ")
+                    if !query.isEmpty { queries.append(query) }
+                }
+            }
+        }
+        guard !queries.isEmpty else {
+            message = "No Spotify/playlist tracks were found in the export."
+            return false
+        }
+        var songs: [MuzzaLiveItem] = []
+        for query in queries {
+            do {
+                let response = try await MuzzaAPI.search(
+                    query: query, category: "songs", hideExplicit: false, continuation: nil
+                )
+                if let song = response.items.first(where: { $0.kind == "song" }) {
+                    songs.append(song)
+                }
+            } catch {
+                continue
+            }
+        }
+        guard let first = songs.first else {
+            message = "The playlist export could not be matched to songs."
+            return false
+        }
+        play(first, in: songs)
+        message = "Imported \(songs.count) of \(queries.count) exported playlist tracks."
+        return true
+    }
+
+    private func parsePlaylistExportJSON(_ value: Any) -> [String] {
+        if let items = value as? [[String: Any]] {
+            return items.compactMap { item -> String? in
+                let track = (item["track"] as? [String: Any]) ?? item
+                let name = (track["track_name"] as? String)
+                    ?? (track["name"] as? String)
+                    ?? (track["track"] as? String)
+                guard let name, !name.isEmpty else { return nil }
+                var artists = ""
+                if let artistItems = track["artists"] as? [[String: Any]] {
+                    artists = artistItems.compactMap { $0["name"] as? String }.joined(separator: ", ")
+                } else if let artistName = track["artist_name"] as? String {
+                    artists = artistName
+                } else if let artist = track["artist"] as? String {
+                    artists = artist
+                }
+                return [name, artists].filter { !$0.isEmpty }.joined(separator: " ")
+            }
+        }
+        if let object = value as? [String: Any] {
+            for key in ["tracks", "items", "playlists"] {
+                if let nested = object[key] {
+                    let queries = parsePlaylistExportJSON(nested)
+                    if !queries.isEmpty { return queries }
+                }
+            }
+        }
+        if let array = value as? [Any] {
+            return array.flatMap { parsePlaylistExportJSON($0) }
+        }
+        return []
+    }
+
+    private func parseCSV(_ line: String) -> [String] {
+        var fields: [String] = []
+        var field = ""
+        var quoted = false
+        var characters = Array(line)
+        var index = 0
+        while index < characters.count {
+            let character = characters[index]
+            if character == "\"" {
+                if quoted, index + 1 < characters.count, characters[index + 1] == "\"" {
+                    field.append("\"")
+                    index += 1
+                } else {
+                    quoted.toggle()
+                }
+            } else if character == ",", !quoted {
+                fields.append(field.trimmingCharacters(in: .whitespaces))
+                field.removeAll()
+            } else {
+                field.append(character)
+            }
+            index += 1
+        }
+        fields.append(field.trimmingCharacters(in: .whitespaces))
+        return fields
+    }
+
     func importM3U(_ data: Data) async -> Bool {
         guard let text = String(data: data, encoding: .utf8) else {
             message = "The M3U file could not be read."

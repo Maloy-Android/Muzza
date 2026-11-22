@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UniformTypeIdentifiers
+import UserNotifications
 
 private struct MuzzaBackupDocument: FileDocument {
     static var readableContentTypes: [UTType] { [.json] }
@@ -504,6 +505,8 @@ struct MuzzaSettingsView: View {
     @State private var showBackupImporter = false
     @State private var backupData = Data()
     @State private var backupError: String?
+    @State private var notificationAuthorization = false
+    @AppStorage("muzza.notificationsEnabled") private var notificationsEnabled = false
 
     init(playback: MuzzaPlayback, account: MuzzaAccount) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -608,6 +611,33 @@ struct MuzzaSettingsView: View {
                     Text("Keep Muzza open while a song is downloading.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
+                Section("Notifications") {
+                    Toggle("Playback notifications", isOn: $notificationsEnabled)
+                        .onChange(of: notificationsEnabled) { enabled in
+                            if enabled {
+                                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                                    DispatchQueue.main.async {
+                                        notificationAuthorization = granted
+                                        notificationsEnabled = granted
+                                    }
+                                }
+                            }
+                        }
+                    Text(notificationAuthorization
+                         ? "iOS notifications are authorized."
+                         : "iOS will ask for permission before notifications are enabled.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
+                Section("Recommendations") {
+                    Button("Reset local recommendation state", role: .destructive) {
+                        UserDefaults.standard.removeObject(forKey: "muzza.queue")
+                        UserDefaults.standard.removeObject(forKey: "muzza.shuffle")
+                    playback.clearQueue()
+                        playback.message = "Local recommendation state was reset. Refresh Home to load a fresh feed."
+                    }
+                    Text("Resets Muzza's local radio/queue state. Account-side YouTube recommendations are controlled by YouTube Music.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
                 Section("Backup & Import") {
                     Button("Export library backup") {
                         do {
@@ -617,16 +647,20 @@ struct MuzzaSettingsView: View {
                             backupError = error.localizedDescription
                         }
                     }
-                    Button("Import backup or M3U") {
+                    Button("Import backup, M3U or Spotify export") {
                         showBackupImporter = true
                     }
-                    Text("Backup includes queue, preferences and cached library metadata. Spotify import requires its exported playlist data or direct metadata; audio matching is not authenticated by Muzza.")
+                    Text("Backup includes queue, preferences and cached library metadata. Spotify imports support exported JSON/CSV track metadata and match tracks through Muzza.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
             .onChange(of: cacheMemoryMB) { _ in MuzzaCacheSettings.apply() }
             .onChange(of: cacheDiskMB) { _ in MuzzaCacheSettings.apply() }
             .navigationTitle("Settings")
+            .task {
+                let settings = await UNUserNotificationCenter.current().notificationSettings()
+                notificationAuthorization = settings.authorizationStatus == .authorized
+            }
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
@@ -640,7 +674,7 @@ struct MuzzaSettingsView: View {
             ) { _ in }
             .fileImporter(
                 isPresented: $showBackupImporter,
-                allowedContentTypes: [.json, .plainText],
+                allowedContentTypes: [.json, .plainText, .commaSeparatedText],
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
@@ -660,6 +694,20 @@ struct MuzzaSettingsView: View {
                         if url.pathExtension.lowercased() == "m3u"
                             || url.pathExtension.lowercased() == "m3u8" {
                             restored = await playback.importM3U(data)
+                        } else if url.pathExtension.lowercased() == "csv" {
+                            restored = await playback.importPlaylistExport(data)
+                        } else if url.pathExtension.lowercased() == "json" {
+                            let jsonObject = try? JSONSerialization.jsonObject(with: data)
+                            var isBackup = false
+                            if let object = jsonObject as? [String: Any],
+                               let formatVersion = object["formatVersion"] as? Int {
+                                isBackup = formatVersion == 1
+                            }
+                            if isBackup {
+                                restored = await playback.importBackup(data)
+                            } else {
+                                restored = await playback.importPlaylistExport(data)
+                            }
                         } else {
                             restored = await playback.importBackup(data)
                         }

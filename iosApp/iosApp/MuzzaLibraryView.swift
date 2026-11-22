@@ -186,6 +186,24 @@ struct MuzzaLibraryView: View {
                                 }
                                 .buttonStyle(.bordered)
                             }
+                            if category == .songs || category == .downloads || category == .history {
+                                let addablePlaylists = playback.playlists.filter {
+                                    $0.kind == "localPlaylist" ||
+                                        ($0.kind == "playlist" && $0.isEditable == true && playback.canSyncPlaylists)
+                                }
+                                if !addablePlaylists.isEmpty {
+                                    Menu {
+                                        ForEach(addablePlaylists) { playlist in
+                                            Button("Add to \(playlist.title)") {
+                                                batchAdd(to: playlist)
+                                            }
+                                        }
+                                    } label: {
+                                        Label("Playlist", systemImage: "text.badge.plus")
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                            }
                         }
                     }
                     if playback.isLibraryLoading && !playback.libraryLoaded {
@@ -436,6 +454,22 @@ struct MuzzaLibraryView: View {
         let items = sortedLiked.filter { selectedIDs.contains($0.id) }
         for item in items { playback.toggleLike(item) }
         selectedIDs.removeAll()
+    }
+
+    private func batchAdd(to playlist: MuzzaLiveItem) {
+        let items = (category == .songs ? sortedLiked : category == .downloads ? sortedDownloads : sortedRecent)
+            .filter { selectedIDs.contains($0.id) }
+        Task {
+            for item in items {
+                do {
+                    try await playback.add(item, to: playlist, allowDuplicate: false)
+                } catch {
+                    playback.message = error.localizedDescription
+                    break
+                }
+            }
+            selectedIDs.removeAll()
+        }
     }
 }
 
@@ -775,6 +809,20 @@ struct MuzzaCollectionView: View {
                             }
                             .buttonStyle(.bordered)
                             .disabled(playback.isLibraryBusy)
+                        }
+                        if !songs.isEmpty {
+                            let missingDownloads = songs.filter {
+                                $0.kind == "song" && !playback.isDownloaded($0)
+                            }
+                            if !missingDownloads.isEmpty {
+                                Button {
+                                    for song in missingDownloads { playback.download(song) }
+                                } label: {
+                                    Label("Download offline", systemImage: "arrow.down.circle")
+                                }
+                                .buttonStyle(.bordered)
+                                .disabled(!playback.libraryLoaded)
+                            }
                         }
                     }
                 }

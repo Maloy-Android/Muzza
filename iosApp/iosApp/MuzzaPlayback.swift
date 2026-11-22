@@ -2,6 +2,7 @@ import AVFoundation
 import Foundation
 import MediaPlayer
 import SwiftUI
+import UIKit
 
 struct MuzzaSavedQueue: Codable {
     let items: [MuzzaLiveItem]
@@ -1362,6 +1363,22 @@ final class MuzzaPlayback: ObservableObject {
         ]
         if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+        let itemID = current.id
+        if let thumbnail = URL(string: current.thumbnail) {
+            Task {
+                if let (data, _) = try? await URLSession.shared.data(from: thumbnail),
+                   let image = UIImage(data: data) {
+                    await MainActor.run {
+                        guard self.current?.id == itemID else { return }
+                        var artworkInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+                        artworkInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
+                            boundsSize: image.size
+                        ) { _ in image }
+                        MPNowPlayingInfoCenter.default().nowPlayingInfo = artworkInfo
+                    }
+                }
+            }
+        }
     }
 
     private var queuePersistenceEnabled: Bool {

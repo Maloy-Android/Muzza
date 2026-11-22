@@ -32,6 +32,8 @@ struct MuzzaLibraryView: View {
     @State private var showClearHistory = false
     @State private var showClearDownloads = false
     @State private var sortMode: MuzzaLibrarySort = .title
+    @State private var isSelecting = false
+    @State private var selectedIDs: Set<String> = []
 
     init(
         playback: MuzzaPlayback,
@@ -148,6 +150,41 @@ struct MuzzaLibraryView: View {
                             } label: {
                                 Label("Sort", systemImage: "arrow.up.arrow.down")
                                     .font(.caption.weight(.semibold))
+                            }
+                            if [.songs, .downloads, .history].contains(category) {
+                                Button(isSelecting ? "Done" : "Select") {
+                                    isSelecting.toggle()
+                                    if !isSelecting { selectedIDs.removeAll() }
+                                }
+                                .font(.caption.weight(.semibold))
+                            }
+                        }
+                    }
+                    if isSelecting && !selectedIDs.isEmpty {
+                        HStack(spacing: 10) {
+                            if category == .songs || category == .downloads || category == .history {
+                                Button {
+                                    batchDownload()
+                                } label: {
+                                    Label("Download", systemImage: "arrow.down.circle")
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            if category == .downloads {
+                                Button(role: .destructive) {
+                                    batchRemoveDownloads()
+                                } label: {
+                                    Label("Remove", systemImage: "trash")
+                                }
+                                .buttonStyle(.bordered)
+                            }
+                            if category == .songs {
+                                Button(role: .destructive) {
+                                    batchUnlike()
+                                } label: {
+                                    Label("Unlike", systemImage: "heart.slash")
+                                }
+                                .buttonStyle(.bordered)
                             }
                         }
                     }
@@ -319,7 +356,7 @@ struct MuzzaLibraryView: View {
                 MuzzaEmptyView(symbol: "heart", message: "No liked songs yet.")
             } else {
                 ForEach(Array(sortedLiked.enumerated()), id: \.offset) { index, item in
-                    MuzzaSongRow(item: item, playback: playback, queue: sortedLiked, queueIndex: index)
+                    selectableSongRow(item: item, queue: sortedLiked, index: index)
                 }
             }
         case .albums:
@@ -332,7 +369,7 @@ struct MuzzaLibraryView: View {
                 MuzzaEmptyView(symbol: "arrow.down.circle", message: "No downloaded songs yet.")
             } else {
                 ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                    MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
+                    selectableSongRow(item: item, queue: items, index: index)
                 }
             }
         case .history:
@@ -340,7 +377,7 @@ struct MuzzaLibraryView: View {
                 MuzzaEmptyView(symbol: "clock", message: "No listening history yet.")
             } else {
                 ForEach(Array(sortedRecent.enumerated()), id: \.offset) { index, item in
-                    MuzzaSongRow(item: item, playback: playback, queue: sortedRecent, queueIndex: index)
+                    selectableSongRow(item: item, queue: sortedRecent, index: index)
                 }
             }
         case .stats:
@@ -358,6 +395,47 @@ struct MuzzaLibraryView: View {
         case .history: return recent
         case .stats: return []
         }
+    }
+
+    @ViewBuilder
+    private func selectableSongRow(item: MuzzaLiveItem, queue: [MuzzaLiveItem], index: Int) -> some View {
+        HStack(spacing: 10) {
+            if isSelecting {
+                Button {
+                    if selectedIDs.contains(item.id) {
+                        selectedIDs.remove(item.id)
+                    } else {
+                        selectedIDs.insert(item.id)
+                    }
+                } label: {
+                    Image(systemName: selectedIDs.contains(item.id) ? "checkmark.circle.fill" : "circle")
+                        .font(.title3)
+                }
+                .buttonStyle(.plain)
+            }
+            MuzzaSongRow(item: item, playback: playback, queue: queue, queueIndex: index)
+        }
+    }
+
+    private func batchDownload() {
+        let items = (category == .songs ? sortedLiked : category == .downloads ? sortedDownloads : sortedRecent)
+            .filter { selectedIDs.contains($0.id) }
+        for item in items { playback.download(item) }
+        selectedIDs.removeAll()
+    }
+
+    private func batchRemoveDownloads() {
+        let items = sortedDownloads.filter { selectedIDs.contains($0.id) }
+        Task {
+            for item in items { _ = await playback.removeDownload(item) }
+            selectedIDs.removeAll()
+        }
+    }
+
+    private func batchUnlike() {
+        let items = sortedLiked.filter { selectedIDs.contains($0.id) }
+        for item in items { playback.toggleLike(item) }
+        selectedIDs.removeAll()
     }
 }
 

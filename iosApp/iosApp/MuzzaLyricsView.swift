@@ -9,6 +9,8 @@ struct MuzzaLyricsView: View {
     @State private var isLoading = true
     @State private var loadError: String?
     @State private var requestID = UUID()
+    @State private var showLyricsEditor = false
+    @State private var editedLyrics = ""
 
     init(playback: MuzzaPlayback) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -51,6 +53,17 @@ struct MuzzaLyricsView: View {
             .navigationTitle("Lyrics")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    if playback.current != nil {
+                        Button {
+                            editedLyrics = rawLyrics
+                            showLyricsEditor = true
+                        } label: {
+                            Image(systemName: "pencil")
+                        }
+                        .accessibilityLabel("Edit or add lyrics")
+                    }
+                }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
@@ -60,6 +73,25 @@ struct MuzzaLyricsView: View {
                     .font(.caption).foregroundStyle(.secondary).padding(8)
             }
             .task(id: playback.current?.id) { await load() }
+            .sheet(isPresented: $showLyricsEditor) {
+                NavigationStack {
+                    TextEditor(text: $editedLyrics)
+                        .padding()
+                        .navigationTitle("Edit Lyrics")
+                        .navigationBarTitleDisplayMode(.inline)
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Cancel") { showLyricsEditor = false }
+                            }
+                            ToolbarItem(placement: .confirmationAction) {
+                                Button("Save") {
+                                    saveManualLyrics()
+                                    showLyricsEditor = false
+                                }
+                            }
+                        }
+                }
+            }
         }
     }
 
@@ -75,6 +107,16 @@ struct MuzzaLyricsView: View {
         guard let item = playback.current else {
             loadError = "No song selected."
             return
+        }
+        let cacheKey = "muzza.lyrics.\(item.id)"
+        if let cached = UserDefaults.standard.string(forKey: cacheKey) {
+            let parsed = try? MuzzaLyricsParser.parse(cached)
+            rawLyrics = cached
+            lines = parsed ?? []
+            if !cached.isEmpty {
+                defer { if requestID == id { isLoading = false } }
+                return
+            }
         }
         do {
             let text = try await MuzzaAPI.lyrics(for: item, duration: playback.duration)
@@ -96,6 +138,21 @@ struct MuzzaLyricsView: View {
             withAnimation(.easeInOut(duration: 0.25)) {
                 proxy.scrollTo(lines[next].id, anchor: .center)
             }
+        }
+    }
+
+    private func saveManualLyrics() {
+        guard let item = playback.current else { return }
+        let text = editedLyrics.trimmingCharacters(in: .whitespacesAndNewlines)
+        let cacheKey = "muzza.lyrics.\(item.id)"
+        if text.isEmpty {
+            UserDefaults.standard.removeObject(forKey: cacheKey)
+            rawLyrics = ""
+            lines = []
+        } else {
+            UserDefaults.standard.set(text, forKey: cacheKey)
+            rawLyrics = text
+            lines = (try? MuzzaLyricsParser.parse(text)) ?? []
         }
     }
 }

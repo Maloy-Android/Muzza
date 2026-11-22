@@ -31,6 +31,20 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Serializable
+data class IosArtistMetadata(
+    val id: String?,
+    val name: String,
+    val thumbnail: String? = null,
+    val isProfile: Boolean = false,
+)
+
+@Serializable
+data class IosAlbumMetadata(
+    val id: String,
+    val title: String,
+)
+
+@Serializable
 data class IosMediaItem(
     val id: String,
     val title: String,
@@ -43,6 +57,11 @@ data class IosMediaItem(
     val entryId: Long? = null,
     val downloadPath: String? = null,
     val remoteLiked: Boolean? = null,
+    val artists: List<IosArtistMetadata> = emptyList(),
+    val album: IosAlbumMetadata? = null,
+    val playlistId: String? = null,
+    val playlistTitle: String? = null,
+    val isEditable: Boolean = false,
 )
 
 @Serializable
@@ -114,6 +133,9 @@ internal fun iosRequest(completion: (String) -> Unit, block: suspend () -> IosBr
     }
 }
 
+internal suspend fun iosResponse(block: suspend () -> IosBridgeResponse): IosBridgeResponse =
+    iosRequestResponse(block)
+
 private suspend fun iosRequestResponse(block: suspend () -> IosBridgeResponse): IosBridgeResponse =
     try {
         block()
@@ -155,15 +177,43 @@ internal fun YTItem.toIosMediaItem(): IosMediaItem {
         is PlaylistItem -> "playlist"
         is ArtistItem -> "artist"
     }
+    val song = this as? SongItem
     return IosMediaItem(
         id = id,
         title = title,
         subtitle = subtitle,
-        thumbnail = thumbnail,
+        thumbnail = thumbnail.toIosArtworkUrl(),
         kind = kind,
         explicit = explicit,
-        duration = (this as? SongItem)?.duration,
+        duration = song?.duration,
+        artists = when (this) {
+            is SongItem -> artists.map { it.toIosArtistMetadata() }
+            is AlbumItem -> artists.orEmpty().map { it.toIosArtistMetadata() }
+            is PlaylistItem -> listOfNotNull(author?.toIosArtistMetadata())
+            is ArtistItem -> listOf(IosArtistMetadata(id, title, thumbnail.toIosArtworkUrl(), isProfile))
+        },
+        album = song?.album?.let { IosAlbumMetadata(it.id, it.name) }
+            ?: (this as? AlbumItem)?.let { IosAlbumMetadata(it.id, it.title) },
+        isEditable = (this as? PlaylistItem)?.isEditable ?: false,
     )
+}
+
+private fun com.maloy.innertube.models.Artist.toIosArtistMetadata() =
+    IosArtistMetadata(id = id, name = name, isProfile = isProfile)
+
+private val iosGoogleArtworkSize =
+    Regex("^(https://(?:lh3|yt3)\\.googleusercontent\\.com/[^?]*?)=w\\d+-h\\d+[^?]*(\\?.*)?$")
+private val iosGgphtArtworkSize =
+    Regex("^(https://yt3\\.ggpht\\.com/[^?=]+)=(?:s\\d+|w\\d+-h\\d+)[^?]*(\\?.*)?$")
+
+internal fun String.toIosArtworkUrl(): String {
+    iosGoogleArtworkSize.matchEntire(this)?.groupValues?.let {
+        return "${it[1]}=w1080-h1080-p-l90-rj${it[2]}"
+    }
+    iosGgphtArtworkSize.matchEntire(this)?.groupValues?.let {
+        return "${it[1]}=w1080-h1080-p-l90-rj${it[2]}"
+    }
+    return this
 }
 
 private fun List<YTItem>.iosItems(hideExplicit: Boolean): List<IosMediaItem> =
@@ -204,7 +254,7 @@ private fun MusicTwoRowItemRenderer.toIosMediaItemOrNull(): IosMediaItem? {
         id = id,
         title = title,
         subtitle = subtitle?.runs?.joinToString("") { it.text }.orEmpty(),
-        thumbnail = thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl().orEmpty(),
+        thumbnail = thumbnailRenderer.musicThumbnailRenderer?.getThumbnailUrl().orEmpty().toIosArtworkUrl(),
         kind = kind,
         explicit = subtitleBadges?.any {
             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
@@ -234,17 +284,32 @@ private fun MusicResponsiveListItemRenderer.toIosMediaItemOrNull(): IosMediaItem
     }
     if (id.isNullOrBlank()) return null
     val title = titleRun?.text?.takeIf(String::isNotBlank) ?: return null
-    val artists = flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer
-        ?.text?.runs.orEmpty().joinToString("") { it.text }
+    val artistRuns = flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer
+        ?.text?.runs.orEmpty()
+    val artists = artistRuns.joinToString("") { it.text }
+    val artistMetadata = artistRuns.mapNotNull { run ->
+        run.text.takeIf(String::isNotBlank)?.let { name ->
+            IosArtistMetadata(
+                id = run.navigationEndpoint?.browseEndpoint?.browseId,
+                name = name,
+            )
+        }
+    }
+    val albumRun = flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer
+        ?.text?.runs?.firstOrNull()
     return IosMediaItem(
         id = id,
         title = title,
         subtitle = artists.ifBlank { if (kind == "song") "Song" else kind.replaceFirstChar(Char::uppercase) },
-        thumbnail = thumbnail?.musicThumbnailRenderer?.getThumbnailUrl().orEmpty(),
+        thumbnail = thumbnail?.musicThumbnailRenderer?.getThumbnailUrl().orEmpty().toIosArtworkUrl(),
         kind = kind,
         explicit = badges?.any {
             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
         } == true,
+        artists = artistMetadata,
+        album = albumRun?.navigationEndpoint?.browseEndpoint?.browseId?.let { albumId ->
+            IosAlbumMetadata(albumId, albumRun.text)
+        },
     )
 }
 
@@ -419,6 +484,7 @@ private suspend fun fetchIosPlaylistSongs(
             ?.appendContinuationItemsAction?.continuationItems.orEmpty()
     val items = rows.mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
         .filter { !hideExplicit || !it.explicit }
+        .distinctBy { "${it.kind}:${it.id}" }
     val nextContinuation = response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
@@ -474,26 +540,66 @@ fun fetchIosHome(
 }
 
 fun fetchIosExplore(hideExplicit: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
-    val page = YouTube.explore().getOrThrow()
+    val page = YouTube.explore().getOrNull()
+    val newMixes = YouTube.newReleasesMixesPlaylists().getOrNull()?.newMixesPlaylists.orEmpty()
     IosBridgeResponse(
         sections = buildList {
-            page.newReleaseAlbums.iosItems(hideExplicit).takeIf { it.isNotEmpty() }?.let {
-                add(IosMediaSection("New releases", it))
+            newMixes.iosItems(hideExplicit).takeIf { it.isNotEmpty() }?.let {
+                add(IosMediaSection("New mixes", it))
             }
-            page.moodAndGenres.takeIf { it.isNotEmpty() }?.let { genres ->
-                add(IosMediaSection("Moods and genres", genres.map {
-                    IosMediaItem(
-                        id = it.endpoint.browseId,
-                        title = it.title,
-                        subtitle = "",
-                        thumbnail = "",
-                        kind = "genre",
-                        params = it.endpoint.params,
-                    )
-                }))
+            page?.newReleaseAlbums?.iosItems(hideExplicit)?.takeIf { it.isNotEmpty() }?.let {
+                add(
+                    IosMediaSection(
+                        "New releases",
+                        it,
+                        IosMediaItem(
+                            id = "FEmusic_new_releases_albums",
+                            title = "New releases",
+                            subtitle = "",
+                            thumbnail = "",
+                            kind = "genre",
+                        ),
+                    ),
+                )
             }
-            page.newClips.iosItems(hideExplicit).takeIf { it.isNotEmpty() }?.let {
-                add(IosMediaSection("New clips", it))
+            page?.newClips?.iosItems(hideExplicit)?.takeIf { it.isNotEmpty() }?.let {
+                add(
+                    IosMediaSection(
+                        "New clips",
+                        it,
+                        IosMediaItem(
+                            id = "FEmusic_new_releases_videos",
+                            title = "New clips",
+                            subtitle = "",
+                            thumbnail = "",
+                            kind = "genre",
+                        ),
+                    ),
+                )
+            }
+            page?.moodAndGenres?.takeIf { it.isNotEmpty() }?.let { genres ->
+                add(
+                    IosMediaSection(
+                        title = "Moods and genres",
+                        items = genres.map {
+                            IosMediaItem(
+                                id = it.endpoint.browseId,
+                                title = it.title,
+                                subtitle = "",
+                                thumbnail = "",
+                                kind = "genre",
+                                params = it.endpoint.params,
+                            )
+                        },
+                        moreItem = IosMediaItem(
+                            id = "moodAndGenres",
+                            title = "Moods and genres",
+                            subtitle = "",
+                            thumbnail = "",
+                            kind = "moodAndGenres",
+                        ),
+                    ),
+                )
             }
         },
     )
@@ -512,6 +618,7 @@ fun searchIosMusic(
         "videos" -> YouTube.SearchFilter.FILTER_VIDEO
         "albums" -> YouTube.SearchFilter.FILTER_ALBUM
         "artists" -> YouTube.SearchFilter.FILTER_ARTIST
+        "profiles" -> YouTube.SearchFilter.FILTER_PROFILE
         "playlists" -> YouTube.SearchFilter.FILTER_FEATURED_PLAYLIST
         "community" -> YouTube.SearchFilter.FILTER_COMMUNITY_PLAYLIST
         else -> throw IllegalArgumentException("Unsupported search category.")
@@ -536,7 +643,13 @@ fun fetchIosCollection(
     val useLogin = !YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse
     when {
         kind == "playlist" -> {
-            fetchIosPlaylistSongs(id.removePrefix("VL"), continuation, useLogin, hideExplicit)
+            fetchIosPlaylistSongs(id.removePrefix("VL"), continuation, useLogin, hideExplicit).let { result ->
+                result.copy(
+                    items = result.items.map { song ->
+                        song.copy(playlistId = id.removePrefix("VL"))
+                    },
+                )
+            }
         }
         kind == "album" -> {
             val page = YouTube.album(id, withSongs = false)?.getOrThrow()
@@ -546,7 +659,18 @@ fun fetchIosCollection(
                 continuation,
                 setLogin = false,
                 hideExplicit = hideExplicit,
-            )
+            ).let { result ->
+                result.copy(
+                    items = result.items.map { song ->
+                        song.copy(
+                            album = IosAlbumMetadata(page.album.id, page.album.title),
+                            artists = song.artists.ifEmpty {
+                                page.album.artists.orEmpty().map { it.toIosArtistMetadata() }
+                            },
+                        )
+                    },
+                )
+            }
         }
         kind == "artist" -> {
             val page = YouTube.artist(id).getOrThrow()
@@ -575,6 +699,21 @@ fun fetchIosCollection(
                 section.items.iosItems(hideExplicit).takeIf { it.isNotEmpty() }
                     ?.let { IosMediaSection(section.title.orEmpty(), it) }
             })
+        }
+        kind == "moodAndGenres" -> {
+            val sections = YouTube.moodAndGenres().getOrThrow().mapNotNull { group ->
+                group.items.map { item ->
+                    IosMediaItem(
+                        id = item.endpoint.browseId,
+                        title = item.title,
+                        subtitle = "",
+                        thumbnail = "",
+                        kind = "genre",
+                        params = item.endpoint.params,
+                    )
+                }.takeIf { it.isNotEmpty() }?.let { IosMediaSection(group.title, it) }
+            }
+            IosBridgeResponse(sections = sections)
         }
         else -> throw IllegalArgumentException("Unsupported collection type.")
     }

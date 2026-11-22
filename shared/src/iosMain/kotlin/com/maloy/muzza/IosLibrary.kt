@@ -37,7 +37,7 @@ private fun SongEntity.toIosMediaItem() = IosMediaItem(
     id = id,
     title = title,
     subtitle = artistName.orEmpty().ifBlank { "Song" },
-    thumbnail = thumbnailUrl.orEmpty(),
+    thumbnail = thumbnailUrl.orEmpty().toIosArtworkUrl(),
     kind = "song",
     explicit = explicit,
     duration = duration.takeIf { it >= 0 },
@@ -72,6 +72,7 @@ internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
             subtitle = if (playlist.isLocal != 0L) "$count ${if (count == 1L) "song" else "songs"}" else "Playlist",
             thumbnail = playlist.thumbnailUrl.orEmpty(),
             kind = if (playlist.isLocal != 0L) "localPlaylist" else "playlist",
+            isEditable = playlist.isEditable != 0L,
         )
     }
     val albums = albumQueries.selectAll().executeAsList().filter { it.bookmarkedAt != null }.map { album ->
@@ -168,12 +169,14 @@ fun setIosCollectionSaved(json: String, saved: Boolean, completion: (String) -> 
                 val existing = db.playlistQueries.selectById(item.id).executeAsOneOrNull()?.toModel()
                 require(saved || existing != null) { "Playlist not found in the library." }
                 val playlist = (existing ?: PlaylistEntity(
-                    id = item.id, name = item.title, browseId = item.id, isEditable = false, isLocal = false,
+                    id = item.id, name = item.title, browseId = item.id,
+                    isEditable = item.isEditable, isLocal = false,
                 )).copy(
                     name = item.title,
                     thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: existing?.thumbnailUrl,
                     lastUpdateTime = time,
                     bookmarkedAt = if (saved) time else null,
+                    isEditable = item.isEditable,
                 )
                 db.playlistQueries.upsert(playlist.toDb())
             }
@@ -248,17 +251,26 @@ fun fetchIosLocalPlaylist(id: String, completion: (String) -> Unit) = iosRequest
     withIosDatabase { it.localPlaylistResponse(id) }
 }
 
-fun createIosPlaylist(name: String, completion: (String) -> Unit) = iosRequest(completion) {
+fun createIosPlaylist(name: String, syncToYouTube: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
     val title = name.trim()
     require(title.isNotEmpty() && title.length <= 120) { "Enter a playlist name of up to 120 characters." }
+    val browseId = if (syncToYouTube && !YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) {
+        withContext(Dispatchers.Default) { YouTube.createPlaylist(title) }.takeIf(String::isNotBlank)
+            ?: throw IllegalStateException("YouTube did not return a playlist identifier.")
+    } else {
+        null
+    }
     withIosDatabase { db ->
         val time = now()
         val playlist = PlaylistEntity(
-            id = "LP_${NSUUID().UUIDString}",
+            id = browseId ?: "LP_${NSUUID().UUIDString}",
             name = title,
+            browseId = browseId,
             createdAt = time,
             lastUpdateTime = time,
-            isLocal = true,
+            isEditable = true,
+            bookmarkedAt = if (browseId != null) time else null,
+            isLocal = browseId == null,
         )
         db.playlistQueries.upsert(playlist.toDb())
         db.libraryResponse()
@@ -318,18 +330,31 @@ fun addIosSongToPlaylist(
     completion: (String) -> Unit,
 ) = iosRequest(completion) {
     val item = iosJson.decodeFromString<IosMediaItem>(json)
-    withIosDatabase { db ->
-        db.transaction {
-            val playlist = db.playlistQueries.selectById(id).executeAsOneOrNull()
-                ?: throw IllegalArgumentException("Playlist not found.")
-            require(playlist.isLocal != 0L && playlist.isEditable != 0L) { "Playlist cannot be edited." }
-            val songs = db.playlistSongMapQueries.selectByPlaylist(id).executeAsList()
-            if (!allowDuplicate && songs.any { it.songId == item.id }) throw IosDuplicateSongException()
-            db.saveSong(item)
-            val position = (songs.maxOfOrNull { it.position } ?: -1L) + 1
-            db.playlistSongMapQueries.insert(id, item.id, position)
+    val playlist = withIosDatabase { db ->
+        val playlist = db.playlistQueries.selectById(id).executeAsOneOrNull()?.toModel()
+            ?: db.playlistQueries.selectAll().executeAsList().firstOrNull { it.browseId == id }?.toModel()
+            ?: throw IllegalArgumentException("Playlist not found.")
+        require(playlist.isEditable) { "Playlist cannot be edited." }
+        playlist
+    }
+    if (!playlist.isLocal) {
+        check(!YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) {
+            "Sign in to YouTube Music to add songs to this playlist."
         }
-        db.libraryResponse()
+        YouTube.addToPlaylist(playlist.browseId ?: playlist.id, item.id).getOrThrow()
+        withIosDatabase { it.libraryResponse() }
+    } else {
+        withIosDatabase { db ->
+            db.transaction {
+                require(playlist.isLocal) { "Playlist cannot be edited." }
+                val songs = db.playlistSongMapQueries.selectByPlaylist(id).executeAsList()
+                if (!allowDuplicate && songs.any { it.songId == item.id }) throw IosDuplicateSongException()
+                db.saveSong(item)
+                val position = (songs.maxOfOrNull { it.position } ?: -1L) + 1
+                db.playlistSongMapQueries.insert(id, item.id, position)
+            }
+            db.libraryResponse()
+        }
     }
 }
 

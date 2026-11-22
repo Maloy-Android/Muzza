@@ -73,11 +73,11 @@ struct ContentView: View {
                     .allowsHitTesting(selectedTab == 2)
             }
             MuzzaBottomNavigation(selectedTab: $selectedTab)
-                .padding(.horizontal, 18)
+                .padding(.horizontal, 4)
             if playback.current != nil {
                 MuzzaMiniPlayer(playback: playback) { showPlayer = true }
-                    .padding(.horizontal, 8)
-                    .padding(.bottom, 78)
+                    .padding(.horizontal, 4)
+                    .padding(.bottom, 72)
             }
         }
         .tint(MuzzaAccent(rawValue: accentColor)?.color ?? MuzzaAccent.coral.color)
@@ -164,7 +164,7 @@ struct ContentView: View {
                     .strokeBorder(Color(.separator).opacity(0.35), lineWidth: 0.5)
             )
             .shadow(color: .black.opacity(0.16), radius: 12, y: 4)
-            .padding(.bottom, 8)
+            .padding(.bottom, 0)
         }
     }
 }
@@ -230,14 +230,6 @@ private struct MuzzaHomeView: View {
             ScrollView {
                 LazyVStack(alignment: .leading, spacing: 26) {
                     MuzzaHeader("Home", search: { showSearch = true }, settings: { showSettings = true })
-                    if !quickPicks.isEmpty {
-                        VStack(alignment: .leading, spacing: 10) {
-                            Text("Quick picks").font(.title2.bold())
-                            ForEach(Array(quickPicks.enumerated()), id: \.offset) { index, item in
-                                MuzzaSongRow(item: item, playback: playback, queue: quickPicks, queueIndex: index)
-                            }
-                        }
-                    }
                     if !chips.isEmpty {
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
@@ -253,6 +245,14 @@ private struct MuzzaHomeView: View {
                                     }
                                     .buttonStyle(.plain)
                                 }
+                            }
+                        }
+                    }
+                    if !quickPicks.isEmpty {
+                        VStack(alignment: .leading, spacing: 8) {
+                            Text("Quick picks").font(.title2.bold())
+                            ForEach(Array(quickPicks.enumerated()), id: \.offset) { index, item in
+                                MuzzaSongRow(item: item, playback: playback, queue: quickPicks, queueIndex: index)
                             }
                         }
                     }
@@ -356,7 +356,11 @@ private struct MuzzaExploreView: View {
                 LazyVStack(alignment: .leading, spacing: 26) {
                     MuzzaHeader("Explore", search: { showSearch = true }, settings: { showSettings = true })
                     ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                        MuzzaMediaSectionView(section: section, playback: playback)
+                        MuzzaMediaSectionView(
+                            section: section,
+                            playback: playback,
+                            mediaAspectRatio: section.title == "New clips" ? 16.0 / 9.0 : 1
+                        )
                     }
                     if isLoading {
                         ProgressView().frame(maxWidth: .infinity).padding()

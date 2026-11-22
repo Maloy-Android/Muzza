@@ -578,6 +578,9 @@ fun fetchIosHome(
 fun fetchIosExplore(hideExplicit: Boolean, completion: (String) -> Unit) = iosRequest(completion) {
     val page = YouTube.explore().getOrThrow()
     val newMixes = YouTube.newReleasesMixesPlaylists().getOrThrow().newMixesPlaylists
+    val moodsAndGenres = YouTube.moodAndGenres().getOrThrow()
+        .flatMap { it.items }
+        .distinctBy { it.endpoint.browseId to it.endpoint.params }
     IosBridgeResponse(
         sections = buildList {
             newMixes.iosItems(hideExplicit).takeIf { it.isNotEmpty() }?.let {
@@ -613,7 +616,7 @@ fun fetchIosExplore(hideExplicit: Boolean, completion: (String) -> Unit) = iosRe
                     ),
                 )
             }
-            page?.moodAndGenres?.takeIf { it.isNotEmpty() }?.let { genres ->
+            moodsAndGenres.takeIf { it.isNotEmpty() }?.let { genres ->
                 add(
                     IosMediaSection(
                         title = "Moods and genres",
@@ -665,6 +668,49 @@ fun searchIosMusic(
         YouTube.searchContinuation(continuation).getOrThrow()
     }
     IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
+}
+
+private suspend fun fetchIosGenrePage(
+    id: String,
+    params: String?,
+    continuation: String?,
+    hideExplicit: Boolean,
+): IosBridgeResponse {
+    val innerTube = YouTube.extractionTransport().innerTube
+    val response = if (continuation == null) {
+        innerTube.browse(WEB_REMIX, browseId = id, params = params).body<BrowseResponse>()
+    } else {
+        innerTube.browse(WEB_REMIX, continuation = continuation).body<BrowseResponse>()
+    }
+    val sectionList = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+        ?.tabRenderer?.content?.sectionListRenderer
+    val continuedSections = response.continuationContents?.sectionListContinuation?.contents
+        .toIosMediaSections(hideExplicit)
+    val continuedItems = when {
+        response.continuationContents?.gridContinuation != null ->
+            response.continuationContents?.gridContinuation?.items?.toIosLibraryItems(hideExplicit).orEmpty()
+        response.continuationContents?.musicShelfContinuation != null ->
+            response.continuationContents?.musicShelfContinuation?.contents.orEmpty()
+                .mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
+                .filter { !hideExplicit || !it.explicit }
+        else -> emptyList()
+    }
+    val title = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text
+        ?: if (id == "FEmusic_new_releases_videos") "New clips" else "Explore"
+    val sections = when {
+        continuation == null -> sectionList?.contents.toIosMediaSections(hideExplicit)
+        continuedSections.isNotEmpty() -> continuedSections
+        continuedItems.isNotEmpty() -> listOf(IosMediaSection(title, continuedItems))
+        else -> emptyList()
+    }
+    val nextContinuation = sectionList?.continuations?.getContinuation()
+        ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
+        ?: response.continuationContents?.gridContinuation?.continuations?.getContinuation()
+        ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
+        ?: response.onResponseReceivedActions?.asSequence()
+            ?.mapNotNull { it.appendContinuationItemsAction?.continuationItems?.getContinuation() }
+            ?.firstOrNull()
+    return IosBridgeResponse(sections = sections, continuation = nextContinuation)
 }
 
 fun fetchIosCollection(
@@ -752,11 +798,7 @@ fun fetchIosCollection(
             IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
         }
         kind == "genre" -> {
-            val page = YouTube.browse(id, params).getOrThrow()
-            IosBridgeResponse(sections = page.items.mapNotNull { section ->
-                section.items.iosItems(hideExplicit).takeIf { it.isNotEmpty() }
-                    ?.let { IosMediaSection(section.title.orEmpty(), it) }
-            })
+            fetchIosGenrePage(id, params, continuation, hideExplicit)
         }
         kind == "moodAndGenres" -> {
             val sections = YouTube.moodAndGenres().getOrThrow().mapNotNull { group ->
@@ -777,12 +819,11 @@ fun fetchIosCollection(
     }
 }
 
-fun fetchIosYouTubeLibrary(
+internal suspend fun fetchIosYouTubeLibraryPage(
     category: String,
     hideExplicit: Boolean,
     continuation: String?,
-    completion: (String) -> Unit,
-) = iosRequest(completion) {
+): IosBridgeResponse {
     check(!YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse) { "Sign in to YouTube Music first."     }
     val page = if (category == "songs") {
         fetchIosPlaylistSongs("LM", continuation, setLogin = true, hideExplicit = hideExplicit)
@@ -858,7 +899,7 @@ fun fetchIosYouTubeLibrary(
             }
         }
     }
-    page
+    return page
 }
 
 internal fun NextResult.toIosRadioResponse(hideExplicit: Boolean): IosBridgeResponse {

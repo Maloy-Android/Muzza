@@ -77,6 +77,27 @@ class IosLibraryTest {
     }
 
     @Test
+    fun likedSongsKeepAlbumAndArtistNavigationMetadata() {
+        val driver = inMemoryDriver(MuzzaDatabase.Schema)
+        try {
+            val db = MuzzaDatabase(driver)
+            db.saveSong(
+                item.copy(
+                    album = IosAlbumMetadata("album-1", "Album"),
+                    artists = listOf(IosArtistMetadata("artist-1", "Artist")),
+                ),
+                liked = true,
+            )
+
+            val saved = db.libraryResponse().items.single()
+            assertEquals(IosAlbumMetadata("album-1", "Album"), saved.album)
+            assertEquals(listOf(IosArtistMetadata("artist-1", "Artist")), saved.artists)
+        } finally {
+            driver.close()
+        }
+    }
+
+    @Test
     fun localPlaylistReturnsItsStoredSongs() {
         val driver = inMemoryDriver(MuzzaDatabase.Schema)
         try {

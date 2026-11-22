@@ -52,8 +52,8 @@ struct MuzzaHeader: View {
 struct MuzzaArtwork: View {
     let item: MuzzaLiveItem
     let size: CGFloat
+    var aspectRatio: CGFloat = 1
     @State private var modelImage: UIImage?
-    @State private var isLoading = false
     private static let imageCache = NSCache<NSURL, UIImage>()
 
     var body: some View {
@@ -64,33 +64,29 @@ struct MuzzaArtwork: View {
                 placeholder
             }
         }
-        .frame(width: size, height: size)
+        .frame(width: size, height: size / max(aspectRatio, 0.1))
         .clipShape(RoundedRectangle(cornerRadius: max(8, size * 0.06)))
         .task(id: item.thumbnail) {
-            await loadImage()
+            modelImage = nil
+            guard let url = URL(string: item.thumbnail),
+                  url.scheme?.lowercased() == "https" else { return }
+            let key = url as NSURL
+            if let cached = Self.imageCache.object(forKey: key) {
+                modelImage = cached
+            } else {
+                await loadImage(from: url, cacheKey: key)
+            }
         }
     }
 
-    private func loadImage() async {
-        guard let url = URL(string: item.thumbnail),
-              url.scheme?.lowercased() == "https",
-              modelImage == nil,
-              !isLoading else { return }
-        isLoading = true
-        defer { isLoading = false }
-        let key = url as NSURL
-        if let cached = Self.imageCache.object(forKey: key) {
-            modelImage = cached
-            return
-        }
+    private func loadImage(from url: URL, cacheKey: NSURL) async {
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            if let image = UIImage(data: data) {
-                Self.imageCache.setObject(image, forKey: key)
-                modelImage = image
-            }
+            guard !Task.isCancelled, let image = UIImage(data: data) else { return }
+            Self.imageCache.setObject(image, forKey: cacheKey)
+            modelImage = image
         } catch {
-            modelImage = nil
+            if !Task.isCancelled { modelImage = nil }
         }
     }
 
@@ -108,9 +104,16 @@ struct MuzzaArtwork: View {
 struct MuzzaMediaSectionView: View {
     let section: MuzzaLiveSection
     @ObservedObject var playback: MuzzaPlayback
+    var layout: Layout = .horizontal
+    var mediaAspectRatio: CGFloat = 1
+
+    enum Layout: Equatable {
+        case horizontal
+        case grid
+    }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             if !section.title.isEmpty || section.moreItem != nil {
                 HStack {
                     if !section.title.isEmpty {
@@ -119,7 +122,10 @@ struct MuzzaMediaSectionView: View {
                     Spacer()
                     if let moreItem = section.moreItem {
                         NavigationLink(value: moreItem) {
-                            Label("See all", systemImage: "chevron.right")
+                            HStack(spacing: 5) {
+                                Text("See all")
+                                Image(systemName: "chevron.right")
+                            }
                                 .font(.subheadline.weight(.semibold))
                         }
                     }
@@ -140,48 +146,104 @@ struct MuzzaMediaSectionView: View {
                         .buttonStyle(.plain)
                     }
                 }
+            } else if layout == .grid {
+                LazyVGrid(
+                    columns: [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)],
+                    alignment: .leading,
+                    spacing: 12
+                ) {
+                    ForEach(section.items) { item in mediaItemView(item) }
+                }
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(alignment: .top, spacing: 14) {
-                        ForEach(Array(section.items.enumerated()), id: \.offset) { _, item in
-                            if item.kind == "song" {
-                                Button { playback.play(item, in: section.items) } label: {
-                                    MuzzaMediaCard(item: item)
-                                }
-                                .buttonStyle(.plain)
-                                .contextMenu {
-                                    Button("Start radio") { playback.startRadio(item) }
-                                    Button("Play next") { playback.enqueue(item, playNext: true) }
-                                    Button("Add to queue") { playback.enqueue(item, playNext: false) }
-                                    Button(playback.isLiked(item) ? "Remove like" : "Like") {
-                                        playback.toggleLike(item)
-                                    }
-                                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                                    if playback.isDownloaded(item) {
-                                        Button("Remove download", role: .destructive) {
-                                            Task { _ = await playback.removeDownload(item) }
-                                        }
-                                    } else {
-                                        Button("Download") { playback.download(item) }
-                                    }
-                                }
-                            } else {
-                                NavigationLink(value: item) { MuzzaMediaCard(item: item) }
-                                    .buttonStyle(.plain)
-                                    .contextMenu {
-                                        if ["album", "artist", "playlist"].contains(item.kind) {
-                                            Button {
-                                                playback.toggleSaved(item)
-                                            } label: {
-                                                Label(
-                                                    playback.isSaved(item) ? "Remove from library" : "Save",
-                                                    systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
-                                                )
-                                            }
-                                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                                        }
-                                    }
-                            }
+                    HStack(alignment: .top, spacing: 10) {
+                        ForEach(section.items) { item in mediaItemView(item) }
+                    }
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func mediaItemView(_ item: MuzzaLiveItem) -> some View {
+        let size: CGFloat = layout == .grid ? 156 : 164
+        if item.kind == "song" {
+            Button { playback.play(item, in: section.items) } label: {
+                MuzzaMediaCard(
+                    item: item,
+                    size: size,
+                    aspectRatio: mediaAspectRatio,
+                    isNowPlaying: playback.current?.id == item.id && playback.isPlaying
+                )
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+                Button("Start radio") { playback.startRadio(item) }
+                Button("Play next") { playback.enqueue(item, playNext: true) }
+                Button("Add to queue") { playback.enqueue(item, playNext: false) }
+                Button(playback.isLiked(item) ? "Remove like" : "Like") {
+                    playback.toggleLike(item)
+                }
+                .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                if playback.isDownloaded(item) {
+                    Button(role: .destructive) {
+                        Task { _ = await playback.removeDownload(item) }
+                    } label: {
+                        Label("Remove download", systemImage: "arrow.down.circle")
+                    }
+                } else {
+                    Button("Download") { playback.download(item) }
+                }
+                songNavigationLinks(for: item)
+            }
+        } else {
+            NavigationLink(value: item) {
+                MuzzaMediaCard(item: item, size: size, aspectRatio: mediaAspectRatio)
+            }
+            .buttonStyle(.plain)
+            .contextMenu {
+                if ["album", "artist", "playlist"].contains(item.kind) {
+                    Button { playback.toggleSaved(item) } label: {
+                        Label(
+                            playback.isSaved(item) ? "Remove from library" : "Save",
+                            systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
+                        )
+                    }
+                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                }
+            }
+        }
+    }
+
+    @ViewBuilder
+    private func songNavigationLinks(for item: MuzzaLiveItem) -> some View {
+        if item.album != nil || !(item.artists ?? []).isEmpty {
+            Section("Navigate") {
+                if let album = item.album {
+                    NavigationLink {
+                        MuzzaCollectionView(
+                            item: muzzaCollectionItem(
+                                id: album.id, title: album.title, subtitle: item.subtitle,
+                                thumbnail: item.thumbnail, kind: "album"
+                            ),
+                            playback: playback
+                        )
+                    } label: {
+                        Label("View album", systemImage: "square.stack")
+                    }
+                }
+                ForEach(Array((item.artists ?? []).enumerated()), id: \.offset) { _, artist in
+                    if let id = artist.id {
+                        NavigationLink {
+                            MuzzaCollectionView(
+                                item: muzzaCollectionItem(
+                                    id: id, title: artist.name, subtitle: "Artist",
+                                    thumbnail: artist.thumbnail ?? "", kind: "artist"
+                                ),
+                                playback: playback
+                            )
+                        } label: {
+                            Label("View \(artist.name)", systemImage: "person")
                         }
                     }
                 }
@@ -192,13 +254,16 @@ struct MuzzaMediaSectionView: View {
 
 private struct MuzzaMediaCard: View {
     let item: MuzzaLiveItem
+    let size: CGFloat
+    let aspectRatio: CGFloat
+    var isNowPlaying = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            MuzzaArtwork(item: item, size: 150)
+            MuzzaArtwork(item: item, size: size, aspectRatio: aspectRatio)
                 .overlay(alignment: .bottomTrailing) {
                     if item.kind == "song" {
-                        Image(systemName: "play.fill")
+                        Image(systemName: isNowPlaying ? "waveform" : "play.fill")
                             .font(.caption.bold()).foregroundStyle(.white)
                             .padding(9).background(.black.opacity(0.65)).clipShape(Circle())
                             .padding(6)
@@ -209,8 +274,18 @@ private struct MuzzaMediaCard: View {
                 Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
         }
-        .frame(width: 150, alignment: .leading)
+        .frame(width: size, alignment: .leading)
     }
+}
+
+private func muzzaCollectionItem(
+    id: String, title: String, subtitle: String, thumbnail: String, kind: String
+) -> MuzzaLiveItem {
+    MuzzaLiveItem(
+        id: id, title: title, subtitle: subtitle, thumbnail: thumbnail, kind: kind,
+        params: nil, explicit: false, duration: nil, entryId: nil, downloadPath: nil,
+        remoteLiked: nil
+    )
 }
 
 struct MuzzaSongRow: View {
@@ -253,6 +328,15 @@ struct MuzzaSongRow: View {
             } label: {
                 HStack(spacing: 12) {
                     MuzzaArtwork(item: item, size: 54)
+                        .overlay {
+                            if playback.current?.id == item.id && playback.isPlaying {
+                                Image(systemName: "waveform")
+                                    .font(.caption.bold())
+                                    .foregroundStyle(.white)
+                                    .padding(7)
+                                    .background(.black.opacity(0.7), in: Circle())
+                            }
+                        }
                     VStack(alignment: .leading, spacing: 3) {
                         Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
                         Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -289,6 +373,8 @@ struct MuzzaSongRow: View {
                     }
                 }
                 .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+
+                songNavigationLinks
 
                 let addablePlaylists = playback.playlists.filter {
                     $0.kind == "localPlaylist" ||
@@ -419,6 +505,42 @@ struct MuzzaSongRow: View {
                 showDuplicate = true
             } catch {
                 playback.message = error.localizedDescription
+            }
+        }
+
+        @ViewBuilder
+        private var songNavigationLinks: some View {
+            if item.album != nil || !(item.artists ?? []).isEmpty {
+                Section("Navigate") {
+                    if let album = item.album {
+                        NavigationLink {
+                            MuzzaCollectionView(
+                                item: muzzaCollectionItem(
+                                    id: album.id, title: album.title, subtitle: item.subtitle,
+                                    thumbnail: item.thumbnail, kind: "album"
+                                ),
+                                playback: playback
+                            )
+                        } label: {
+                            Label("View album", systemImage: "square.stack")
+                        }
+                    }
+                    ForEach(Array((item.artists ?? []).enumerated()), id: \.offset) { _, artist in
+                        if let id = artist.id {
+                            NavigationLink {
+                                MuzzaCollectionView(
+                                    item: muzzaCollectionItem(
+                                        id: id, title: artist.name, subtitle: "Artist",
+                                        thumbnail: artist.thumbnail ?? "", kind: "artist"
+                                    ),
+                                    playback: playback
+                                )
+                            } label: {
+                                Label("View \(artist.name)", systemImage: "person")
+                            }
+                        }
+                    }
+                }
             }
         }
     }

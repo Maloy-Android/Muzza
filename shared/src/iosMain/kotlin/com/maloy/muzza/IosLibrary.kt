@@ -44,6 +44,26 @@ private fun SongEntity.toIosMediaItem() = IosMediaItem(
     downloadPath = localPath.takeIf { dateDownload != null },
 )
 
+private fun MuzzaDatabase.songToIosMediaItem(song: SongEntity): IosMediaItem {
+    val artists = songArtistMapQueries.selectArtistsBySong(song.id).executeAsList().mapNotNull { mapping ->
+        artistQueries.selectById(mapping.artistId).executeAsOneOrNull()?.toModel()?.let { artist ->
+            IosArtistMetadata(
+                id = artist.id,
+                name = artist.name,
+                thumbnail = artist.thumbnailUrl,
+                isProfile = artist.isProfile,
+            )
+        }
+    }
+    val album = song.albumId?.let { id ->
+        IosAlbumMetadata(
+            id = id,
+            title = albumQueries.selectById(id).executeAsOneOrNull()?.title ?: song.albumName.orEmpty(),
+        )
+    }
+    return song.toIosMediaItem().copy(artists = artists, album = album)
+}
+
 internal fun MuzzaDatabase.saveSong(item: IosMediaItem, liked: Boolean? = null) {
     require(item.kind == "song" && item.id.isNotBlank() && item.title.isNotBlank()) {
         "Invalid song data."
@@ -54,15 +74,56 @@ internal fun MuzzaDatabase.saveSong(item: IosMediaItem, liked: Boolean? = null) 
         duration = item.duration ?: existing?.duration ?: -1,
         thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: existing?.thumbnailUrl,
         artistName = item.subtitle.takeIf { it.isNotBlank() && it != "Song" } ?: existing?.artistName,
+        albumId = item.album?.id ?: existing?.albumId,
+        albumName = item.album?.title ?: existing?.albumName,
         liked = liked ?: existing?.liked ?: false,
         inLibrary = if (liked == true) now() else existing?.inLibrary,
         explicit = item.explicit || existing?.explicit == true,
     )
     songQueries.upsert(song.toDb())
+    item.album?.let { albumMetadata ->
+        val album = albumQueries.selectById(albumMetadata.id).executeAsOneOrNull()?.toModel()
+        albumQueries.upsert(
+            (album ?: AlbumEntity(
+                id = albumMetadata.id,
+                title = albumMetadata.title,
+                songCount = 0,
+                duration = 0,
+                lastUpdateTime = now(),
+            )).copy(
+                title = albumMetadata.title,
+                thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: album?.thumbnailUrl,
+                lastUpdateTime = now(),
+            ).toDb(),
+        )
+        songAlbumMapQueries.deleteForSong(item.id)
+        songAlbumMapQueries.insert(item.id, albumMetadata.id, 0)
+    }
+    val artists = item.artists.filter { !it.id.isNullOrBlank() }
+    if (artists.isNotEmpty()) {
+        songArtistMapQueries.deleteForSong(item.id)
+        artists.forEach { artistMetadata ->
+            val id = requireNotNull(artistMetadata.id)
+            val artist = artistQueries.selectById(id).executeAsOneOrNull()?.toModel()
+            artistQueries.upsert(
+                (artist ?: ArtistEntity(
+                    id = id,
+                    name = artistMetadata.name,
+                    lastUpdateTime = now(),
+                )).copy(
+                    name = artistMetadata.name,
+                    thumbnailUrl = artistMetadata.thumbnail?.takeIf(String::isNotBlank) ?: artist?.thumbnailUrl,
+                    lastUpdateTime = now(),
+                    isProfile = artistMetadata.isProfile,
+                ).toDb(),
+            )
+            songArtistMapQueries.insert(item.id, id)
+        }
+    }
 }
 
 internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
-    val liked = songQueries.selectLiked().executeAsList().map { it.toModel().toIosMediaItem() }
+    val liked = songQueries.selectLiked().executeAsList().map { songToIosMediaItem(it.toModel()) }
     val playlists = playlistQueries.selectAll().executeAsList()
         .filter { it.isLocal != 0L || it.bookmarkedAt != null }.map { playlist ->
         val count = playlistSongMapQueries.countByPlaylist(playlist.id).executeAsOne()
@@ -83,10 +144,13 @@ internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
     }
     val downloads = songQueries.selectAll().executeAsList()
         .filter { it.dateDownload != null }
-        .map { it.toModel().toIosMediaItem() }
+        .map { songToIosMediaItem(it.toModel()) }
     val recent = eventQueries.selectRecent(100).executeAsList()
         .distinctBy { it.songId }
-        .mapNotNull { event -> songQueries.selectById(event.songId).executeAsOneOrNull()?.toModel()?.toIosMediaItem() }
+        .mapNotNull { event ->
+            songQueries.selectById(event.songId).executeAsOneOrNull()?.toModel()
+                ?.let { songToIosMediaItem(it) }
+        }
     return IosBridgeResponse(
         items = liked,
         playlists = playlists,
@@ -102,7 +166,8 @@ internal fun MuzzaDatabase.localPlaylistResponse(id: String): IosBridgeResponse 
         ?: throw IllegalArgumentException("Playlist not found.")
     require(playlist.isLocal != 0L) { "This playlist is not stored on this device." }
     val songs = playlistSongMapQueries.selectByPlaylist(id).executeAsList().mapNotNull { entry ->
-        songQueries.selectById(entry.songId).executeAsOneOrNull()?.toModel()?.toIosMediaItem()?.copy(entryId = entry.id)
+        songQueries.selectById(entry.songId).executeAsOneOrNull()?.toModel()
+            ?.let { songToIosMediaItem(it) }?.copy(entryId = entry.id)
     }
     return IosBridgeResponse(items = songs)
 }
@@ -139,7 +204,7 @@ fun syncIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) 
             db.songQueries.selectLiked().executeAsList().forEach { existing ->
                 if (existing.id !in remoteIDs) {
                     db.saveSong(
-                        existing.toModel().toIosMediaItem(),
+                        db.songToIosMediaItem(existing.toModel()),
                         liked = false,
                     )
                 }
@@ -147,6 +212,50 @@ fun syncIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion) 
             remoteItems.forEach { item ->
                 db.saveSong(item, liked = true)
             }
+        }
+        db.libraryResponse()
+    }
+}
+
+fun syncIosCollections(completion: (String) -> Unit) = iosRequest(completion) {
+    val categories = listOf(
+        "albums" to "album",
+        "artists" to "artist",
+        "playlists" to "playlist",
+    )
+    val syncedIDs = mutableMapOf<String, Set<String>>()
+
+    for ((category, kind) in categories) {
+        val ids = mutableSetOf<String>()
+        val seenContinuations = mutableSetOf<String>()
+        var continuation: String? = null
+        while (true) {
+            val page = fetchIosYouTubeLibraryPage(category, hideExplicit = false, continuation = continuation)
+            page.items.filter { it.kind == kind }.forEach { ids.add(it.id) }
+            val next = page.continuation?.takeIf(String::isNotBlank) ?: break
+            check(seenContinuations.add(next)) { "YouTube returned a repeated library continuation." }
+            continuation = next
+        }
+        syncedIDs[category] = ids
+    }
+
+    withIosDatabase { db ->
+        db.transaction {
+            val time = now()
+            db.albumQueries.selectAll().executeAsList()
+                .map { it.toModel() }
+                .filter { it.bookmarkedAt != null && it.id !in syncedIDs.getValue("albums") }
+                .forEach { db.albumQueries.upsert(it.copy(bookmarkedAt = null, lastUpdateTime = time).toDb()) }
+            db.artistQueries.selectAll().executeAsList()
+                .map { it.toModel() }
+                .filter { it.bookmarkedAt != null && it.id !in syncedIDs.getValue("artists") }
+                .forEach { db.artistQueries.upsert(it.copy(bookmarkedAt = null, lastUpdateTime = time).toDb()) }
+            db.playlistQueries.selectAll().executeAsList()
+                .map { it.toModel() }
+                .filter {
+                    !it.isLocal && it.bookmarkedAt != null && it.id !in syncedIDs.getValue("playlists")
+                }
+                .forEach { db.playlistQueries.upsert(it.copy(bookmarkedAt = null, lastUpdateTime = time).toDb()) }
         }
         db.libraryResponse()
     }
@@ -275,7 +384,7 @@ fun fetchIosDownload(id: String, completion: (String) -> Unit) = iosRequest(comp
             IosBridgeResponse()
         } else {
             check(!song.localPath.isNullOrBlank()) { "The downloaded audio has no file path." }
-            IosBridgeResponse(items = listOf(song.toIosMediaItem()))
+            IosBridgeResponse(items = listOf(db.songToIosMediaItem(song)))
         }
     }
 }
@@ -303,7 +412,7 @@ fun fetchIosLikedPlaylist(completion: (String) -> Unit) = iosRequest(completion)
     withIosDatabase { db ->
         IosBridgeResponse(
             items = db.songQueries.selectLiked().executeAsList()
-                .map { it.toModel().toIosMediaItem() }
+                .map { db.songToIosMediaItem(it.toModel()) }
         )
     }
 }

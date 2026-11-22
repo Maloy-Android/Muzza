@@ -100,143 +100,158 @@ struct MuzzaPlayerView: View {
     }
 
     var body: some View {
-        GeometryReader { geometry in
-            ScrollView {
-                VStack(spacing: 28) {
-                    HStack {
-                        Button { dismiss() } label: { Image(systemName: "chevron.down").font(.title3.bold()) }
-                            .accessibilityLabel("Close player")
-                        Spacer()
-                        Text("Now playing").font(.headline)
-                        Spacer()
-                        Button { showQueue = true } label: { Image(systemName: "list.bullet").font(.title3) }
-                            .accessibilityLabel("Queue")
-                    }
-                    if let item = playback.current {
-                        MuzzaArtwork(item: item, size: max(0, min(geometry.size.width - 48, 420)))
-                            .padding(.vertical, 12)
-                        HStack(alignment: .center) {
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(item.title).font(.title2.bold()).lineLimit(2)
-                                Text(item.subtitle).foregroundStyle(.secondary).lineLimit(1)
-                            }
-                            Spacer()
-                            Button { playback.toggleLike(item) } label: {
-                                Image(systemName: playback.isLiked(item) ? "heart.fill" : "heart")
-                                    .font(.title2)
-                            }
-                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                            .accessibilityLabel(playback.isLiked(item) ? "Remove like" : "Like")
-                            Button { showPlayerMenu = true } label: {
-                                Image(systemName: "ellipsis")
-                                    .font(.title2)
-                                    .frame(width: 36, height: 36)
-                                    .background(Color(.secondarySystemFill))
-                                    .clipShape(Circle())
-                            }
-                            .accessibilityLabel("Player menu")
-                        }
-                        VStack(spacing: 6) {
-                            Slider(
-                                value: Binding(
-                                    get: { min(playback.position, max(playback.duration, 1)) },
-                                    set: { playback.seek(to: $0) }
-                                ),
-                                in: 0...max(playback.duration, 1)
-                            )
-                            .disabled(playback.duration <= 0)
-                            HStack {
-                                Text(timeText(playback.position))
-                                Spacer()
-                                Text(timeText(playback.duration))
-                            }
-                            .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                        }
+        NavigationStack {
+            GeometryReader { geometry in
+                ScrollView {
+                    VStack(spacing: 28) {
                         HStack {
-                            Button { playback.toggleShuffle() } label: {
-                                Image(systemName: "shuffle").font(.title3)
-                                    .foregroundStyle(playback.isShuffling ? Color.accentColor : Color.secondary)
-                            }
-                            .accessibilityLabel("Shuffle")
-                            .accessibilityValue(playback.isShuffling ? "On" : "Off")
-                            Spacer(minLength: 12)
-                            Button { playback.previous() } label: {
-                                Image(systemName: "backward.end.fill").font(.title2)
-                            }
-                            .accessibilityLabel("Previous")
-                            Spacer(minLength: 12)
-                            Button { playback.toggle() } label: {
-                                Group {
-                                    if playback.isLoadingAudio {
-                                        ProgressView()
+                            Button { dismiss() } label: { Image(systemName: "chevron.down").font(.title3.bold()) }
+                                .accessibilityLabel("Close player")
+                            Spacer()
+                            Text("Now playing").font(.headline)
+                            Spacer()
+                            Button { showQueue = true } label: { Image(systemName: "list.bullet").font(.title3) }
+                                .accessibilityLabel("Queue")
+                        }
+                        if let item = playback.current {
+                            MuzzaArtwork(item: item, size: max(0, min(geometry.size.width - 48, 420)))
+                                .padding(.vertical, 12)
+                            HStack(alignment: .center) {
+                                VStack(alignment: .leading, spacing: 4) {
+                                    if let album = item.album {
+                                        NavigationLink(value: collectionItem(
+                                            id: album.id, title: album.title, subtitle: item.subtitle,
+                                            thumbnail: item.thumbnail, kind: "album"
+                                        )) {
+                                            Text(item.title).font(.title2.bold()).lineLimit(2)
+                                                .foregroundStyle(.primary)
+                                        }
+                                        .buttonStyle(.plain)
                                     } else {
-                                        Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
-                                            .font(.title)
+                                        Text(item.title).font(.title2.bold()).lineLimit(2)
+                                    }
+                                    artistLinks(for: item)
+                                }
+                                Spacer()
+                                Button { playback.toggleLike(item) } label: {
+                                    Image(systemName: playback.isLiked(item) ? "heart.fill" : "heart")
+                                        .font(.title2)
+                                }
+                                .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                                .accessibilityLabel(playback.isLiked(item) ? "Remove like" : "Like")
+                                Button { showPlayerMenu = true } label: {
+                                    Image(systemName: "ellipsis")
+                                        .font(.title2)
+                                        .frame(width: 36, height: 36)
+                                        .background(Color(.secondarySystemFill))
+                                        .clipShape(Circle())
+                                }
+                                .accessibilityLabel("Player menu")
+                            }
+                            VStack(spacing: 6) {
+                                Slider(
+                                    value: Binding(
+                                        get: { min(playback.position, max(playback.duration, 1)) },
+                                        set: { playback.seek(to: $0) }
+                                    ),
+                                    in: 0...max(playback.duration, 1)
+                                )
+                                .disabled(playback.duration <= 0)
+                                HStack {
+                                    Text(timeText(playback.position))
+                                    Spacer()
+                                    Text(timeText(playback.duration))
+                                }
+                                .font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                            }
+                            HStack {
+                                Button { playback.toggleShuffle() } label: {
+                                    Image(systemName: "shuffle").font(.title3)
+                                        .foregroundStyle(playback.isShuffling ? Color.accentColor : Color.secondary)
+                                }
+                                .accessibilityLabel("Shuffle")
+                                .accessibilityValue(playback.isShuffling ? "On" : "Off")
+                                Spacer(minLength: 12)
+                                Button { playback.previous() } label: {
+                                    Image(systemName: "backward.end.fill").font(.title2)
+                                }
+                                .accessibilityLabel("Previous")
+                                Spacer(minLength: 12)
+                                Button { playback.toggle() } label: {
+                                    Group {
+                                        if playback.isLoadingAudio {
+                                            ProgressView()
+                                        } else {
+                                            Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
+                                                .font(.title)
+                                        }
+                                    }
+                                    .frame(width: 72, height: 72)
+                                    .background(.regularMaterial).clipShape(Circle())
+                                }
+                                .accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
+                                Spacer(minLength: 12)
+                                Button { playback.next() } label: {
+                                    if playback.isLoadingRadio && playback.queueIndex == playback.queue.count - 1 {
+                                        ProgressView().frame(width: 24, height: 24)
+                                    } else {
+                                        Image(systemName: "forward.end.fill").font(.title2)
                                     }
                                 }
-                                .frame(width: 72, height: 72)
-                                .background(.regularMaterial).clipShape(Circle())
-                            }
-                            .accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
-                            Spacer(minLength: 12)
-                            Button { playback.next() } label: {
-                                if playback.isLoadingRadio && playback.queueIndex == playback.queue.count - 1 {
-                                    ProgressView().frame(width: 24, height: 24)
-                                } else {
-                                    Image(systemName: "forward.end.fill").font(.title2)
+                                .disabled(!playback.canAdvance)
+                                .accessibilityLabel("Next")
+                                Spacer(minLength: 12)
+                                Button { playback.cycleRepeat() } label: {
+                                    Image(systemName: playback.repeatMode == .one ? "repeat.1" : "repeat")
+                                        .font(.title3)
+                                        .foregroundStyle(playback.repeatMode == .off ? Color.secondary : Color.accentColor)
                                 }
+                                .accessibilityLabel("Repeat")
+                                .accessibilityValue(Text(LocalizedStringKey(playback.repeatMode.rawValue.capitalized)))
                             }
-                            .disabled(!playback.canAdvance)
-                            .accessibilityLabel("Next")
-                            Spacer(minLength: 12)
-                            Button { playback.cycleRepeat() } label: {
-                                Image(systemName: playback.repeatMode == .one ? "repeat.1" : "repeat")
-                                    .font(.title3)
-                                    .foregroundStyle(playback.repeatMode == .off ? Color.secondary : Color.accentColor)
+                            HStack(spacing: 16) {
+                                Button { showQueue = true } label: {
+                                    Image(systemName: "list.bullet")
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(Color(.secondarySystemFill))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Queue")
+                                Button { showLyrics = true } label: {
+                                    Image(systemName: "text.alignleft")
+                                }
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(Color(.secondarySystemFill))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Lyrics")
+                                Button { playback.startRadio(item) } label: {
+                                    Image(systemName: "dot.radiowaves.left.and.right")
+                                }
+                                .disabled(playback.isLoadingRadio)
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                                .background(Color(.secondarySystemFill))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                                .buttonStyle(.plain)
+                                .accessibilityLabel("Start radio")
                             }
-                            .accessibilityLabel("Repeat")
-                            .accessibilityValue(Text(LocalizedStringKey(playback.repeatMode.rawValue.capitalized)))
+                        } else {
+                            MuzzaEmptyView(symbol: "music.note", message: "No song selected.")
                         }
-                        HStack(spacing: 16) {
-                            Button { showQueue = true } label: {
-                                Image(systemName: "list.bullet")
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color(.secondarySystemFill))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Queue")
-                            Button { showLyrics = true } label: {
-                                Image(systemName: "text.alignleft")
-                            }
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color(.secondarySystemFill))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Lyrics")
-                            Button { playback.startRadio(item) } label: {
-                                Image(systemName: "dot.radiowaves.left.and.right")
-                            }
-                            .disabled(playback.isLoadingRadio)
-                            .frame(maxWidth: .infinity, minHeight: 48)
-                            .background(Color(.secondarySystemFill))
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
-                            .buttonStyle(.plain)
-                            .accessibilityLabel("Start radio")
-                        }
-                    } else {
-                        MuzzaEmptyView(symbol: "music.note", message: "No song selected.")
                     }
+                    .padding(24)
+                    .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .top)
                 }
-                .padding(24)
-                .frame(maxWidth: .infinity, minHeight: geometry.size.height, alignment: .top)
-            }
-            .background(
-                LinearGradient(
-                    colors: [Color(.secondarySystemBackground), Color(.systemBackground)],
-                    startPoint: .top, endPoint: .bottom
+                .background(
+                    LinearGradient(
+                        colors: [Color(.secondarySystemBackground), Color(.systemBackground)],
+                        startPoint: .top, endPoint: .bottom
+                    )
                 )
-            )
+            }
+            .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .sheet(isPresented: $showQueue) { MuzzaQueueView(playback: playback) }
         .sheet(isPresented: $showLyrics) { MuzzaLyricsView(playback: playback) }
@@ -251,6 +266,42 @@ struct MuzzaPlayerView: View {
         guard value.isFinite, value > 0 else { return "0:00" }
         let seconds = Int(value)
         return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+
+    @ViewBuilder
+    private func artistLinks(for item: MuzzaLiveItem) -> some View {
+        let artists = item.artists ?? []
+        if artists.isEmpty {
+            Text(item.subtitle).foregroundStyle(.secondary).lineLimit(1)
+        } else {
+            HStack(spacing: 4) {
+                ForEach(Array(artists.enumerated()), id: \.offset) { index, artist in
+                    if let id = artist.id {
+                        NavigationLink(value: collectionItem(
+                            id: id, title: artist.name, subtitle: "Artist",
+                            thumbnail: artist.thumbnail ?? "", kind: "artist"
+                        )) {
+                            Text(artist.name).foregroundStyle(.secondary)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text(artist.name).foregroundStyle(.secondary)
+                    }
+                    if index < artists.count - 1 { Text(", ").foregroundStyle(.secondary) }
+                }
+            }
+            .lineLimit(1)
+        }
+    }
+
+    private func collectionItem(
+        id: String, title: String, subtitle: String, thumbnail: String, kind: String
+    ) -> MuzzaLiveItem {
+        MuzzaLiveItem(
+            id: id, title: title, subtitle: subtitle, thumbnail: thumbnail, kind: kind,
+            params: nil, explicit: false, duration: nil, entryId: nil, downloadPath: nil,
+            remoteLiked: nil
+        )
     }
 }
 

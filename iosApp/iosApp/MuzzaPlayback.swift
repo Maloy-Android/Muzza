@@ -95,6 +95,9 @@ final class MuzzaPlayback: ObservableObject {
     private var failureObserver: NSObjectProtocol?
     private var audioRouteObserver: NSObjectProtocol?
     private var remoteTargets: [(MPRemoteCommand, Any)] = []
+    private static let nowPlayingArtworkCache = NSCache<NSString, UIImage>()
+    private var nowPlayingArtworkTask: Task<Void, Never>?
+    private var nowPlayingArtworkKey: String?
 
     init() {
         isShuffling = UserDefaults.standard.bool(forKey: "muzza.shuffle")
@@ -202,7 +205,19 @@ final class MuzzaPlayback: ObservableObject {
                         applyLibrary(synced, includeRecent: recentAtStart == recentRevision)
                     }
                 } catch {
-                    libraryError = nil
+                    // Keep the locally cached library available if remote likes cannot be reached.
+                }
+            }
+            if hasSignedInAccount {
+                do {
+                    let synced = try await MuzzaAPI.syncRemoteCollections()
+                    if revision == libraryRevision {
+                        applyLibrary(synced, includeRecent: recentAtStart == recentRevision)
+                    }
+                } catch {
+                    if revision == libraryRevision {
+                        libraryError = error.localizedDescription
+                    }
                 }
             }
         } catch {
@@ -1519,6 +1534,9 @@ final class MuzzaPlayback: ObservableObject {
 
     private func updateNowPlaying() {
         guard let current else {
+            nowPlayingArtworkTask?.cancel()
+            nowPlayingArtworkTask = nil
+            nowPlayingArtworkKey = nil
             MPNowPlayingInfoCenter.default().nowPlayingInfo = nil
             return
         }
@@ -1529,22 +1547,45 @@ final class MuzzaPlayback: ObservableObject {
             MPNowPlayingInfoPropertyPlaybackRate: isPlaying ? 1.0 : 0.0
         ]
         if duration > 0 { info[MPMediaItemPropertyPlaybackDuration] = duration }
+        let artworkURL = URL(string: current.thumbnail)
+        let artworkKey = artworkURL.map { "\(current.id)|\($0.absoluteString)" }
+        if let artworkURL,
+           artworkURL.scheme?.lowercased() == "https",
+           let cached = Self.nowPlayingArtworkCache.object(forKey: artworkURL.absoluteString as NSString) {
+            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: cached.size) { _ in cached }
+        }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
-        let itemID = current.id
-        if let thumbnail = URL(string: current.thumbnail) {
-            Task {
-                if let (data, _) = try? await URLSession.shared.data(from: thumbnail),
-                   let image = UIImage(data: data) {
-                    await MainActor.run {
-                        guard self.current?.id == itemID else { return }
-                        var artworkInfo = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
-                        artworkInfo[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(
-                            boundsSize: image.size
-                        ) { _ in image }
-                        MPNowPlayingInfoCenter.default().nowPlayingInfo = artworkInfo
-                    }
-                }
-            }
+        loadNowPlayingArtwork(for: current, url: artworkURL, key: artworkKey)
+    }
+
+    private func loadNowPlayingArtwork(for item: MuzzaLiveItem, url: URL?, key: String?) {
+        guard let url, url.scheme?.lowercased() == "https", let key else {
+            nowPlayingArtworkTask?.cancel()
+            nowPlayingArtworkTask = nil
+            nowPlayingArtworkKey = nil
+            return
+        }
+        guard nowPlayingArtworkKey != key else { return }
+        nowPlayingArtworkKey = key
+        nowPlayingArtworkTask?.cancel()
+        if let cached = Self.nowPlayingArtworkCache.object(forKey: url.absoluteString as NSString) {
+            var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+            info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: cached.size) { _ in cached }
+            MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+            return
+        }
+        nowPlayingArtworkTask = Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard !Task.isCancelled,
+                      self.current?.id == item.id,
+                      self.nowPlayingArtworkKey == key,
+                      let image = UIImage(data: data) else { return }
+                Self.nowPlayingArtworkCache.setObject(image, forKey: url.absoluteString as NSString)
+                var info = MPNowPlayingInfoCenter.default().nowPlayingInfo ?? [:]
+                info[MPMediaItemPropertyArtwork] = MPMediaItemArtwork(boundsSize: image.size) { _ in image }
+                MPNowPlayingInfoCenter.default().nowPlayingInfo = info
+            } catch {}
         }
     }
 

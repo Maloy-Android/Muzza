@@ -214,14 +214,8 @@ enum MuzzaAPI {
         try await request { IosLibraryKt.syncIosLikedPlaylist(completion: $0) }
     }
 
-    static func youtubeLibrary(
-        category: String, hideExplicit: Bool, continuation: String?
-    ) async throws -> MuzzaLiveResponse {
-        try await request {
-            IosBridgeKt.fetchIosYouTubeLibrary(
-                category: category, hideExplicit: hideExplicit, continuation: continuation, completion: $0
-            )
-        }
+    static func syncRemoteCollections() async throws -> MuzzaLiveResponse {
+        try await request { IosLibraryKt.syncIosCollections(completion: $0) }
     }
 
     static func validateAccount(cookie: String, visitorData: String?) async throws -> MuzzaAccountProfile {

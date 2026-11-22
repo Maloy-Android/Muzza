@@ -3,6 +3,7 @@ package com.maloy.muzza
 import com.maloy.innertube.YouTube
 import com.maloy.muzza.data.db.toDb
 import com.maloy.muzza.data.db.toModel
+import com.maloy.muzza.db.MuzzaDatabase
 import com.maloy.muzza.domain.model.AlbumEntity
 import com.maloy.muzza.domain.model.ArtistEntity
 import com.maloy.muzza.domain.model.PlaylistEntity

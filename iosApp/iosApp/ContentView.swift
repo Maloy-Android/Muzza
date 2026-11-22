@@ -103,18 +103,36 @@ struct ContentView: View {
     private struct MuzzaBottomNavigation: View {
         @Binding var selectedTab: Int
 
-        private let tabs: [(Int, String, String)] = [
-            (0, "Home", "house.fill"),
-            (1, "Explore", "safari.fill"),
-            (2, "Library", "music.note.list")
-        ]
+        private enum Tab: Int, CaseIterable, Identifiable {
+            case home
+            case explore
+            case library
+
+            var id: Int { rawValue }
+
+            var title: String {
+                switch self {
+                case .home: return "Home"
+                case .explore: return "Explore"
+                case .library: return "Library"
+                }
+            }
+
+            var icon: String {
+                switch self {
+                case .home: return "house.fill"
+                case .explore: return "safari.fill"
+                case .library: return "music.note.list"
+                }
+            }
+        }
 
         var body: some View {
             HStack(spacing: 8) {
-                ForEach(tabs, id: \.0) { tab in
-                    let selected = selectedTab == tab.0
+                ForEach(Tab.allCases) { tab in
+                    let selected = selectedTab == tab.rawValue
                     Button {
-                        selectedTab = tab.0
+                        selectedTab = tab.rawValue
                     } label: {
                         VStack(spacing: 3) {
                             ZStack {
@@ -123,11 +141,11 @@ struct ContentView: View {
                                         .fill(Color.accentColor.opacity(0.16))
                                         .frame(width: 64, height: 30)
                                 }
-                                Image(systemName: tab.2)
+                                Image(systemName: tab.icon)
                                     .font(.system(size: 17, weight: .semibold))
                             }
                             .frame(height: 30)
-                            Text(tab.1)
+                            Text(tab.title)
                                 .font(.caption2.weight(selected ? .bold : .semibold))
                         }
                         .foregroundStyle(selected ? Color.accentColor : .secondary)

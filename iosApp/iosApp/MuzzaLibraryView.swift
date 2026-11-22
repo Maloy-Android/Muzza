@@ -331,75 +331,89 @@ struct MuzzaLibraryView: View {
     private var categoryContent: some View {
         switch category {
         case .playlists:
-            NavigationLink(value: likedPlaylist) {
-                HStack(spacing: 12) {
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.accentColor.opacity(0.16))
-                            .frame(width: 58, height: 58)
-                        Image(systemName: "heart.fill")
-                            .foregroundStyle(Color.accentColor)
+            LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 12) {
+                NavigationLink(value: likedPlaylist) {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.accentColor.opacity(0.95), Color.accentColor.opacity(0.38)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                            Image(systemName: "heart.fill")
+                                .font(.title)
+                                .foregroundStyle(.white)
+                        }
+                        .frame(height: 118)
+                        Text("Liked Songs").font(.subheadline.bold()).lineLimit(1)
+                        Text(likedPlaylist.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                     }
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text("Liked Songs").font(.headline).lineLimit(1)
-                        Text(likedPlaylist.subtitle).font(.caption).foregroundStyle(.secondary)
-                    }
-                    Spacer()
-                    Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .leading)
                 }
+                .buttonStyle(.plain)
+
+                Button {
+                    playlistToRename = nil
+                    playlistName = ""
+                    syncPlaylist = false
+                    showPlaylistDialog = true
+                } label: {
+                    VStack(alignment: .leading, spacing: 10) {
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(Color(.secondarySystemFill))
+                            Image(systemName: "plus")
+                                .font(.title)
+                        }
+                        .frame(height: 118)
+                        Text("New playlist").font(.subheadline.bold()).lineLimit(1)
+                        Text("Create locally or sync").font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.plain)
+                .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
             }
-            .buttonStyle(.plain)
-            Button {
-                playlistToRename = nil
-                playlistName = ""
-                syncPlaylist = false
-                showPlaylistDialog = true
-            } label: {
-                Label("New playlist", systemImage: "plus").font(.headline)
-                    .frame(maxWidth: .infinity, alignment: .leading).padding()
-                    .background(Color(.secondarySystemFill)).clipShape(RoundedRectangle(cornerRadius: 12))
-            }
-            .buttonStyle(.plain)
-            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
             if sortedPlaylists.isEmpty {
                 MuzzaEmptyView(symbol: "music.note.list", message: "No playlists yet.")
             } else {
-                ForEach(sortedPlaylists) { playlist in
-                    NavigationLink(value: playlist) {
-                        HStack(spacing: 12) {
-                            MuzzaArtwork(item: playlist, size: 58)
-                            VStack(alignment: .leading, spacing: 3) {
+                LazyVGrid(columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)], spacing: 16) {
+                    ForEach(sortedPlaylists) { playlist in
+                        NavigationLink(value: playlist) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                MuzzaArtwork(item: playlist, size: 130)
                                 Text(playlist.title).font(.headline).lineLimit(1)
                                 Text(playlist.subtitle).font(.caption).foregroundStyle(.secondary)
                             }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        if playlist.kind == "localPlaylist" {
-                            Button {
-                                playlistToRename = playlist
-                                playlistName = playlist.title
-                                showPlaylistDialog = true
-                            } label: {
-                                Label("Rename playlist", systemImage: "pencil")
-                            }
-                            Button(role: .destructive) {
-                                playlistToDelete = playlist
-                                showDelete = true
-                            } label: {
-                                Label("Delete playlist", systemImage: "trash")
-                            }
-                        } else {
-                            Button {
-                                playback.toggleSaved(playlist)
-                            } label: {
-                                Label("Remove from library", systemImage: "bookmark.slash")
+                        .buttonStyle(.plain)
+                        .contextMenu {
+                            if playlist.kind == "localPlaylist" {
+                                Button {
+                                    playlistToRename = playlist
+                                    playlistName = playlist.title
+                                    showPlaylistDialog = true
+                                } label: {
+                                    Label("Rename playlist", systemImage: "pencil")
+                                }
+                                Button(role: .destructive) {
+                                    playlistToDelete = playlist
+                                    showDelete = true
+                                } label: {
+                                    Label("Delete playlist", systemImage: "trash")
+                                }
+                            } else {
+                                Button {
+                                    playback.toggleSaved(playlist)
+                                } label: {
+                                    Label("Remove from library", systemImage: "bookmark.slash")
+                                }
                             }
                         }
-
                     }
                 }
             }

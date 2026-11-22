@@ -78,6 +78,7 @@ final class MuzzaPlayback: ObservableObject {
     private var timeObserver: Any?
     private var endObserver: NSObjectProtocol?
     private var failureObserver: NSObjectProtocol?
+    private var audioRouteObserver: NSObjectProtocol?
     private var remoteTargets: [(MPRemoteCommand, Any)] = []
 
     init() {
@@ -95,6 +96,7 @@ final class MuzzaPlayback: ObservableObject {
         }
         restoreQueue()
         observePlayer()
+        configureAudioRouteObserver()
         configureRemoteCommands()
         Task { await refreshLibrary() }
     }
@@ -106,6 +108,7 @@ final class MuzzaPlayback: ObservableObject {
         if let timeObserver { player.removeTimeObserver(timeObserver) }
         if let endObserver { NotificationCenter.default.removeObserver(endObserver) }
         if let failureObserver { NotificationCenter.default.removeObserver(failureObserver) }
+        if let audioRouteObserver { NotificationCenter.default.removeObserver(audioRouteObserver) }
         for (command, target) in remoteTargets { command.removeTarget(target) }
         resourceLoader?.invalidate()
     }
@@ -1025,7 +1028,12 @@ final class MuzzaPlayback: ObservableObject {
                 isLoadingAudio = false
                 resourceLoader?.invalidate()
                 resourceLoader = nil
-                message = error.localizedDescription
+                if UserDefaults.standard.bool(forKey: "muzza.autoSkipError") {
+                    message = nil
+                    next()
+                } else {
+                    message = error.localizedDescription
+                }
             }
         }
     }
@@ -1039,11 +1047,16 @@ final class MuzzaPlayback: ObservableObject {
                     self.isLoadingAudio = false
                 case .failed:
                     self.isLoadingAudio = false
-                    self.message = item.error?.localizedDescription ?? "The audio could not be played."
                     self.player.pause()
                     self.player.replaceCurrentItem(with: nil)
                     self.resourceLoader?.invalidate()
                     self.resourceLoader = nil
+                    if UserDefaults.standard.bool(forKey: "muzza.autoSkipError") {
+                        self.message = nil
+                        self.next()
+                    } else {
+                        self.message = item.error?.localizedDescription ?? "The audio could not be played."
+                    }
                 default:
                     break
                 }
@@ -1069,11 +1082,16 @@ final class MuzzaPlayback: ObservableObject {
             Task { @MainActor in
                 guard let self, self.playbackID == id, self.player.currentItem === item else { return }
                 self.isLoadingAudio = false
-                self.message = error?.localizedDescription ?? "Playback stopped unexpectedly."
                 self.player.pause()
                 self.player.replaceCurrentItem(with: nil)
                 self.resourceLoader?.invalidate()
                 self.resourceLoader = nil
+                if UserDefaults.standard.bool(forKey: "muzza.autoSkipError") {
+                    self.message = nil
+                    self.next()
+                } else {
+                    self.message = error?.localizedDescription ?? "Playback stopped unexpectedly."
+                }
             }
         }
     }
@@ -1106,6 +1124,7 @@ final class MuzzaPlayback: ObservableObject {
     }
 
     private func record(_ item: MuzzaLiveItem) {
+        guard !UserDefaults.standard.bool(forKey: "muzza.pauseListenHistory") else { return }
         recentRevision += 1
         let revision = recentRevision
         Task {
@@ -1115,6 +1134,25 @@ final class MuzzaPlayback: ObservableObject {
             } catch {
                 libraryError = error.localizedDescription
                 message = "Could not save listening history: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    private func configureAudioRouteObserver() {
+        audioRouteObserver = NotificationCenter.default.addObserver(
+            forName: AVAudioSession.routeChangeNotification,
+            object: AVAudioSession.sharedInstance(),
+            queue: .main
+        ) { [weak self] notification in
+            guard UserDefaults.standard.bool(forKey: "muzza.autoplayBluetooth"),
+                  let rawReason = notification.userInfo?[AVAudioSessionRouteChangeReasonKey] as? UInt,
+                  AVAudioSession.RouteChangeReason(rawValue: rawReason) == .newDeviceAvailable,
+                  AVAudioSession.sharedInstance().currentRoute.outputs.contains(where: {
+                      [.bluetoothA2DP, .bluetoothHFP, .bluetoothLE].contains($0.portType)
+                  }) else { return }
+            Task { @MainActor in
+                guard let self, self.current != nil, !self.isPlaying else { return }
+                self.resume()
             }
         }
     }

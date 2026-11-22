@@ -1,3 +1,4 @@
+import Foundation
 import SwiftUI
 
 struct MuzzaMiniPlayer: View {
@@ -460,10 +461,22 @@ struct MuzzaSettingsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var playback: MuzzaPlayback
     @ObservedObject var account: MuzzaAccount
-    @AppStorage("muzza.darkTheme") private var darkTheme = true
+    @AppStorage("muzza.themeMode") private var themeMode = MuzzaThemePreference.initialValue
+    @AppStorage("muzza.accentColor") private var accentColor = MuzzaAccent.coral.rawValue
     @AppStorage("muzza.pureBlack") private var pureBlack = false
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @AppStorage("muzza.persistentQueue") private var persistentQueue = true
+    @AppStorage("muzza.contentLanguage") private var contentLanguage = ""
+    @AppStorage("muzza.contentCountry") private var contentCountry = ""
+    @AppStorage("muzza.audioQuality") private var audioQuality = "auto"
+    @AppStorage("muzza.normalizeAudio") private var normalizeAudio = false
+    @AppStorage("muzza.skipSilence") private var skipSilence = false
+    @AppStorage("muzza.autoplayBluetooth") private var autoplayBluetooth = false
+    @AppStorage("muzza.autoSkipError") private var autoSkipError = false
+    @AppStorage("muzza.pauseListenHistory") private var pauseListenHistory = false
+    @AppStorage("muzza.pauseSearchHistory") private var pauseSearchHistory = false
+    @AppStorage("muzza.cacheMemoryMB") private var cacheMemoryMB = 16
+    @AppStorage("muzza.cacheDiskMB") private var cacheDiskMB = 100
 
     init(playback: MuzzaPlayback, account: MuzzaAccount) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -488,15 +501,50 @@ struct MuzzaSettingsView: View {
                     }
                 }
                 Section("Appearance") {
-                    Toggle("Dark theme", isOn: $darkTheme)
+                    Picker("Accent color", selection: $accentColor) {
+                        ForEach(MuzzaAccent.allCases, id: \.rawValue) { accent in
+                            HStack {
+                                Circle().fill(accent.color).frame(width: 12, height: 12)
+                                Text(accent.title)
+                            }
+                            .tag(accent.rawValue)
+                        }
+                    }
+                    Picker("Theme", selection: $themeMode) {
+                        Text("Follow system").tag("system")
+                        Text("Dark").tag("dark")
+                        Text("Light").tag("light")
+                    }
                     Toggle("Pure black", isOn: $pureBlack)
                 }
                 Section("Content") {
                     Toggle("Hide explicit content", isOn: $hideExplicit)
+                    TextField("Content language", text: $contentLanguage)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled()
+                    TextField("Content country", text: $contentCountry)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                    Toggle("Pause search history", isOn: $pauseSearchHistory)
+                    Text("Language and country are saved locally; content requests currently use service defaults.")
+                        .font(.footnote).foregroundStyle(.secondary)
                 }
                 Section("Playback") {
                     Toggle("Persistent queue", isOn: $persistentQueue)
                         .onChange(of: persistentQueue) { playback.queuePreferenceChanged($0) }
+                    Picker("Audio quality", selection: $audioQuality) {
+                        Text("Auto").tag("auto")
+                        Text("High").tag("high")
+                        Text("Standard").tag("standard")
+                        Text("Low").tag("low")
+                    }
+                    Toggle("Normalize audio", isOn: $normalizeAudio)
+                    Toggle("Skip silence", isOn: $skipSilence)
+                    Toggle("Autoplay on Bluetooth", isOn: $autoplayBluetooth)
+                    Toggle("Skip playback errors", isOn: $autoSkipError)
+                    Toggle("Pause listening history", isOn: $pauseListenHistory)
+                    Text("Quality, normalization and silence preferences are saved but aren't applied by the current iOS audio pipeline.")
+                        .font(.footnote).foregroundStyle(.secondary)
                     Picker("Playback speed", selection: Binding(
                         get: { playback.playbackRate },
                         set: { playback.setPlaybackRate($0) }
@@ -510,11 +558,32 @@ struct MuzzaSettingsView: View {
                         Text("2x").tag(2.0)
                     }
                 }
+                Section("Cache") {
+                    Picker("Memory cache", selection: $cacheMemoryMB) {
+                        Text("Off").tag(0)
+                        Text("16 MB").tag(16)
+                        Text("32 MB").tag(32)
+                        Text("64 MB").tag(64)
+                    }
+                    Picker("Disk cache", selection: $cacheDiskMB) {
+                        Text("Off").tag(0)
+                        Text("100 MB").tag(100)
+                        Text("250 MB").tag(250)
+                        Text("500 MB").tag(500)
+                    }
+                    Button("Clear cached web responses", role: .destructive) {
+                        URLCache.shared.removeAllCachedResponses()
+                    }
+                    Text("This cache is separate from songs you explicitly download.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
                 Section("Downloads") {
                     Text("Keep Muzza open while a song is downloading.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
             }
+            .onChange(of: cacheMemoryMB) { _ in MuzzaCacheSettings.apply() }
+            .onChange(of: cacheDiskMB) { _ in MuzzaCacheSettings.apply() }
             .navigationTitle("Settings")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {

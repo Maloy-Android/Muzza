@@ -1,4 +1,53 @@
+import Foundation
 import SwiftUI
+
+enum MuzzaAccent: String, CaseIterable {
+    case coral, blue, green, purple, orange, pink
+
+    var title: String { rawValue.capitalized }
+
+    var color: Color {
+        switch self {
+        case .coral: return Color(red: 237.0 / 255, green: 85.0 / 255, blue: 100.0 / 255)
+        case .blue: return .blue
+        case .green: return .green
+        case .purple: return .purple
+        case .orange: return .orange
+        case .pink: return .pink
+        }
+    }
+}
+
+enum MuzzaThemePreference {
+    static var initialValue: String {
+        let defaults = UserDefaults.standard
+        if let stored = defaults.string(forKey: "muzza.themeMode"),
+           ["system", "dark", "light"].contains(stored) {
+            return stored
+        }
+        let migrated: String
+        if let legacyDark = defaults.object(forKey: "muzza.darkTheme") as? Bool {
+            migrated = legacyDark ? "dark" : "light"
+        } else {
+            migrated = "system"
+        }
+        defaults.set(migrated, forKey: "muzza.themeMode")
+        return migrated
+    }
+}
+
+enum MuzzaCacheSettings {
+    static func apply() {
+        let defaults = UserDefaults.standard
+        let memoryMB = min(max(defaults.object(forKey: "muzza.cacheMemoryMB") as? Int ?? 16, 0), 64)
+        let diskMB = min(max(defaults.object(forKey: "muzza.cacheDiskMB") as? Int ?? 100, 0), 500)
+        URLCache.shared = URLCache(
+            memoryCapacity: max(0, memoryMB) * 1_024 * 1_024,
+            diskCapacity: max(0, diskMB) * 1_024 * 1_024,
+            diskPath: "muzza-url-cache"
+        )
+    }
+}
 
 struct ContentView: View {
     @State private var selectedTab = 0
@@ -7,7 +56,8 @@ struct ContentView: View {
     @State private var showPlayer = false
     @StateObject private var playback = MuzzaPlayback()
     @StateObject private var account = MuzzaAccount()
-    @AppStorage("muzza.darkTheme") private var darkTheme = true
+    @AppStorage("muzza.themeMode") private var themeMode = MuzzaThemePreference.initialValue
+    @AppStorage("muzza.accentColor") private var accentColor = MuzzaAccent.coral.rawValue
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -24,8 +74,9 @@ struct ContentView: View {
                     .padding(.bottom, 49)
             }
         }
-        .tint(Color(red: 237.0 / 255, green: 85.0 / 255, blue: 100.0 / 255))
-        .preferredColorScheme(darkTheme ? .dark : .light)
+        .tint(MuzzaAccent(rawValue: accentColor)?.color ?? MuzzaAccent.coral.color)
+        .preferredColorScheme(themeMode == "dark" ? .dark : (themeMode == "light" ? .light : nil))
+        .onAppear { MuzzaCacheSettings.apply() }
         .sheet(isPresented: $showSearch) { MuzzaSearchView(playback: playback) }
         .sheet(isPresented: $showSettings) { MuzzaSettingsView(playback: playback, account: account) }
         .fullScreenCover(isPresented: $showPlayer) { MuzzaPlayerView(playback: playback) }

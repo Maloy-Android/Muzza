@@ -427,10 +427,21 @@ private struct MuzzaQueueView: View {
                 }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if !playback.queue.isEmpty {
-                        Button("Clear", role: .destructive) {
-                            showClearConfirmation = true
+                        Menu {
+                            Button("Remove Played") {
+                                playback.removePlayedFromQueue()
+                            }
+                            .disabled(playback.queueIndex == 0)
+                            Button("Remove Upcoming") {
+                                playback.removeUpcomingFromQueue()
+                            }
+                            .disabled(playback.queueIndex + 1 >= playback.queue.count)
+                            Button("Clear Queue", role: .destructive) {
+                                showClearConfirmation = true
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis")
                         }
-                        .disabled(playback.queue.isEmpty)
                     }
                 }
             }

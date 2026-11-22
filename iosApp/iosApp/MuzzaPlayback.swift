@@ -700,6 +700,16 @@ final class MuzzaPlayback: ObservableObject {
         persistQueue()
     }
 
+    func removePlayedFromQueue() {
+        guard queueIndex > 0 else { return }
+        removeFromQueue(at: IndexSet(integersIn: 0..<queueIndex))
+    }
+
+    func removeUpcomingFromQueue() {
+        guard queue.indices.contains(queueIndex), queueIndex + 1 < queue.count else { return }
+        removeFromQueue(at: IndexSet(integersIn: (queueIndex + 1)..<queue.count))
+    }
+
     func clearQueue() {
         cancelRadio()
         queueIdentity = UUID()

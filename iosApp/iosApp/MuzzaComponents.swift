@@ -23,15 +23,29 @@ struct MuzzaHeader: View {
     }
 
     var body: some View {
-        HStack(spacing: 20) {
-            Text(LocalizedStringKey(title)).font(.system(size: 26))
+        HStack(spacing: 12) {
+            Text(LocalizedStringKey(title))
+                .font(.system(size: 29, weight: .bold))
+                .lineLimit(1)
             Spacer()
-            Button(action: search) { Image(systemName: "magnifyingglass").font(.title3) }
+            Button(action: search) {
+                Image(systemName: "magnifyingglass")
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 38, height: 38)
+                    .background(Color(.secondarySystemFill))
+                    .clipShape(Circle())
+            }
                 .accessibilityLabel("Search")
-            Button(action: settings) { Image(systemName: "gearshape").font(.title3) }
+            Button(action: settings) {
+                Image(systemName: "gearshape")
+                    .font(.title3.weight(.semibold))
+                    .frame(width: 38, height: 38)
+                    .background(Color(.secondarySystemFill))
+                    .clipShape(Circle())
+            }
                 .accessibilityLabel("Settings")
         }
-        .padding(.bottom, 8)
+        .padding(.bottom, 6)
     }
 }
 

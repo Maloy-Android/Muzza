@@ -61,17 +61,23 @@ struct ContentView: View {
 
     var body: some View {
         ZStack(alignment: .bottom) {
-            TabView(selection: $selectedTab) {
+            Group {
                 MuzzaHomeView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
-                    .tag(0).tabItem { Label("Home", systemImage: "house.fill") }
+                    .opacity(selectedTab == 0 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 0)
                 MuzzaExploreView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
-                    .tag(1).tabItem { Label("Explore", systemImage: "safari") }
+                    .opacity(selectedTab == 1 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 1)
                 MuzzaLibraryView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
-                    .tag(2).tabItem { Label("Library", systemImage: "music.note.list") }
+                    .opacity(selectedTab == 2 ? 1 : 0)
+                    .allowsHitTesting(selectedTab == 2)
             }
+            MuzzaBottomNavigation(selectedTab: $selectedTab)
+                .padding(.horizontal, 18)
             if playback.current != nil {
                 MuzzaMiniPlayer(playback: playback) { showPlayer = true }
-                    .padding(.bottom, 49)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 78)
             }
         }
         .tint(MuzzaAccent(rawValue: accentColor)?.color ?? MuzzaAccent.coral.color)
@@ -91,6 +97,56 @@ struct ContentView: View {
             Button("OK", role: .cancel) { playback.message = nil }
         } message: {
             Text(playback.message ?? "")
+        }
+    }
+
+    private struct MuzzaBottomNavigation: View {
+        @Binding var selectedTab: Int
+
+        private let tabs: [(Int, String, String)] = [
+            (0, "Home", "house.fill"),
+            (1, "Explore", "safari.fill"),
+            (2, "Library", "music.note.list")
+        ]
+
+        var body: some View {
+            HStack(spacing: 8) {
+                ForEach(tabs, id: \.0) { tab in
+                    let selected = selectedTab == tab.0
+                    Button {
+                        selectedTab = tab.0
+                    } label: {
+                        VStack(spacing: 3) {
+                            ZStack {
+                                if selected {
+                                    Capsule()
+                                        .fill(Color.accentColor.opacity(0.16))
+                                        .frame(width: 64, height: 30)
+                                }
+                                Image(systemName: tab.2)
+                                    .font(.system(size: 17, weight: .semibold))
+                            }
+                            .frame(height: 30)
+                            Text(tab.1)
+                                .font(.caption2.weight(selected ? .bold : .semibold))
+                        }
+                        .foregroundStyle(selected ? Color.accentColor : .secondary)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 54)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.top, 6)
+            .padding(.bottom, 6)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 20, style: .continuous))
+            .overlay(
+                RoundedRectangle(cornerRadius: 20, style: .continuous)
+                    .strokeBorder(Color(.separator).opacity(0.35), lineWidth: 0.5)
+            )
+            .shadow(color: .black.opacity(0.16), radius: 12, y: 4)
+            .padding(.bottom, 8)
         }
     }
 }

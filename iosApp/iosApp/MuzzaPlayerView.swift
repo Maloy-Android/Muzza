@@ -1,5 +1,28 @@
 import Foundation
 import SwiftUI
+import UniformTypeIdentifiers
+
+private struct MuzzaBackupDocument: FileDocument {
+    static var readableContentTypes: [UTType] { [.json] }
+    static var writableContentTypes: [UTType] { [.json] }
+
+    let data: Data
+
+    init(data: Data) {
+        self.data = data
+    }
+
+    init(configuration: ReadConfiguration) throws {
+        guard let data = configuration.file.regularFileContents else {
+            throw CocoaError(.fileReadCorruptFile)
+        }
+        self.data = data
+    }
+
+    func fileWrapper(configuration: WriteConfiguration) throws -> FileWrapper {
+        FileWrapper(regularFileWithContents: data)
+    }
+}
 
 struct MuzzaMiniPlayer: View {
     @ObservedObject var playback: MuzzaPlayback
@@ -477,6 +500,10 @@ struct MuzzaSettingsView: View {
     @AppStorage("muzza.pauseSearchHistory") private var pauseSearchHistory = false
     @AppStorage("muzza.cacheMemoryMB") private var cacheMemoryMB = 16
     @AppStorage("muzza.cacheDiskMB") private var cacheDiskMB = 100
+    @State private var showBackupExporter = false
+    @State private var showBackupImporter = false
+    @State private var backupData = Data()
+    @State private var backupError: String?
 
     init(playback: MuzzaPlayback, account: MuzzaAccount) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -581,6 +608,21 @@ struct MuzzaSettingsView: View {
                     Text("Keep Muzza open while a song is downloading.")
                         .font(.footnote).foregroundStyle(.secondary)
                 }
+                Section("Backup & Import") {
+                    Button("Export library backup") {
+                        do {
+                            backupData = try playback.exportBackup()
+                            showBackupExporter = true
+                        } catch {
+                            backupError = error.localizedDescription
+                        }
+                    }
+                    Button("Import backup or M3U") {
+                        showBackupImporter = true
+                    }
+                    Text("Backup includes queue, preferences and cached library metadata. Spotify import requires its exported playlist data or direct metadata; audio matching is not authenticated by Muzza.")
+                        .font(.footnote).foregroundStyle(.secondary)
+                }
             }
             .onChange(of: cacheMemoryMB) { _ in MuzzaCacheSettings.apply() }
             .onChange(of: cacheDiskMB) { _ in MuzzaCacheSettings.apply() }
@@ -590,6 +632,59 @@ struct MuzzaSettingsView: View {
                     Button("Done") { dismiss() }
                 }
             }
+            .fileExporter(
+                isPresented: $showBackupExporter,
+                document: MuzzaBackupDocument(data: backupData),
+                contentType: .json,
+                defaultFilename: "Muzza-Backup-\(Self.dateStamp).muzza.json"
+            ) { _ in }
+            .fileImporter(
+                isPresented: $showBackupImporter,
+                allowedContentTypes: [.json, .plainText],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first,
+                          url.startAccessingSecurityScopedResource() else {
+                        backupError = "The selected file could not be accessed."
+                        return
+                    }
+                    defer { url.stopAccessingSecurityScopedResource() }
+                    guard let data = try? Data(contentsOf: url) else {
+                        backupError = "The selected file could not be read."
+                        return
+                    }
+                    Task {
+                        let restored: Bool
+                        if url.pathExtension.lowercased() == "m3u"
+                            || url.pathExtension.lowercased() == "m3u8" {
+                            restored = await playback.importM3U(data)
+                        } else {
+                            restored = await playback.importBackup(data)
+                        }
+                        if !restored && playback.message == nil {
+                            backupError = "The selected backup or M3U file could not be imported."
+                        }
+                    }
+                case .failure(let error):
+                    backupError = error.localizedDescription
+                }
+            }
+            .alert("Import or export failed", isPresented: Binding(
+                get: { backupError != nil },
+                set: { if !$0 { backupError = nil } }
+            )) {
+                Button("OK", role: .cancel) { backupError = nil }
+            } message: {
+                Text(backupError ?? "")
+            }
         }
+    }
+
+    private static var dateStamp: String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.string(from: Date())
     }
 }

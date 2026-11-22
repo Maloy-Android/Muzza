@@ -3,7 +3,7 @@ import Foundation
 import MediaPlayer
 import SwiftUI
 
-private struct MuzzaSavedQueue: Codable {
+struct MuzzaSavedQueue: Codable {
     let items: [MuzzaLiveItem]
     let index: Int
     let tokens: [UUID]?
@@ -12,6 +12,18 @@ private struct MuzzaSavedQueue: Codable {
     let shuffled: Bool?
     let radioEndpoint: MuzzaRadioEndpoint?
     let radioContinuation: String?
+}
+
+private struct MuzzaBackupSnapshot: Codable {
+    let formatVersion: Int
+    let queue: MuzzaSavedQueue?
+    let preferences: [String: String]
+    let liked: [MuzzaLiveItem]
+    let playlists: [MuzzaLiveItem]
+    let albums: [MuzzaLiveItem]
+    let artists: [MuzzaLiveItem]
+    let downloads: [MuzzaLiveItem]
+    let recent: [MuzzaLiveItem]
 }
 
 struct MuzzaQueueEntry: Identifiable {
@@ -198,6 +210,161 @@ final class MuzzaPlayback: ObservableObject {
 
     func clearHistory() async -> Bool {
         await changeLibrary { try await MuzzaAPI.clearHistory() }
+    }
+
+    func exportBackup() throws -> Data {
+        let defaults = UserDefaults.standard
+        let preferenceKeys = [
+            "muzza.themeMode", "muzza.accentColor", "muzza.pureBlack", "muzza.hideExplicit",
+            "muzza.persistentQueue", "muzza.contentLanguage", "muzza.contentCountry",
+            "muzza.audioQuality", "muzza.normalizeAudio", "muzza.skipSilence",
+            "muzza.autoplayBluetooth", "muzza.autoSkipError", "muzza.pauseListenHistory",
+            "muzza.pauseSearchHistory", "muzza.cacheMemoryMB", "muzza.cacheDiskMB",
+            "muzza.syncLikes", "muzza.shuffle", "muzza.playbackRate", "muzza.repeatMode"
+        ]
+        var preferences: [String: String] = [:]
+        for key in preferenceKeys {
+            if let value = defaults.object(forKey: key) {
+                preferences[key] = String(describing: value)
+            }
+        }
+        let savedQueue = queue.isEmpty ? nil : MuzzaSavedQueue(
+            items: queue,
+            index: queueIndex,
+            tokens: queueTokens,
+            originalItems: originalQueue,
+            originalTokens: originalTokens,
+            shuffled: isShuffling,
+            radioEndpoint: radioEndpoint,
+            radioContinuation: radioContinuation
+        )
+        let snapshot = MuzzaBackupSnapshot(
+            formatVersion: 1,
+            queue: savedQueue,
+            preferences: preferences,
+            liked: liked,
+            playlists: playlists,
+            albums: albums,
+            artists: artists,
+            downloads: downloads,
+            recent: recent
+        )
+        return try JSONEncoder().encode(snapshot)
+    }
+
+    func importBackup(_ data: Data) async -> Bool {
+        do {
+            let snapshot = try JSONDecoder().decode(MuzzaBackupSnapshot.self, from: data)
+            guard snapshot.formatVersion == 1 else {
+                throw MuzzaAPIError.requestFailed("This Muzza backup format is not supported.")
+            }
+            let defaults = UserDefaults.standard
+            for (key, stringValue) in snapshot.preferences {
+                if key.hasSuffix("Mode") || key.hasSuffix("Color") || key.hasSuffix("Language")
+                    || key.hasSuffix("Country") || key.hasSuffix("Quality") || key.hasSuffix("repeatMode")
+                    || key == "muzza.themeMode" {
+                    defaults.set(stringValue, forKey: key)
+                } else if key.hasSuffix("MB") || key == "muzza.playbackRate" {
+                    if let doubleValue = Double(stringValue) {
+                        defaults.set(key.hasSuffix("MB") ? Int(doubleValue) : doubleValue, forKey: key)
+                    }
+                } else if ["true", "false"].contains(stringValue.lowercased()) {
+                    defaults.set(stringValue.lowercased() == "true", forKey: key)
+                } else if let intValue = Int(stringValue) {
+                    defaults.set(intValue, forKey: key)
+                } else {
+                    defaults.set(stringValue, forKey: key)
+                }
+            }
+            if let savedRate = defaults.object(forKey: "muzza.playbackRate") as? Double,
+               savedRate >= 0.5, savedRate <= 2.0 {
+                playbackRate = savedRate
+                player.rate = Float(savedRate)
+            }
+            if let savedMode = defaults.string(forKey: "muzza.repeatMode"),
+               let mode = MuzzaRepeatMode(rawValue: savedMode) {
+                repeatMode = mode
+            }
+            isShuffling = defaults.bool(forKey: "muzza.shuffle")
+            if let queueData = snapshot.queue {
+                let savedQueueData = try JSONEncoder().encode(queueData)
+                defaults.set(savedQueueData, forKey: "muzza.queue")
+            } else {
+                defaults.removeObject(forKey: "muzza.queue")
+            }
+            liked = snapshot.liked
+            playlists = snapshot.playlists
+            albums = snapshot.albums
+            artists = snapshot.artists
+            downloads = snapshot.downloads
+            recent = snapshot.recent
+            libraryLoaded = true
+            libraryChangeToken += 1
+            restoreQueue()
+            if hasSignedInAccount {
+                for item in snapshot.liked.filter({ $0.kind == "song" }) {
+                    _ = try? await MuzzaAPI.setLiked(item, liked: true)
+                }
+                for item in snapshot.albums + snapshot.artists + snapshot.playlists {
+                    _ = try? await MuzzaAPI.setSaved(item, saved: true)
+                }
+            }
+            await refreshLibrary()
+            message = "Library backup restored."
+            return true
+        } catch {
+            message = "Could not restore the backup: \(error.localizedDescription)"
+            return false
+        }
+    }
+
+    func importM3U(_ data: Data) async -> Bool {
+        guard let text = String(data: data, encoding: .utf8) else {
+            message = "The M3U file could not be read."
+            return false
+        }
+        var queries: [String] = []
+        for rawLine in text.components(separatedBy: .newlines) {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            guard !line.isEmpty, !line.hasPrefix("#") else { continue }
+            if line.lowercased().hasSuffix(".m3u") || line.lowercased().hasSuffix(".m3u8") {
+                continue
+            }
+            queries.append(line)
+        }
+        var titleMetadata: [String] = []
+        for rawLine in text.components(separatedBy: .newlines) {
+            let line = rawLine.trimmingCharacters(in: .whitespacesAndNewlines)
+            if line.hasPrefix("#EXTINF:"), let comma = line.firstIndex(of: ",") {
+                let title = String(line[line.index(after: comma)...]).trimmingCharacters(in: .whitespaces)
+                if !title.isEmpty { titleMetadata.append(title) }
+            }
+        }
+        if !titleMetadata.isEmpty {
+            queries = titleMetadata
+        }
+        guard !queries.isEmpty else {
+            message = "No playable entries were found in the M3U file."
+            return false
+        }
+        var songs: [MuzzaLiveItem] = []
+        for query in queries.prefix(250) {
+            do {
+                let response = try await MuzzaAPI.search(query: query, category: "songs", hideExplicit: false, continuation: nil)
+                if let song = response.items.first(where: { $0.kind == "song" }) {
+                    songs.append(song)
+                }
+            } catch {
+                continue
+            }
+        }
+        guard let first = songs.first else {
+            message = "M3U entries could not be matched to songs."
+            return false
+        }
+        play(first, in: songs)
+        message = "Imported \(songs.count) of \(queries.count) M3U entries."
+        return true
     }
 
     func createPlaylist(_ name: String, syncToYouTube: Bool = false) async -> Bool {

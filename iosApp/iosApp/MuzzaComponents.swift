@@ -507,37 +507,37 @@ struct MuzzaSongRow: View {
                 playback.message = error.localizedDescription
             }
         }
+    }
 
-        @ViewBuilder
-        private var songNavigationLinks: some View {
-            if item.album != nil || !(item.artists ?? []).isEmpty {
-                Section("Navigate") {
-                    if let album = item.album {
+    @ViewBuilder
+    private var songNavigationLinks: some View {
+        if item.album != nil || !(item.artists ?? []).isEmpty {
+            Section("Navigate") {
+                if let album = item.album {
+                    NavigationLink {
+                        MuzzaCollectionView(
+                            item: muzzaCollectionItem(
+                                id: album.id, title: album.title, subtitle: item.subtitle,
+                                thumbnail: item.thumbnail, kind: "album"
+                            ),
+                            playback: playback
+                        )
+                    } label: {
+                        Label("View album", systemImage: "square.stack")
+                    }
+                }
+                ForEach(Array((item.artists ?? []).enumerated()), id: \.offset) { _, artist in
+                    if let id = artist.id {
                         NavigationLink {
                             MuzzaCollectionView(
                                 item: muzzaCollectionItem(
-                                    id: album.id, title: album.title, subtitle: item.subtitle,
-                                    thumbnail: item.thumbnail, kind: "album"
+                                    id: id, title: artist.name, subtitle: "Artist",
+                                    thumbnail: artist.thumbnail ?? "", kind: "artist"
                                 ),
                                 playback: playback
                             )
                         } label: {
-                            Label("View album", systemImage: "square.stack")
-                        }
-                    }
-                    ForEach(Array((item.artists ?? []).enumerated()), id: \.offset) { _, artist in
-                        if let id = artist.id {
-                            NavigationLink {
-                                MuzzaCollectionView(
-                                    item: muzzaCollectionItem(
-                                        id: id, title: artist.name, subtitle: "Artist",
-                                        thumbnail: artist.thumbnail ?? "", kind: "artist"
-                                    ),
-                                    playback: playback
-                                )
-                            } label: {
-                                Label("View \(artist.name)", systemImage: "person")
-                            }
+                            Label("View \(artist.name)", systemImage: "person")
                         }
                     }
                 }

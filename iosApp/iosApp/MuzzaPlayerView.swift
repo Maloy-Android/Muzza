@@ -45,6 +45,7 @@ struct MuzzaPlayerView: View {
     @ObservedObject var playback: MuzzaPlayback
     @State private var showQueue = false
     @State private var showLyrics = false
+    @State private var showPlayerMenu = false
 
     init(playback: MuzzaPlayback) {
         _playback = ObservedObject(wrappedValue: playback)
@@ -151,6 +152,9 @@ struct MuzzaPlayerView: View {
                                 Label("Radio", systemImage: "dot.radiowaves.left.and.right")
                             }
                             .disabled(playback.isLoadingRadio)
+                            Button { showPlayerMenu = true } label: {
+                                Label("More", systemImage: "ellipsis")
+                            }
                         }
                         .buttonStyle(.bordered)
                     } else {
@@ -169,6 +173,195 @@ struct MuzzaPlayerView: View {
         }
         .sheet(isPresented: $showQueue) { MuzzaQueueView(playback: playback) }
         .sheet(isPresented: $showLyrics) { MuzzaLyricsView(playback: playback) }
+        .sheet(isPresented: $showPlayerMenu) {
+            if let item = playback.current {
+                MuzzaPlayerActionsView(item: item, playback: playback)
+            }
+        }
+    }
+
+    private func timeText(_ value: Double) -> String {
+        guard value.isFinite, value > 0 else { return "0:00" }
+        let seconds = Int(value)
+        return String(format: "%d:%02d", seconds / 60, seconds % 60)
+    }
+}
+
+private struct MuzzaPlayerActionsView: View {
+    let item: MuzzaLiveItem
+    @ObservedObject var playback: MuzzaPlayback
+    @State private var showSleepTimerOptions = false
+
+    var body: some View {
+        NavigationStack {
+            List {
+                Section("Playback") {
+                    NavigationLink {
+                        MuzzaQueueView(playback: playback)
+                    } label: {
+                        Label("Queue", systemImage: "list.bullet")
+                    }
+                    Toggle(
+                        "Autoplay",
+                        isOn: Binding(
+                            get: { playback.isAutoplayEnabled },
+                            set: { playback.setAutoplayEnabled($0) }
+                        )
+                    )
+                    Button {
+                        showSleepTimerOptions = true
+                    } label: {
+                        HStack {
+                            Label("Sleep timer", systemImage: "moon.zzz")
+                            Spacer()
+                            if playback.sleepTimerActive {
+                                Text(timeText(playback.sleepTimerRemaining))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    HStack {
+                        Label("Volume", systemImage: playback.volume == 0 ? "speaker.slash" : "speaker.wave.2")
+                        Slider(
+                            value: Binding(
+                                get: { playback.volume },
+                                set: { playback.setVolume($0) }
+                            ),
+                            in: 0...1
+                        )
+                        .accessibilityLabel("Volume")
+                    }
+                    Button {
+                        playback.startRadio(item)
+                    } label: {
+                        Label("Start radio", systemImage: "dot.radiowaves.left.and.right")
+                    }
+                    Button {
+                        playback.enqueue(item, playNext: true)
+                    } label: {
+                        Label("Play next", systemImage: "text.line.first.and.arrowtriangle.forward")
+                    }
+                    Button {
+                        playback.enqueue(item, playNext: false)
+                    } label: {
+                        Label("Add to queue", systemImage: "text.badge.plus")
+                    }
+                    if let url = URL(string: "https://music.youtube.com/watch?v=\(item.id)") {
+                        ShareLink(item: url) {
+                            Label("Share", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                    if playback.isDownloaded(item) {
+                        Button(role: .destructive) {
+                            Task { _ = await playback.removeDownload(item) }
+                        } label: {
+                            Label("Remove download", systemImage: "arrow.down.circle")
+                        }
+                        .disabled(playback.isLibraryBusy)
+                    } else {
+                        Button {
+                            playback.download(item)
+                        } label: {
+                            Label(
+                                playback.downloading.contains(item.id) ? "Downloading…" : "Download / cache",
+                                systemImage: "arrow.down.circle"
+                            )
+                        }
+                        .disabled(!playback.libraryLoaded || playback.isLibraryBusy || playback.downloading.contains(item.id))
+                    }
+                }
+
+                if item.album != nil || !(item.artists ?? []).isEmpty || item.playlistId != nil {
+                    Section("Navigate") {
+                        if let album = item.album {
+                            NavigationLink {
+                                MuzzaCollectionView(item: collectionItem(
+                                    id: album.id, title: album.title, subtitle: item.subtitle,
+                                    thumbnail: item.thumbnail, kind: "album"
+                                ), playback: playback)
+                            } label: {
+                                Label("View album", systemImage: "square.stack")
+                            }
+                        }
+                        ForEach(Array((item.artists ?? []).enumerated()), id: \.offset) { _, artist in
+                            if let artistID = artist.id {
+                                NavigationLink {
+                                    MuzzaCollectionView(item: collectionItem(
+                                        id: artistID, title: artist.name, subtitle: "Artist",
+                                        thumbnail: artist.thumbnail ?? "", kind: "artist"
+                                    ), playback: playback)
+                                } label: {
+                                    Label("View \(artist.name)", systemImage: "person")
+                                }
+                            }
+                        }
+                        if let playlistId = item.playlistId {
+                            NavigationLink {
+                                MuzzaCollectionView(item: collectionItem(
+                                    id: playlistId, title: item.playlistTitle ?? "Playlist",
+                                    subtitle: "", thumbnail: "", kind: "playlist"
+                                ), playback: playback)
+                            } label: {
+                                Label("View playlist", systemImage: "music.note.list")
+                            }
+                        }
+                    }
+                }
+
+                let addablePlaylists = playback.playlists.filter {
+                    $0.kind == "localPlaylist" ||
+                        ($0.kind == "playlist" && $0.isEditable == true && playback.canSyncPlaylists)
+                }
+                if !addablePlaylists.isEmpty {
+                    Section("Playlist") {
+                        ForEach(addablePlaylists) { playlist in
+                            Button {
+                                Task {
+                                    do {
+                                        try await playback.add(item, to: playlist, allowDuplicate: false)
+                                    } catch {
+                                        playback.message = error.localizedDescription
+                                    }
+                                }
+                            } label: {
+                                Label("Add to \(playlist.title)", systemImage: "text.badge.plus")
+                            }
+                            .disabled(playback.isLibraryBusy)
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Player menu")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Done") { dismiss() }
+                }
+            }
+            .confirmationDialog("Sleep timer", isPresented: $showSleepTimerOptions) {
+                Button("15 minutes") { playback.startSleepTimer(minutes: 15) }
+                Button("30 minutes") { playback.startSleepTimer(minutes: 30) }
+                Button("45 minutes") { playback.startSleepTimer(minutes: 45) }
+                Button("60 minutes") { playback.startSleepTimer(minutes: 60) }
+                Button("End of current song") { playback.startSleepTimerAtEndOfSong() }
+                if playback.sleepTimerActive {
+                    Button("Cancel timer", role: .destructive) { playback.cancelSleepTimer() }
+                }
+                Button("Cancel", role: .cancel) {}
+            }
+        }
+    }
+
+    @Environment(\.dismiss) private var dismiss
+
+    private func collectionItem(
+        id: String, title: String, subtitle: String, thumbnail: String, kind: String
+    ) -> MuzzaLiveItem {
+        MuzzaLiveItem(
+            id: id, title: title, subtitle: subtitle, thumbnail: thumbnail, kind: kind,
+            params: nil, explicit: false, duration: nil, entryId: nil, downloadPath: nil,
+            remoteLiked: nil
+        )
     }
 
     private func timeText(_ value: Double) -> String {

@@ -57,6 +57,8 @@ private struct MuzzaHomeView: View {
     @State private var loadError: String?
     @State private var pageError: String?
     @State private var requestID = UUID()
+    @State private var loadedParams: String?
+    @State private var loadedContinuations: Set<String> = []
 
     init(
         playback: MuzzaPlayback,
@@ -72,6 +74,29 @@ private struct MuzzaHomeView: View {
 
     private var quickPicks: [MuzzaLiveItem] {
         Array(playback.recent.filter { !hideExplicit || !($0.explicit ?? false) }.prefix(4))
+    }
+
+    private func mergedSections(_ fresh: [MuzzaLiveSection], preserving old: [MuzzaLiveSection]) -> [MuzzaLiveSection] {
+        var merged = fresh
+        for oldSection in old {
+            if let index = merged.firstIndex(where: {
+                $0.title == oldSection.title && $0.moreItem?.id == oldSection.moreItem?.id
+            }) {
+                let current = merged[index]
+                var seen = Set<String>()
+                let items = (current.items + oldSection.items).filter {
+                    seen.insert("\($0.kind):\($0.id)").inserted
+                }
+                merged[index] = MuzzaLiveSection(
+                    title: current.title,
+                    items: items,
+                    moreItem: current.moreItem ?? oldSection.moreItem
+                )
+            } else {
+                merged.append(oldSection)
+            }
+        }
+        return merged
     }
 
     var body: some View {
@@ -118,7 +143,7 @@ private struct MuzzaHomeView: View {
                     if let pageError {
                         MuzzaErrorView(message: pageError) { Task { await loadMore() } }
                     } else if continuation != nil && !isLoading {
-                        ProgressView().frame(maxWidth: .infinity).task { await loadMore() }
+                        ProgressView().frame(maxWidth: .infinity).task(id: continuation) { await loadMore() }
                     }
                 }
                 .padding(.horizontal, 16).padding(.top, 12).padding(.bottom, 100)
@@ -134,19 +159,22 @@ private struct MuzzaHomeView: View {
     private func reload() async {
         let id = UUID()
         requestID = id
+        let canPreserveLoadedSections = loadedParams == selectedParams
         isLoading = true
         loadError = nil
         pageError = nil
-        sections = []
-        chips = []
-        continuation = nil
+        if !canPreserveLoadedSections {
+            continuation = nil
+        }
         defer { if requestID == id { isLoading = false } }
         do {
             let response = try await MuzzaAPI.home(hideExplicit: hideExplicit, params: selectedParams, continuation: nil)
             guard !Task.isCancelled, requestID == id else { return }
-            sections = response.sections
+            sections = mergedSections(response.sections, preserving: canPreserveLoadedSections ? sections : [])
             chips = response.chips
             continuation = response.continuation
+            loadedParams = selectedParams
+            loadedContinuations.removeAll()
         } catch {
             guard !Task.isCancelled, requestID == id else { return }
             loadError = error.localizedDescription
@@ -154,7 +182,7 @@ private struct MuzzaHomeView: View {
     }
 
     private func loadMore() async {
-        guard !isLoading, let token = continuation else { return }
+        guard !isLoading, let token = continuation, !loadedContinuations.contains(token) else { return }
         let id = requestID
         isLoading = true
         pageError = nil
@@ -162,10 +190,13 @@ private struct MuzzaHomeView: View {
         do {
             let response = try await MuzzaAPI.home(hideExplicit: hideExplicit, params: selectedParams, continuation: token)
             guard !Task.isCancelled, requestID == id else { return }
-            sections.append(contentsOf: response.sections)
-            if response.continuation == token {
+            loadedContinuations.insert(token)
+            sections = mergedSections(response.sections, preserving: sections)
+            if response.continuation == token || response.continuation.map({ loadedContinuations.contains($0) }) == true {
                 pageError = "YouTube returned an invalid continuation."
+                continuation = nil
             } else {
+                isLoading = false
                 continuation = response.continuation
             }
         } catch {
@@ -224,7 +255,6 @@ private struct MuzzaExploreView: View {
         requestID = id
         isLoading = true
         loadError = nil
-        sections = []
         defer { if requestID == id { isLoading = false } }
         do {
             let response = try await MuzzaAPI.explore(hideExplicit: hideExplicit)

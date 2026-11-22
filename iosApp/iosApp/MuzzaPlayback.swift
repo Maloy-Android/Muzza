@@ -27,12 +27,15 @@ final class MuzzaPlayback: ObservableObject {
     @Published private(set) var isLoadingAudio = false
     @Published private(set) var position = 0.0
     @Published private(set) var duration = 0.0
+    @Published private(set) var volume = 1.0
     @Published private(set) var queue: [MuzzaLiveItem] = []
     @Published private(set) var queueIndex = 0
     @Published private(set) var isShuffling = false
     @Published private(set) var repeatMode: MuzzaRepeatMode = .off
     @Published private(set) var isLoadingRadio = false
     @Published private(set) var hasRadioContinuation = false
+    @Published private(set) var sleepTimerActive = false
+    @Published private(set) var sleepTimerRemaining = 0.0
     @Published private(set) var liked: [MuzzaLiveItem] = []
     @Published private(set) var playlists: [MuzzaLiveItem] = []
     @Published private(set) var albums: [MuzzaLiveItem] = []
@@ -52,6 +55,8 @@ final class MuzzaPlayback: ObservableObject {
     private let player = AVPlayer()
     private var playbackTask: Task<Void, Never>?
     private var radioTask: Task<Void, Never>?
+    private var sleepTimerTask: Task<Void, Never>?
+    private var sleepAtTrackEnd = false
     private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var playbackID = UUID()
     private var recordedPlaybackID: UUID?
@@ -120,6 +125,10 @@ final class MuzzaPlayback: ObservableObject {
         downloads.contains { $0.id == item.id }
     }
 
+    var canSyncPlaylists: Bool { hasSignedInAccount }
+
+    var isAutoplayEnabled: Bool { radioEndpoint != nil || hasRadioContinuation || isLoadingRadio }
+
     var queueEntries: [MuzzaQueueEntry] {
         zip(queueTokens, queue).enumerated().map { index, entry in
             MuzzaQueueEntry(id: entry.0, item: entry.1, index: index)
@@ -179,8 +188,64 @@ final class MuzzaPlayback: ObservableObject {
         }
     }
 
-    func createPlaylist(_ name: String) async -> Bool {
-        await changeLibrary { try await MuzzaAPI.createPlaylist(name) }
+    func createPlaylist(_ name: String, syncToYouTube: Bool = false) async -> Bool {
+        await changeLibrary { try await MuzzaAPI.createPlaylist(name, syncToYouTube: syncToYouTube) }
+    }
+
+    func setAutoplayEnabled(_ enabled: Bool) {
+        if enabled {
+            guard let current else {
+                message = "Start a song before enabling autoplay."
+                return
+            }
+            startRadio(current)
+        } else {
+            cancelRadio()
+        }
+    }
+
+    func setVolume(_ value: Double) {
+        guard value.isFinite else { return }
+        volume = min(max(value, 0), 1)
+        player.volume = Float(volume)
+    }
+
+    func startSleepTimer(minutes: Int) {
+        guard minutes > 0 else { return }
+        cancelSleepTimer()
+        sleepTimerActive = true
+        let deadline = Date().addingTimeInterval(TimeInterval(minutes * 60))
+        sleepTimerTask = Task {
+            while !Task.isCancelled {
+                let remaining = max(deadline.timeIntervalSinceNow, 0)
+                sleepTimerRemaining = remaining
+                if remaining <= 0 {
+                    cancelSleepTimer()
+                    pause()
+                    return
+                }
+                try? await Task.sleep(nanoseconds: 1_000_000_000)
+            }
+        }
+    }
+
+    func startSleepTimerAtEndOfSong() {
+        guard duration > position else {
+            pause()
+            return
+        }
+        cancelSleepTimer()
+        sleepAtTrackEnd = true
+        sleepTimerActive = true
+        sleepTimerRemaining = duration - position
+    }
+
+    func cancelSleepTimer() {
+        sleepTimerTask?.cancel()
+        sleepTimerTask = nil
+        sleepAtTrackEnd = false
+        sleepTimerActive = false
+        sleepTimerRemaining = 0
     }
 
     func renamePlaylist(_ playlist: MuzzaLiveItem, name: String) async -> Bool {
@@ -903,6 +968,11 @@ final class MuzzaPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.playbackID == id, self.player.currentItem === item else { return }
+                if self.sleepAtTrackEnd {
+                    self.cancelSleepTimer()
+                    self.pause()
+                    return
+                }
                 self.next(finishedNaturally: true)
             }
         }

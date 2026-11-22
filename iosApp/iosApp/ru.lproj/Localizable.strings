@@ -1,8 +1,6 @@
 "Home" = "Главная";
 "Explore" = "Навигатор";
 "Library" = "Библиотека";
-"Library source" = "Источник библиотеки";
-"On device" = "На устройстве";
 "Your YouTube Music library is empty." = "Библиотека YouTube Music пуста.";
 "Search" = "Поиск";
 "Settings" = "Настройки";
@@ -22,6 +20,7 @@
 "Retry" = "Повторить";
 "Quick picks" = "Быстрый выбор";
 "No recommendations are available." = "Рекомендации пока недоступны.";
+"New mixes" = "Новинки";
 "New releases" = "Новые релизы альбомов";
 "Moods and genres" = "Настроения и жанры";
 "New clips" = "Новые клипы";

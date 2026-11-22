@@ -29,38 +29,61 @@ struct MuzzaMiniPlayer: View {
     @ObservedObject var playback: MuzzaPlayback
     let open: () -> Void
 
+    private var progress: CGFloat {
+        guard playback.duration > 0 else { return 0 }
+        return min(max(CGFloat(playback.position / playback.duration), 0), 1)
+    }
+
     var body: some View {
         if let item = playback.current {
-            HStack(spacing: 10) {
-                Button(action: open) {
-                    HStack(spacing: 10) {
-                        MuzzaArtwork(item: item, size: 44)
-                        VStack(alignment: .leading, spacing: 2) {
-                            Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                            Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            ZStack(alignment: .bottom) {
+                HStack(spacing: 10) {
+                    Button(action: open) {
+                        HStack(spacing: 10) {
+                            MuzzaArtwork(item: item, size: 44)
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+                            }
+                            Spacer(minLength: 0)
                         }
-                        Spacer(minLength: 0)
+                        .contentShape(Rectangle())
                     }
-                    .contentShape(Rectangle())
-                }
-                .buttonStyle(.plain)
-                Button { playback.toggleLike(item) } label: {
-                    Image(systemName: playback.isLiked(item) ? "heart.fill" : "heart")
-                }
-                .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                .accessibilityLabel(playback.isLiked(item) ? "Remove like" : "Like")
-                Button { playback.toggle() } label: {
-                    if playback.isLoadingAudio {
-                        ProgressView().frame(width: 24, height: 24)
-                    } else {
-                        Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
+                    .buttonStyle(.plain)
+                    Button { playback.toggleLike(item) } label: {
+                        Image(systemName: playback.isLiked(item) ? "heart.fill" : "heart")
+                    }
+                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                    .accessibilityLabel(playback.isLiked(item) ? "Remove like" : "Like")
+                    Button { playback.toggle() } label: {
+                        if playback.isLoadingAudio {
+                            ProgressView().frame(width: 24, height: 24)
+                        } else {
+                            Image(systemName: playback.isPlaying ? "pause.fill" : "play.fill")
+                                .frame(width: 24, height: 24)
+                        }
+                    }
+                    .accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
+                    Button { playback.next() } label: {
+                        Image(systemName: "forward.end.fill")
                             .frame(width: 24, height: 24)
                     }
+                    .disabled(!playback.canAdvance)
+                    .accessibilityLabel("Next")
                 }
-                .accessibilityLabel(playback.isPlaying ? "Pause" : "Play")
+                .padding(10)
+                .padding(.bottom, 2)
+
+                GeometryReader { geometry in
+                    Rectangle()
+                        .fill(Color.accentColor)
+                        .frame(width: geometry.size.width * progress, height: 2)
+                }
+                .frame(height: 2)
             }
-            .padding(10).background(.regularMaterial)
-            .clipShape(RoundedRectangle(cornerRadius: 16)).padding(.horizontal)
+            .background(.regularMaterial)
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+            .padding(.horizontal)
         }
     }
 }

@@ -12,14 +12,12 @@ import com.maloy.innertube.models.SectionListRenderer
 import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
-import com.maloy.innertube.models.YouTubeClient.Companion.WEB_REMIX
 import com.maloy.innertube.models.getContinuation
-import com.maloy.innertube.models.getItems
 import com.maloy.innertube.pages.ArtistItemsPage
 import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.NextResult
 import com.maloy.innertube.models.response.BrowseResponse
-import com.maloy.innertube.models.getThumbnailUrl
+import com.metrolist.innertubex.models.YouTubeClient.Companion.WEB_REMIX
 import com.metrolist.innertubex.models.YouTubeLocale
 import io.ktor.client.call.body
 import kotlinx.coroutines.CancellationException
@@ -256,7 +254,7 @@ private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean)
     val endpoint: BrowseEndpoint?
     when {
         musicCarouselShelfRenderer != null -> {
-            val renderer = musicCarouselShelfRenderer
+            val renderer = musicCarouselShelfRenderer ?: return null
             val header = renderer.header?.musicCarouselShelfBasicHeaderRenderer
             title = header?.title?.runs?.firstOrNull()?.text ?: return null
             endpoint = header?.title?.runs?.firstNotNullOfOrNull {
@@ -268,7 +266,7 @@ private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean)
             }
         }
         musicShelfRenderer != null -> {
-            val renderer = musicShelfRenderer
+            val renderer = musicShelfRenderer ?: return null
             title = renderer.title?.runs?.firstOrNull()?.text
                 ?: renderer.moreContentButton?.buttonRenderer?.text?.runs?.firstOrNull()?.text
                 ?: return null
@@ -279,7 +277,7 @@ private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean)
             }
         }
         gridRenderer != null -> {
-            val renderer = gridRenderer
+            val renderer = gridRenderer ?: return null
             title = renderer.header?.gridHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: return null
             endpoint = renderer.header?.gridHeaderRenderer?.title?.runs?.firstNotNullOfOrNull {
                 it.navigationEndpoint?.browseEndpoint
@@ -287,15 +285,15 @@ private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean)
             items = renderer.items.mapNotNull { it.musicTwoRowItemRenderer?.toIosMediaItemOrNull() }
         }
         musicCardShelfRenderer != null -> {
-            val renderer = musicCardShelfRenderer
-            title = renderer.title.runs.firstOrNull()?.text ?: return null
+            val renderer = musicCardShelfRenderer ?: return null
+            title = renderer.title.runs?.firstOrNull()?.text ?: return null
             endpoint = renderer.onTap.browseEndpoint
             items = renderer.contents.orEmpty().mapNotNull {
                 it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull()
             }
         }
         itemSectionRenderer != null -> {
-            val renderer = itemSectionRenderer
+            val renderer = itemSectionRenderer ?: return null
             title = renderer.header?.itemSectionTabbedHeaderRenderer?.title?.runs?.firstOrNull()?.text
                 ?: return null
             endpoint = renderer.header?.itemSectionTabbedHeaderRenderer?.title?.runs
@@ -348,17 +346,21 @@ private suspend fun fetchIosLibraryPage(
     val sectionContents = response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
         ?.tabRenderer?.content?.sectionListRenderer?.contents
     val continuationContents = response.continuationContents
+    val gridContinuation = continuationContents?.gridContinuation
+    val musicShelfContinuation = continuationContents?.musicShelfContinuation
     val items = when {
-        continuationContents?.gridContinuation != null ->
-            continuationContents.gridContinuation.items.toIosLibraryItems(hideExplicit)
-        continuationContents?.musicShelfContinuation != null ->
-            continuationContents.musicShelfContinuation.contents
+        gridContinuation != null ->
+            gridContinuation.items.toIosLibraryItems(hideExplicit)
+        musicShelfContinuation != null ->
+            musicShelfContinuation.contents.orEmpty()
                 .mapNotNull { it.musicResponsiveListItemRenderer }
                 .toIosLibraryItems(hideExplicit)
         sectionContents != null -> sectionContents.flatMap { content ->
+            val grid = content.gridRenderer
+            val shelf = content.musicShelfRenderer
             when {
-                content.gridRenderer != null -> content.gridRenderer.items.toIosLibraryItems(hideExplicit)
-                content.musicShelfRenderer != null -> content.musicShelfRenderer.contents.orEmpty()
+                grid != null -> grid.items.toIosLibraryItems(hideExplicit)
+                shelf != null -> shelf.contents.orEmpty()
                     .mapNotNull { it.musicResponsiveListItemRenderer }
                     .toIosLibraryItems(hideExplicit)
                 else -> emptyList()
@@ -381,22 +383,25 @@ private suspend fun fetchIosPlaylistSongs(
     setLogin: Boolean,
     hideExplicit: Boolean,
 ): IosBridgeResponse {
-    val innerTube = YouTube.extractionTransport().innerTube
-    val response = if (continuation == null) {
-        innerTube.browse(
-            client = WEB_REMIX,
-            browseId = "VL$playlistId",
-            setLogin = setLogin,
-            useLoginForBrowseEnabled = setLogin,
-        ).body<BrowseResponse>()
-    } else {
-        innerTube.browse(
-            client = WEB_REMIX,
-            continuation = continuation,
-            browseId = "",
-            setLogin = setLogin,
-            useLoginForBrowseEnabled = setLogin,
-        ).body<BrowseResponse>()
+    val sharedTransport = YouTube.extractionTransport().innerTube
+    val innerTube = if (setLogin) sharedTransport else sharedTransport.createIsolatedSession(includeAccount = false)
+    val response = try {
+        if (continuation == null) {
+            innerTube.browse(
+                client = WEB_REMIX,
+                browseId = "VL$playlistId",
+                setLogin = setLogin,
+            ).body<BrowseResponse>()
+        } else {
+            innerTube.browse(
+                client = WEB_REMIX,
+                continuation = continuation,
+                browseId = "",
+                setLogin = setLogin,
+            ).body<BrowseResponse>()
+        }
+    } finally {
+        if (!setLogin) innerTube.close()
     }
 
     val initialSections = response.contents?.twoColumnBrowseResultsRenderer?.secondaryContents

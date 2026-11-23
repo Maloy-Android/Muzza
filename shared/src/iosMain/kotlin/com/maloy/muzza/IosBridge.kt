@@ -663,7 +663,7 @@ fun fetchIosHome(
         val localLibrary = withIosDatabase { it.libraryResponse() }
         val homeItems = sections.flatMap { it.items }
         val speedDial = (
-            localLibrary.liked + localLibrary.albums + localLibrary.artists +
+            localLibrary.items + localLibrary.albums + localLibrary.artists +
                 localLibrary.playlists + localLibrary.recent + homeItems
             )
             .filter { !hideExplicit || !it.explicit }
@@ -845,7 +845,6 @@ private suspend fun fetchIosGenrePage(
     val nextContinuation = sectionList?.continuations?.getContinuation()
         ?: sectionList?.contents?.firstNotNullOfOrNull { content ->
             content.gridRenderer?.continuations?.getContinuation()
-                ?: content.musicCarouselShelfRenderer?.contents?.getContinuation()
                 ?: content.musicShelfRenderer?.continuations?.getContinuation()
         }
         ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()

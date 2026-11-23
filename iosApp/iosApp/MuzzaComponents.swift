@@ -448,7 +448,7 @@ struct MuzzaCollectionPlaybackActions: View {
     }
 }
 
-private struct MuzzaMediaCard: View {
+struct MuzzaMediaCard: View {
     let item: MuzzaLiveItem
     let size: CGFloat
     let aspectRatio: CGFloat

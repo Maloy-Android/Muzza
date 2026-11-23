@@ -375,9 +375,12 @@ struct MuzzaLibraryView: View {
                     ForEach(sortedPlaylists) { playlist in
                         NavigationLink(value: playlist) {
                             VStack(alignment: .leading, spacing: 8) {
-                                MuzzaArtwork(item: playlist, size: 156)
-                                Text(playlist.title).font(.headline).lineLimit(1)
-                                Text(playlist.subtitle).font(.caption).foregroundStyle(.secondary)
+                                MuzzaMediaCard(
+                                    item: playlist,
+                                    size: 160,
+                                    aspectRatio: 1,
+                                    fillsWidth: true
+                                )
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                         }
@@ -594,7 +597,7 @@ private struct MuzzaSavedGrid: View {
     let playback: MuzzaPlayback
     let symbol: String
     let emptyMessage: String
-    private let columns = [GridItem(.flexible()), GridItem(.flexible())]
+    private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
     init(items: [MuzzaLiveItem], playback: MuzzaPlayback, symbol: String, emptyMessage: String) {
         self.items = items
@@ -610,12 +613,7 @@ private struct MuzzaSavedGrid: View {
             LazyVGrid(columns: columns, alignment: .leading, spacing: 12) {
                 ForEach(items) { item in
                     NavigationLink(value: item) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            MuzzaArtwork(item: item, size: 156)
-                            Text(item.title).font(.subheadline.bold()).lineLimit(2)
-                            Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
+                        MuzzaMediaCard(item: item, size: 160, aspectRatio: 1, fillsWidth: true)
                     }
                     .buttonStyle(.plain)
                     .contextMenu {
@@ -786,7 +784,7 @@ struct MuzzaCollectionView: View {
                     MuzzaMediaSectionView(
                         section: section,
                         playback: playback,
-                        layout: usesVerticalGrid ? .grid : .horizontal,
+                        layout: (usesVerticalGrid || item.kind == "artist") ? .grid : .horizontal,
                         mediaAspectRatio: item.kind == "genre" && item.id == "FEmusic_new_releases_videos"
                             ? 16.0 / 9.0 : 1,
                         showsTitle: !isLargeBrowsePage
@@ -808,7 +806,8 @@ struct MuzzaCollectionView: View {
                         .onAppear { Task { await loadMore() } }
                 }
             }
-            .padding(.horizontal, usesVerticalGrid ? 8 : 16).padding(.bottom, 100)
+            .padding(.horizontal, (usesVerticalGrid || item.kind == "artist") ? 8 : 16)
+            .padding(.bottom, 100)
         }
         .modifier(MuzzaPageBackground())
         .navigationTitle(item.title)

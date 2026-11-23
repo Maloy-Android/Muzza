@@ -377,6 +377,7 @@ private struct MuzzaExploreView: View {
                         MuzzaMediaSectionView(
                             section: section,
                             playback: playback,
+                            layout: section.title == "New releases" ? .grid : .horizontal,
                             mediaAspectRatio: section.title == "New clips" ? 16.0 / 9.0 : 1
                         )
                     }

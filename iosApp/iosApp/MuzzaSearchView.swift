@@ -104,44 +104,12 @@ struct MuzzaSearchView: View {
     @ViewBuilder
     private var searchResults: some View {
         if [.albums, .artists, .playlists, .profiles].contains(category) {
-            LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
-                spacing: 12
-            ) {
-                ForEach(items) { item in
-                    NavigationLink(value: item) {
-                        VStack(alignment: .leading, spacing: 8) {
-                            MuzzaArtwork(
-                                item: item,
-                                size: 156,
-                                aspectRatio: item.isVideoSong == true ? 16.0 / 9.0 : 1
-                            )
-                            Text(item.title).font(.subheadline.bold()).lineLimit(2)
-                            if !item.subtitle.isEmpty {
-                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                            }
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                    .buttonStyle(.plain)
-                    .contextMenu {
-                        if ["album", "artist", "playlist"].contains(item.kind) {
-                            if item.kind == "album" || item.kind == "playlist" {
-                                MuzzaCollectionPlaybackActions(item: item, playback: playback)
-                            }
-                            Button {
-                                playback.toggleSaved(item)
-                            } label: {
-                                Label(
-                                    playback.isSaved(item) ? "Remove from library" : "Save",
-                                    systemImage: playback.isSaved(item) ? "bookmark.slash" : "bookmark"
-                                )
-                            }
-                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                        }
-                    }
-                }
-            }
+            MuzzaMediaSectionView(
+                section: MuzzaLiveSection(title: "", items: items, moreItem: nil),
+                playback: playback,
+                layout: .grid,
+                showsTitle: false
+            )
         } else {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 if item.kind == "song" {

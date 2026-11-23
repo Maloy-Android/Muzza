@@ -659,11 +659,14 @@ struct MuzzaCollectionView: View {
             || (item.kind == "browse" && [
                 "FEmusic_mixed_for_you", "FEmusic_charts", "FEmusic_listen_again"
             ].contains(where: item.id.hasPrefix))
-            || (item.kind == "genre" && item.id == "FEmusic_new_releases_videos")
+            || (item.kind == "genre" && [
+                "FEmusic_new_releases_albums", "FEmusic_new_releases_videos"
+            ].contains(item.id))
     }
 
     private var isLargeBrowsePage: Bool {
         item.kind == "newReleases"
+            || (item.kind == "genre" && item.id == "FEmusic_new_releases_albums")
             || (item.kind == "browse" && [
             "FEmusic_mixed_for_you", "FEmusic_charts", "FEmusic_listen_again"
             ].contains(where: item.id.hasPrefix))

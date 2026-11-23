@@ -773,7 +773,11 @@ struct MuzzaCollectionView: View {
                             mediaAspectRatio: 16.0 / 9.0
                         )
                     } else {
-                        MuzzaMediaSectionView(section: section, playback: playback)
+                        MuzzaMediaSectionView(
+                            section: section,
+                            playback: playback,
+                            layout: item.kind == "moodAndGenres" ? .grid : .horizontal
+                        )
                     }
                 }
                 if isLoading {

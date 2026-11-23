@@ -243,10 +243,10 @@ struct MuzzaMediaSectionView: View {
                 }
             }
             if section.items.allSatisfy({ $0.kind == "genre" }) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    LazyHGrid(
-                        rows: Array(repeating: GridItem(.fixed(48), spacing: 8), count: 4),
-                        alignment: .top,
+                if layout == .grid {
+                    LazyVGrid(
+                        columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+                        alignment: .leading,
                         spacing: 8
                     ) {
                         ForEach(section.items) { item in
@@ -262,11 +262,39 @@ struct MuzzaMediaSectionView: View {
                                         .padding(.leading, 8)
                                         .padding(.trailing, 12)
                                 }
-                                .frame(width: 180, height: 48)
+                                .frame(maxWidth: .infinity, minHeight: 48, maxHeight: 48, alignment: .leading)
                                 .background(Color(.secondarySystemFill))
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .buttonStyle(.plain)
+                        }
+                    }
+                } else {
+                    ScrollView(.horizontal, showsIndicators: false) {
+                        LazyHGrid(
+                            rows: Array(repeating: GridItem(.fixed(48), spacing: 8), count: 4),
+                            alignment: .top,
+                            spacing: 8
+                        ) {
+                            ForEach(section.items) { item in
+                                NavigationLink(value: item) {
+                                    HStack(spacing: 0) {
+                                        Rectangle()
+                                            .fill(stripeColor(item.stripeColor))
+                                            .frame(width: 4)
+                                        Text(item.title)
+                                            .font(.subheadline.weight(.semibold))
+                                            .lineLimit(1)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                            .padding(.leading, 8)
+                                            .padding(.trailing, 12)
+                                    }
+                                    .frame(width: 180, height: 48)
+                                    .background(Color(.secondarySystemFill))
+                                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                                }
+                                .buttonStyle(.plain)
+                            }
                         }
                     }
                 }

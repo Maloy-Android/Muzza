@@ -653,23 +653,12 @@ struct MuzzaCollectionView: View {
     @State private var loadedContinuations: Set<String> = []
     @State private var showPlaylistEditor = false
 
-    private var usesVerticalGrid: Bool {
-        item.kind == "moodAndGenres"
-            || item.kind == "newReleases"
-            || (item.kind == "browse" && [
-                "FEmusic_mixed_for_you", "FEmusic_charts", "FEmusic_listen_again"
-            ].contains(where: item.id.hasPrefix))
-            || (item.kind == "genre" && [
-                "FEmusic_new_releases_albums", "FEmusic_new_releases_videos"
-            ].contains(item.id))
+    private var isBrowsePage: Bool {
+        ["browse", "genre", "moodAndGenres", "newReleases", "artistItems"].contains(item.kind)
     }
 
-    private var isLargeBrowsePage: Bool {
-        item.kind == "newReleases"
-            || (item.kind == "genre" && item.id == "FEmusic_new_releases_albums")
-            || (item.kind == "browse" && [
-            "FEmusic_mixed_for_you", "FEmusic_charts", "FEmusic_listen_again"
-            ].contains(where: item.id.hasPrefix))
+    private var usesVerticalGrid: Bool {
+        isBrowsePage
     }
 
     init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
@@ -680,7 +669,7 @@ struct MuzzaCollectionView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
-                if !isLargeBrowsePage {
+                if !isBrowsePage {
                     VStack(alignment: .leading, spacing: 12) {
                         if !item.thumbnail.isEmpty {
                             HStack {
@@ -787,10 +776,10 @@ struct MuzzaCollectionView: View {
                     MuzzaMediaSectionView(
                         section: section,
                         playback: playback,
-                        layout: (usesVerticalGrid || item.kind == "artist") ? .grid : .horizontal,
+                        layout: usesVerticalGrid ? .grid : .horizontal,
                         mediaAspectRatio: item.kind == "genre" && item.id == "FEmusic_new_releases_videos"
                             ? 16.0 / 9.0 : 1,
-                        showsTitle: !isLargeBrowsePage
+                        showsTitle: !isBrowsePage
                             || section.title.caseInsensitiveCompare(item.title) != .orderedSame
                     )
                 }

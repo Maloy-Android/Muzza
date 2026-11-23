@@ -312,6 +312,7 @@ struct MuzzaMediaSectionView: View {
                             }
                         }
                     }
+                    .frame(height: 4 * 48 + 3 * 8)
                 }
             } else if layout == .grid {
                 LazyVGrid(

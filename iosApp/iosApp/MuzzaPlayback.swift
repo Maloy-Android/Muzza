@@ -879,7 +879,7 @@ final class MuzzaPlayback: ObservableObject {
                     isShuffling = false
                     UserDefaults.standard.set(false, forKey: "muzza.shuffle")
                 }
-                radioEndpoint = nextEndpoint
+                self.radioEndpoint = nextEndpoint
                 radioContinuation = response.continuation
                 hasRadioContinuation = response.continuation != nil
                 queueRevision += 1

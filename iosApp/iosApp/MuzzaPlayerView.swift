@@ -245,6 +245,14 @@ struct MuzzaPlayerView: View {
             .navigationDestination(for: MuzzaLiveItem.self) { MuzzaCollectionView(item: $0, playback: playback) }
             .toolbar(.hidden, for: .navigationBar)
         }
+        .simultaneousGesture(
+            DragGesture(minimumDistance: 20)
+                .onEnded { value in
+                    guard value.translation.height > 120,
+                          value.translation.height > abs(value.translation.width) else { return }
+                    dismiss()
+                }
+        )
         .sheet(isPresented: $showQueue) { MuzzaQueueView(playback: playback) }
         .sheet(isPresented: $showLyrics) { MuzzaLyricsView(playback: playback) }
         .sheet(isPresented: $showPlayerMenu) {

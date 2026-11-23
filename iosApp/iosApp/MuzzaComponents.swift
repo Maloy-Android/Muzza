@@ -68,8 +68,11 @@ struct MuzzaArtwork: View {
         .modifier(MuzzaArtworkClip(kind: item.kind, size: size))
         .task(id: item.thumbnail) {
             modelImage = nil
-            guard let url = URL(string: item.thumbnail),
-                  url.scheme?.lowercased() == "https" else { return }
+            let rawURL = item.thumbnail.hasPrefix("//") ? "https:\(item.thumbnail)" : item.thumbnail
+            guard var components = URLComponents(string: rawURL),
+                  ["https", "http"].contains(components.scheme?.lowercased() ?? "") else { return }
+            components.scheme = "https"
+            guard let url = components.url else { return }
             let key = url as NSURL
             if let cached = Self.imageCache.object(forKey: key) {
                 modelImage = cached
@@ -81,7 +84,13 @@ struct MuzzaArtwork: View {
 
     private func loadImage(from url: URL, cacheKey: NSURL) async {
         do {
-            let (data, _) = try await URLSession.shared.data(from: url)
+            var request = URLRequest(url: url)
+            request.setValue("Mozilla/5.0", forHTTPHeaderField: "User-Agent")
+            request.setValue("image/avif,image/webp,image/*,*/*;q=0.8", forHTTPHeaderField: "Accept")
+            let (data, response) = try await URLSession.shared.data(for: request)
+            guard (response as? HTTPURLResponse)?.statusCode == 200 else {
+                throw MuzzaAPIError.requestFailed("The artwork image could not be loaded.")
+            }
             guard !Task.isCancelled, let image = UIImage(data: data) else { return }
             Self.imageCache.setObject(image, forKey: cacheKey)
             modelImage = image
@@ -337,7 +346,9 @@ struct MuzzaMediaSectionView: View {
     private func mediaItemView(_ item: MuzzaLiveItem) -> some View {
         let isVideo = item.isVideoSong == true
         let size: CGFloat = layout == .grid ? (isVideo ? 174 : 160) : (isVideo ? 200 : 164)
-        let aspectRatio = mediaAspectRatio == 1 && isVideo ? 16.0 / 9.0 : mediaAspectRatio
+        let aspectRatio = layout == .grid
+            ? mediaAspectRatio
+            : (mediaAspectRatio == 1 && isVideo ? 16.0 / 9.0 : mediaAspectRatio)
         if item.kind == "song" {
             Button { playback.play(item, in: section.items, queueTitle: section.title) } label: {
                 MuzzaMediaCard(
@@ -458,10 +469,15 @@ struct MuzzaMediaCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             artwork
-            Text(item.title).font(.subheadline.bold()).lineLimit(2)
-            if !item.subtitle.isEmpty {
-                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
-            }
+            Text(item.title)
+                .font(.subheadline.bold())
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40, alignment: .topLeading)
+            Text(item.subtitle.isEmpty ? " " : item.subtitle)
+                .font(.caption)
+                .foregroundStyle(.secondary)
+                .lineLimit(2)
+                .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30, alignment: .topLeading)
         }
         .frame(maxWidth: fillsWidth ? .infinity : nil, alignment: .leading)
         .frame(width: fillsWidth ? nil : size, alignment: .leading)

@@ -103,34 +103,25 @@ struct MuzzaSearchView: View {
 
     @ViewBuilder
     private var searchResults: some View {
-        if [.albums, .artists, .playlists, .profiles].contains(category) {
-            MuzzaMediaSectionView(
-                section: MuzzaLiveSection(title: "", items: items, moreItem: nil),
-                playback: playback,
-                layout: .grid,
-                showsTitle: false
-            )
-        } else {
-            ForEach(Array(items.enumerated()), id: \.offset) { index, item in
-                if item.kind == "song" {
-                    MuzzaSongRow(
-                        item: item, playback: playback, queue: items,
-                        queueIndex: index, queueTitle: "\(category.title) search"
-                    )
-                } else {
-                    NavigationLink(value: item) {
-                        HStack(spacing: 12) {
-                            MuzzaArtwork(item: item, size: 54)
-                            VStack(alignment: .leading, spacing: 3) {
-                                Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                                Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
-                            }
-                            Spacer()
-                            Image(systemName: "chevron.right").foregroundStyle(.secondary)
+        ForEach(Array(items.enumerated()), id: \.offset) { index, item in
+            if item.kind == "song" {
+                MuzzaSongRow(
+                    item: item, playback: playback, queue: items,
+                    queueIndex: index, queueTitle: "\(category.title) search"
+                )
+            } else {
+                NavigationLink(value: item) {
+                    HStack(spacing: 12) {
+                        MuzzaArtwork(item: item, size: 54)
+                        VStack(alignment: .leading, spacing: 3) {
+                            Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                            Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                         }
+                        Spacer()
+                        Image(systemName: "chevron.right").foregroundStyle(.secondary)
                     }
-                    .buttonStyle(.plain)
                 }
+                .buttonStyle(.plain)
             }
         }
     }

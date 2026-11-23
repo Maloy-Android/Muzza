@@ -235,16 +235,24 @@ private fun com.maloy.innertube.models.Artist.toIosArtistMetadata() =
     IosArtistMetadata(id = id, name = name, isProfile = isProfile)
 
 private val iosGoogleArtworkSize =
-    Regex("^(https://(?:lh3|yt3)\\.googleusercontent\\.com/[^?]*?)=w\\d+-h\\d+[^?]*(\\?.*)?$")
+    Regex("^(https://(?:lh3|yt3)\\.googleusercontent\\.com/[^?]*?)=w(\\d+)-h(\\d+)[^?]*(\\?.*)?$")
 private val iosGgphtArtworkSize =
-    Regex("^(https://yt3\\.ggpht\\.com/[^?=]+)=(?:s\\d+|w\\d+-h\\d+)[^?]*(\\?.*)?$")
+    Regex("^(https://yt3\\.ggpht\\.com/[^?=]+)=(?:s(\\d+)|w(\\d+)-h(\\d+))[^?]*(\\?.*)?$")
 
 internal fun String.toIosArtworkUrl(): String {
     iosGoogleArtworkSize.matchEntire(this)?.groupValues?.let {
-        return "${it[1]}=w1080-h1080-p-l90-rj${it[2]}"
+        val originalWidth = it[2].toLongOrNull() ?: return this
+        val originalHeight = it[3].toLongOrNull() ?: return this
+        if (originalWidth == 0L) return this
+        val targetHeight = (1080L * originalHeight / originalWidth).coerceAtLeast(1)
+        return "${it[1]}=w1080-h$targetHeight-p-l90-rj${it[4]}"
     }
     iosGgphtArtworkSize.matchEntire(this)?.groupValues?.let {
-        return "${it[1]}=w1080-h1080-p-l90-rj${it[2]}"
+        val width = it[3].toLongOrNull() ?: return "${it[1]}=w1080-h1080-p-l90-rj${it[5]}"
+        val height = it[4].toLongOrNull() ?: return this
+        if (width == 0L) return this
+        val targetHeight = (1080L * height / width).coerceAtLeast(1)
+        return "${it[1]}=w1080-h$targetHeight-p-l90-rj${it[5]}"
     }
     return this
 }

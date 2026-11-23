@@ -90,6 +90,7 @@ final class MuzzaPlayback: ObservableObject {
     private var downloadTasks: [String: Task<Void, Never>] = [:]
     private var playbackID = UUID()
     private var recordedPlaybackID: UUID?
+    private var finishedPlaybackID: UUID?
     private var queueTokens: [UUID] = []
     private var originalQueue: [MuzzaLiveItem] = []
     private var originalTokens: [UUID] = []
@@ -1390,6 +1391,7 @@ final class MuzzaPlayback: ObservableObject {
     private func start(_ item: MuzzaLiveItem) {
         stopCurrentItem()
         let id = playbackID
+        finishedPlaybackID = nil
         current = item
         progress.update(position: 0, duration: Double(item.duration ?? 0))
         isLoadingAudio = true
@@ -1425,6 +1427,9 @@ final class MuzzaPlayback: ObservableObject {
                 try AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
                 try AVAudioSession.sharedInstance().setActive(true)
                 let playerItem = AVPlayerItem(asset: asset)
+                if let duration = item.duration, duration > 0 {
+                    playerItem.forwardPlaybackEndTime = CMTime(seconds: Double(duration), preferredTimescale: 600)
+                }
                 observe(playerItem, playbackID: id)
                 player.replaceCurrentItem(with: playerItem)
                 player.playImmediately(atRate: Float(playbackRate))
@@ -1472,12 +1477,7 @@ final class MuzzaPlayback: ObservableObject {
         ) { [weak self] _ in
             Task { @MainActor in
                 guard let self, self.playbackID == id, self.player.currentItem === item else { return }
-                if self.sleepAtTrackEnd {
-                    self.cancelSleepTimer()
-                    self.pause()
-                    return
-                }
-                self.next(finishedNaturally: true)
+                self.finishCurrentTrack(playbackID: id)
             }
         }
         failureObserver = NotificationCenter.default.addObserver(
@@ -1529,8 +1529,24 @@ final class MuzzaPlayback: ObservableObject {
                     position: duration > 0 ? min(position, duration) : position,
                     duration: duration
                 )
+                if metadataDuration > 0,
+                   position >= metadataDuration - 0.1,
+                   self.isPlaying {
+                    self.finishCurrentTrack(playbackID: self.playbackID)
+                }
                 self.updateNowPlaying()
             }
+        }
+    }
+
+    private func finishCurrentTrack(playbackID id: UUID) {
+        guard playbackID == id, finishedPlaybackID != id else { return }
+        finishedPlaybackID = id
+        if sleepAtTrackEnd {
+            cancelSleepTimer()
+            pause()
+        } else {
+            next(finishedNaturally: true)
         }
     }
 

@@ -54,7 +54,7 @@ struct MuzzaAccountProfile: Decodable {
     let thumbnailUrl: String?
 }
 
-struct MuzzaRadioEndpoint: Codable {
+struct MuzzaRadioEndpoint: Codable, Hashable {
     let videoId: String?
     let playlistId: String?
     let playlistSetVideoId: String?

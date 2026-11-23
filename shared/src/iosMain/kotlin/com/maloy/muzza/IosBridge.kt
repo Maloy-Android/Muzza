@@ -255,13 +255,18 @@ private fun List<YTItem>.iosItems(hideExplicit: Boolean): List<IosMediaItem> =
         .map(YTItem::toIosMediaItem)
         .toList()
 
-private fun BrowseEndpoint.toIosBrowseItem(title: String): IosMediaItem =
+private fun BrowseEndpoint.toIosBrowseItem(title: String, kind: String? = null): IosMediaItem =
     IosMediaItem(
         id = browseId,
         title = title,
         subtitle = "",
         thumbnail = "",
-        kind = "browse",
+        kind = kind ?: when {
+            isArtistEndpoint || isProfile -> "artist"
+            isAlbumEndpoint -> "album"
+            isPlaylistEndpoint -> "playlist"
+            else -> "browse"
+        },
         params = params,
     )
 
@@ -382,7 +387,10 @@ private fun MusicResponsiveListItemRenderer.toIosMediaItemOrNull(): IosMediaItem
     )
 }
 
-private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean): IosMediaSection? {
+private fun SectionListRenderer.Content.toIosMediaSection(
+    hideExplicit: Boolean,
+    fallbackTitle: String? = null,
+): IosMediaSection? {
     val title: String
     val items: List<IosMediaItem>
     val endpoint: BrowseEndpoint?
@@ -407,6 +415,14 @@ private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean)
             endpoint = renderer.title?.runs?.firstNotNullOfOrNull { it.navigationEndpoint?.browseEndpoint }
                 ?: renderer.moreContentButton?.buttonRenderer?.navigationEndpoint?.browseEndpoint
             items = renderer.contents.orEmpty().mapNotNull {
+                it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull()
+            }
+        }
+        musicPlaylistShelfRenderer != null -> {
+            val renderer = musicPlaylistShelfRenderer ?: return null
+            title = fallbackTitle?.takeIf(String::isNotBlank) ?: return null
+            endpoint = null
+            items = renderer.contents.mapNotNull {
                 it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull()
             }
         }
@@ -440,11 +456,31 @@ private fun SectionListRenderer.Content.toIosMediaSection(hideExplicit: Boolean)
     }
     val visible = items.filter { !hideExplicit || !it.explicit }
     if (visible.isEmpty()) return null
-    return IosMediaSection(title, visible, endpoint?.toIosBrowseItem(title))
+    val isYouTubePlaylists = visible.all {
+        it.kind == "playlist" && it.id.startsWith("RDCLAK5")
+    }
+    val moreItem = endpoint?.let { browseEndpoint ->
+        browseEndpoint.toIosBrowseItem(
+            title,
+            kind = when {
+                browseEndpoint.isArtistEndpoint || browseEndpoint.isProfile -> "artist"
+                browseEndpoint.params != null && browseEndpoint.browseId.startsWith("FEmusic_new_releases") ->
+                    "newReleases"
+                browseEndpoint.params != null && browseEndpoint.browseId.startsWith("FEmusic_library") ->
+                    "library"
+                browseEndpoint.params != null && isYouTubePlaylists -> "moodAndGenres"
+                else -> null
+            },
+        )
+    }
+    return IosMediaSection(title, visible, moreItem)
 }
 
-private fun List<SectionListRenderer.Content>?.toIosMediaSections(hideExplicit: Boolean): List<IosMediaSection> =
-    orEmpty().mapNotNull { it.toIosMediaSection(hideExplicit) }
+private fun List<SectionListRenderer.Content>?.toIosMediaSections(
+    hideExplicit: Boolean,
+    fallbackTitle: String? = null,
+): List<IosMediaSection> =
+    orEmpty().mapNotNull { it.toIosMediaSection(hideExplicit, fallbackTitle) }
 
 private fun List<GridRenderer.Item>.toIosLibraryItems(hideExplicit: Boolean): List<IosMediaItem> =
     mapNotNull { it.musicTwoRowItemRenderer?.toIosMediaItemOrNull() }
@@ -622,6 +658,10 @@ fun fetchIosHome(
         val continuedItems = when {
             response.continuationContents?.gridContinuation != null ->
                 response.continuationContents?.gridContinuation?.items?.toIosLibraryItems(hideExplicit).orEmpty()
+            response.continuationContents?.musicPlaylistShelfContinuation != null ->
+                response.continuationContents?.musicPlaylistShelfContinuation?.contents.orEmpty()
+                    .mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
+                    .filter { !hideExplicit || !it.explicit }
             response.continuationContents?.musicShelfContinuation != null ->
                 response.continuationContents?.musicShelfContinuation?.contents.orEmpty()
                     .mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
@@ -629,7 +669,7 @@ fun fetchIosHome(
             else -> emptyList()
         }
         val continuedTitle = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: "More"
-        val sections = sectionList?.contents.toIosMediaSections(hideExplicit).ifEmpty {
+        val sections = sectionList?.contents.toIosMediaSections(hideExplicit, continuedTitle).ifEmpty {
             continuedSections.ifEmpty {
                 continuedItems.takeIf { it.isNotEmpty() }?.let {
                     listOf(IosMediaSection(continuedTitle, it))
@@ -835,7 +875,7 @@ private suspend fun fetchIosGenrePage(
             else -> "Explore"
         }
     val sections = when {
-        continuation == null -> sectionList?.contents.toIosMediaSections(hideExplicit).ifEmpty {
+        continuation == null -> sectionList?.contents.toIosMediaSections(hideExplicit, title).ifEmpty {
             initialItems.takeIf { it.isNotEmpty() }?.let { listOf(IosMediaSection(title, it)) }.orEmpty()
         }
         continuedSections.isNotEmpty() -> continuedSections
@@ -846,9 +886,11 @@ private suspend fun fetchIosGenrePage(
         ?: sectionList?.contents?.firstNotNullOfOrNull { content ->
             content.gridRenderer?.continuations?.getContinuation()
                 ?: content.musicShelfRenderer?.continuations?.getContinuation()
+                ?: content.musicPlaylistShelfRenderer?.continuations?.getContinuation()
         }
         ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.gridContinuation?.continuations?.getContinuation()
+        ?: response.continuationContents?.musicPlaylistShelfContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
         ?: response.onResponseReceivedActions?.asSequence()
             ?.mapNotNull { it.appendContinuationItemsAction?.continuationItems?.getContinuation() }
@@ -900,35 +942,39 @@ fun fetchIosCollection(
         kind == "artist" -> {
             val page = YouTube.artist(id).getOrThrow()
             IosBridgeResponse(sections = page.sections.mapNotNull { section ->
-                val initialItems = section.items.iosItems(hideExplicit)
-                val items = if (section.moreEndpoint != null) {
-                    val endpoint = section.moreEndpoint!!
-                    val allItems = mutableListOf<IosMediaItem>()
-                    allItems.addAll(initialItems)
-                    val initialPage = YouTube.artistItems(
-                        BrowseEndpoint(endpoint.browseId, endpoint.params)
-                        ).getOrThrow()
-                        allItems.addAll(initialPage.items.iosItems(hideExplicit))
-                        var token = initialPage.continuation
-                        val seenTokens = mutableSetOf<String>()
-                        while (!token.isNullOrBlank()) {
-                            check(seenTokens.add(token)) { "YouTube returned a repeated artist continuation." }
-                            val continuationPage = YouTube.artistItemsContinuation(token).getOrThrow()
-                            allItems.addAll(continuationPage.items.iosItems(hideExplicit))
-                            token = continuationPage.continuation
-                    }
-                    allItems.distinctBy { "${it.kind}:${it.id}" }
-                } else {
-                    initialItems
-                }
+                val items = section.items.iosItems(hideExplicit)
                 items.takeIf { it.isNotEmpty() }?.let {
                     IosMediaSection(
                         section.title,
                         it,
-                        section.moreEndpoint?.toIosBrowseItem(section.title),
+                        section.moreEndpoint?.toIosBrowseItem(section.title, kind = "artistItems"),
                     )
                 }
             })
+        }
+        kind == "artistItems" && continuation != null -> {
+            val page = YouTube.artistItemsContinuation(continuation).getOrThrow()
+            IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
+        }
+        kind == "artistItems" -> {
+            val page = YouTube.artistItems(BrowseEndpoint(id, params)).getOrThrow()
+            val items = page.items.iosItems(hideExplicit)
+            if (items.all { it.kind == "song" }) {
+                IosBridgeResponse(items = items, continuation = page.continuation)
+            } else {
+                IosBridgeResponse(
+                    sections = items.takeIf { it.isNotEmpty() }?.let {
+                        listOf(IosMediaSection(page.title.ifBlank { "More" }, it))
+                    }.orEmpty(),
+                    continuation = page.continuation,
+                )
+            }
+        }
+        kind == "newReleases" -> {
+            val albums = YouTube.newReleaseAlbums().getOrThrow().iosItems(hideExplicit)
+            IosBridgeResponse(sections = albums.takeIf { it.isNotEmpty() }?.let {
+                listOf(IosMediaSection("New releases", it))
+            }.orEmpty())
         }
         kind == "browse" && continuation != null -> {
             fetchIosGenrePage(id, params, continuation, hideExplicit)

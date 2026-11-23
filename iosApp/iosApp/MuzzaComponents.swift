@@ -217,6 +217,8 @@ struct MuzzaMediaSectionView: View {
     @ObservedObject var playback: MuzzaPlayback
     var layout: Layout = .horizontal
     var mediaAspectRatio: CGFloat = 1
+    var showsTitle = true
+    var onOpenLibrary: (() -> Void)? = nil
 
     enum Layout: Equatable {
         case horizontal
@@ -225,19 +227,22 @@ struct MuzzaMediaSectionView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            if !section.title.isEmpty || section.moreItem != nil {
+            if (showsTitle && !section.title.isEmpty) || section.moreItem != nil {
                 HStack {
-                    if !section.title.isEmpty {
+                    if showsTitle && !section.title.isEmpty {
                         Text(LocalizedStringKey(section.title)).font(.title2.bold())
                     }
                     Spacer()
                     if let moreItem = section.moreItem {
-                        NavigationLink(value: moreItem) {
-                            HStack(spacing: 5) {
-                                Text("See all")
-                                Image(systemName: "chevron.right")
+                        if moreItem.kind == "library", let onOpenLibrary {
+                            Button(action: onOpenLibrary) {
+                                seeAllLabel
                             }
-                                .font(.subheadline.weight(.semibold))
+                            .buttonStyle(.plain)
+                        } else {
+                            NavigationLink(value: moreItem) {
+                                seeAllLabel
+                            }
                         }
                     }
                 }
@@ -267,6 +272,7 @@ struct MuzzaMediaSectionView: View {
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
                             }
                             .buttonStyle(.plain)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                 } else {
@@ -304,7 +310,10 @@ struct MuzzaMediaSectionView: View {
                     alignment: .leading,
                     spacing: 12
                 ) {
-                    ForEach(section.items) { item in mediaItemView(item) }
+                    ForEach(section.items) { item in
+                        mediaItemView(item)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }
                 }
             } else {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -314,6 +323,14 @@ struct MuzzaMediaSectionView: View {
                 }
             }
         }
+    }
+
+    private var seeAllLabel: some View {
+        HStack(spacing: 5) {
+            Text("See all")
+            Image(systemName: "chevron.right")
+        }
+        .font(.subheadline.weight(.semibold))
     }
 
     @ViewBuilder
@@ -327,10 +344,12 @@ struct MuzzaMediaSectionView: View {
                     item: item,
                     size: size,
                     aspectRatio: aspectRatio,
+                    fillsWidth: layout == .grid,
                     isNowPlaying: playback.current?.id == item.id && playback.isPlaying
                 )
             }
             .buttonStyle(.plain)
+            .frame(maxWidth: layout == .grid ? .infinity : nil, alignment: .leading)
             .contextMenu {
                 Button("Start radio") { playback.startRadio(item) }
                 Button("Play next") { playback.enqueue(item, playNext: true) }
@@ -352,9 +371,15 @@ struct MuzzaMediaSectionView: View {
             }
         } else {
             NavigationLink(value: item) {
-                MuzzaMediaCard(item: item, size: size, aspectRatio: aspectRatio)
+                MuzzaMediaCard(
+                    item: item,
+                    size: size,
+                    aspectRatio: aspectRatio,
+                    fillsWidth: layout == .grid
+                )
             }
             .buttonStyle(.plain)
+            .frame(maxWidth: layout == .grid ? .infinity : nil, alignment: .leading)
             .contextMenu {
                 if ["album", "artist", "playlist"].contains(item.kind) {
                     if item.kind == "album" || item.kind == "playlist" {
@@ -427,25 +452,43 @@ private struct MuzzaMediaCard: View {
     let item: MuzzaLiveItem
     let size: CGFloat
     let aspectRatio: CGFloat
+    var fillsWidth = false
     var isNowPlaying = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            MuzzaArtwork(item: item, size: size, aspectRatio: aspectRatio)
-                .overlay(alignment: .bottomTrailing) {
-                    if item.kind == "song" {
-                        Image(systemName: isNowPlaying ? "waveform" : "play.fill")
-                            .font(.caption.bold()).foregroundStyle(.white)
-                            .padding(9).background(.black.opacity(0.65)).clipShape(Circle())
-                            .padding(6)
-                    }
-                }
+            artwork
             Text(item.title).font(.subheadline.bold()).lineLimit(2)
             if !item.subtitle.isEmpty {
                 Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(2)
             }
         }
-        .frame(width: size, alignment: .leading)
+        .frame(maxWidth: fillsWidth ? .infinity : nil, alignment: .leading)
+        .frame(width: fillsWidth ? nil : size, alignment: .leading)
+    }
+
+    @ViewBuilder
+    private var artwork: some View {
+        if fillsWidth {
+            GeometryReader { geometry in
+                artworkContent(size: geometry.size.width)
+            }
+            .aspectRatio(aspectRatio, contentMode: .fit)
+        } else {
+            artworkContent(size: size)
+        }
+    }
+
+    private func artworkContent(size: CGFloat) -> some View {
+        MuzzaArtwork(item: item, size: size, aspectRatio: aspectRatio)
+            .overlay(alignment: .bottomTrailing) {
+                if item.kind == "song" {
+                    Image(systemName: isNowPlaying ? "waveform" : "play.fill")
+                        .font(.caption.bold()).foregroundStyle(.white)
+                        .padding(9).background(.black.opacity(0.65)).clipShape(Circle())
+                        .padding(6)
+                }
+            }
     }
 }
 

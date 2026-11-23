@@ -62,7 +62,13 @@ struct ContentView: View {
     var body: some View {
         ZStack(alignment: .bottom) {
             Group {
-                MuzzaHomeView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
+                MuzzaHomeView(
+                    playback: playback,
+                    account: account,
+                    selectedTab: $selectedTab,
+                    showSearch: $showSearch,
+                    showSettings: $showSettings
+                )
                     .opacity(selectedTab == 0 ? 1 : 0)
                     .allowsHitTesting(selectedTab == 0)
                 MuzzaExploreView(playback: playback, account: account, showSearch: $showSearch, showSettings: $showSettings)
@@ -172,6 +178,7 @@ struct ContentView: View {
 private struct MuzzaHomeView: View {
     @ObservedObject var playback: MuzzaPlayback
     @ObservedObject var account: MuzzaAccount
+    @Binding var selectedTab: Int
     @Binding var showSearch: Bool
     @Binding var showSettings: Bool
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
@@ -189,11 +196,13 @@ private struct MuzzaHomeView: View {
     init(
         playback: MuzzaPlayback,
         account: MuzzaAccount,
+        selectedTab: Binding<Int>,
         showSearch: Binding<Bool>,
         showSettings: Binding<Bool>
     ) {
         _playback = ObservedObject(wrappedValue: playback)
         _account = ObservedObject(wrappedValue: account)
+        _selectedTab = selectedTab
         _showSearch = showSearch
         _showSettings = showSettings
     }
@@ -260,7 +269,11 @@ private struct MuzzaHomeView: View {
                         }
                     }
                     ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                        MuzzaMediaSectionView(section: section, playback: playback)
+                        MuzzaMediaSectionView(
+                            section: section,
+                            playback: playback,
+                            onOpenLibrary: { selectedTab = 2 }
+                        )
                     }
                     if isLoading {
                         ProgressView().frame(maxWidth: .infinity).padding()

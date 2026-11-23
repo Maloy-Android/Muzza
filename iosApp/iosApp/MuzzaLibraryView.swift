@@ -655,6 +655,22 @@ struct MuzzaCollectionView: View {
     @State private var loadedContinuations: Set<String> = []
     @State private var showPlaylistEditor = false
 
+    private var usesVerticalGrid: Bool {
+        item.kind == "moodAndGenres"
+            || item.kind == "newReleases"
+            || (item.kind == "browse" && [
+                "FEmusic_mixed_for_you", "FEmusic_charts", "FEmusic_listen_again"
+            ].contains(where: item.id.hasPrefix))
+            || (item.kind == "genre" && item.id == "FEmusic_new_releases_videos")
+    }
+
+    private var isLargeBrowsePage: Bool {
+        item.kind == "newReleases"
+            || (item.kind == "browse" && [
+            "FEmusic_mixed_for_you", "FEmusic_charts", "FEmusic_listen_again"
+            ].contains(where: item.id.hasPrefix))
+    }
+
     init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
         self.item = item
         _playback = ObservedObject(wrappedValue: playback)
@@ -663,96 +679,98 @@ struct MuzzaCollectionView: View {
     var body: some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 18) {
-                VStack(alignment: .leading, spacing: 12) {
-                    if !item.thumbnail.isEmpty {
-                        HStack {
-                            Spacer()
-                            MuzzaArtwork(item: item, size: 220)
-                            Spacer()
+                if !isLargeBrowsePage {
+                    VStack(alignment: .leading, spacing: 12) {
+                        if !item.thumbnail.isEmpty {
+                            HStack {
+                                Spacer()
+                                MuzzaArtwork(item: item, size: 220)
+                                Spacer()
+                            }
+                            .padding(.top, 8)
                         }
-                        .padding(.top, 8)
-                    }
-                    Text(item.title).font(.largeTitle.bold())
-                    if !item.subtitle.isEmpty {
-                        Text(item.subtitle).foregroundStyle(.secondary)
-                    }
-                    if let artists = item.artists, !artists.isEmpty {
-                        HStack(spacing: 6) {
-                            ForEach(Array(artists.enumerated()), id: \.offset) { index, artist in
-                                if let artistID = artist.id {
-                                    NavigationLink(value: muzzaCollectionItem(
-                                        id: artistID,
-                                        title: artist.name,
-                                        subtitle: "Artist",
-                                        thumbnail: artist.thumbnail ?? "",
-                                        kind: "artist"
-                                    )) {
+                        Text(item.title).font(.largeTitle.bold())
+                        if !item.subtitle.isEmpty {
+                            Text(item.subtitle).foregroundStyle(.secondary)
+                        }
+                        if let artists = item.artists, !artists.isEmpty {
+                            HStack(spacing: 6) {
+                                ForEach(Array(artists.enumerated()), id: \.offset) { index, artist in
+                                    if let artistID = artist.id {
+                                        NavigationLink(value: muzzaCollectionItem(
+                                            id: artistID,
+                                            title: artist.name,
+                                            subtitle: "Artist",
+                                            thumbnail: artist.thumbnail ?? "",
+                                            kind: "artist"
+                                        )) {
+                                            Text(artist.name)
+                                        }
+                                        .buttonStyle(.plain)
+                                    } else {
                                         Text(artist.name)
                                     }
-                                    .buttonStyle(.plain)
-                                } else {
-                                    Text(artist.name)
-                                }
-                                if index < artists.count - 1 { Text(",").foregroundStyle(.secondary) }
-                            }
-                        }
-                        .font(.subheadline)
-                    }
-                    ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 8) {
-                        if let first = songs.first {
-                            Button {
-                                playback.play(first, in: songs, startingAt: 0)
-                            } label: {
-                                Label("Play", systemImage: "play.fill")
-                            }
-                            .buttonStyle(.borderedProminent)
-                            Button {
-                                playback.playShuffled(songs)
-                            } label: {
-                                Label("Shuffle", systemImage: "shuffle")
-                            }
-                            .buttonStyle(.bordered)
-                            Button {
-                                playback.startRadio(first, queueTitle: item.title)
-                            } label: {
-                                Label("Start radio", systemImage: "dot.radiowaves.left.and.right")
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(playback.isLoadingRadio)
-                        }
-                        if ["album", "artist", "playlist"].contains(item.kind) {
-                            Button { playback.toggleSaved(item) } label: {
-                                Label {
-                                    Text(LocalizedStringKey(playback.isSaved(item) ? "Saved on device" : "Save on device"))
-                                } icon: {
-                                    Image(systemName: playback.isSaved(item) ? "bookmark.fill" : "bookmark")
+                                    if index < artists.count - 1 { Text(",").foregroundStyle(.secondary) }
                                 }
                             }
-                            .buttonStyle(.bordered)
-                            .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                            .font(.subheadline)
                         }
-                        if item.kind == "localPlaylist" && !songs.isEmpty {
-                            Button { showPlaylistEditor = true } label: {
-                                Label("Edit playlist", systemImage: "pencil")
-                            }
-                            .buttonStyle(.bordered)
-                            .disabled(playback.isLibraryBusy)
-                        }
-                        if !songs.isEmpty {
-                            let missingDownloads = songs.filter {
-                                $0.kind == "song" && !playback.isDownloaded($0)
-                            }
-                            if !missingDownloads.isEmpty {
-                                Button {
-                                    for song in missingDownloads { playback.download(song) }
-                                } label: {
-                                    Label("Download offline", systemImage: "arrow.down.circle")
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 8) {
+                                if let first = songs.first {
+                                    Button {
+                                        playback.play(first, in: songs, startingAt: 0)
+                                    } label: {
+                                        Label("Play", systemImage: "play.fill")
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    Button {
+                                        playback.playShuffled(songs)
+                                    } label: {
+                                        Label("Shuffle", systemImage: "shuffle")
+                                    }
+                                    .buttonStyle(.bordered)
+                                    Button {
+                                        playback.startRadio(first, queueTitle: item.title)
+                                    } label: {
+                                        Label("Start radio", systemImage: "dot.radiowaves.left.and.right")
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .disabled(playback.isLoadingRadio)
                                 }
-                                .buttonStyle(.bordered)
-                                .disabled(!playback.libraryLoaded)
+                                if ["album", "artist", "playlist"].contains(item.kind) {
+                                    Button { playback.toggleSaved(item) } label: {
+                                        Label {
+                                            Text(LocalizedStringKey(playback.isSaved(item) ? "Saved on device" : "Save on device"))
+                                        } icon: {
+                                            Image(systemName: playback.isSaved(item) ? "bookmark.fill" : "bookmark")
+                                        }
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                                }
+                                if item.kind == "localPlaylist" && !songs.isEmpty {
+                                    Button { showPlaylistEditor = true } label: {
+                                        Label("Edit playlist", systemImage: "pencil")
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .disabled(playback.isLibraryBusy)
+                                }
+                                if !songs.isEmpty {
+                                    let missingDownloads = songs.filter {
+                                        $0.kind == "song" && !playback.isDownloaded($0)
+                                    }
+                                    if !missingDownloads.isEmpty {
+                                        Button {
+                                            for song in missingDownloads { playback.download(song) }
+                                        } label: {
+                                            Label("Download offline", systemImage: "arrow.down.circle")
+                                        }
+                                        .buttonStyle(.bordered)
+                                        .disabled(!playback.libraryLoaded)
+                                    }
+                                }
                             }
-                        }
                         }
                     }
                 }
@@ -765,20 +783,15 @@ struct MuzzaCollectionView: View {
                     )
                 }
                 ForEach(Array(sections.enumerated()), id: \.offset) { _, section in
-                    if item.kind == "genre" && item.id == "FEmusic_new_releases_videos" {
-                        MuzzaMediaSectionView(
-                            section: section,
-                            playback: playback,
-                            layout: .grid,
-                            mediaAspectRatio: 16.0 / 9.0
-                        )
-                    } else {
-                        MuzzaMediaSectionView(
-                            section: section,
-                            playback: playback,
-                            layout: item.kind == "moodAndGenres" ? .grid : .horizontal
-                        )
-                    }
+                    MuzzaMediaSectionView(
+                        section: section,
+                        playback: playback,
+                        layout: usesVerticalGrid ? .grid : .horizontal,
+                        mediaAspectRatio: item.kind == "genre" && item.id == "FEmusic_new_releases_videos"
+                            ? 16.0 / 9.0 : 1,
+                        showsTitle: !isLargeBrowsePage
+                            || section.title.caseInsensitiveCompare(item.title) != .orderedSame
+                    )
                 }
                 if isLoading {
                     ProgressView().frame(maxWidth: .infinity).padding()
@@ -795,7 +808,7 @@ struct MuzzaCollectionView: View {
                         .onAppear { Task { await loadMore() } }
                 }
             }
-            .padding(.horizontal, 16).padding(.bottom, 100)
+            .padding(.horizontal, usesVerticalGrid ? 8 : 16).padding(.bottom, 100)
         }
         .modifier(MuzzaPageBackground())
         .navigationTitle(item.title)

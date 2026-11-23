@@ -290,7 +290,8 @@ final class MuzzaPlayback: ObservableObject {
             "muzza.audioQuality", "muzza.normalizeAudio", "muzza.skipSilence",
             "muzza.autoplayBluetooth", "muzza.autoSkipError", "muzza.pauseListenHistory",
             "muzza.pauseSearchHistory", "muzza.cacheMemoryMB", "muzza.cacheDiskMB",
-            "muzza.syncLikes", "muzza.shuffle", "muzza.playbackRate", "muzza.repeatMode"
+            "muzza.syncLikes", "muzza.shuffle", "muzza.playbackRate", "muzza.repeatMode",
+            "muzza.librarySort"
         ]
         var preferences: [String: String] = [:]
         for key in preferenceKeys {

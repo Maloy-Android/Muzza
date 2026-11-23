@@ -31,7 +31,7 @@ struct MuzzaLibraryView: View {
     @State private var playlistToDelete: MuzzaLiveItem?
     @State private var showClearHistory = false
     @State private var showClearDownloads = false
-    @State private var sortMode: MuzzaLibrarySort = .recent
+    @AppStorage("muzza.librarySort") private var sortMode: MuzzaLibrarySort = .recent
     @State private var isSelecting = false
     @State private var selectedIDs: Set<String> = []
 

@@ -949,6 +949,7 @@ fun fetchIosCollection(
                         thumbnail = "",
                         kind = "genre",
                         params = item.endpoint.params,
+                        stripeColor = item.stripeColor,
                     )
                 }.takeIf { it.isNotEmpty() }?.let { IosMediaSection(group.title, it) }
             }

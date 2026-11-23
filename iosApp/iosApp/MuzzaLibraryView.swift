@@ -11,6 +11,7 @@ private enum MuzzaLibraryCategory: String, CaseIterable {
 }
 
 private enum MuzzaLibrarySort: String, CaseIterable {
+    case recent = "Recently Added"
     case title = "Title"
     case reverseTitle = "Title (Z-A)"
 }
@@ -30,7 +31,7 @@ struct MuzzaLibraryView: View {
     @State private var playlistToDelete: MuzzaLiveItem?
     @State private var showClearHistory = false
     @State private var showClearDownloads = false
-    @State private var sortMode: MuzzaLibrarySort = .title
+    @State private var sortMode: MuzzaLibrarySort = .recent
     @State private var isSelecting = false
     @State private var selectedIDs: Set<String> = []
 
@@ -71,46 +72,34 @@ struct MuzzaLibraryView: View {
     }
 
     private var sortedLiked: [MuzzaLiveItem] {
-        liked.sorted { sortMode == .title
-            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
-        }
+        sortMode == .recent ? liked : sortByTitle(liked)
     }
 
     private var sortedDownloads: [MuzzaLiveItem] {
-        playback.downloads
-            .filter { !hideExplicit || !($0.explicit ?? false) }
-            .sorted { sortMode == .title
-                ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-                : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
-            }
+        let items = playback.downloads.filter { !hideExplicit || !($0.explicit ?? false) }
+        return sortMode == .recent ? items : sortByTitle(items)
     }
 
     private var sortedRecent: [MuzzaLiveItem] {
-        recent.sorted { sortMode == .title
-            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
-        }
+        sortMode == .recent ? recent : sortByTitle(recent)
     }
 
     private var sortedAlbums: [MuzzaLiveItem] {
-        playback.albums.sorted { sortMode == .title
-            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
-        }
+        sortMode == .recent ? playback.albums : sortByTitle(playback.albums)
     }
 
     private var sortedArtists: [MuzzaLiveItem] {
-        playback.artists.sorted { sortMode == .title
-            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
-        }
+        sortMode == .recent ? playback.artists : sortByTitle(playback.artists)
     }
 
     private var sortedPlaylists: [MuzzaLiveItem] {
-        playback.playlists.sorted { sortMode == .title
-            ? $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedAscending
-            : $0.title.localizedCaseInsensitiveCompare($1.title) == .orderedDescending
+        sortMode == .recent ? playback.playlists : sortByTitle(playback.playlists)
+    }
+
+    private func sortByTitle(_ items: [MuzzaLiveItem]) -> [MuzzaLiveItem] {
+        items.sorted {
+            let result = $0.title.localizedCaseInsensitiveCompare($1.title)
+            return sortMode == .title ? result == .orderedAscending : result == .orderedDescending
         }
     }
 
@@ -394,6 +383,7 @@ struct MuzzaLibraryView: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
+                            MuzzaCollectionPlaybackActions(item: playlist, playback: playback)
                             if playlist.kind == "localPlaylist" {
                                 Button {
                                     playlistToRename = playlist
@@ -469,7 +459,10 @@ struct MuzzaLibraryView: View {
                 }
                 .buttonStyle(.plain)
             }
-            MuzzaSongRow(item: item, playback: playback, queue: queue, queueIndex: index)
+            MuzzaSongRow(
+                item: item, playback: playback, queue: queue, queueIndex: index,
+                queueTitle: category.rawValue
+            )
         }
     }
 
@@ -627,6 +620,9 @@ private struct MuzzaSavedGrid: View {
                     .buttonStyle(.plain)
                     .contextMenu {
                         if ["album", "artist", "playlist"].contains(item.kind) {
+                            if item.kind == "album" || item.kind == "playlist" {
+                                MuzzaCollectionPlaybackActions(item: item, playback: playback)
+                            }
                             Button {
                                 playback.toggleSaved(item)
                             } label: {
@@ -680,6 +676,28 @@ struct MuzzaCollectionView: View {
                     if !item.subtitle.isEmpty {
                         Text(item.subtitle).foregroundStyle(.secondary)
                     }
+                    if let artists = item.artists, !artists.isEmpty {
+                        HStack(spacing: 6) {
+                            ForEach(Array(artists.enumerated()), id: \.offset) { index, artist in
+                                if let artistID = artist.id {
+                                    NavigationLink(value: muzzaCollectionItem(
+                                        id: artistID,
+                                        title: artist.name,
+                                        subtitle: "Artist",
+                                        thumbnail: artist.thumbnail ?? "",
+                                        kind: "artist"
+                                    )) {
+                                        Text(artist.name)
+                                    }
+                                    .buttonStyle(.plain)
+                                } else {
+                                    Text(artist.name)
+                                }
+                                if index < artists.count - 1 { Text(",").foregroundStyle(.secondary) }
+                            }
+                        }
+                        .font(.subheadline)
+                    }
                     ScrollView(.horizontal, showsIndicators: false) {
                         HStack(spacing: 8) {
                         if let first = songs.first {
@@ -695,6 +713,13 @@ struct MuzzaCollectionView: View {
                                 Label("Shuffle", systemImage: "shuffle")
                             }
                             .buttonStyle(.bordered)
+                            Button {
+                                playback.startRadio(first, queueTitle: item.title)
+                            } label: {
+                                Label("Start radio", systemImage: "dot.radiowaves.left.and.right")
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(playback.isLoadingRadio)
                         }
                         if ["album", "artist", "playlist"].contains(item.kind) {
                             Button { playback.toggleSaved(item) } label: {
@@ -734,6 +759,7 @@ struct MuzzaCollectionView: View {
                 ForEach(Array(songs.enumerated()), id: \.offset) { index, song in
                     MuzzaSongRow(
                         item: song, playback: playback, queue: songs, queueIndex: index,
+                        queueTitle: item.title,
                         playlist: item.kind == "localPlaylist" ? item : nil,
                         onPlaylistChange: { songs = visible($0) }
                     )

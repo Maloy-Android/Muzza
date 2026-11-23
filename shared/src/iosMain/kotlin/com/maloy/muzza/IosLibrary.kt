@@ -125,6 +125,7 @@ internal fun MuzzaDatabase.saveSong(item: IosMediaItem, liked: Boolean? = null) 
 internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
     val liked = songQueries.selectLiked().executeAsList().map { songToIosMediaItem(it.toModel()) }
     val playlists = playlistQueries.selectAll().executeAsList()
+        .sortedByDescending { it.bookmarkedAt ?: it.lastUpdateTime ?: it.createdAt.orEmpty() }
         .filter { it.isLocal != 0L || it.bookmarkedAt != null }.map { playlist ->
         val count = playlistSongMapQueries.countByPlaylist(playlist.id).executeAsOne()
         IosMediaItem(
@@ -134,16 +135,48 @@ internal fun MuzzaDatabase.libraryResponse(): IosBridgeResponse {
             thumbnail = playlist.thumbnailUrl.orEmpty(),
             kind = if (playlist.isLocal != 0L) "localPlaylist" else "playlist",
             isEditable = playlist.isEditable != 0L,
+            artists = listOfNotNull(playlist.playlistAuthorsId?.let { authorId ->
+                IosArtistMetadata(
+                    id = authorId,
+                    name = playlist.playlistAuthorName.orEmpty().ifBlank { "Artist" },
+                    thumbnail = playlist.playlistAuthorAvatarUrl,
+                )
+            }),
+            playlistId = playlist.browseId,
+            playlistTitle = playlist.name,
+            radioEndpoint = playlist.browseId?.let { browseId ->
+                IosPlayableRadioEndpoint(playlistId = browseId, params = playlist.radioEndpointParams)
+            },
         )
     }
     val albums = albumQueries.selectAll().executeAsList().filter { it.bookmarkedAt != null }.map { album ->
-        IosMediaItem(album.id, album.title, "Album", album.thumbnailUrl.orEmpty(), "album")
+        val artists = songAlbumMapQueries.selectByAlbum(album.id).executeAsList()
+            .flatMap { albumSong ->
+                songArtistMapQueries.selectArtistsBySong(albumSong.songId).executeAsList()
+            }
+            .distinctBy { it.artistId }
+            .mapNotNull { mapping ->
+                artistQueries.selectById(mapping.artistId).executeAsOneOrNull()?.let { artist ->
+                    IosArtistMetadata(artist.id, artist.name, artist.thumbnailUrl, artist.isProfile != 0L)
+                }
+            }
+        IosMediaItem(
+            id = album.id,
+            title = album.title,
+            subtitle = "Album",
+            thumbnail = album.thumbnailUrl.orEmpty(),
+            kind = "album",
+            playlistId = album.playlistId,
+            artists = artists,
+            radioEndpoint = album.playlistId?.let { IosPlayableRadioEndpoint(playlistId = it) },
+        )
     }
     val artists = artistQueries.selectAll().executeAsList().filter { it.bookmarkedAt != null }.map { artist ->
         IosMediaItem(artist.id, artist.name, "Artist", artist.thumbnailUrl.orEmpty(), "artist")
     }
     val downloads = songQueries.selectAll().executeAsList()
         .filter { it.dateDownload != null }
+        .sortedByDescending { it.dateDownload }
         .map { songToIosMediaItem(it.toModel()) }
     val recent = eventQueries.selectRecent(100).executeAsList()
         .distinctBy { it.songId }

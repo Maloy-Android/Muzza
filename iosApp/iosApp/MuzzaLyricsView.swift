@@ -3,6 +3,7 @@ import SwiftUI
 struct MuzzaLyricsView: View {
     @Environment(\.dismiss) private var dismiss
     @ObservedObject var playback: MuzzaPlayback
+    @ObservedObject private var timeline: MuzzaPlaybackProgress
     @State private var rawLyrics = ""
     @State private var lines: [MuzzaLyricLine] = []
     @State private var activeLine: Int?
@@ -14,6 +15,7 @@ struct MuzzaLyricsView: View {
 
     init(playback: MuzzaPlayback) {
         _playback = ObservedObject(wrappedValue: playback)
+        _timeline = ObservedObject(wrappedValue: playback.progress)
     }
 
     var body: some View {
@@ -44,7 +46,7 @@ struct MuzzaLyricsView: View {
                             }
                             .padding(24).padding(.vertical, 40)
                         }
-                        .onChange(of: playback.position) { _ in updateActiveLine(proxy) }
+                        .onChange(of: timeline.position) { _ in updateActiveLine(proxy) }
                         .onAppear { updateActiveLine(proxy) }
                     }
                 }
@@ -119,7 +121,7 @@ struct MuzzaLyricsView: View {
             }
         }
         do {
-            let text = try await MuzzaAPI.lyrics(for: item, duration: playback.duration)
+            let text = try await MuzzaAPI.lyrics(for: item, duration: timeline.duration)
             let parsed = try MuzzaLyricsParser.parse(text)
             guard !Task.isCancelled, requestID == id, playback.current?.id == item.id else { return }
             rawLyrics = text
@@ -131,7 +133,7 @@ struct MuzzaLyricsView: View {
     }
 
     private func updateActiveLine(_ proxy: ScrollViewProxy) {
-        let next = lines.lastIndex { $0.time <= playback.position }
+        let next = lines.lastIndex { $0.time <= timeline.position }
         guard next != activeLine else { return }
         activeLine = next
         if let next {

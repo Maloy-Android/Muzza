@@ -18,6 +18,9 @@ struct MuzzaLiveItem: Codable, Identifiable, Hashable {
     let playlistId: String? = nil
     let playlistTitle: String? = nil
     let isEditable: Bool? = nil
+    let isVideoSong: Bool? = nil
+    let stripeColor: Int64? = nil
+    let radioEndpoint: MuzzaRadioEndpoint? = nil
 }
 
 struct MuzzaArtistMetadata: Codable, Hashable {

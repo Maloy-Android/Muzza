@@ -95,6 +95,34 @@ fun syncIosCollections(completion: (String) -> Unit) = iosRequest(completion) {
         }
         db.libraryResponse()
     }
+
+    for (item in syncedItems.getValue("albums")) {
+        val albumPage = YouTube.album(item.id, withSongs = true)?.getOrThrow()
+            ?: throw IllegalStateException("Album details are unavailable for ${item.title}.")
+        val albumMetadata = item.copy(
+            playlistId = albumPage.album.playlistId,
+            thumbnail = albumPage.album.thumbnail.ifBlank { item.thumbnail },
+        )
+        val albumArtists = albumPage.album.artists.orEmpty().map { artist ->
+            IosArtistMetadata(artist.id, artist.name, isProfile = artist.isProfile)
+        }
+        withIosDatabase { db ->
+            db.transaction {
+                db.saveIosLibraryCollection(albumMetadata, "albums")
+                albumPage.songs.forEach { song ->
+                    val mediaItem = song.toIosMediaItem().copy(
+                        album = IosAlbumMetadata(albumPage.album.id, albumPage.album.title),
+                        artists = song.artists.takeIf { it.isNotEmpty() }?.map { artist ->
+                            IosArtistMetadata(artist.id, artist.name, isProfile = artist.isProfile)
+                        } ?: albumArtists,
+                    )
+                    db.saveSong(mediaItem)
+                }
+            }
+        }
+    }
+
+    withIosDatabase { it.libraryResponse() }
 }
 
 private fun MuzzaDatabase.saveIosLibraryCollection(item: IosMediaItem, category: String) {
@@ -110,6 +138,7 @@ private fun MuzzaDatabase.saveIosLibraryCollection(item: IosMediaItem, category:
                 lastUpdateTime = time,
             )).copy(
                 title = item.title,
+                playlistId = item.playlistId ?: existing?.playlistId,
                 thumbnailUrl = item.thumbnail.takeIf(String::isNotBlank) ?: existing?.thumbnailUrl,
                 lastUpdateTime = time,
                 bookmarkedAt = time,
@@ -137,7 +166,11 @@ private fun MuzzaDatabase.saveIosLibraryCollection(item: IosMediaItem, category:
                 id = item.id,
                 name = item.title,
                 browseId = item.id,
+                playlistAuthorsId = item.artists.firstOrNull()?.id,
+                playlistAuthorName = item.artists.firstOrNull()?.name,
+                playlistAuthorAvatarUrl = item.artists.firstOrNull()?.thumbnail,
                 isEditable = item.isEditable,
+                radioEndpointParams = item.radioEndpoint?.params,
                 isLocal = false,
             )).copy(
                 name = item.title,
@@ -145,6 +178,11 @@ private fun MuzzaDatabase.saveIosLibraryCollection(item: IosMediaItem, category:
                 lastUpdateTime = time,
                 bookmarkedAt = time,
                 isEditable = item.isEditable,
+                playlistAuthorsId = item.artists.firstOrNull()?.id ?: existing?.playlistAuthorsId,
+                playlistAuthorName = item.artists.firstOrNull()?.name ?: existing?.playlistAuthorName,
+                playlistAuthorAvatarUrl = item.artists.firstOrNull()?.thumbnail
+                    ?: existing?.playlistAuthorAvatarUrl,
+                radioEndpointParams = item.radioEndpoint?.params ?: existing?.radioEndpointParams,
             )
             playlistQueries.upsert(playlist.toDb())
         }

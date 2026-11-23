@@ -115,17 +115,33 @@ private struct MuzzaArtworkClip: ViewModifier {
     }
 }
 
+private func stripeColor(_ value: Int64?) -> Color {
+    guard let value else { return .accentColor }
+    let argb = UInt32(truncatingIfNeeded: value)
+    return Color(
+        red: Double((argb >> 16) & 0xFF) / 255,
+        green: Double((argb >> 8) & 0xFF) / 255,
+        blue: Double(argb & 0xFF) / 255
+    )
+}
+
 struct MuzzaPlayerSlider: View {
     @ObservedObject var playback: MuzzaPlayback
+    @ObservedObject private var timeline: MuzzaPlaybackProgress
     @State private var previewProgress: Double?
 
+    init(playback: MuzzaPlayback) {
+        _playback = ObservedObject(wrappedValue: playback)
+        _timeline = ObservedObject(wrappedValue: playback.progress)
+    }
+
     private var progress: Double {
-        let value = previewProgress ?? (playback.duration > 0 ? playback.position / playback.duration : 0)
+        let value = previewProgress ?? (timeline.duration > 0 ? timeline.position / timeline.duration : 0)
         return min(max(value, 0), 1)
     }
 
     private var displayedPosition: Double {
-        previewProgress.map { $0 * playback.duration } ?? playback.position
+        previewProgress.map { $0 * timeline.duration } ?? timeline.position
     }
 
     var body: some View {
@@ -152,32 +168,32 @@ struct MuzzaPlayerSlider: View {
                         }
                         .onEnded { value in
                             let next = scrubProgress(value.location.x, width: geometry.size.width)
-                            playback.seek(to: next * playback.duration)
+                            playback.seek(to: next * timeline.duration)
                             previewProgress = nil
                         }
                 )
             }
             .frame(height: 28)
-            .disabled(playback.duration <= 0)
+            .disabled(timeline.duration <= 0)
             HStack {
                 Text(timeText(displayedPosition))
                 Spacer()
-                Text(timeText(playback.duration))
+                Text(timeText(timeline.duration))
             }
             .font(.caption.monospacedDigit())
             .foregroundStyle(.secondary)
         }
         .accessibilityElement()
         .accessibilityLabel("Playback position")
-        .accessibilityValue(Text("\(timeText(displayedPosition)) of \(timeText(playback.duration))"))
+        .accessibilityValue(Text("\(timeText(displayedPosition)) of \(timeText(timeline.duration))"))
         .accessibilityAdjustableAction { direction in
-            guard playback.duration > 0 else { return }
-            let step = max(playback.duration * 0.05, 5)
+            guard timeline.duration > 0 else { return }
+            let step = max(timeline.duration * 0.05, 5)
             switch direction {
             case .increment:
-                playback.seek(to: min(playback.position + step, playback.duration))
+                playback.seek(to: min(timeline.position + step, timeline.duration))
             case .decrement:
-                playback.seek(to: max(playback.position - step, 0))
+                playback.seek(to: max(timeline.position - step, 0))
             @unknown default:
                 break
             }
@@ -227,18 +243,31 @@ struct MuzzaMediaSectionView: View {
                 }
             }
             if section.items.allSatisfy({ $0.kind == "genre" }) {
-                LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 8), count: 4), spacing: 8) {
-                    ForEach(section.items) { item in
-                        NavigationLink(value: item) {
-                            Text(item.title)
-                                .font(.subheadline.weight(.semibold))
-                                .lineLimit(1)
-                                .frame(maxWidth: .infinity, minHeight: 48, alignment: .leading)
-                                .padding(.horizontal, 8)
+                ScrollView(.horizontal, showsIndicators: false) {
+                    LazyHGrid(
+                        rows: Array(repeating: GridItem(.fixed(48), spacing: 8), count: 4),
+                        alignment: .top,
+                        spacing: 8
+                    ) {
+                        ForEach(section.items) { item in
+                            NavigationLink(value: item) {
+                                HStack(spacing: 0) {
+                                    Rectangle()
+                                        .fill(stripeColor(item.stripeColor))
+                                        .frame(width: 4)
+                                    Text(item.title)
+                                        .font(.subheadline.weight(.semibold))
+                                        .lineLimit(1)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                        .padding(.leading, 8)
+                                        .padding(.trailing, 12)
+                                }
+                                .frame(width: 180, height: 48)
                                 .background(Color(.secondarySystemFill))
                                 .clipShape(RoundedRectangle(cornerRadius: 8))
+                            }
+                            .buttonStyle(.plain)
                         }
-                        .buttonStyle(.plain)
                     }
                 }
             } else if layout == .grid {
@@ -261,13 +290,15 @@ struct MuzzaMediaSectionView: View {
 
     @ViewBuilder
     private func mediaItemView(_ item: MuzzaLiveItem) -> some View {
-        let size: CGFloat = layout == .grid ? 156 : 164
+        let isVideo = item.isVideoSong == true
+        let size: CGFloat = layout == .grid ? (isVideo ? 174 : 160) : (isVideo ? 200 : 164)
+        let aspectRatio = mediaAspectRatio == 1 && isVideo ? 16.0 / 9.0 : mediaAspectRatio
         if item.kind == "song" {
-            Button { playback.play(item, in: section.items) } label: {
+            Button { playback.play(item, in: section.items, queueTitle: section.title) } label: {
                 MuzzaMediaCard(
                     item: item,
                     size: size,
-                    aspectRatio: mediaAspectRatio,
+                    aspectRatio: aspectRatio,
                     isNowPlaying: playback.current?.id == item.id && playback.isPlaying
                 )
             }
@@ -293,11 +324,14 @@ struct MuzzaMediaSectionView: View {
             }
         } else {
             NavigationLink(value: item) {
-                MuzzaMediaCard(item: item, size: size, aspectRatio: mediaAspectRatio)
+                MuzzaMediaCard(item: item, size: size, aspectRatio: aspectRatio)
             }
             .buttonStyle(.plain)
             .contextMenu {
                 if ["album", "artist", "playlist"].contains(item.kind) {
+                    if item.kind == "album" || item.kind == "playlist" {
+                        MuzzaCollectionPlaybackActions(item: item, playback: playback)
+                    }
                     Button { playback.toggleSaved(item) } label: {
                         Label(
                             playback.isSaved(item) ? "Remove from library" : "Save",
@@ -347,6 +381,20 @@ struct MuzzaMediaSectionView: View {
     }
 }
 
+struct MuzzaCollectionPlaybackActions: View {
+    let item: MuzzaLiveItem
+    @ObservedObject var playback: MuzzaPlayback
+
+    var body: some View {
+        Button("Play") { playback.playCollection(item) }
+            .disabled(playback.isLoadingCollection)
+        Button("Shuffle") { playback.playCollection(item, shuffled: true) }
+            .disabled(playback.isLoadingCollection)
+        Button("Start radio") { playback.playCollection(item, radio: true) }
+            .disabled(playback.isLoadingCollection)
+    }
+}
+
 private struct MuzzaMediaCard: View {
     let item: MuzzaLiveItem
     let size: CGFloat
@@ -373,7 +421,7 @@ private struct MuzzaMediaCard: View {
     }
 }
 
-private func muzzaCollectionItem(
+func muzzaCollectionItem(
     id: String, title: String, subtitle: String, thumbnail: String, kind: String
 ) -> MuzzaLiveItem {
     MuzzaLiveItem(
@@ -389,6 +437,7 @@ struct MuzzaSongRow: View {
     let queue: [MuzzaLiveItem]
     var queueIndex: Int? = nil
     var usesCurrentQueue = false
+    var queueTitle: String?
     var playlist: MuzzaLiveItem? = nil
     var onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
     @State private var duplicatePlaylist: MuzzaLiveItem?
@@ -400,6 +449,7 @@ struct MuzzaSongRow: View {
         queue: [MuzzaLiveItem],
         queueIndex: Int? = nil,
         usesCurrentQueue: Bool = false,
+        queueTitle: String? = nil,
         playlist: MuzzaLiveItem? = nil,
         onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
     ) {
@@ -408,6 +458,7 @@ struct MuzzaSongRow: View {
         self.queue = queue
         self.queueIndex = queueIndex
         self.usesCurrentQueue = usesCurrentQueue
+        self.queueTitle = queueTitle
         self.playlist = playlist
         self.onPlaylistChange = onPlaylistChange
     }
@@ -418,11 +469,15 @@ struct MuzzaSongRow: View {
                 if usesCurrentQueue, let queueIndex {
                     playback.playQueued(at: queueIndex)
                 } else {
-                    playback.play(item, in: queue, startingAt: queueIndex)
+                    playback.play(item, in: queue, startingAt: queueIndex, queueTitle: queueTitle)
                 }
             } label: {
                 HStack(spacing: 12) {
-                    MuzzaArtwork(item: item, size: 54)
+                    MuzzaArtwork(
+                        item: item,
+                        size: item.isVideoSong == true ? 72 : 54,
+                        aspectRatio: item.isVideoSong == true ? 16.0 / 9.0 : 1
+                    )
                         .overlay {
                             if playback.current?.id == item.id && playback.isPlaying {
                                 Image(systemName: "waveform")

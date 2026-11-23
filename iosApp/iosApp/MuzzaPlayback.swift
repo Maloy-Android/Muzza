@@ -6,6 +6,7 @@ import UIKit
 
 struct MuzzaSavedQueue: Codable {
     let items: [MuzzaLiveItem]
+    let title: String?
     let index: Int
     let tokens: [UUID]?
     let originalItems: [MuzzaLiveItem]?
@@ -35,15 +36,28 @@ struct MuzzaQueueEntry: Identifiable {
 }
 
 @MainActor
+final class MuzzaPlaybackProgress: ObservableObject {
+    @Published private(set) var position = 0.0
+    @Published private(set) var duration = 0.0
+
+    func update(position: Double, duration: Double) {
+        self.position = position
+        self.duration = duration
+    }
+}
+
+@MainActor
 final class MuzzaPlayback: ObservableObject {
     @Published private(set) var current: MuzzaLiveItem?
     @Published private(set) var isPlaying = false
     @Published private(set) var isLoadingAudio = false
-    @Published private(set) var position = 0.0
-    @Published private(set) var duration = 0.0
+    let progress = MuzzaPlaybackProgress()
+    var position: Double { progress.position }
+    var duration: Double { progress.duration }
     @Published private(set) var volume = 1.0
     @Published private(set) var playbackRate = 1.0
     @Published private(set) var queue: [MuzzaLiveItem] = []
+    @Published private(set) var queueTitle: String?
     @Published private(set) var queueIndex = 0
     @Published private(set) var isShuffling = false
     @Published private(set) var repeatMode: MuzzaRepeatMode = .off
@@ -62,6 +76,7 @@ final class MuzzaPlayback: ObservableObject {
     @Published private(set) var recent: [MuzzaLiveItem] = []
     @Published private(set) var isLibraryLoading = false
     @Published private(set) var isLibraryBusy = false
+    @Published private(set) var isLoadingCollection = false
     @Published private(set) var libraryLoaded = false
     @Published private(set) var libraryChangeToken = 0
     @Published var libraryError: String?
@@ -285,6 +300,7 @@ final class MuzzaPlayback: ObservableObject {
         }
         let savedQueue = queue.isEmpty ? nil : MuzzaSavedQueue(
             items: queue,
+            title: queueTitle,
             index: queueIndex,
             tokens: queueTokens,
             originalItems: originalQueue,
@@ -698,7 +714,12 @@ final class MuzzaPlayback: ObservableObject {
         libraryChangeToken += 1
     }
 
-    func play(_ item: MuzzaLiveItem, in items: [MuzzaLiveItem]? = nil, startingAt requestedIndex: Int? = nil) {
+    func play(
+        _ item: MuzzaLiveItem,
+        in items: [MuzzaLiveItem]? = nil,
+        startingAt requestedIndex: Int? = nil,
+        queueTitle: String? = nil
+    ) {
         guard item.kind == "song" else {
             message = "This item is not a playable song."
             return
@@ -717,6 +738,7 @@ final class MuzzaPlayback: ObservableObject {
             queue = [item]
             queueIndex = 0
         }
+        self.queueTitle = queueTitle ?? item.title
         queueTokens = queue.map { _ in UUID() }
         originalQueue = queue
         originalTokens = queueTokens
@@ -728,7 +750,7 @@ final class MuzzaPlayback: ObservableObject {
         start(item)
     }
 
-    func playShuffled(_ items: [MuzzaLiveItem]) {
+    func playShuffled(_ items: [MuzzaLiveItem], queueTitle: String? = nil) {
         let songs = items.filter { $0.kind == "song" }
         guard let first = songs.shuffled().first else {
             message = "This item is not a playable song."
@@ -749,6 +771,7 @@ final class MuzzaPlayback: ObservableObject {
         }
 
         queue = shuffled
+        self.queueTitle = queueTitle ?? first.title
         queueTokens = shuffledTokens
         queueIndex = max(0, shuffled.firstIndex(where: { $0.id == first.id }) ?? 0)
         originalQueue = songs
@@ -771,7 +794,11 @@ final class MuzzaPlayback: ObservableObject {
         start(queue[index])
     }
 
-    func startRadio(_ item: MuzzaLiveItem) {
+    func startRadio(
+        _ item: MuzzaLiveItem,
+        endpoint radioEndpoint: MuzzaRadioEndpoint? = nil,
+        queueTitle: String? = nil
+    ) {
         guard item.kind == "song" else {
             message = "This item is not a playable song."
             return
@@ -790,15 +817,20 @@ final class MuzzaPlayback: ObservableObject {
             queueIndex = 0
             persistQueue()
         } else {
-            play(item)
+            play(item, queueTitle: queueTitle)
         }
+        if let queueTitle { self.queueTitle = queueTitle }
 
         guard let selected = current, queueTokens.indices.contains(queueIndex) else { return }
         let currentToken = queueTokens[queueIndex]
         let identity = queueIdentity
         let revision = queueRevision
-        let endpoint = MuzzaRadioEndpoint(
-            videoId: item.id, playlistId: nil, playlistSetVideoId: nil, params: nil, index: nil
+        let endpoint = radioEndpoint ?? MuzzaRadioEndpoint(
+            videoId: item.id,
+            playlistId: nil,
+            playlistSetVideoId: nil,
+            params: nil,
+            index: nil
         )
         let requestID = UUID()
         radioRequestID = requestID
@@ -810,6 +842,7 @@ final class MuzzaPlayback: ObservableObject {
                     radioTask = nil
                 }
             }
+
             do {
                 let response = try await MuzzaAPI.radio(
                     endpoint: endpoint, continuation: nil,
@@ -859,6 +892,36 @@ final class MuzzaPlayback: ObservableObject {
                 guard !Task.isCancelled, queueIdentity == identity else { return }
                 pendingRadioAdvance = nil
                 message = "Could not start radio: \(error.localizedDescription)"
+            }
+        }
+    }
+
+    func playCollection(_ item: MuzzaLiveItem, shuffled: Bool = false, radio: Bool = false) {
+        guard !isLoadingCollection else { return }
+        isLoadingCollection = true
+        Task {
+            defer { isLoadingCollection = false }
+            do {
+                let response = try await MuzzaAPI.collection(
+                    item,
+                    hideExplicit: UserDefaults.standard.bool(forKey: "muzza.hideExplicit")
+                )
+                var seen = Set<String>()
+                let songs = (response.items + response.sections.flatMap(\.items)).filter {
+                    $0.kind == "song" && seen.insert($0.id).inserted
+                }
+                guard let first = songs.first else {
+                    throw MuzzaAPIError.requestFailed("This collection has no playable songs.")
+                }
+                if radio {
+                    startRadio(first, endpoint: item.radioEndpoint, queueTitle: item.title)
+                } else if shuffled {
+                    playShuffled(songs, queueTitle: item.title)
+                } else {
+                    play(first, in: songs, startingAt: 0, queueTitle: item.title)
+                }
+            } catch {
+                message = error.localizedDescription
             }
         }
     }
@@ -1315,8 +1378,7 @@ final class MuzzaPlayback: ObservableObject {
         failureObserver = nil
         isLoadingAudio = false
         isPlaying = false
-        position = 0
-        duration = 0
+        progress.update(position: 0, duration: 0)
     }
 
     func accountDidChange(isSignedIn: Bool) {
@@ -1328,8 +1390,7 @@ final class MuzzaPlayback: ObservableObject {
         stopCurrentItem()
         let id = playbackID
         current = item
-        position = 0
-        duration = 0
+        progress.update(position: 0, duration: Double(item.duration ?? 0))
         isLoadingAudio = true
         updateNowPlaying()
 
@@ -1457,10 +1518,16 @@ final class MuzzaPlayback: ObservableObject {
             Task { @MainActor in
                 guard let self else { return }
                 let seconds = time.seconds
-                self.position = seconds.isFinite ? max(0, seconds) : 0
-                if let length = self.player.currentItem?.duration.seconds, length.isFinite, length > 0 {
-                    self.duration = length
-                }
+                let position = seconds.isFinite ? max(0, seconds) : 0
+                let metadataDuration = Double(self.current?.duration ?? 0)
+                let streamDuration = self.player.currentItem?.duration.seconds ?? 0
+                let duration = metadataDuration > 0
+                    ? metadataDuration
+                    : (streamDuration.isFinite && streamDuration > 0 ? streamDuration : self.duration)
+                self.progress.update(
+                    position: duration > 0 ? min(position, duration) : position,
+                    duration: duration
+                )
                 self.updateNowPlaying()
             }
         }
@@ -1608,6 +1675,7 @@ final class MuzzaPlayback: ObservableObject {
         do {
             let data = try JSONEncoder().encode(MuzzaSavedQueue(
                 items: queue,
+                title: queueTitle,
                 index: queueIndex,
                 tokens: queueTokens,
                 originalItems: originalQueue,
@@ -1630,6 +1698,7 @@ final class MuzzaPlayback: ObservableObject {
                 throw MuzzaAPIError.requestFailed("The saved queue is invalid.")
             }
             queue = saved.items
+            queueTitle = saved.title
             queueIndex = saved.index
             if let tokens = saved.tokens, let originals = saved.originalItems,
                let originalIDs = saved.originalTokens, let shuffled = saved.shuffled {

@@ -27,11 +27,18 @@ private struct MuzzaBackupDocument: FileDocument {
 
 struct MuzzaMiniPlayer: View {
     @ObservedObject var playback: MuzzaPlayback
+    @ObservedObject private var timeline: MuzzaPlaybackProgress
     let open: () -> Void
 
+    init(playback: MuzzaPlayback, open: @escaping () -> Void) {
+        _playback = ObservedObject(wrappedValue: playback)
+        _timeline = ObservedObject(wrappedValue: playback.progress)
+        self.open = open
+    }
+
     private var progress: CGFloat {
-        guard playback.duration > 0 else { return 0 }
-        return min(max(CGFloat(playback.position / playback.duration), 0), 1)
+        guard timeline.duration > 0 else { return 0 }
+        return min(max(CGFloat(timeline.position / timeline.duration), 0), 1)
     }
 
     var body: some View {
@@ -108,7 +115,7 @@ struct MuzzaPlayerView: View {
                             Button { dismiss() } label: { Image(systemName: "chevron.down").font(.title3.bold()) }
                                 .accessibilityLabel("Close player")
                             Spacer()
-                            Text("Now playing").font(.headline)
+                            Text(playback.queueTitle ?? "Now playing").font(.headline).lineLimit(1)
                             Spacer()
                             Button { showQueue = true } label: { Image(systemName: "list.bullet").font(.title3) }
                                 .accessibilityLabel("Queue")

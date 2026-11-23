@@ -13,6 +13,7 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.getContinuation
+import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.innertube.pages.ArtistItemsPage
 import com.maloy.innertube.pages.HomePage
 import com.maloy.innertube.pages.NextResult
@@ -45,6 +46,15 @@ data class IosAlbumMetadata(
 )
 
 @Serializable
+data class IosPlayableRadioEndpoint(
+    val videoId: String? = null,
+    val playlistId: String? = null,
+    val playlistSetVideoId: String? = null,
+    val params: String? = null,
+    val index: Int? = null,
+)
+
+@Serializable
 data class IosMediaItem(
     val id: String,
     val title: String,
@@ -62,6 +72,9 @@ data class IosMediaItem(
     val playlistId: String? = null,
     val playlistTitle: String? = null,
     val isEditable: Boolean = false,
+    val isVideoSong: Boolean = false,
+    val stripeColor: Long? = null,
+    val radioEndpoint: IosPlayableRadioEndpoint? = null,
 )
 
 @Serializable
@@ -194,9 +207,29 @@ internal fun YTItem.toIosMediaItem(): IosMediaItem {
         },
         album = song?.album?.let { IosAlbumMetadata(it.id, it.name) }
             ?: (this as? AlbumItem)?.let { IosAlbumMetadata(it.id, it.title) },
+        playlistId = when (this) {
+            is AlbumItem -> playlistId
+            is PlaylistItem -> id
+            else -> null
+        },
+        playlistTitle = (this as? PlaylistItem)?.title,
         isEditable = (this as? PlaylistItem)?.isEditable ?: false,
+        isVideoSong = song?.isVideoSong ?: false,
+        radioEndpoint = when (this) {
+            is AlbumItem -> radioEndpoint?.toIosPlayableEndpoint()
+            is PlaylistItem -> radioEndpoint?.toIosPlayableEndpoint()
+            else -> null
+        },
     )
 }
+
+private fun WatchEndpoint.toIosPlayableEndpoint() = IosPlayableRadioEndpoint(
+    videoId = videoId,
+    playlistId = playlistId,
+    playlistSetVideoId = playlistSetVideoId,
+    params = params,
+    index = index,
+)
 
 private fun com.maloy.innertube.models.Artist.toIosArtistMetadata() =
     IosArtistMetadata(id = id, name = name, isProfile = isProfile)
@@ -250,6 +283,22 @@ private fun MusicTwoRowItemRenderer.toIosMediaItemOrNull(): IosMediaItem? {
         else -> browseId
     }?.takeIf(String::isNotBlank) ?: return null
     val title = title.runs?.firstOrNull()?.text?.takeIf(String::isNotBlank) ?: return null
+    val artists = subtitle?.runs.orEmpty().mapNotNull { run ->
+        run.navigationEndpoint?.browseEndpoint?.browseId?.takeIf(String::isNotBlank)?.let { artistId ->
+            IosArtistMetadata(artistId, run.text)
+        }
+    }
+    val menuAlbum = if (kind == "song") {
+        menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
+            ?.firstOrNull {
+                it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+            }?.let {
+                val endpoint = it.navigationEndpoint.browseEndpoint ?: return@let null
+                IosAlbumMetadata(endpoint.browseId, it.text.runs?.firstOrNull()?.text.orEmpty())
+            }
+    } else {
+        null
+    }
     return IosMediaItem(
         id = id,
         title = title,
@@ -259,6 +308,14 @@ private fun MusicTwoRowItemRenderer.toIosMediaItemOrNull(): IosMediaItem? {
         explicit = subtitleBadges?.any {
             it.musicInlineBadgeRenderer?.icon?.iconType == "MUSIC_EXPLICIT_BADGE"
         } == true,
+        artists = artists,
+        album = when {
+            kind == "album" -> IosAlbumMetadata(id, title)
+            else -> menuAlbum
+        },
+        playlistId = if (kind == "playlist") id else null,
+        playlistTitle = if (kind == "playlist") title else null,
+        isVideoSong = kind == "song" && musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV,
     )
 }
 
@@ -297,6 +354,17 @@ private fun MusicResponsiveListItemRenderer.toIosMediaItemOrNull(): IosMediaItem
     }
     val albumRun = flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer
         ?.text?.runs?.firstOrNull()
+    val menuAlbum = if (kind == "song") {
+        menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
+            ?.firstOrNull {
+                it.navigationEndpoint.browseEndpoint?.browseId?.startsWith("MPREb_") == true
+            }?.let {
+                val endpoint = it.navigationEndpoint.browseEndpoint ?: return@let null
+                IosAlbumMetadata(endpoint.browseId, it.text.runs?.firstOrNull()?.text.orEmpty())
+            }
+    } else {
+        null
+    }
     return IosMediaItem(
         id = id,
         title = title,
@@ -309,7 +377,8 @@ private fun MusicResponsiveListItemRenderer.toIosMediaItemOrNull(): IosMediaItem
         artists = artistMetadata,
         album = albumRun?.navigationEndpoint?.browseEndpoint?.browseId?.let { albumId ->
             IosAlbumMetadata(albumId, albumRun.text)
-        },
+        } ?: menuAlbum,
+        isVideoSong = kind == "song" && musicVideoType != null && musicVideoType != MUSIC_VIDEO_TYPE_ATV,
     )
 }
 
@@ -527,57 +596,107 @@ fun fetchIosHome(
     continuation: String?,
     completion: (String) -> Unit,
 ) = iosRequest(completion) {
-    val response = if (continuation == null) {
-        YouTube.extractionTransport().innerTube
-            .browse(WEB_REMIX, browseId = "FEmusic_home", params = params)
-            .body<BrowseResponse>()
-    } else {
-        YouTube.extractionTransport().innerTube
-            .browse(WEB_REMIX, continuation = continuation)
-            .body<BrowseResponse>()
-    }
-    val sectionList = if (continuation == null) {
-        response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
-            ?.tabRenderer?.content?.sectionListRenderer
-    } else {
-        null
-    }
-    val continuedSections = response.continuationContents?.sectionListContinuation?.contents
-        .toIosMediaSections(hideExplicit)
-    val continuedItems = when {
-        response.continuationContents?.gridContinuation != null ->
-            response.continuationContents?.gridContinuation?.items?.toIosLibraryItems(hideExplicit).orEmpty()
-        response.continuationContents?.musicShelfContinuation != null ->
-            response.continuationContents?.musicShelfContinuation?.contents.orEmpty()
-                .mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
-                .filter { !hideExplicit || !it.explicit }
-        else -> emptyList()
-    }
-    val continuedTitle = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: "More"
-    val sections = sectionList?.contents.toIosMediaSections(hideExplicit).ifEmpty {
-        continuedSections.ifEmpty {
-            continuedItems.takeIf { it.isNotEmpty() }?.let {
-                listOf(IosMediaSection(continuedTitle, it))
-            }.orEmpty()
+    val allSections = mutableListOf<IosMediaSection>()
+    val seenContinuations = mutableSetOf<String>()
+    var next = continuation
+    var chips = emptyList<IosHomeChip>()
+    do {
+        val response = if (next == null) {
+            YouTube.extractionTransport().innerTube
+                .browse(WEB_REMIX, browseId = "FEmusic_home", params = params)
+                .body<BrowseResponse>()
+        } else {
+            check(seenContinuations.add(next)) { "YouTube returned a repeated home continuation." }
+            YouTube.extractionTransport().innerTube
+                .browse(WEB_REMIX, continuation = next)
+                .body<BrowseResponse>()
+        }
+        val sectionList = if (next == null) {
+            response.contents?.singleColumnBrowseResultsRenderer?.tabs?.firstOrNull()
+                ?.tabRenderer?.content?.sectionListRenderer
+        } else {
+            null
+        }
+        val continuedSections = response.continuationContents?.sectionListContinuation?.contents
+            .toIosMediaSections(hideExplicit)
+        val continuedItems = when {
+            response.continuationContents?.gridContinuation != null ->
+                response.continuationContents?.gridContinuation?.items?.toIosLibraryItems(hideExplicit).orEmpty()
+            response.continuationContents?.musicShelfContinuation != null ->
+                response.continuationContents?.musicShelfContinuation?.contents.orEmpty()
+                    .mapNotNull { it.musicResponsiveListItemRenderer?.toIosMediaItemOrNull() }
+                    .filter { !hideExplicit || !it.explicit }
+            else -> emptyList()
+        }
+        val continuedTitle = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text ?: "More"
+        val sections = sectionList?.contents.toIosMediaSections(hideExplicit).ifEmpty {
+            continuedSections.ifEmpty {
+                continuedItems.takeIf { it.isNotEmpty() }?.let {
+                    listOf(IosMediaSection(continuedTitle, it))
+                }.orEmpty()
+            }
+        }
+        allSections += sections
+        if (next == null) {
+            chips = sectionList?.header?.chipCloudRenderer?.chips.orEmpty().mapNotNull {
+                HomePage.Chip.fromChipCloudChipRenderer(it)
+            }.mapNotNull { chip ->
+                val endpoint = chip.endpoint
+                endpoint?.params?.takeIf { endpoint.browseId == "FEmusic_home" }
+                    ?.let { IosHomeChip(chip.title, it) }
+            }
+        }
+        next = sectionList?.continuations?.getContinuation()
+            ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
+            ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
+            ?: response.continuationContents?.gridContinuation?.continuations?.getContinuation()
+            ?: response.onResponseReceivedActions?.asSequence()
+                ?.mapNotNull { it.appendContinuationItemsAction?.continuationItems?.getContinuation() }
+                ?.firstOrNull()
+        if (continuation != null) break
+    } while (next != null)
+
+    val sections = allSections.distinctBy { section ->
+        "${section.title}:${section.moreItem?.id.orEmpty()}:${section.items.firstOrNull()?.id.orEmpty()}"
+    }.toMutableList()
+    if (params == null) {
+        val localLibrary = withIosDatabase { it.libraryResponse() }
+        val homeItems = sections.flatMap { it.items }
+        val speedDial = (
+            localLibrary.liked + localLibrary.albums + localLibrary.artists +
+                localLibrary.playlists + localLibrary.recent + homeItems
+            )
+            .filter { !hideExplicit || !it.explicit }
+            .distinctBy { "${it.kind}:${it.id}" }
+            .take(27)
+        if (speedDial.isNotEmpty()) sections.add(0, IosMediaSection("Speed Dial", speedDial))
+        localLibrary.recent.takeIf { it.isNotEmpty() }?.let {
+            sections.add(1.coerceAtMost(sections.size), IosMediaSection("Keep listening", it))
+        }
+        localLibrary.recent.firstOrNull()?.let { seed ->
+            val relatedEndpoint = YouTube.next(WatchEndpoint(videoId = seed.id))
+                .getOrThrow().relatedEndpoint
+            if (relatedEndpoint != null) {
+                val related = YouTube.related(relatedEndpoint).getOrThrow()
+                val recommendations = (
+                    related.songs + related.albums + related.artists + related.playlists
+                    )
+                    .map(YTItem::toIosMediaItem)
+                    .filter { !hideExplicit || !it.explicit }
+                    .distinctBy { "${it.kind}:${it.id}" }
+                if (recommendations.isNotEmpty()) {
+                    sections.add(
+                        2.coerceAtMost(sections.size),
+                        IosMediaSection("Similar to ${seed.title}", recommendations),
+                    )
+                }
+            }
         }
     }
-    val nextContinuation = sectionList?.continuations?.getContinuation()
-        ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
-        ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
-        ?: response.continuationContents?.gridContinuation?.continuations?.getContinuation()
-        ?: response.onResponseReceivedActions?.asSequence()
-            ?.mapNotNull { it.appendContinuationItemsAction?.continuationItems?.getContinuation() }
-            ?.firstOrNull()
     IosBridgeResponse(
         sections = sections,
-        chips = sectionList?.header?.chipCloudRenderer?.chips.orEmpty().mapNotNull {
-            HomePage.Chip.fromChipCloudChipRenderer(it)
-        }.mapNotNull { chip ->
-            val endpoint = chip.endpoint
-            endpoint?.params?.takeIf { endpoint.browseId == "FEmusic_home" }
-                ?.let { IosHomeChip(chip.title, it) }
-        },
-        continuation = nextContinuation,
+        chips = chips,
+        continuation = next.takeIf { continuation != null },
     )
 }
 
@@ -634,6 +753,7 @@ fun fetchIosExplore(hideExplicit: Boolean, completion: (String) -> Unit) = iosRe
                                 thumbnail = "",
                                 kind = "genre",
                                 params = it.endpoint.params,
+                                stripeColor = it.stripeColor,
                             )
                         },
                         moreItem = IosMediaItem(
@@ -701,15 +821,33 @@ private suspend fun fetchIosGenrePage(
                 .filter { !hideExplicit || !it.explicit }
         else -> emptyList()
     }
+    val initialItems = sectionList?.contents.orEmpty().flatMap { content ->
+        content.gridRenderer?.items?.mapNotNull { it.musicTwoRowItemRenderer?.toIosMediaItemOrNull() }
+            ?: content.musicCarouselShelfRenderer?.contents?.mapNotNull {
+                it.musicTwoRowItemRenderer?.toIosMediaItemOrNull()
+            }
+            ?: emptyList()
+    }.filter { !hideExplicit || !it.explicit }
     val title = response.header?.musicHeaderRenderer?.title?.runs?.firstOrNull()?.text
-        ?: if (id == "FEmusic_new_releases_videos") "New clips" else "Explore"
+        ?: when (id) {
+            "FEmusic_new_releases_videos" -> "New clips"
+            "FEmusic_new_releases_albums" -> "New releases"
+            else -> "Explore"
+        }
     val sections = when {
-        continuation == null -> sectionList?.contents.toIosMediaSections(hideExplicit)
+        continuation == null -> sectionList?.contents.toIosMediaSections(hideExplicit).ifEmpty {
+            initialItems.takeIf { it.isNotEmpty() }?.let { listOf(IosMediaSection(title, it)) }.orEmpty()
+        }
         continuedSections.isNotEmpty() -> continuedSections
         continuedItems.isNotEmpty() -> listOf(IosMediaSection(title, continuedItems))
         else -> emptyList()
     }
     val nextContinuation = sectionList?.continuations?.getContinuation()
+        ?: sectionList?.contents?.firstNotNullOfOrNull { content ->
+            content.gridRenderer?.continuations?.getContinuation()
+                ?: content.musicCarouselShelfRenderer?.contents?.getContinuation()
+                ?: content.musicShelfRenderer?.continuations?.getContinuation()
+        }
         ?: response.continuationContents?.sectionListContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.gridContinuation?.continuations?.getContinuation()
         ?: response.continuationContents?.musicShelfContinuation?.continuations?.getContinuation()
@@ -794,12 +932,10 @@ fun fetchIosCollection(
             })
         }
         kind == "browse" && continuation != null -> {
-            val page = YouTube.artistItemsContinuation(continuation).getOrThrow()
-            IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
+            fetchIosGenrePage(id, params, continuation, hideExplicit)
         }
         kind == "browse" -> {
-            val page = YouTube.artistItems(BrowseEndpoint(id, params)).getOrThrow()
-            IosBridgeResponse(items = page.items.iosItems(hideExplicit), continuation = page.continuation)
+            fetchIosGenrePage(id, params, null, hideExplicit)
         }
         kind == "genre" -> {
             fetchIosGenrePage(id, params, continuation, hideExplicit)

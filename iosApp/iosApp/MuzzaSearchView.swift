@@ -105,13 +105,17 @@ struct MuzzaSearchView: View {
     private var searchResults: some View {
         if [.albums, .artists, .playlists, .profiles].contains(category) {
             LazyVGrid(
-                columns: [GridItem(.flexible(), spacing: 12), GridItem(.flexible(), spacing: 12)],
-                spacing: 16
+                columns: [GridItem(.flexible(), spacing: 8), GridItem(.flexible(), spacing: 8)],
+                spacing: 12
             ) {
                 ForEach(items) { item in
                     NavigationLink(value: item) {
                         VStack(alignment: .leading, spacing: 8) {
-                            MuzzaArtwork(item: item, size: 130)
+                            MuzzaArtwork(
+                                item: item,
+                                size: 156,
+                                aspectRatio: item.isVideoSong == true ? 16.0 / 9.0 : 1
+                            )
                             Text(item.title).font(.subheadline.bold()).lineLimit(2)
                             if !item.subtitle.isEmpty {
                                 Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
@@ -122,6 +126,9 @@ struct MuzzaSearchView: View {
                     .buttonStyle(.plain)
                     .contextMenu {
                         if ["album", "artist", "playlist"].contains(item.kind) {
+                            if item.kind == "album" || item.kind == "playlist" {
+                                MuzzaCollectionPlaybackActions(item: item, playback: playback)
+                            }
                             Button {
                                 playback.toggleSaved(item)
                             } label: {
@@ -138,7 +145,10 @@ struct MuzzaSearchView: View {
         } else {
             ForEach(Array(items.enumerated()), id: \.offset) { index, item in
                 if item.kind == "song" {
-                    MuzzaSongRow(item: item, playback: playback, queue: items, queueIndex: index)
+                    MuzzaSongRow(
+                        item: item, playback: playback, queue: items,
+                        queueIndex: index, queueTitle: "\(category.title) search"
+                    )
                 } else {
                     NavigationLink(value: item) {
                         HStack(spacing: 12) {

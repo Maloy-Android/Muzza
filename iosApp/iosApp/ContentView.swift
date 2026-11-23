@@ -252,7 +252,10 @@ private struct MuzzaHomeView: View {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Quick picks").font(.title2.bold())
                             ForEach(Array(quickPicks.enumerated()), id: \.offset) { index, item in
-                                MuzzaSongRow(item: item, playback: playback, queue: quickPicks, queueIndex: index)
+                                MuzzaSongRow(
+                                    item: item, playback: playback, queue: quickPicks,
+                                    queueIndex: index, queueTitle: "Quick picks"
+                                )
                             }
                         }
                     }

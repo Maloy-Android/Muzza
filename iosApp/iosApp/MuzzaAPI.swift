@@ -65,6 +65,7 @@ struct MuzzaRadioEndpoint: Codable, Hashable {
 struct MuzzaLiveResponse: Decodable {
     let sections: [MuzzaLiveSection]
     let items: [MuzzaLiveItem]
+    let collection: MuzzaLiveItem?
     let playlists: [MuzzaLiveItem]
     let albums: [MuzzaLiveItem]
     let artists: [MuzzaLiveItem]

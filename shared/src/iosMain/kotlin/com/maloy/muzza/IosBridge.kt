@@ -102,6 +102,7 @@ data class IosAccountProfile(
 data class IosBridgeResponse(
     val sections: List<IosMediaSection> = emptyList(),
     val items: List<IosMediaItem> = emptyList(),
+    val collection: IosMediaItem? = null,
     val playlists: List<IosMediaItem> = emptyList(),
     val albums: List<IosMediaItem> = emptyList(),
     val artists: List<IosMediaItem> = emptyList(),
@@ -918,11 +919,19 @@ fun fetchIosCollection(
     val useLogin = !YouTube.cookie.isNullOrBlank() && YouTube.useLoginForBrowse
     when {
         kind == "playlist" -> {
-            fetchIosPlaylistSongs(id.removePrefix("VL"), continuation, useLogin, hideExplicit).let { result ->
+            val playlistId = id.removePrefix("VL")
+            val collection = if (continuation == null) {
+                YouTube.playlist(playlistId, setLogin = useLogin).getOrThrow()
+                    .playlist.toIosMediaItem()
+            } else {
+                null
+            }
+            fetchIosPlaylistSongs(playlistId, continuation, useLogin, hideExplicit).let { result ->
                 result.copy(
                     items = result.items.map { song ->
                         song.copy(playlistId = id.removePrefix("VL"))
                     },
+                    collection = collection,
                 )
             }
         }
@@ -944,6 +953,7 @@ fun fetchIosCollection(
                             },
                         )
                     },
+                    collection = page.album.toIosMediaItem(),
                 )
             }
         }

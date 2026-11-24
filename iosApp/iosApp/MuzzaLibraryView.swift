@@ -644,6 +644,7 @@ struct MuzzaCollectionView: View {
     @AppStorage("muzza.hideExplicit") private var hideExplicit = false
     @State private var songs: [MuzzaLiveItem] = []
     @State private var sections: [MuzzaLiveSection] = []
+    @State private var resolvedCollection: MuzzaLiveItem?
     @State private var continuation: String?
     @State private var isLoading = true
     @State private var loadError: String?
@@ -659,6 +660,11 @@ struct MuzzaCollectionView: View {
 
     private var usesVerticalGrid: Bool {
         isBrowsePage
+    }
+
+    private var collectionArtists: [MuzzaArtistMetadata] {
+        guard item.kind != "artist" else { return [] }
+        return resolvedCollection?.artists ?? item.artists ?? []
     }
 
     init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
@@ -680,12 +686,12 @@ struct MuzzaCollectionView: View {
                             .padding(.top, 8)
                         }
                         Text(item.title).font(.largeTitle.bold())
-                        if !item.subtitle.isEmpty {
+                        if !item.subtitle.isEmpty && collectionArtists.isEmpty {
                             Text(item.subtitle).foregroundStyle(.secondary)
                         }
-                        if let artists = item.artists, !artists.isEmpty {
+                        if !collectionArtists.isEmpty {
                             HStack(spacing: 6) {
-                                ForEach(Array(artists.enumerated()), id: \.offset) { index, artist in
+                                ForEach(Array(collectionArtists.enumerated()), id: \.offset) { index, artist in
                                     if let artistID = artist.id {
                                         NavigationLink(value: muzzaCollectionItem(
                                             id: artistID,
@@ -700,7 +706,7 @@ struct MuzzaCollectionView: View {
                                     } else {
                                         Text(artist.name)
                                     }
-                                    if index < artists.count - 1 { Text(",").foregroundStyle(.secondary) }
+                                    if index < collectionArtists.count - 1 { Text(",").foregroundStyle(.secondary) }
                                 }
                             }
                             .font(.subheadline)
@@ -835,6 +841,9 @@ struct MuzzaCollectionView: View {
             guard !Task.isCancelled, requestID == id else { return }
             songs = uniqueItems(canPreserveItems ? visible(response.items) + songs : visible(response.items))
             sections = mergedSections(response.sections, preserving: canPreserveItems ? sections : [])
+            if let collection = response.collection {
+                resolvedCollection = collection
+            }
             continuation = response.continuation
             loadedKey = key
             loadedContinuations.removeAll()

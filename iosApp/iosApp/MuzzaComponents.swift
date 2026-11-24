@@ -351,16 +351,14 @@ struct MuzzaMediaSectionView: View {
             ? mediaAspectRatio
             : (mediaAspectRatio == 1 && isVideo ? 16.0 / 9.0 : mediaAspectRatio)
         if item.kind == "song" {
-            Button { playback.play(item, in: section.items, queueTitle: section.title) } label: {
-                MuzzaMediaCard(
-                    item: item,
-                    size: size,
-                    aspectRatio: aspectRatio,
-                    fillsWidth: layout == .grid,
-                    isNowPlaying: playback.current?.id == item.id && playback.isPlaying
-                )
-            }
-            .buttonStyle(.plain)
+            MuzzaMediaCard(
+                item: item,
+                size: size,
+                aspectRatio: aspectRatio,
+                fillsWidth: layout == .grid,
+                isNowPlaying: playback.current?.id == item.id && playback.isPlaying,
+                onPlay: { playback.play(item, in: section.items, queueTitle: section.title) }
+            )
             .frame(maxWidth: layout == .grid ? .infinity : nil, alignment: .leading)
             .contextMenu {
                 Button("Start radio") { playback.startRadio(item) }
@@ -466,22 +464,39 @@ struct MuzzaMediaCard: View {
     let aspectRatio: CGFloat
     var fillsWidth = false
     var isNowPlaying = false
+    var onPlay: (() -> Void)? = nil
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            artwork
-            Text(item.title)
-                .font(.subheadline.bold())
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40, alignment: .topLeading)
-            Text(item.subtitle.isEmpty ? " " : item.subtitle)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .lineLimit(2)
-                .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30, alignment: .topLeading)
+            if let onPlay {
+                Button(action: onPlay) {
+                    VStack(alignment: .leading, spacing: 8) {
+                        artwork
+                        title
+                    }
+                    .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                MuzzaItemNavigationLinks(item: item)
+            } else {
+                artwork
+                title
+                Text(item.subtitle.isEmpty ? " " : item.subtitle)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30, alignment: .topLeading)
+            }
         }
         .frame(maxWidth: fillsWidth ? .infinity : nil, alignment: .leading)
         .frame(width: fillsWidth ? nil : size, alignment: .leading)
+    }
+
+    private var title: some View {
+        Text(item.title)
+            .font(.subheadline.bold())
+            .lineLimit(2)
+            .frame(maxWidth: .infinity, minHeight: 40, maxHeight: 40, alignment: .topLeading)
     }
 
     @ViewBuilder
@@ -506,6 +521,58 @@ struct MuzzaMediaCard: View {
                         .padding(6)
                 }
             }
+    }
+}
+
+struct MuzzaItemNavigationLinks: View {
+    let item: MuzzaLiveItem
+
+    private var artists: [MuzzaArtistMetadata] {
+        item.artists ?? []
+    }
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if artists.isEmpty {
+                Text(item.subtitle.isEmpty ? " " : item.subtitle)
+                    .foregroundStyle(.secondary)
+            } else {
+                ForEach(Array(artists.enumerated()), id: \.offset) { index, artist in
+                    if let id = artist.id {
+                        NavigationLink(value: muzzaCollectionItem(
+                            id: id,
+                            title: artist.name,
+                            subtitle: "Artist",
+                            thumbnail: artist.thumbnail ?? "",
+                            kind: "artist"
+                        )) {
+                            Text(artist.name).foregroundStyle(Color.accentColor)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        Text(artist.name)
+                    }
+                    if index < artists.count - 1 { Text(",").foregroundStyle(.secondary) }
+                }
+            }
+            if let album = item.album {
+                Text("·").foregroundStyle(.secondary)
+                NavigationLink(value: muzzaCollectionItem(
+                    id: album.id,
+                    title: album.title,
+                    subtitle: item.subtitle,
+                    thumbnail: item.thumbnail,
+                    kind: "album"
+                )) {
+                    Text(album.title).foregroundStyle(Color.accentColor)
+                }
+                .buttonStyle(.plain)
+            }
+        }
+        .font(.caption)
+        .foregroundStyle(.secondary)
+        .lineLimit(1)
+        .frame(maxWidth: .infinity, minHeight: 30, maxHeight: 30, alignment: .topLeading)
     }
 }
 
@@ -553,37 +620,38 @@ struct MuzzaSongRow: View {
 
     var body: some View {
         HStack(spacing: 8) {
-            Button {
-                if usesCurrentQueue, let queueIndex {
-                    playback.playQueued(at: queueIndex)
-                } else {
-                    playback.play(item, in: queue, startingAt: queueIndex, queueTitle: queueTitle)
-                }
-            } label: {
-                HStack(spacing: 12) {
-                    MuzzaArtwork(
-                        item: item,
-                        size: item.isVideoSong == true ? 72 : 54,
-                        aspectRatio: item.isVideoSong == true ? 16.0 / 9.0 : 1
-                    )
-                        .overlay {
-                            if playback.current?.id == item.id && playback.isPlaying {
-                                Image(systemName: "waveform")
-                                    .font(.caption.bold())
-                                    .foregroundStyle(.white)
-                                    .padding(7)
-                                    .background(.black.opacity(0.7), in: Circle())
-                            }
-                        }
-                    VStack(alignment: .leading, spacing: 3) {
-                        Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
-                        Text(item.subtitle).font(.caption).foregroundStyle(.secondary).lineLimit(1)
+            VStack(alignment: .leading, spacing: 3) {
+                Button {
+                    if usesCurrentQueue, let queueIndex {
+                        playback.playQueued(at: queueIndex)
+                    } else {
+                        playback.play(item, in: queue, startingAt: queueIndex, queueTitle: queueTitle)
                     }
-                    Spacer(minLength: 0)
+                } label: {
+                    HStack(spacing: 12) {
+                        MuzzaArtwork(
+                            item: item,
+                            size: item.isVideoSong == true ? 72 : 54,
+                            aspectRatio: item.isVideoSong == true ? 16.0 / 9.0 : 1
+                        )
+                            .overlay {
+                                if playback.current?.id == item.id && playback.isPlaying {
+                                    Image(systemName: "waveform")
+                                        .font(.caption.bold())
+                                        .foregroundStyle(.white)
+                                        .padding(7)
+                                        .background(.black.opacity(0.7), in: Circle())
+                                }
+                            }
+                        Text(item.title).font(.subheadline.weight(.semibold)).lineLimit(1)
+                        Spacer(minLength: 0)
+                    }
+                    .contentShape(Rectangle())
                 }
-                .contentShape(Rectangle())
+                .buttonStyle(.plain)
+                MuzzaItemNavigationLinks(item: item)
             }
-            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity, alignment: .leading)
 
             Menu {
                 Button {

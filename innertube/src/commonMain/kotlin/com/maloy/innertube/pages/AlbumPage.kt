@@ -22,12 +22,13 @@ data class AlbumPage(
                     ?: renderer.flexColumns.firstOrNull()?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.navigationEndpoint?.watchEndpoint?.videoId
                     ?: return null,
                 title = PageHelper.extractRuns(renderer.flexColumns, "MUSIC_VIDEO").firstOrNull()?.text ?: return null,
-                artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.map {
+                artists = renderer.flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.oddElements()?.mapNotNull {
+                    val name = it.text.takeIf(String::isNotBlank) ?: return@mapNotNull null
                     Artist(
-                        name = it.text,
+                        name = name,
                         id = it.navigationEndpoint?.browseEndpoint?.browseId
                     )
-                } ?: return null,
+                }.orEmpty(),
                 album = album?.let {
                     Album(it.title, it.browseId)
                 } ?: renderer.flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer?.text?.runs?.firstOrNull()?.let {

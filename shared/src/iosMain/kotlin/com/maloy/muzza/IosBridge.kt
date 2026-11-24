@@ -13,6 +13,8 @@ import com.maloy.innertube.models.SongItem
 import com.maloy.innertube.models.WatchEndpoint
 import com.maloy.innertube.models.YTItem
 import com.maloy.innertube.models.getContinuation
+import com.maloy.innertube.models.oddElements
+import com.maloy.innertube.models.splitBySeparator
 import com.maloy.innertube.models.WatchEndpoint.WatchEndpointMusicSupportedConfigs.WatchEndpointMusicConfig.Companion.MUSIC_VIDEO_TYPE_ATV
 import com.maloy.innertube.pages.ArtistItemsPage
 import com.maloy.innertube.pages.HomePage
@@ -297,9 +299,24 @@ private fun MusicTwoRowItemRenderer.toIosMediaItemOrNull(): IosMediaItem? {
         else -> browseId
     }?.takeIf(String::isNotBlank) ?: return null
     val title = title.runs?.firstOrNull()?.text?.takeIf(String::isNotBlank) ?: return null
-    val artists = subtitle?.runs.orEmpty().mapNotNull { run ->
-        run.navigationEndpoint?.browseEndpoint?.browseId?.takeIf(String::isNotBlank)?.let { artistId ->
-            IosArtistMetadata(artistId, run.text)
+    val subtitleSegments = subtitle?.runs.orEmpty().splitBySeparator()
+    val artistRuns = when (kind) {
+        "album" -> subtitleSegments.getOrNull(1)?.oddElements().orEmpty()
+        "playlist" -> subtitleSegments.getOrNull(1)?.oddElements().orEmpty()
+        else -> subtitle?.runs.orEmpty().oddElements()
+    }
+    val artists = artistRuns.mapNotNull { run ->
+        val name = run.text.takeIf(String::isNotBlank) ?: return@mapNotNull null
+        IosArtistMetadata(
+            id = run.navigationEndpoint?.browseEndpoint?.browseId,
+            name = name,
+        )
+    }.ifEmpty {
+        subtitle?.runs.orEmpty().mapNotNull { run ->
+            val name = run.text.takeIf(String::isNotBlank) ?: return@mapNotNull null
+            run.navigationEndpoint?.browseEndpoint?.browseId?.takeIf(String::isNotBlank)?.let {
+                IosArtistMetadata(it, name)
+            }
         }
     }
     val menuAlbum = if (kind == "song") {
@@ -355,19 +372,45 @@ private fun MusicResponsiveListItemRenderer.toIosMediaItemOrNull(): IosMediaItem
     }
     if (id.isNullOrBlank()) return null
     val title = titleRun?.text?.takeIf(String::isNotBlank) ?: return null
-    val artistRuns = flexColumns.getOrNull(1)?.musicResponsiveListItemFlexColumnRenderer
-        ?.text?.runs.orEmpty()
+    val secondaryRuns = flexColumns.getOrNull(1)
+        ?.musicResponsiveListItemFlexColumnRenderer
+        ?.text
+        ?.runs
+        ?.splitBySeparator()
+        .orEmpty()
+    val artistRuns = when (kind) {
+        "song" -> secondaryRuns.firstOrNull()?.oddElements().orEmpty()
+        "album" -> secondaryRuns.getOrNull(1)?.oddElements()
+            ?.takeIf { it.isNotEmpty() }
+            ?: secondaryRuns.firstOrNull()?.oddElements().orEmpty()
+        "playlist" -> secondaryRuns.firstOrNull()?.oddElements().orEmpty()
+        else -> secondaryRuns.firstOrNull()?.oddElements().orEmpty()
+    }
     val artists = artistRuns.joinToString("") { it.text }
     val artistMetadata = artistRuns.mapNotNull { run ->
-        run.text.takeIf(String::isNotBlank)?.let { name ->
-            IosArtistMetadata(
-                id = run.navigationEndpoint?.browseEndpoint?.browseId,
-                name = name,
-            )
-        }
+        val name = run.text.takeIf(String::isNotBlank) ?: return@mapNotNull null
+        IosArtistMetadata(
+            id = run.navigationEndpoint?.browseEndpoint?.browseId,
+            name = name,
+        )
+    }.ifEmpty {
+        flexColumns.getOrNull(1)
+            ?.musicResponsiveListItemFlexColumnRenderer
+            ?.text
+            ?.runs
+            ?.mapNotNull { run ->
+                val name = run.text.takeIf(String::isNotBlank) ?: return@mapNotNull null
+                run.navigationEndpoint?.browseEndpoint?.browseId
+                    ?.takeIf(String::isNotBlank)
+                    ?.let { IosArtistMetadata(it, name) }
+            }
+            .orEmpty()
     }
-    val albumRun = flexColumns.getOrNull(2)?.musicResponsiveListItemFlexColumnRenderer
-        ?.text?.runs?.firstOrNull()
+    val albumRun = flexColumns.getOrNull(2)
+        ?.musicResponsiveListItemFlexColumnRenderer
+        ?.text
+        ?.runs
+        ?.firstOrNull()
     val menuAlbum = if (kind == "song") {
         menu?.menuRenderer?.items?.mapNotNull { it.menuNavigationItemRenderer }
             ?.firstOrNull {

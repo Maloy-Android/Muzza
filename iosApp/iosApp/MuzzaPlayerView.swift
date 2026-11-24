@@ -405,7 +405,7 @@ private struct MuzzaPlayerActionsView: View {
                     }
                 }
 
-                MuzzaNavigationMenu(item: item, playback: playback)
+                MuzzaNavigationActions(item: item, playback: playback)
 
                 let addablePlaylists = playback.playlists.filter {
                     $0.kind == "localPlaylist" ||

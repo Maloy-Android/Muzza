@@ -631,7 +631,7 @@ private struct MuzzaSavedGrid: View {
                             }
                             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
                         }
-                        MuzzaNavigationMenu(item: item, playback: playback)
+                        MuzzaNavigationActions(item: item, playback: playback)
                     }
                 }
             }
@@ -726,7 +726,7 @@ struct MuzzaCollectionView: View {
                                 if ["album", "playlist"].contains(item.kind),
                                    (collectionNavigationItem.artists ?? []).contains(where: { $0.id != nil }) {
                                     Menu {
-                                        MuzzaNavigationMenu(item: collectionNavigationItem, playback: playback)
+                                        MuzzaNavigationActions(item: collectionNavigationItem, playback: playback)
                                     } label: {
                                         Image(systemName: "ellipsis")
                                             .frame(minWidth: 32, minHeight: 32)

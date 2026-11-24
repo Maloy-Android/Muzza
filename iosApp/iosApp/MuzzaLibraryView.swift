@@ -631,6 +631,7 @@ private struct MuzzaSavedGrid: View {
                             }
                             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
                         }
+                        MuzzaNavigationMenu(item: item, playback: playback)
                     }
                 }
             }
@@ -662,9 +663,8 @@ struct MuzzaCollectionView: View {
         isBrowsePage
     }
 
-    private var collectionArtists: [MuzzaArtistMetadata] {
-        guard item.kind != "artist" else { return [] }
-        return resolvedCollection?.artists ?? item.artists ?? []
+    private var collectionNavigationItem: MuzzaLiveItem {
+        resolvedCollection ?? item
     }
 
     init(item: MuzzaLiveItem, playback: MuzzaPlayback) {
@@ -686,30 +686,8 @@ struct MuzzaCollectionView: View {
                             .padding(.top, 8)
                         }
                         Text(item.title).font(.largeTitle.bold())
-                        if !item.subtitle.isEmpty && collectionArtists.isEmpty {
+                        if !item.subtitle.isEmpty {
                             Text(item.subtitle).foregroundStyle(.secondary)
-                        }
-                        if !collectionArtists.isEmpty {
-                            HStack(spacing: 6) {
-                                ForEach(Array(collectionArtists.enumerated()), id: \.offset) { index, artist in
-                                    if let artistID = artist.id {
-                                        NavigationLink(value: muzzaCollectionItem(
-                                            id: artistID,
-                                            title: artist.name,
-                                            subtitle: "Artist",
-                                            thumbnail: artist.thumbnail ?? "",
-                                            kind: "artist"
-                                        )) {
-                                            Text(artist.name)
-                                        }
-                                        .buttonStyle(.plain)
-                                    } else {
-                                        Text(artist.name)
-                                    }
-                                    if index < collectionArtists.count - 1 { Text(",").foregroundStyle(.secondary) }
-                                }
-                            }
-                            .font(.subheadline)
                         }
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 8) {
@@ -744,6 +722,17 @@ struct MuzzaCollectionView: View {
                                     }
                                     .buttonStyle(.bordered)
                                     .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
+                                }
+                                if ["album", "playlist"].contains(item.kind),
+                                   (collectionNavigationItem.artists ?? []).contains(where: { $0.id != nil }) {
+                                    Menu {
+                                        MuzzaNavigationMenu(item: collectionNavigationItem, playback: playback)
+                                    } label: {
+                                        Image(systemName: "ellipsis")
+                                            .frame(minWidth: 32, minHeight: 32)
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .accessibilityLabel("Collection navigation")
                                 }
                                 if item.kind == "localPlaylist" && !songs.isEmpty {
                                     Button { showPlaylistEditor = true } label: {

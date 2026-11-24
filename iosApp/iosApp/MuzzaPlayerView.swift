@@ -405,42 +405,7 @@ private struct MuzzaPlayerActionsView: View {
                     }
                 }
 
-                if item.album != nil || !(item.artists ?? []).isEmpty || item.playlistId != nil {
-                    Section("Navigate") {
-                        if let album = item.album {
-                            NavigationLink {
-                                MuzzaCollectionView(item: collectionItem(
-                                    id: album.id, title: album.title, subtitle: item.subtitle,
-                                    thumbnail: item.thumbnail, kind: "album"
-                                ), playback: playback)
-                            } label: {
-                                Label("View album", systemImage: "square.stack")
-                            }
-                        }
-                        ForEach(Array((item.artists ?? []).enumerated()), id: \.offset) { _, artist in
-                            if let artistID = artist.id {
-                                NavigationLink {
-                                    MuzzaCollectionView(item: collectionItem(
-                                        id: artistID, title: artist.name, subtitle: "Artist",
-                                        thumbnail: artist.thumbnail ?? "", kind: "artist"
-                                    ), playback: playback)
-                                } label: {
-                                    Label("View \(artist.name)", systemImage: "person")
-                                }
-                            }
-                        }
-                        if let playlistId = item.playlistId {
-                            NavigationLink {
-                                MuzzaCollectionView(item: collectionItem(
-                                    id: playlistId, title: item.playlistTitle ?? "Playlist",
-                                    subtitle: "", thumbnail: "", kind: "playlist"
-                                ), playback: playback)
-                            } label: {
-                                Label("View playlist", systemImage: "music.note.list")
-                            }
-                        }
-                    }
-                }
+                MuzzaNavigationMenu(item: item, playback: playback)
 
                 let addablePlaylists = playback.playlists.filter {
                     $0.kind == "localPlaylist" ||

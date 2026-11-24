@@ -309,6 +309,7 @@ private struct MuzzaPlayerActionsView: View {
     let item: MuzzaLiveItem
     @ObservedObject var playback: MuzzaPlayback
     @State private var showSleepTimerOptions = false
+    @State private var navigationDestination: MuzzaLiveItem?
 
     var body: some View {
         NavigationStack {
@@ -405,7 +406,18 @@ private struct MuzzaPlayerActionsView: View {
                     }
                 }
 
-                MuzzaNavigationActions(item: item, playback: playback)
+                let navigationTargets = muzzaNavigationTargets(for: item)
+                if !navigationTargets.isEmpty {
+                    Section("Navigate") {
+                        ForEach(navigationTargets) { target in
+                            Button {
+                                navigationDestination = target.item
+                            } label: {
+                                Label(target.title, systemImage: target.systemImage)
+                            }
+                        }
+                    }
+                }
 
                 let addablePlaylists = playback.playlists.filter {
                     $0.kind == "localPlaylist" ||
@@ -428,6 +440,11 @@ private struct MuzzaPlayerActionsView: View {
                             .disabled(playback.isLibraryBusy)
                         }
                     }
+                }
+            }
+            .sheet(item: $navigationDestination) { destination in
+                NavigationStack {
+                    MuzzaCollectionView(item: destination, playback: playback)
                 }
             }
             .navigationTitle("Player menu")

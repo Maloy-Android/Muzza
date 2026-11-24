@@ -34,6 +34,7 @@ struct MuzzaLibraryView: View {
     @AppStorage("muzza.librarySort") private var sortMode: MuzzaLibrarySort = .recent
     @State private var isSelecting = false
     @State private var selectedIDs: Set<String> = []
+    @State private var navigationDestination: MuzzaLiveItem?
 
     init(
         playback: MuzzaPlayback,
@@ -229,6 +230,11 @@ struct MuzzaLibraryView: View {
             .refreshable {
                 await playback.refreshLibrary()
             }
+            .sheet(item: $navigationDestination) { destination in
+                NavigationStack {
+                    MuzzaCollectionView(item: destination, playback: playback)
+                }
+            }
         }
         .sheet(isPresented: $showPlaylistDialog) {
             NavigationStack {
@@ -387,6 +393,18 @@ struct MuzzaLibraryView: View {
                         .buttonStyle(.plain)
                         .contextMenu {
                             MuzzaCollectionPlaybackActions(item: playlist, playback: playback)
+                            let navigationTargets = muzzaNavigationTargets(for: playlist)
+                            if !navigationTargets.isEmpty {
+                                Section("Navigate") {
+                                    ForEach(navigationTargets) { target in
+                                        Button {
+                                            navigationDestination = target.item
+                                        } label: {
+                                            Label(target.title, systemImage: target.systemImage)
+                                        }
+                                    }
+                                }
+                            }
                             if playlist.kind == "localPlaylist" {
                                 Button {
                                     playlistToRename = playlist
@@ -597,6 +615,7 @@ private struct MuzzaSavedGrid: View {
     let playback: MuzzaPlayback
     let symbol: String
     let emptyMessage: String
+    @State private var navigationDestination: MuzzaLiveItem?
     private let columns = [GridItem(.flexible(), spacing: 10), GridItem(.flexible(), spacing: 10)]
 
     init(items: [MuzzaLiveItem], playback: MuzzaPlayback, symbol: String, emptyMessage: String) {
@@ -631,8 +650,24 @@ private struct MuzzaSavedGrid: View {
                             }
                             .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
                         }
-                        MuzzaNavigationActions(item: item, playback: playback)
+                        let navigationTargets = muzzaNavigationTargets(for: item)
+                        if !navigationTargets.isEmpty {
+                            Section("Navigate") {
+                                ForEach(navigationTargets) { target in
+                                    Button {
+                                        navigationDestination = target.item
+                                    } label: {
+                                        Label(target.title, systemImage: target.systemImage)
+                                    }
+                                }
+                            }
+                        }
                     }
+                }
+            }
+            .sheet(item: $navigationDestination) { destination in
+                NavigationStack {
+                    MuzzaCollectionView(item: destination, playback: playback)
                 }
             }
         }
@@ -646,6 +681,7 @@ struct MuzzaCollectionView: View {
     @State private var songs: [MuzzaLiveItem] = []
     @State private var sections: [MuzzaLiveSection] = []
     @State private var resolvedCollection: MuzzaLiveItem?
+    @State private var navigationDestination: MuzzaLiveItem?
     @State private var continuation: String?
     @State private var isLoading = true
     @State private var loadError: String?
@@ -725,8 +761,17 @@ struct MuzzaCollectionView: View {
                                 }
                                 if ["album", "playlist"].contains(item.kind),
                                    (collectionNavigationItem.artists ?? []).contains(where: { $0.id != nil }) {
+                                    let navigationTargets = muzzaNavigationTargets(for: collectionNavigationItem)
                                     Menu {
-                                        MuzzaNavigationActions(item: collectionNavigationItem, playback: playback)
+                                        Section("Navigate") {
+                                            ForEach(navigationTargets) { target in
+                                                Button {
+                                                    navigationDestination = target.item
+                                                } label: {
+                                                    Label(target.title, systemImage: target.systemImage)
+                                                }
+                                            }
+                                        }
                                     } label: {
                                         Image(systemName: "ellipsis")
                                             .frame(minWidth: 32, minHeight: 32)
@@ -797,6 +842,11 @@ struct MuzzaCollectionView: View {
             .padding(.bottom, 100)
         }
         .modifier(MuzzaPageBackground())
+        .sheet(item: $navigationDestination) { destination in
+            NavigationStack {
+                MuzzaCollectionView(item: destination, playback: playback)
+            }
+        }
         .navigationTitle(item.title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.visible, for: .navigationBar)

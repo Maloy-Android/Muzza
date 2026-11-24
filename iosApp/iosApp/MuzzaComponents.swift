@@ -224,6 +224,7 @@ struct MuzzaPlayerSlider: View {
 struct MuzzaMediaSectionView: View {
     let section: MuzzaLiveSection
     @ObservedObject var playback: MuzzaPlayback
+    @State private var navigationDestination: MuzzaLiveItem?
     var layout: Layout = .horizontal
     var mediaAspectRatio: CGFloat = 1
     var showsTitle = true
@@ -333,6 +334,11 @@ struct MuzzaMediaSectionView: View {
                 }
             }
         }
+        .sheet(item: $navigationDestination) { destination in
+            NavigationStack {
+                MuzzaCollectionView(item: destination, playback: playback)
+            }
+        }
     }
 
     private var seeAllLabel: some View {
@@ -363,11 +369,20 @@ struct MuzzaMediaSectionView: View {
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: layout == .grid ? .infinity : nil, alignment: .leading)
-                if MuzzaNavigationActions(item: item, playback: playback).hasNavigationTargets {
+                let navigationTargets = muzzaNavigationTargets(for: item)
+                if !navigationTargets.isEmpty {
                     HStack {
                         Spacer()
                         Menu {
-                            MuzzaNavigationActions(item: item, playback: playback)
+                            Section("Navigate") {
+                                ForEach(navigationTargets) { target in
+                                    Button {
+                                        navigationDestination = target.item
+                                    } label: {
+                                        Label(target.title, systemImage: target.systemImage)
+                                    }
+                                }
+                            }
                         } label: {
                             Image(systemName: "ellipsis")
                                 .frame(width: 36, height: 32)
@@ -394,7 +409,18 @@ struct MuzzaMediaSectionView: View {
                 } else {
                     Button("Download") { playback.download(item) }
                 }
-                MuzzaNavigationActions(item: item, playback: playback)
+                let navigationTargets = muzzaNavigationTargets(for: item)
+                if !navigationTargets.isEmpty {
+                    Section("Navigate") {
+                        ForEach(navigationTargets) { target in
+                            Button {
+                                navigationDestination = target.item
+                            } label: {
+                                Label(target.title, systemImage: target.systemImage)
+                            }
+                        }
+                    }
+                }
             }
         } else {
             VStack(alignment: .leading, spacing: 0) {
@@ -408,14 +434,23 @@ struct MuzzaMediaSectionView: View {
                 }
                 .buttonStyle(.plain)
                 .frame(maxWidth: layout == .grid ? .infinity : nil, alignment: .leading)
-                if MuzzaNavigationActions(item: item, playback: playback).hasNavigationTargets {
+                let navigationTargets = muzzaNavigationTargets(for: item)
+                if !navigationTargets.isEmpty {
                     HStack {
                         Spacer()
                         Menu {
                             if ["album", "playlist"].contains(item.kind) {
                                 MuzzaCollectionPlaybackActions(item: item, playback: playback)
                             }
-                            MuzzaNavigationActions(item: item, playback: playback)
+                            Section("Navigate") {
+                                ForEach(navigationTargets) { target in
+                                    Button {
+                                        navigationDestination = target.item
+                                    } label: {
+                                        Label(target.title, systemImage: target.systemImage)
+                                    }
+                                }
+                            }
                         } label: {
                             Image(systemName: "ellipsis")
                                 .frame(width: 36, height: 32)
@@ -437,7 +472,18 @@ struct MuzzaMediaSectionView: View {
                         )
                     }
                     .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
-                    MuzzaNavigationActions(item: item, playback: playback)
+                    let navigationTargets = muzzaNavigationTargets(for: item)
+                    if !navigationTargets.isEmpty {
+                        Section("Navigate") {
+                            ForEach(navigationTargets) { target in
+                                Button {
+                                    navigationDestination = target.item
+                                } label: {
+                                    Label(target.title, systemImage: target.systemImage)
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -458,100 +504,75 @@ struct MuzzaCollectionPlaybackActions: View {
     }
 }
 
-struct MuzzaNavigationActions: View {
+struct MuzzaNavigationTarget: Identifiable {
     let item: MuzzaLiveItem
-    @ObservedObject var playback: MuzzaPlayback
-    @State private var destination: MuzzaLiveItem?
+    let title: String
+    let systemImage: String
 
-    private var artists: [MuzzaArtistMetadata] { item.artists ?? [] }
+    var id: String { "\(item.kind):\(item.id)" }
+}
 
-    var hasNavigationTargets: Bool {
-        switch item.kind {
-        case "song":
-            return item.album != nil || artists.contains(where: { $0.id != nil }) || item.playlistId != nil
-        case "album", "playlist":
-            return artists.contains(where: { $0.id != nil })
-        default:
-            return false
+func muzzaNavigationTargets(for item: MuzzaLiveItem) -> [MuzzaNavigationTarget] {
+    let artists = item.artists ?? []
+    switch item.kind {
+    case "song":
+        var targets = item.album.map {
+            [MuzzaNavigationTarget(
+                item: muzzaCollectionItem(
+                    id: $0.id, title: $0.title, subtitle: item.subtitle,
+                    thumbnail: item.thumbnail, kind: "album"
+                ),
+                title: "Open album",
+                systemImage: "square.stack"
+            )]
+        } ?? []
+        targets += artists.compactMap { artist in
+            guard let id = artist.id else { return nil }
+            return MuzzaNavigationTarget(
+                item: muzzaCollectionItem(
+                    id: id, title: artist.name, subtitle: "Artist",
+                    thumbnail: artist.thumbnail ?? "", kind: "artist"
+                ),
+                title: "Go to \(artist.name)",
+                systemImage: "person"
+            )
         }
-    }
-
-    var body: some View {
-        Group {
-            if item.kind == "song" {
-                if item.album != nil || artists.contains(where: { $0.id != nil }) || item.playlistId != nil {
-                    Section("Navigate") {
-                        if let album = item.album {
-                            Button {
-                                destination = muzzaCollectionItem(
-                                    id: album.id, title: album.title, subtitle: item.subtitle,
-                                    thumbnail: item.thumbnail, kind: "album"
-                                )
-                            } label: {
-                                Label("Open album", systemImage: "square.stack")
-                            }
-                        }
-                        ForEach(Array(artists.enumerated()), id: \.offset) { _, artist in
-                            if let id = artist.id {
-                                Button {
-                                    destination = muzzaCollectionItem(
-                                        id: id, title: artist.name, subtitle: "Artist",
-                                        thumbnail: artist.thumbnail ?? "", kind: "artist"
-                                    )
-                                } label: {
-                                    Label("Go to \(artist.name)", systemImage: "person")
-                                }
-                            }
-                        }
-                        if let playlistId = item.playlistId {
-                            Button {
-                                destination = muzzaCollectionItem(
-                                    id: playlistId, title: item.playlistTitle ?? "Playlist",
-                                    subtitle: "", thumbnail: "", kind: "playlist"
-                                )
-                            } label: {
-                                Label("Open playlist", systemImage: "music.note.list")
-                            }
-                        }
-                    }
-                }
-            } else if item.kind == "album" {
-                if artists.contains(where: { $0.id != nil }) {
-                    Section("Navigate") {
-                        ForEach(Array(artists.enumerated()), id: \.offset) { _, artist in
-                            if let id = artist.id {
-                                Button {
-                                    destination = muzzaCollectionItem(
-                                        id: id, title: artist.name, subtitle: "Artist",
-                                        thumbnail: artist.thumbnail ?? "", kind: "artist"
-                                    )
-                                } label: {
-                                    Label("Go to \(artist.name)", systemImage: "person")
-                                }
-                            }
-                        }
-                    }
-                }
-            } else if item.kind == "playlist",
-                      let creator = artists.first(where: { $0.id != nil }),
-                      let creatorId = creator.id {
-                Section("Navigate") {
-                    Button {
-                        destination = muzzaCollectionItem(
-                            id: creatorId, title: creator.name, subtitle: "Artist",
-                            thumbnail: creator.thumbnail ?? "", kind: "artist"
-                        )
-                    } label: {
-                        Label("Go to playlist creator", systemImage: "person")
-                    }
-                }
-            }
+        if let playlistId = item.playlistId {
+            targets.append(MuzzaNavigationTarget(
+                item: muzzaCollectionItem(
+                    id: playlistId, title: item.playlistTitle ?? "Playlist",
+                    subtitle: "", thumbnail: "", kind: "playlist"
+                ),
+                title: "Open playlist",
+                systemImage: "music.note.list"
+            ))
         }
-        .sheet(item: $destination) { target in
-            NavigationStack {
-                MuzzaCollectionView(item: target, playback: playback)
-            }
+        return targets
+    case "album":
+        return artists.compactMap { artist in
+            guard let id = artist.id else { return nil }
+            return MuzzaNavigationTarget(
+                item: muzzaCollectionItem(
+                    id: id, title: artist.name, subtitle: "Artist",
+                    thumbnail: artist.thumbnail ?? "", kind: "artist"
+                ),
+                title: "Go to \(artist.name)",
+                systemImage: "person"
+            )
         }
+    case "playlist":
+        guard let creator = artists.first(where: { $0.id != nil }),
+              let creatorId = creator.id else { return [] }
+        return [MuzzaNavigationTarget(
+            item: muzzaCollectionItem(
+                id: creatorId, title: creator.name, subtitle: "Artist",
+                thumbnail: creator.thumbnail ?? "", kind: "artist"
+            ),
+            title: "Go to playlist creator",
+            systemImage: "person"
+        )]
+    default:
+        return []
     }
 }
 
@@ -625,6 +646,11 @@ struct MuzzaSongRow: View {
     var onPlaylistChange: (([MuzzaLiveItem]) -> Void)? = nil
     @State private var duplicatePlaylist: MuzzaLiveItem?
     @State private var showDuplicate = false
+    @State private var navigationDestination: MuzzaLiveItem?
+
+    private var navigationTargets: [MuzzaNavigationTarget] {
+        muzzaNavigationTargets(for: item)
+    }
 
     init(
         item: MuzzaLiveItem,
@@ -707,7 +733,17 @@ struct MuzzaSongRow: View {
                 }
                 .disabled(!playback.libraryLoaded || playback.isLibraryBusy)
 
-                MuzzaNavigationActions(item: item, playback: playback)
+                if !navigationTargets.isEmpty {
+                    Section("Navigate") {
+                        ForEach(navigationTargets) { target in
+                            Button {
+                                navigationDestination = target.item
+                            } label: {
+                                Label(target.title, systemImage: target.systemImage)
+                            }
+                        }
+                    }
+                }
 
                 let addablePlaylists = playback.playlists.filter {
                     $0.kind == "localPlaylist" ||
@@ -789,7 +825,17 @@ struct MuzzaSongRow: View {
             } else {
                 Button("Download") { playback.download(item) }
             }
-            MuzzaNavigationActions(item: item, playback: playback)
+            if !navigationTargets.isEmpty {
+                Section("Navigate") {
+                    ForEach(navigationTargets) { target in
+                        Button {
+                            navigationDestination = target.item
+                        } label: {
+                            Label(target.title, systemImage: target.systemImage)
+                        }
+                    }
+                }
+            }
             if let playlist {
                 Button(role: .destructive) {
                     Task {
@@ -827,6 +873,11 @@ struct MuzzaSongRow: View {
                 Button("Add anyway") { add(to: target, allowDuplicate: true) }
             }
             Button("Cancel", role: .cancel) {}
+        }
+        .sheet(item: $navigationDestination) { destination in
+            NavigationStack {
+                MuzzaCollectionView(item: destination, playback: playback)
+            }
         }
     }
 
